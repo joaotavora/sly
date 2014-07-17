@@ -33,18 +33,14 @@
            #:*fasl-pathname-function*
            #:*log-events*
            #:*log-output*
-           #:*use-dedicated-output-stream*
-           #:*dedicated-output-stream-port*
            #:*configure-emacs-indentation*
            #:*readtable-alist*
-           #:*globally-redirect-io*
            #:*global-debugger*
            #:*sldb-quit-restart*
            #:*backtrace-printer-bindings*
            #:*default-worker-thread-bindings*
            #:*macroexpand-printer-bindings*
            #:*swank-pprint-bindings*
-           #:*record-repl-results*
            #:*inspector-verbose*
            #:*require-module*
            ;; This is SETFable.
@@ -192,10 +188,8 @@ Backend code should treat the connection structure as opaque.")
 ;;;; Connections
 ;;;
 ;;; Connection structures represent the network connections between
-;;; Emacs and Lisp. Each has a socket stream, a set of user I/O
-;;; streams that redirect to Emacs, and optionally a second socket
-;;; used solely to pipe user-output to Emacs (an optimization).  This
-;;; is also the place where we keep everything that needs to be
+;;; Emacs and Lisp. Each has a socket stream, and optionally
+;;; This is also the place where we keep everything that needs to be
 ;;; freed/closed/killed when we disconnect.
 
 (defstruct (connection
@@ -207,20 +201,10 @@ Backend code should treat the connection structure as opaque.")
   ;; Character I/O stream of socket connection.  Read-only to avoid
   ;; race conditions during initialization.
   (socket-io        (missing-arg) :type stream :read-only t)
-  ;; Optional dedicated output socket (backending `user-output' slot).
-  ;; Has a slot so that it can be closed with the connection.
-  (dedicated-output nil :type (or stream null))
-  ;; Streams that can be used for user interaction, with requests
-  ;; redirected to Emacs.
-  (user-input       nil :type (or stream null))
-  (user-output      nil :type (or stream null))
-  (user-io          nil :type (or stream null))
-  ;; Bindings used for this connection (usually streams)
-  (env '() :type list)
-  ;; A stream that we use for *trace-output*; if nil, we user user-output.
-  (trace-output     nil :type (or stream null))
-  ;; A stream where we send REPL results.
-  (repl-results     nil :type (or stream null))
+  ;; An alist of (ID . CHANNEL) entries. Channels are good for
+  ;; streaming data over the wire (see their description in sly.el)
+  ;;
+  (channels '() :type list)
   ;; Cache of macro-indentation information that has been sent to Emacs.
   ;; This is used for preparing deltas to update Emacs's knowledge.
   ;; Maps: symbol -> indentation-specification
@@ -532,8 +516,9 @@ corresponding values in the CDR of VALUE."
 ;;; FIXME: poor name?
 (defmacro with-io-redirection ((connection) &body body)
   "Execute BODY I/O redirection to CONNECTION. "
-  `(with-bindings (connection.env ,connection)
-     . ,body))
+  `(call-using-channel
+    (default-channel ,connection)
+    #'(lambda () ,@body)))
 
 ;; Thread local variable used for flow-control.
 ;; It's bound by `with-connection'.
@@ -960,8 +945,6 @@ The processing is done in the extent of the toplevel restart."
             (escape-non-ascii (safe-condition-message condition)))
     (stop-serving-requests c)
     (close (connection.socket-io c))
-    (when (connection.dedicated-output c)
-      (close (connection.dedicated-output c)))
     (setf *connections* (remove c *connections*))
     (run-hook *connection-closed-hook* c)
     (when (and condition (not (typep condition 'end-of-file)))
@@ -1350,19 +1333,23 @@ event was found."
 
 ;;; Channels
 
-;; FIXME: should be per connection not global.
-(defvar *channels* '())
 (defvar *channel-counter* 0)
+
+(defmacro channels () `(connection.channels *emacs-connection*))
 
 (defclass channel ()
   ((id     :initform (incf *channel-counter*)
            :reader channel-id)
    (thread :initarg :thread :initform (current-thread)
            :reader channel-thread)
-   (name   :initarg :name   :initform nil)))
+   (name   :initarg :name   :initform nil)
+
+   (out                          :reader channel-out)
+   (in                           :reader channel-in)
+   (env    :initarg  :env        :accessor channel-env)))
 
 (defmethod initialize-instance :after ((ch channel) &key)
-  (push (cons (channel-id ch) ch) *channels*))
+  (push (cons (channel-id ch) ch) (channels)))
 
 (defmethod print-object ((c channel) stream)
   (print-unreadable-object (c stream :type t)
@@ -1370,11 +1357,11 @@ event was found."
       (format stream "~d ~a" id name))))
 
 (defun find-channel (id)
-  (cdr (assoc id *channels*)))
+  (cdr (assoc id (channels))))
 
 (defun close-channel (channel)
-  (let ((probe (assoc (channel-id channel) *channels*)))
-    (cond (probe (setf *channels* (delete probe *channels*)))
+  (let ((probe (assoc (channel-id channel) (channels))))
+    (cond (probe (setf (channels) (delete probe (channels))))
           (t (error "Can't close invalid channel: ~a" channel)))))
 
 (defgeneric channel-send (channel selector args)
@@ -1388,6 +1375,12 @@ event was found."
 (defun send-to-remote-channel (channel-id msg)
   (send-to-emacs `(:channel-send ,channel-id ,msg)))
 
+(defun call-using-channel (channel fn)
+  (let ((env (and channel
+                  (channel-environment channel))))
+    (with-bindings env
+      (funcall fn))))
+
 
 
 (defvar *sly-features* nil
@@ -1398,13 +1391,15 @@ event was found."
 
 ;; FIXME: belongs to swank-repl.lisp
 (defun force-user-output ()
-  (force-output (connection.user-io *emacs-connection*)))
+  ;; (force-output (connection.user-io *emacs-connection*))
+  )
 
 (add-hook *pre-reply-hook* 'force-user-output)
 
 ;; FIXME: belongs to swank-repl.lisp
 (defun clear-user-input  ()
-  (clear-input (connection.user-input *emacs-connection*)))
+  ;; (clear-input (connection.user-input *emacs-connection*))
+  )
 
 ;; FIXME: not thread save.
 (defvar *tag-counter* 0)
@@ -3777,7 +3772,43 @@ Collisions are caused because package information is ignored."
       (background-message "flow-control-test: ~d" i))))
 
 
+;;;; The "official" API
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (let ((api '(
+               *emacs-connection*
+               channel
+               channel-id
+               channel-thread
+               channel-env
+               channel-out
+               channel-in
+               close-channel
+               define-channel-method
+               defslyfun
+               destructure-case
+               find-channel
+               log-event
+               process-requests
+               send-to-remote-channel
+               use-threads-p
+               wait-for-event
+               with-bindings
+               with-connection
+               with-top-level-restart
+               with-sly-interrupts
+               stop-processing
+               with-buffer-syntax
+               with-retry-restart
+               
+               )))
+    (eval `(defpackage #:swank-api
+             (:use)
+             (:import-from #:swank . ,api)
+             (:export . ,api)))))
 
+
+;;;; INIT, as called from the swank-loader.lisp and ASDF's loaders
+;;;; 
 (defun load-user-init-file ()
   "Load the user init file, return NIL if it does not exist."
   (or (load (merge-pathnames (user-homedir-pathname)

@@ -2,36 +2,6 @@
 ;;
 ;; Licence: public domain
 
-(in-package :swank)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (let ((api '(
-               *emacs-connection*
-               channel
-               channel-id
-               channel-thread
-               close-channel
-               define-channel-method
-               defslyfun
-               destructure-case
-               find-channel
-               log-event
-               process-requests
-               send-to-remote-channel
-               use-threads-p
-               wait-for-event
-               with-bindings
-               with-connection
-               with-top-level-restart
-               with-sly-interrupts
-               stop-processing
-               with-buffer-syntax
-               with-retry-restart
-               )))
-    (eval `(defpackage #:swank-api
-             (:use)
-             (:import-from #:swank . ,api)
-             (:export . ,api)))))
-
 (defpackage :swank-mrepl
   (:use :cl :swank-api)
   (:export #:create-mrepl
@@ -42,11 +12,8 @@
 
 (defclass listener-channel (channel)
   ((remote     :initarg  :remote :accessor remote)
-   (env        :initarg  :env    :accessor env)
    (mode       :initform :eval   :accessor channel-mode)
-   (tag        :initform nil)
-   (out                          :reader out)
-   (in                           :reader in)))
+   (tag        :initform nil)))
 
 (defmethod initialize-instance :after ((channel listener-channel)
                                        &rest initargs)
@@ -91,8 +58,8 @@
 (defvar *history* nil)
 
 (defun initial-listener-env (channel)
-  (let* ((out (out channel))
-         (in (in channel))
+  (let* ((out (channel-out channel))
+         (in (channel-in channel))
          (io (make-two-way-stream in out)))
     `((cl:*package* . ,*package*)
       (cl:*standard-output* . ,out)
@@ -118,7 +85,7 @@
       (unwind-protect
            (process-requests t)
         (setf mode old-mode)))
-    (with-bindings (env channel)
+    (with-bindings (channel-env channel)
       (send-prompt channel))))
 
 (defun spawn-listener-thread (connection channel)
@@ -307,7 +274,5 @@ port. This is an optimized way for Lisp to deliver output to Emacs."
              dedicated))
       (when socket
         (swank-backend:close-socket socket)))))
-
-
 
 (provide :swank-mrepl)

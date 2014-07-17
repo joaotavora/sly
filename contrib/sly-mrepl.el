@@ -189,10 +189,9 @@ emptied.See also `sly-mrepl-hook'")
   (when (get-buffer-window)
     (recenter -1)))
 
-;; HACK: for SLIME compatibility
-(sly-define-channel-method listener :write-result (string)
+(sly-define-channel-method listener :write-string (string)
   (with-current-buffer (sly-channel-get self 'buffer)
-    (sly-mrepl--insert string)))
+    (sly-mrepl--insert-output string)))
 
 (define-button-type 'sly
   'face 'sly-inspectable-value-face)
@@ -216,10 +215,6 @@ emptied.See also `sly-mrepl-hook'")
 (sly-define-channel-method listener :evaluation-aborted (&optional condition)
   (with-current-buffer (sly-channel-get self 'buffer)
     (sly-mrepl--insert (format "; Evaluation aborted on %s\n" condition))))
-
-(sly-define-channel-method listener :write-string (string)
-  (with-current-buffer (sly-channel-get self 'buffer)
-    (sly-mrepl--insert-output string)))
 
 (sly-define-channel-method listener :inspect-result (parts)
   (cl-assert (sly-channel-p self))
