@@ -225,7 +225,7 @@ If LOAD is true, load the fasl file."
           (mapcar #'ensure-list files)))
 
 (defvar *swank-files*
-  `(swank-backend ,@*sysdep-files* swank-match swank-rpc swank))
+  `(swank-backend ,@*sysdep-files* swank-match swank-rpc swank-ring swank))
 
 (defun load-swank (&key (src-dir *source-directory*)
                      (fasl-dir *fasl-directory*)

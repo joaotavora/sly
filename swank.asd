@@ -59,8 +59,8 @@
        (:file "swank-gray")
        (:file "swank-match")
        (:file "swank-rpc")
-       (:file "swank")
-       ))))))
+       (:file "swank-ring")
+       (:file "swank")))))))
 
 (defmethod perform :after ((o load-op) (c (eql (find-system :swank))))
   (format *error-output* "&SWANK's ASDF loader finished")
