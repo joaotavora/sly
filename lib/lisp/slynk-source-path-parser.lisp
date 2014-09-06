@@ -21,9 +21,9 @@
 ;;; This code has been placed in the Public Domain.  All warranties
 ;;; are disclaimed.
 
-;;; Taken from swank-cmucl.lisp, by Helmut Eller
+;;; Taken from slynk-cmucl.lisp, by Helmut Eller
 
-(in-package :swank-backend)
+(in-package :slynk-backend)
 
 ;; Some test to ensure the required conformance
 (let ((rt (copy-readtable nil)))

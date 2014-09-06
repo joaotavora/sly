@@ -1,6 +1,6 @@
 ;;;;                  -*- indent-tabs-mode: nil; outline-regexp: ";;;;;* "; -*-
 ;;;
-;;; swank-allegro.lisp --- Allegro CL specific code for SLY. 
+;;; slynk-allegro.lisp --- Allegro CL specific code for SLY. 
 ;;;
 ;;; Created 2003
 ;;;
@@ -8,7 +8,7 @@
 ;;; are disclaimed.
 ;;;  
 
-(in-package :swank-backend)
+(in-package :slynk-backend)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require :sock)
@@ -17,13 +17,13 @@
   (require 'lldb)
   )
 
-(import-from :excl *gray-stream-symbols* :swank-backend)
+(import-from :excl *gray-stream-symbols* :slynk-backend)
 
-;;; swank-mop
+;;; slynk-mop
 
-(import-swank-mop-symbols :clos '(:slot-definition-documentation))
+(import-slynk-mop-symbols :clos '(:slot-definition-documentation))
 
-(defun swank-mop:slot-definition-documentation (slot)
+(defun slynk-mop:slot-definition-documentation (slot)
   (documentation slot t))
 
 
@@ -171,8 +171,8 @@
   `(:ok ,(format nil "Set breakpoint at start of ~S" fname)))
 
 (defun find-topframe ()
-  (let ((magic-symbol (intern (symbol-name :swank-debugger-hook)
-                              (find-package :swank)))
+  (let ((magic-symbol (intern (symbol-name :slynk-debugger-hook)
+                              (find-package :slynk)))
         (top-frame (excl::int-newest-frame (excl::current-thread))))
     (loop for frame = top-frame then (next-frame frame)
           for i from 0
@@ -456,7 +456,7 @@
                  (reader-error  #'handle-compiler-warning))
     (funcall function)))
 
-(defimplementation swank-compile-file (input-file output-file 
+(defimplementation slynk-compile-file (input-file output-file 
                                        load-p external-format
                                        &key policy)
   (declare (ignore policy))
@@ -540,7 +540,7 @@ to do this, this factors in the length of the inserted header itself."
          (delete-file binary-filename))
        (not failure?)))))
 
-(defimplementation swank-compile-string (string &key buffer position filename
+(defimplementation slynk-compile-string (string &key buffer position filename
                                          policy)
   (declare (ignore policy))
   (handler-case 
@@ -731,7 +731,7 @@ to do this, this factors in the length of the inserted header itself."
           (saved-ynp (symbol-function 'cl:y-or-n-p)))
      (setf (excl::package-definition-lock pkg) nil
            (symbol-function 'cl:y-or-n-p)
-           (symbol-function (read-from-string "swank:y-or-n-p-in-emacs")))
+           (symbol-function (read-from-string "slynk:y-or-n-p-in-emacs")))
      (unwind-protect
           (progn ,@body)
        (setf (symbol-function 'cl:y-or-n-p)      saved-ynp

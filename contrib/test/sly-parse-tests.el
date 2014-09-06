@@ -5,43 +5,43 @@
     (buffer-sexpr result-form &optional skip-trailing-test-p)
     ""
     '(("(char= #\\(*HERE*"
-       ("char=" "#\\(" swank::%cursor-marker%))
+       ("char=" "#\\(" slynk::%cursor-marker%))
       ("(char= #\\( *HERE*"
-       ("char=" "#\\(" "" swank::%cursor-marker%))
+       ("char=" "#\\(" "" slynk::%cursor-marker%))
       ("(char= #\\) *HERE*"
-       ("char=" "#\\)" "" swank::%cursor-marker%))
+       ("char=" "#\\)" "" slynk::%cursor-marker%))
       ("(char= #\\*HERE*"
-       ("char=" "#\\" swank::%cursor-marker%) t)
+       ("char=" "#\\" slynk::%cursor-marker%) t)
       ("(defun*HERE*"
-       ("defun" swank::%cursor-marker%))
+       ("defun" slynk::%cursor-marker%))
       ("(defun foo*HERE*"
-       ("defun" "foo" swank::%cursor-marker%))
+       ("defun" "foo" slynk::%cursor-marker%))
       ("(defun foo (x y)*HERE*"
        ("defun" "foo"
-	("x" "y") swank::%cursor-marker%))
+	("x" "y") slynk::%cursor-marker%))
       ("(defun foo (x y*HERE*"
        ("defun" "foo"
-	("x" "y" swank::%cursor-marker%)))
+	("x" "y" slynk::%cursor-marker%)))
       ("(apply 'foo*HERE*"
-       ("apply" "'foo" swank::%cursor-marker%))
+       ("apply" "'foo" slynk::%cursor-marker%))
       ("(apply #'foo*HERE*"
-       ("apply" "#'foo" swank::%cursor-marker%))
+       ("apply" "#'foo" slynk::%cursor-marker%))
       ("(declare ((vector bit *HERE*"
-       ("declare" (("vector" "bit" "" swank::%cursor-marker%))))
+       ("declare" (("vector" "bit" "" slynk::%cursor-marker%))))
       ("(with-open-file (*HERE*"
-       ("with-open-file" ("" swank::%cursor-marker%)))
+       ("with-open-file" ("" slynk::%cursor-marker%)))
       ("(((*HERE*"
-       ((("" swank::%cursor-marker%))))
+       ((("" slynk::%cursor-marker%))))
       ("(defun #| foo #| *HERE*"
-       ("defun" "" swank::%cursor-marker%))
+       ("defun" "" slynk::%cursor-marker%))
       ("(defun #-(and) (bar) f*HERE*"
-       ("defun" "f" swank::%cursor-marker%))
+       ("defun" "f" slynk::%cursor-marker%))
       ("(remove-if #'(lambda (x)*HERE*"
-       ("remove-if" ("lambda" ("x") swank::%cursor-marker%)))
+       ("remove-if" ("lambda" ("x") slynk::%cursor-marker%)))
       ("`(remove-if ,(lambda (x)*HERE*"
-       ("remove-if" ("lambda" ("x") swank::%cursor-marker%)))
+       ("remove-if" ("lambda" ("x") slynk::%cursor-marker%)))
       ("`(remove-if ,@(lambda (x)*HERE*"
-       ("remove-if" ("lambda" ("x") swank::%cursor-marker%))))
+       ("remove-if" ("lambda" ("x") slynk::%cursor-marker%))))
   (sly-check-top-level)
   (with-temp-buffer
     (lisp-mode)

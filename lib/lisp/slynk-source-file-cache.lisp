@@ -20,7 +20,7 @@
 ;;; This code has been placed in the Public Domain.  All warranties
 ;;; are disclaimed.
 
-(in-package :swank-backend)
+(in-package :slynk-backend)
 
 (defvar *cache-sourcecode* t
   "When true complete source files are cached.
