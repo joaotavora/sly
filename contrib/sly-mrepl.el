@@ -11,7 +11,7 @@
   (:swank-dependencies swank-mrepl)
   (:on-load
    ;; Define a new "part action" for the `sly-part' buttons and change
-   ;; the `sly-inspector-part', `sldb-local-variable' and
+   ;; the `sly-inspector-part', `sly-db-local-variable' and
    ;; `sly-trace-dialog-part' to include it.
    ;;
    (sly-button-define-part-action sly-mrepl-copy-part-to-repl
@@ -21,15 +21,15 @@
    (button-type-put 'sly-inspector-part
                     'sly-mrepl-copy-part-to-repl
                     'sly-inspector-copy-part-to-repl)
-   (button-type-put 'sldb-local-variable
+   (button-type-put 'sly-db-local-variable
                     'sly-mrepl-copy-part-to-repl
-                    'sldb-copy-part-to-repl)
+                    'sly-db-copy-part-to-repl)
    (button-type-put 'sly-apropos-symbol
                     'sly-mrepl-copy-part-to-repl
                     'sly-apropos-copy-symbol-to-repl)
-   (button-type-put 'sldb-frame
+   (button-type-put 'sly-db-frame
                     'sly-mrepl-copy-call-to-repl
-                    'sldb-copy-call-to-repl)
+                    'sly-db-copy-call-to-repl)
    (eval-after-load "sly-trace-dialog"
      `(progn
         (button-type-put 'sly-trace-dialog-part
@@ -352,7 +352,7 @@ emptied. See also `sly-mrepl-hook'")
          (concat (sly-make-action-button
                   (format "[%d]" error-level)
                   #'(lambda (_button)
-                      (when-let (b (sldb-find-buffer sly-current-thread))
+                      (when-let (b (sly-db-find-buffer sly-current-thread))
                         (pop-to-buffer b))))
                  " "))
        (propertize
@@ -715,7 +715,7 @@ Doesn't clear input history."
   (sly-mrepl--eval-for-repl (format "Returning inspector slot %s" number)
                             `(swank:inspector-nth-part-or-lose ,number)))
 
-(defun sldb-copy-part-to-repl (frame-id var-id)
+(defun sly-db-copy-part-to-repl (frame-id var-id)
   "Evaluate the frame var at point via the REPL (to set `*')."
   (sly-mrepl--eval-for-repl
    (format "Returning var %s of frame %s" var-id frame-id)
@@ -732,7 +732,7 @@ Doesn't clear input history."
    (format "Returning part %s (%s) of trace entry %s" part-id type id)
    `(swank-trace-dialog:trace-part-or-lose ,id ,part-id ,type)))
 
-(defun sldb-copy-call-to-repl (frame-id spec)
+(defun sly-db-copy-call-to-repl (frame-id spec)
   (sly-mrepl--eval-for-repl
    (format "The actual arguments passed to frame %s" frame-id)
    `(swank-backend:frame-arguments ,frame-id)

@@ -13,7 +13,7 @@
 (defpackage :swank-backend
   (:use :common-lisp)
   (:export #:*debug-swank-backend*
-           #:sldb-condition
+           #:sly-db-condition
            #:compiler-condition
            #:original-condition
            #:message
@@ -906,7 +906,7 @@ HOOK should be called for both BREAK and INVOKE-DEBUGGER."
   (let ((*debugger-hook* hook))
     (funcall fun)))
 
-(define-condition sldb-condition (condition)
+(define-condition sly-db-condition (condition)
   ((original-condition
     :initarg :original-condition
     :accessor original-condition))
@@ -920,7 +920,7 @@ When a condition arises from the internals of the debugger, it is not
 desirable to debug it -- we'd risk entering an endless loop trying to
 debug the debugger! Instead, such conditions can be reported to the
 user without (re)entering the debugger by wrapping them as
-`sldb-condition's."))
+`sly-db-condition's."))
 
 ;;; The following functions in this section are supposed to be called
 ;;; within the dynamic contour of CALL-WITH-DEBUGGING-ENVIRONMENT only.
@@ -1011,7 +1011,7 @@ from the frame.")
 as it was called originally.")
 
 (definterface print-condition (condition stream)
-  "Print a condition for display in SLDB."
+  "Print a condition for display in SLY-DB."
   (princ condition stream))
 
 (definterface condition-extras (condition)
@@ -1031,25 +1031,25 @@ The allowed elements are of the form:
 (definterface activate-stepping (frame-number)
   "Prepare the frame FRAME-NUMBER for stepping.")
 
-(definterface sldb-break-on-return (frame-number)
+(definterface sly-db-break-on-return (frame-number)
   "Set a breakpoint in the frame FRAME-NUMBER.")
 
-(definterface sldb-break-at-start (symbol)
+(definterface sly-db-break-at-start (symbol)
   "Set a breakpoint on the beginning of the function for SYMBOL.")
 
-(definterface sldb-stepper-condition-p (condition)
-  "Return true if SLDB was invoked due to a single-stepping condition,
+(definterface sly-db-stepper-condition-p (condition)
+  "Return true if SLY-DB was invoked due to a single-stepping condition,
 false otherwise. "
   (declare (ignore condition))
   nil)
 
-(definterface sldb-step-into ()
+(definterface sly-db-step-into ()
   "Step into the current single-stepper form.")
 
-(definterface sldb-step-next ()
+(definterface sly-db-step-next ()
   "Step to the next form in the current function.")
 
-(definterface sldb-step-out ()
+(definterface sly-db-step-out ()
   "Stop single-stepping temporarily, but resume it once the current function
 returns.")
 
