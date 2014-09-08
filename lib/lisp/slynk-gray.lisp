@@ -1,6 +1,6 @@
 ;;;; -*- Mode: lisp; indent-tabs-mode: nil -*-
 ;;;
-;;; swank-gray.lisp --- Gray stream based IO redirection.
+;;; slynk-gray.lisp --- Gray stream based IO redirection.
 ;;;
 ;;; Created 2003
 ;;;
@@ -8,7 +8,7 @@
 ;;; are disclaimed.
 ;;;
 
-(in-package :swank-backend)
+(in-package :slynk-backend)
 
 (defclass sly-output-stream (fundamental-character-output-stream)
   ((output-fn :initarg :output-fn)
