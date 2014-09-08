@@ -11,11 +11,11 @@
 
 SLY is a Common Lisp IDE for Emacs.
 
-See it in action [this screencast][7]. SLY is currently **alpha** status but
-read the [NEWS.md][6] file for the latest news.
+See it in action [this screencast][7]. 
 
-SLY is a fork of [SLIME][1], which is the work of Eric Marsden, Luke Gorrie,
-Helmut Eller Tobias, C. Rittweiler and [many-others][8].
+SLY is a fork of [SLIME][1]. Read about the reasons for forking [here][2] and
+see the [NEWS.md][6] for a listing of the differences between the two
+projects. SLY is currently **alpha** status
 
 Quick setup instructions
 ------------------------
@@ -47,20 +47,40 @@ Licence
 -------
 
 SLY is free software. All files, unless explicitly stated otherwise, are
-public domain. ASCII artwork by Felix Lee and others.
+public domain. ASCII artwork is copyright by Felix Lee and others.
+
+Fork
+----
+
+SLIME is the work of Eric Marsden, Luke Gorrie, Helmut Eller, Tobias
+C. Rittweiler and [many others][8]. I forked SLIME it because I used it daily,
+for work, had a long list of hacks developed for myself, and wanted to share
+these with others.
+
+I helped bring SLIME to github and submitted many of these to changes to SLIME
+in 2013/2014. However, the changes that SLY brings to the table are too deep at
+the Elisp and Lisp level to be accepted to SLIME given its current focus on
+stability. For the record, I find this perfectly reasonable. As an example, SLY
+frees itself from the Emacs 23 shackles and supports Emacs 24.3 only allowing
+for much cleaner code and liberal use of lexical binding.
+
+The list of technical reasons is bigger than this though, and you can read up on
+them in the [CONTRIBUTING.md][9] file.
 
 Contributing
 ------------
 
-[Open an issue or a pull request][4], but first see the [CONTRIBUTING.md][5]
-file for instructions on how to contribute.
+[Open an issue or a pull request][4], but at least have a quick look at the
+first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 
 [1]: http://www.common-lisp.net/project/slime/
+[2]: https://github.com/capitaomorte/sly/blob/master/README.md#fork
 [4]: https://github.com/capitaomorte/sly/issues
 [5]: https://github.com/capitaomorte/sly/blob/master/CONTRIBUTING.md
 [6]: https://github.com/capitaomorte/sly/blob/master/NEWS.md
 [7]: https://www.youtube.com/watch?v=xqWkVvubnSI
 [8]: http://common-lisp.net/project/slime/doc/html/Credits.html#Credits
+[9]: https://github.com/capitaomorte/sly/blob/master/CONTRIBUTING.md#architecture
 
 <!-- Local Variables: -->
 <!-- fill-column: 80 -->
