@@ -54,7 +54,7 @@ There are Sylvesters. See `sly-mrepl-pop-sylvester`.
 
 ### Regexp-capable M-x sly-apropos
 
-If SLY detects that [`cl-purr`](http://weitz.de/cl-ppcre/) is
+If SLY detects that [`cl-ppcre`](http://weitz.de/cl-ppcre/) is
 available in the Lisp side it will try to use it for "apropos"
 searches, otherwise the user is hinted at this possibility. As regexp
 searches are slower, this is only triggered if the pattern is a valid
@@ -86,7 +86,7 @@ See the CONTRIBUTING.md file for more details on architecture changes.
 
 ### More consistent interface
 
-The SLY-DB, Inspector, XREF and Apropos buffers have been
+The SLDB, Inspector, XREF and Apropos buffers have been
 redesigned to use a common class of push button with consistent
 interfaces.
 
@@ -113,7 +113,7 @@ streams are kept. An idea by Olof-Joachim Frahm
 
 ### Copy function call to REPL
 
-An experimental feature, from the Trace Dialog or SLY-DB buffers, a new
+An experimental feature, from the Trace Dialog or SLDB buffers, a new
 button-action called "Copy call to REPL" is offered.
 
 If SLY can calculate the arguments and the function symbol of the
@@ -129,7 +129,7 @@ switches themes.
 
 Popping up windows and buffers has been much improved. Windows are
 reused if the buffer names match or are similar, meaning that no
-longer will the SLY-DB "jump around" in multi-window configurations when
+longer will the SLDB "jump around" in multi-window configurations when
 selecting a restart that signals another error.
 
 Interactive expression evaluation will use a separate buffer when the
@@ -181,12 +181,3 @@ The `slime-c-p-c` contrib has been removed, as it contained a lot of
 non-standard window-managing code. Its functionality has been merged
 into `sly-fuzzy` and setting `sly-complete-symbol-function` to
 `sly-c-p-c-complete-symbol` should give you the previous behavior.
-
-
-
-
-
-
-
-
-
