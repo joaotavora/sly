@@ -714,6 +714,14 @@ Doesn't clear input history."
                                         'sly-mrepl-break-output t))
   (sly-message "Cleared recent output"))
 
+(defun sly-mrepl-switch-to-mrepl ()
+  "Switch to the last used mrepl."
+  (interactive)
+  (pop-to-buffer (cl-loop
+                  for buffer in (buffer-list)
+                  when (string-match "*sly-mrepl for " (buffer-name buffer))
+                  return buffer)))
+
 
 ;;; "External" non-interactive functions for plugging into
 ;;; other parts of SLY
