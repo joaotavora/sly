@@ -4,7 +4,7 @@
 
 This file has been placed in the public domain.
  -->
-<!-- Created on September 15, 2014 by texi2html 1.82
+<!-- Created on October 25, 2014 by texi2html 1.82
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -79,7 +79,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 <h1 class="settitle">SLY</h1>
 
 <p><acronym>SLY</acronym> is a Common Lisp IDE for Emacs. This is the manual for version
-1.0.0-alpha. (Last updated September 15, 2014)
+1.0.0-alpha. (Last updated October 25, 2014)
 </p>
 <p>Written by Luke Gorrie and others.
 </p>
@@ -100,7 +100,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Tips-and-Tricks">7. Tips and Tricks</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="#Contributed-Packages">8. Contributed Packages</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#Extensions">8. Extensions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Credits">9. Credits</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -110,157 +110,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Variable-Index">Variable and Concept Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment"> &mdash; The Detailed Node Listing &mdash;
-
-Getting started
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Platforms">2.1 Supported Platforms</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Downloading">2.2 Downloading SLY</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Installation">2.3 Installation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Running">2.4 Running SLY</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Basic-customization">2.5 Basic customization</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Multiple-Lisps">2.6 Multiple Lisps</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Loading-Slynk-faster">2.7 Loading Slynk faster</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-Using <acronym>SLY</acronym> mode
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#User_002dinterface-conventions">3.1 User-interface conventions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Compilation">3.3 Compilation commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Completion">3.4 Completion commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Documentation">3.6 Documentation commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Cross_002dreference">3.7 Cross-reference commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Macro_002dexpansion">3.8 Macro-expansion commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Disassembly">3.9 Disassembly commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Recovery">3.10 Abort/Recovery commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Inspector">3.11 Inspector commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Other">3.12 Shadowed Commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Semantic-indentation">3.13 Semantic indentation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Reader-conditionals">3.14 Reader conditional fontification</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-User-interface conventions
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Temporary-buffers">3.1.1 Temporary buffers</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; Inferior-lisp</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Multithreading">3.1.2 Multithreading</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Key-bindings">3.1.3 Key bindings</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-SLY-DB: the <acronym>SLY</acronym> debugger
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Examining-frames">4.1 Examining frames</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Restarts">4.2 Invoking restarts</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Frame-Navigation">4.3 Navigating between frames</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Stepping">4.4 Stepping</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Miscellaneous">4.5 Miscellaneous Commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-Misc
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#sly_002dmacroexpansion_002dminor_002dmode">5.1 sly-macroexpansion-minor-mode</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-Customization
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Emacs_002dside-customization">6.1 Emacs-side</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Lisp_002dside">6.2 Lisp-side (Slynk)</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-Emacs-side
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Hooks">6.1.1 Hooks</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-Lisp-side (Slynk)
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Communication-style">6.2.1 Communication style</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-Tips and Tricks
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Connecting-to-a-remote-lisp">7.1 Connecting to a remote lisp</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Global-IO-Redirection">7.2 Globally redirecting all IO to the REPL</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Auto_002dSLY">7.3 Connecting to SLY automatically</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-Connecting to a remote lisp
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Setting-up-the-lisp-image">7.1.1 Setting up the lisp image</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Setting-up-Emacs">7.1.2 Setting up Emacs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Setting-up-pathname-translations">7.1.3 Setting up pathname translations</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-Contributed Packages
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#Loading-Contribs">8.1 Loading Contrib Packages</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#REPL">8.2 REPL: the &ldquo;top level&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Fuzzy-Completion">8.3 Fuzzy Completion</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Fancy-Inspector">8.6 Fancy Inspector</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#TRAMP">8.7 TRAMP</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Scratch-Buffer">8.8 Scratch Buffer</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#sly_002dfancy">8.10 Meta package: <code>sly-fancy</code></a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-REPL: the &ldquo;top level&rdquo;
-
-</pre></th></tr><tr><td align="left" valign="top"><a href="#REPL-commands">8.2.1 REPL commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#Input-Navigation">8.2.2 Input navigation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top">&bull; Shortcuts</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-</pre></th></tr></table>
+</table>
 
 <hr size="1">
 <a name="Introduction"></a>
@@ -351,7 +201,11 @@ file.
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Running">2.4 Running SLY</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; Setup Tuning</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#Basic-customization">2.5 Basic customization</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Multiple-Lisps">2.6 Multiple Lisps</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Loading-Slynk-faster">2.7 Loading Slynk faster</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
@@ -453,7 +307,6 @@ git log HEAD..origin/master
 and submit a <em>pull request</em>. Be sure to first read the
 <a href="https://github.com/capitaomorte/sly/blob/master/CONTRIBUTING.md">CONTRIBUTING.md</a> file first.
 </p>
-
 <hr size="6">
 <a name="Installation"></a>
 <table cellpadding="1" cellspacing="1" border="0">
@@ -478,8 +331,6 @@ and submit a <em>pull request</em>. Be sure to first read the
 <p>With a Lisp implementation that can be started from the command-line,
 installation just requires a few lines in your &lsquo;<tt>.emacs</tt>&rsquo;:
 </p>
-<a name="index-inferior_002dlisp_002dprogram"></a>
-<a name="index-load_002dpath"></a>
 <table><tr><td>&nbsp;</td><td><pre class="example">(add-to-list 'load-path &quot;~/dir/to/cloned/sly&quot;)
 (require 'sly-autoloads)
 (setq inferior-lisp-program &quot;/opt/sbcl/bin/sbcl&quot;)
@@ -562,8 +413,8 @@ example, use
                 'sly-mrepl-clear-recent-output))
 </pre></td></tr></table>
 
-<p>To learn about each extension&rsquo;s keymaps, see @pxref{Contrib
-extensions}.
+<p>To learn about each extension&rsquo;s functionality and its keymap, see
+see section <a href="#Extensions">Extensions</a>.
 </p>
 <hr size="6">
 <a name="Multiple-Lisps"></a>
@@ -594,13 +445,11 @@ involves long filenames it&rsquo;s more convenient to set the
 <code>sly-lisp-implementations</code> variable in your &lsquo;<tt>.emacs</tt>&rsquo;.  For
 example here we define two programs:
 </p>
-<a name="index-sly_002dlisp_002dimplementations"></a>
 <table><tr><td>&nbsp;</td><td><pre class="lisp">(setq sly-lisp-implementations
       '((cmucl (&quot;cmucl&quot; &quot;-quiet&quot;))
         (sbcl (&quot;/opt/sbcl/bin/sbcl&quot;) :coding-system utf-8-unix)))
 </pre></td></tr></table>
 
-<a name="index-sly_002ddefault_002dlisp"></a>
 <p>This variable holds a list of programs and if you invoke <acronym>SLY</acronym> with
 a negative prefix argument, <kbd>M-- M-x sly</kbd>, you can select a
 program from that list. When called without a prefix, either the name
@@ -792,8 +641,6 @@ principles are described in this section.
 <table class="menu" border="0" cellspacing="0">
 <tr><td align="left" valign="top"><a href="#Temporary-buffers">3.1.1 Temporary buffers</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; Inferior-lisp</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
 <tr><td align="left" valign="top"><a href="#Multithreading">3.1.2 Multithreading</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Key-bindings">3.1.3 Key bindings</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
@@ -843,7 +690,6 @@ addition to any special mode of their own. This makes the usual
 <acronym>SLY</acronym> commands available for describing symbols, looking up
 function definitions, and so on.
 </p>
-<a name="index-sly_002ddescription_002dautofocus"></a>
 <p>Initial focus of those &ldquo;description&rdquo; buffers depends on the variable
 <code>sly-description-autofocus</code>. If <code>nil</code> (the default),
 description buffers do not receive focus automatically, and vice
@@ -1477,11 +1323,6 @@ none. With a prefix argument they always prompt. You can either enter
 the key bindings as shown here or with the control modified on the
 last key, See section <a href="#Key-bindings">Key bindings</a>.
 </p>
-<table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top"><a href="#Xref-buffer-commands">3.7.1 Xref buffer commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-</table>
-
 <dl compact="compact">
 <dt> <kbd>C-c C-w c</kbd></dt>
 <dt> <kbd>M-x sly-who-calls</kbd></dt>
@@ -1554,6 +1395,11 @@ information is unavailable.
 </p>
 </dd>
 </dl>
+
+<table class="menu" border="0" cellspacing="0">
+<tr><td align="left" valign="top"><a href="#Xref-buffer-commands">3.7.1 Xref buffer commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+</table>
 
 <hr size="6">
 <a name="Xref-buffer-commands"></a>
@@ -1661,7 +1507,6 @@ argument, use macroexpand instead of macroexpand-1.
 <p>For additional minor-mode commands and discussion,
 see section <a href="#sly_002dmacroexpansion_002dminor_002dmode">sly-macroexpansion-minor-mode</a>.
 </p>
-
 <hr size="6">
 <a name="Disassembly"></a>
 <table cellpadding="1" cellspacing="1" border="0">
@@ -2390,7 +2235,6 @@ debugger.
 </dd>
 </dl>
 
-
 <hr size="6">
 <a name="Misc"></a>
 <table cellpadding="1" cellspacing="1" border="0">
@@ -2605,7 +2449,6 @@ be used for commands in <code>sly-mode</code> source buffers.
 </dd>
 </dl>
 
-
 <hr size="6">
 <a name="Customization"></a>
 <table cellpadding="1" cellspacing="1" border="0">
@@ -2668,14 +2511,12 @@ ensures that lines do not wrap in backtraces, apropos listings, and so
 on. It can however cause information to spill off the screen.
 </p>
 <p><a name="sly_002dcomplete_002dsymbol_002dfunction"></a>
-<a name="index-sly_002dcomplete_002dsymbol_002dfunction"></a>
 </p></dd>
 <dt> <code>sly-complete-symbol-function</code></dt>
 <dd><p>The function to use for completion of Lisp symbols. Two completion
 styles are available: <code>sly-simple-complete-symbol</code>
 and <code>sly-fuzzy-complete-symbol</code> (see section <a href="#Fuzzy-Completion">Fuzzy Completion</a>).
 </p>
-<a name="index-sly_002dfilename_002dtranslations"></a>
 </dd>
 <dt> <code>sly-filename-translations</code></dt>
 <dd><p>This variable controls filename translation between Emacs and the Lisp
@@ -2685,7 +2526,6 @@ but have different layouts, as is the case with <acronym>SMB</acronym>-based
 file sharing.
 </p>
 <p><a name="sly_002dnet_002dcoding_002dsystem"></a>
-<a name="index-sly_002dnet_002dcoding_002dsystem"></a>
 <a name="index-Unicode"></a>
 <a name="index-UTF_002d8"></a>
 <a name="index-ASCII"></a>
@@ -2735,23 +2575,18 @@ for different Lisps, see <a href="#Multiple-Lisps">Multiple Lisps</a>.)
 <h3 class="subsection">6.1.1 Hooks</h3>
 
 <dl compact="compact">
-<dd>
-<a name="index-sly_002dmode_002dhook"></a>
-</dd>
 <dt> <code>sly-mode-hook</code></dt>
 <dd><p>This hook is run each time a buffer enters <code>sly-mode</code>. It is
 most useful for setting buffer-local configuration in your Lisp source
 buffers. An example use is to enable <code>sly-autodoc-mode</code>
-(see section <a href="#sly_002dautodoc_002dmode"><code>sly-autodoc-mode</code></a>).
+(see section <a href="#Autodoc">Autodoc</a>).
 </p>
 <p><a name="sly_002dconnected_002dhook"></a>
-<a name="index-sly_002dconnected_002dhook"></a>
 </p></dd>
 <dt> <code>sly-connected-hook</code></dt>
 <dd><p>This hook is run when <acronym>SLY</acronym> establishes a connection to a Lisp
 server. An example use is to pop to a new <acronym>REPL</acronym>.
 </p>
-<a name="index-sly_002ddb_002dhook"></a>
 </dd>
 <dt> <code>sly-db-hook</code></dt>
 <dd><p>This hook is run after <acronym>SLY-DB</acronym> is invoked. The hook functions are
@@ -2815,7 +2650,6 @@ variables.
 </tr></table>
 <a name="Communication-style-1"></a>
 <h3 class="subsection">6.2.1 Communication style</h3>
-<a name="index-SLYNK_003a_002aCOMMUNICATION_002dSTYLE_002a"></a>
 
 <p>The most important configurable is <code>SLYNK:*COMMUNICATION-STYLE*</code>,
 which specifies the mechanism by which Lisp reads and processes
@@ -2897,26 +2731,11 @@ also override the default by setting
 file:
 </p>
 <dl compact="compact">
-<dd>
-<a name="index-SLYNK_003a_002aCONFIGURE_002dEMACS_002dINDENTATION_002a"></a>
-</dd>
 <dt> <code>SLYNK:*CONFIGURE-EMACS-INDENTATION*</code></dt>
 <dd><p>This variable controls whether indentation styles for
 <code>&amp;body</code>-arguments in macros are discovered and sent to Emacs. It
 is enabled by default.
 </p>
-<a name="index-SLYNK_003a_002aGLOBALLY_002dREDIRECT_002dIO_002a"></a>
-</dd>
-<dt> <code>SLYNK:*GLOBALLY-REDIRECT-IO*</code></dt>
-<dd><p>When true this causes the standard streams (<code>*standard-output*</code>,
-etc) to be globally redirected to the <acronym>REPL</acronym> in Emacs. When
-<code>NIL</code> (the default) these streams are only temporarily redirected
-to Emacs using dynamic bindings while handling requests. Note that
-<code>*standard-input*</code> is currently never globally redirected into
-Emacs, because it can interact badly with the Lisp&rsquo;s native <acronym>REPL</acronym> by
-having it try to read from the Emacs one.
-</p>
-<a name="index-SLYNK_003a_002aGLOBAL_002dDEBUGGER_002a"></a>
 </dd>
 <dt> <code>SLYNK:*GLOBAL-DEBUGGER*</code></dt>
 <dd><p>When true (the default) this causes <code>*DEBUGGER-HOOK*</code> to be
@@ -2925,7 +2744,6 @@ to handle all debugging in the Lisp image. This is for debugging
 multithreaded and callback-driven applications.
 </p>
 <p><a name="SLYNK_003a_002aSLY_002dDB_002dQUIT_002dRESTART_002a"></a>
-<a name="index-SLYNK_003a_002aSLY_002dDB_002dQUIT_002dRESTART_002a"></a>
 </p></dd>
 <dt> <code>SLYNK:*SLY-DB-QUIT-RESTART*</code></dt>
 <dd><p>This variable names the restart that is invoked when pressing <kbd>q</kbd>
@@ -2937,10 +2755,6 @@ application&rsquo;s thread lands into the debugger (see
 </p><table><tr><td>&nbsp;</td><td><pre class="example">(setf slynk:*sly-db-quit-restart* 'sb-thread:terminate-thread)
 </pre></td></tr></table>
 
-<a name="index-SLYNK_003a_002aBACKTRACE_002dPRINTER_002dBINDINGS_002a"></a>
-<a name="index-SLYNK_003a_002aMACROEXPAND_002dPRINTER_002dBINDINGS_002a"></a>
-<a name="index-SLYNK_003a_002aSLY_002dDB_002dPRINTER_002dBINDINGS_002a"></a>
-<a name="index-SLYNK_003a_002aSLYNK_002dPPRINT_002dBINDINGS_002a"></a>
 </dd>
 <dt> <code>SLYNK:*BACKTRACE-PRINTER-BINDINGS*</code></dt>
 <dt> <code>SLYNK:*MACROEXPAND-PRINTER-BINDINGS*</code></dt>
@@ -2953,32 +2767,6 @@ the pretty printer for formatting backtraces in <acronym>SLY-DB</acronym>, you c
 </p><table><tr><td>&nbsp;</td><td><pre class="example">(push '(*print-pretty* . t) slynk:*sly-db-printer-bindings*).
 </pre></td></tr></table>
 
-<a name="index-SLYNK_003a_002aUSE_002dDEDICATED_002dOUTPUT_002dSTREAM_002a"></a>
-</dd>
-<dt> <code>SLYNK:*USE-DEDICATED-OUTPUT-STREAM*</code></dt>
-<dd><p>This variable controls whether to use an unsafe efficiency hack for
-sending printed output from Lisp to Emacs.  The default is <code>nil</code>,
-don&rsquo;t use it, and is strongly recommended to keep.
-</p>
-<p>When <code>t</code>, a separate socket is established solely for Lisp to send
-printed output to Emacs through, which is faster than sending the output
-in protocol-messages to Emacs.  However, as nothing can be guaranteed
-about the timing between the dedicated output stream and the stream of
-protocol messages, the output of a Lisp command can arrive before or
-after the corresponding REPL results.  Thus output and REPL results can
-end up in the wrong order, or even interleaved, in the REPL buffer.
-Using a dedicated output stream also makes it more difficult to
-communicate to a Lisp running on a remote host via SSH
-(see section <a href="#Connecting-to-a-remote-lisp">Connecting to a remote lisp</a>).
-</p>
-<a name="index-SLYNK_003a_002aDEDICATED_002dOUTPUT_002dSTREAM_002dPORT_002a"></a>
-</dd>
-<dt> <code>SLYNK:*DEDICATED-OUTPUT-STREAM-PORT*</code></dt>
-<dd><p>When <code>*USE-DEDICATED-OUTPUT-STREAM*</code> is <code>t</code> the stream will
-be opened on this port. The default value, <code>0</code>, means that the
-stream will be opened on some random port.
-</p>
-<a name="index-SLYNK_003a_002aLOG_002dEVENTS_002a"></a>
 </dd>
 <dt> <code>SLYNK:*LOG-EVENTS*</code></dt>
 <dd><p>Setting this variable to <code>t</code> causes all protocol messages
@@ -2999,7 +2787,7 @@ your Lisp system&rsquo;s own listener, usually in the buffer
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Customization" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3029,7 +2817,7 @@ your Lisp system&rsquo;s own listener, usually in the buffer
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3067,7 +2855,7 @@ that simple.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Connecting-to-a-remote-lisp" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3143,7 +2931,7 @@ Emacs and Lisp.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Connecting-to-a-remote-lisp" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3183,7 +2971,7 @@ into thinking it&rsquo;s actually <code>127.0.0.1</code>.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Connecting-to-a-remote-lisp" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3233,7 +3021,7 @@ contrib to setup the proper translations by simply doing:
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3270,11 +3058,11 @@ shouldn&rsquo;t do that unless you know what you&rsquo;re doing.
 <a name="Auto_002dSLY"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Global-IO-Redirection" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3297,7 +3085,7 @@ just add this to your &lsquo;<tt>.emacs</tt>&rsquo;:
 </pre></td></tr></table>
 
 <hr size="6">
-<a name="Contributed-Packages"></a>
+<a name="Extensions"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Auto_002dSLY" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Loading-Contribs" title="Next section in reading order"> &gt; </a>]</td>
@@ -3314,8 +3102,8 @@ just add this to your &lsquo;<tt>.emacs</tt>&rsquo;:
 <td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<a name="Contributed-Packages-1"></a>
-<h1 class="chapter">8. Contributed Packages</h1>
+<a name="Extensions-1"></a>
+<h1 class="chapter">8. Extensions</h1>
 
 <p>In version 2.1 we moved some functionality to separate packages.  This
 chapter tells you how to load contrib modules and describes what the
@@ -3328,30 +3116,28 @@ particular packages do.
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Fuzzy-Completion">8.3 Fuzzy Completion</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#Autodoc">8.4 Autodoc</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top">&bull; Editing Commands</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="#Fancy-Inspector">8.6 Fancy Inspector</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#SLY-Stickers">8.5 SLY Stickers</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="#TRAMP">8.7 TRAMP</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#TRAMP-Support">8.7 TRAMP</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Scratch-Buffer">8.8 Scratch Buffer</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
-</td></tr>
-<tr><td align="left" valign="top"><a href="#sly_002dfancy">8.10 Meta package: <code>sly-fancy</code></a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
 <hr size="6">
 <a name="Loading-Contribs"></a>
 <table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#Contributed-Packages" title="Previous section in reading order"> &lt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="#Extensions" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Loading-and-unloading-_0060_0060on-the-fly_0027_0027" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3369,12 +3155,13 @@ particular packages do.
 <a name="index-Contributions"></a>
 <a name="index-Plugins"></a>
 
-<p>Contrib packages aren&rsquo;t loaded by default.  You have to modify your
-setup a bit so that Emacs knows where to find them and which of them
-to load.  Generally, you set the variable <code>sly-contribs</code> with
-the list of package-names that you want to use.  For example, a setup
-to load the <code>sly-scratch</code> and <code>sly-editing-commands</code>
-packages looks like:
+<p>A special <code>sly-fancy</code> contrib package is loaded by default. You
+might never want to fiddle with it, but if you find that you don&rsquo;t
+like some package or you are having trouble with a package, you can
+modify your setup a bit.  Generally, you set the
+variable <code>sly-contribs</code> with the list of package-names that you
+want to use.  For example, a setup to load only the <code>sly-scratch</code>
+and <code>sly-mrepl</code> packages looks like:
 </p>
 <table><tr><td>&nbsp;</td><td><pre class="example">;; <em>Setup load-path and autoloads</em>
 (add-to-list 'load-path &quot;~/dir/to/cloned/sly&quot;)
@@ -3382,33 +3169,19 @@ packages looks like:
 
 ;; <em>Set your lisp system and some contribs</em>
 (setq inferior-lisp-program &quot;/opt/sbcl/bin/sbcl&quot;)
-(setq sly-contribs '(sly-scratch sly-editing-commands))
+(setq sly-contribs '(sly-scratch sly-mrepl))
 </pre></td></tr></table>
 
 <p>After starting <acronym>SLY</acronym>, the commands of both packages should be
 available.
 </p>
-<p>The REPL and <code>sly-fancy</code> modules deserve special mention.  Many
-users consider the REPL (see section <a href="#REPL">REPL: the &ldquo;top level&rdquo;</a>) essential
-while <code>sly-fancy</code> (see section <a href="#sly_002dfancy">Meta package: <code>sly-fancy</code></a>) loads the REPL and
-almost all of the popular contribs.  So, if you aren&rsquo;t sure what to
-choose start with:
-</p>
-<table><tr><td>&nbsp;</td><td><pre class="example">(setq sly-contribs '(sly-mrepl)) ; repl only
-</pre></td></tr></table>
-
-<p>If you like what you see try this:
-</p>
-<table><tr><td>&nbsp;</td><td><pre class="example">(setq sly-contribs '(sly-fancy)) ; almost everything
-</pre></td></tr></table>
-
 <hr size="6">
 <a name="Loading-and-unloading-_0060_0060on-the-fly_0027_0027"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Loading-Contribs" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Loading-Contribs" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3450,8 +3223,8 @@ restart your lisps.
 <tr><td valign="middle" align="left">[<a href="#Loading-and-unloading-_0060_0060on-the-fly_0027_0027" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL-commands" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3484,31 +3257,12 @@ output is inserted in the right place, and doesn&rsquo;t get mixed up with
 user input.
 </li></ul>
 
-<p>To load the REPL use <code>(add-to-list 'sly-contribs 'sly-mrepl)</code> in your
-<code>.emacs</code>.
-</p>
 <dl compact="compact">
 <dt> <kbd>C-c C-z</kbd></dt>
 <dt> <kbd>M-x sly-switch-to-output-buffer</kbd></dt>
 <dd><a name="index-C_002dc-C_002dz"></a>
 <a name="index-sly_002dswitch_002dto_002doutput_002dbuffer"></a>
 <p>Select the output buffer, preferably in a different window.
-</p>
-</dd>
-<dt> <kbd>C-c C-y</kbd></dt>
-<dt> <kbd>M-x sly-call-defun</kbd></dt>
-<dd><a name="index-C_002dc-C_002dy"></a>
-<a name="index-sly_002dcall_002ddefun"></a>
-<p>Insert a call to the function defined around point into the REPL.
-</p>
-</dd>
-<dt> <kbd>C-c C-j</kbd></dt>
-<dt> <kbd>M-x sly-eval-last-expression-in-repl</kbd></dt>
-<dd><a name="index-C_002dc-C_002dj"></a>
-<a name="index-sly_002deval_002dlast_002dexpression_002din_002drepl"></a>
-<p>Inserts the last expression to the REPL and evaluates it there.
-Switches to the current packae of the source buffer for the duration.
-If used with a prefix argument, doesn&rsquo;t switch back afterwards.
 </p>
 </dd>
 </dl>
@@ -3518,7 +3272,7 @@ If used with a prefix argument, doesn&rsquo;t switch back afterwards.
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Input-Navigation">8.2.2 Input navigation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top">&bull; Shortcuts</td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#REPL-output-control">8.2.3 REPL output control</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 </table>
 
@@ -3528,7 +3282,7 @@ If used with a prefix argument, doesn&rsquo;t switch back afterwards.
 <tr><td valign="middle" align="left">[<a href="#REPL" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Input-Navigation" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3543,25 +3297,14 @@ If used with a prefix argument, doesn&rsquo;t switch back afterwards.
 <a name="REPL-commands-1"></a>
 <h3 class="subsection">8.2.1 REPL commands</h3>
 
-<dl compact="compact">
-<dt> <kbd>RET</kbd></dt>
-<dt> <kbd>M-x sly-mrepl-return</kbd></dt>
-<dd><a name="index-RET-3"></a>
-<a name="index-sly_002dmrepl_002dreturn"></a>
-<p>Evaluate the current input in Lisp if it is complete. If incomplete,
-open a new line and indent. If a prefix argument is given then the
-input is evaluated without checking for completeness.
-</p>
-</dd>
-</dl>
 
 <hr size="6">
 <a name="Input-Navigation"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#REPL-commands" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Fuzzy-Completion" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#REPL-output-control" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3579,21 +3322,75 @@ input is evaluated without checking for completeness.
 <a name="index-Input-History"></a>
 
 <p>The input navigation (a.k.a. history) commands are modelled after
-<code>coming</code>-mode.  Be careful if you are used to Bash-like
-keybindings: <kbd>M-p</kbd> and <kbd>M-n</kbd> use the current input as search
-pattern and only work Bash-like if the current line is
-empty. <kbd>C-&lt;up&gt;</kbd> and <kbd>C-&lt;up&gt;</kbd> work like the up and down keys in
-Bash.
+<code>coming</code>-mode.
 </p>
+<p>Bash-like keybindings are available: <kbd>M-p</kbd> and <kbd>M-n</kbd> navigate
+the input history incrementally while <kbd>C-r</kbd> does a &ldquo;reverse
+i-search&rdquo;. <kbd>C-&lt;up&gt;</kbd> and <kbd>C-&lt;up&gt;</kbd> work like the up and down
+keys in Bash.
+</p>
+
+<hr size="6">
+<a name="REPL-output-control"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Input-Navigation" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Fuzzy-Completion" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#REPL" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="REPL-output-control-1"></a>
+<h3 class="subsection">8.2.3 REPL output control</h3>
+
+<ul>
+<li> <code>SLYNK-MREPL:*GLOBALLY-REDIRECT-IO*</code>
+
+<p>When true this causes the standard streams (<code>*standard-output*</code>,
+etc) to be globally redirected to the <acronym>REPL</acronym> in Emacs. When
+<code>NIL</code> (the default) these streams are only temporarily redirected
+to Emacs using dynamic bindings while handling requests. Note that
+<code>*standard-input*</code> is currently never globally redirected into
+Emacs, because it can interact badly with the Lisp&rsquo;s native <acronym>REPL</acronym> by
+having it try to read from the Emacs one.
+</p>
+</li><li> <code>SLYNK-MREPL:*USE-DEDICATED-OUTPUT-STREAM*</code>
+
+<p>This variable controls whether to use a more efficient mechanism for
+sending printed output from Lisp to Emacs.
+</p>
+<p>When <code>t</code>, a separate socket is established solely for Lisp to
+send printed output to Emacs through, which is faster than sending the
+output in protocol-messages to Emacs.
+</p>
+<p>Notice that using a dedicated output stream also makes it more
+difficult to communicate to a Lisp running on a remote host via SSH
+(see section <a href="#Connecting-to-a-remote-lisp">Connecting to a remote lisp</a>), so you should probably set this
+variable to <code>nil</code> when doing so.
+</p>
+</li><li> <code>SLYNK:*DEDICATED-OUTPUT-STREAM-PORT*</code>
+
+<p>When <code>*USE-DEDICATED-OUTPUT-STREAM*</code> is <code>t</code> the stream will
+be opened on this port. The default value, <code>0</code>, means that the
+stream will be opened on some random port.
+</p></li></ul>
 
 <hr size="6">
 <a name="Fuzzy-Completion"></a>
 <table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#Input-Navigation" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#sly_002dautodoc_002dmode" title="Next section in reading order"> &gt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="#REPL-output-control" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Autodoc" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3650,13 +3447,13 @@ completion will also be used for <kbd>M-TAB</kbd>.
 </dl>
 
 <hr size="6">
-<a name="sly_002dautodoc_002dmode"></a>
+<a name="Autodoc"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Fuzzy-Completion" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Editing-Commands" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#SLY-Stickers" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3667,8 +3464,8 @@ completion will also be used for <kbd>M-TAB</kbd>.
 <td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<a name="sly_002dautodoc_002dmode-1"></a>
-<h2 class="section">8.4 <code>sly-autodoc-mode</code></h2>
+<a name="Autodoc-1"></a>
+<h2 class="section">8.4 Autodoc</h2>
 
 <p>Autodoc mode is an additional minor-mode for automatically showing
 information about symbols near the point. For function names the
@@ -3700,154 +3497,21 @@ display multiline arglist.
 </p></dd>
 </dl>
 
-<a name="index-sly_002duse_002dautodoc_002dmode"></a>
 <p>If the variable <code>sly-use-autodoc-mode</code> is set (default), Emacs
 starts a timer, otherwise the information is only displayed after
 pressing SPC.
 </p>
-<a name="index-sly_002dautodoc_002duse_002dmultiline_002dp"></a>
 <p>If <code>sly-autodoc-use-multiline-p</code> is set to non-nil,
 allow long autodoc messages to resize echo area display.
 </p>
 <hr size="6">
-<a name="Editing-Commands"></a>
+<a name="SLY-Stickers"></a>
 <table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#sly_002dautodoc_002dmode" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Fancy-Inspector" title="Next section in reading order"> &gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
-<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
-<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
-</tr></table>
-<a name="Editing-Commands-1"></a>
-<h2 class="section">8.5 Editing Commands</h2>
-
-<p>The package <code>sly-editing-commands</code> provides some commands to
-edit Lisp expressions.
-</p>
-<dl compact="compact">
-<dt> <kbd>C-c M-q</kbd></dt>
-<dt> <kbd>M-x sly-reindent-defun</kbd></dt>
-<dd><a name="index-C_002dc-M_002dq"></a>
-<a name="index-sly_002dreindent_002ddefun"></a>
-<p>Re-indents the current defun, or refills the current paragraph.
-If point is inside a comment block, the text around point will be
-treated as a paragraph and will be filled with <code>fill-paragraph</code>.
-Otherwise, it will be treated as Lisp code, and the current defun
-will be reindented.  If the current defun has unbalanced parens,
-an attempt will be made to fix it before reindenting.
-</p>
-</dd>
-<dt> <kbd>C-c C-]</kbd></dt>
-<dt> <kbd>M-x sly-close-all-parens-in-sexp</kbd></dt>
-<dd><a name="index-C_002dc-C_002d_005d"></a>
-<a name="index-sly_002dclose_002dall_002dparens_002din_002dsexp"></a>
-<p>Balance parentheses of open s-expressions at point.
-Insert enough right parentheses to balance unmatched left parentheses.
-Delete extra left parentheses.  Reformat trailing parentheses
-Lisp-stylishly.
-</p>
-<p>If REGION is true, operate on the region. Otherwise operate on
-the top-level sexp before point.
-</p>
-</dd>
-<dt> <kbd>M-x sly-insert-balanced-comments</kbd></dt>
-<dd><a name="index-sly_002dinsert_002dbalanced_002dcomments"></a>
-<p>Insert a set of balanced comments around the s-expression containing
-the point.  If this command is invoked repeatedly (without any other
-command occurring between invocations), the comment progressively
-moves outward over enclosing expressions.  If invoked with a positive
-prefix argument, the s-expression arg expressions out is enclosed in a
-set of balanced comments.
-</p>
-</dd>
-<dt> <kbd>M-C-a</kbd></dt>
-<dt> <kbd>M-x sly-beginning-of-defun</kbd></dt>
-<dd><a name="index-M_002dC_002da"></a>
-<a name="index-sly_002dbeginning_002dof_002ddefun"></a>
-</dd>
-<dt> <kbd>M-C-e</kbd></dt>
-<dt> <kbd>M-x sly-end-of-defun</kbd></dt>
-<dd><a name="index-M_002dC_002de"></a>
-<a name="index-sly_002dend_002dof_002ddefun"></a>
-</dd>
-</dl>
-
-<hr size="6">
-<a name="Fancy-Inspector"></a>
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#Editing-Commands" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#TRAMP" title="Next section in reading order"> &gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
-<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
-<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
-</tr></table>
-<a name="Fancy-Inspector-1"></a>
-<h2 class="section">8.6 Fancy Inspector</h2>
-
-<a name="index-Methods"></a>
-
-<p>An alternative to default inspector is provided by the package
-&lsquo;sly-fancy-inspector&rsquo;.  This inspector knows a lot about CLOS
-objects and methods.  It provides many &ldquo;actions&rdquo; that can be
-selected to invoke Lisp code on the inspected object. For example, to
-present a generic function the inspector shows the documentation in
-plain text and presents each method with both a hyperlink to inspect
-the method object and a &ldquo;remove method&rdquo; action that you can invoke
-interactively.  The key-bindings are the same as for the basic
-inspector (see section <a href="#Inspector">Inspector commands</a>).
-</p>
-<hr size="6">
-<a name="TRAMP"></a>
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#Fancy-Inspector" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Scratch-Buffer" title="Next section in reading order"> &gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
-<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
-<td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
-<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
-</tr></table>
-<a name="TRAMP-1"></a>
-<h2 class="section">8.7 TRAMP</h2>
-
-<a name="index-TRAMP"></a>
-
-<p>The package <code>sly-tramp</code> provides some functions to set up
-filename translations for TRAMP. (see section <a href="#Setting-up-pathname-translations">Setting up pathname translations</a>)
-</p>
-<hr size="6">
-<a name="Scratch-Buffer"></a>
-<table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#TRAMP" title="Previous section in reading order"> &lt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="#Autodoc" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#SLY-Trace-Dialog" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3858,42 +3522,82 @@ filename translations for TRAMP. (see section <a href="#Setting-up-pathname-tran
 <td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<a name="Scratch-Buffer-1"></a>
-<h2 class="section">8.8 Scratch Buffer</h2>
+<a name="SLY-Stickers-1"></a>
+<h2 class="section">8.5 SLY Stickers</h2>
 
-<p><a name="sly_002dscratch"></a>
-The <acronym>SLY</acronym> scratch buffer, in contrib package <code>sly-scratch</code>,
-imitates Emacs&rsquo; usual <code>*scratch*</code> buffer.
-If <code>sly-scratch-file</code> is set, it is used to back the scratch
-buffer, making it persistent. The buffer is like any other Lisp
-buffer, except for the command bound to <kbd>C-j</kbd>.
+<p><acronym>SLY</acronym> Stickers, in package <code>sly-stickers</code> is a live code
+annotation tool. It can be thought of as a replacement to the &ldquo;print&rdquo;
+statements that programmers often include when debugging to check the
+return value of a particular variable or expression.
 </p>
-<dl compact="compact">
-<dt> <kbd>C-j</kbd></dt>
-<dt> <kbd>M-x sly-eval-print-last-expression</kbd></dt>
-<dd><a name="index-C_002dj"></a>
-<a name="index-sly_002deval_002dprint_002dlast_002dexpression"></a>
-<p>Evaluate the expression sexp before point and insert print value into
-the current buffer.
+<p>However, in contrast to these annotation techniques, &ldquo;stickers&rdquo; are
+non-intrusive, meaning that saving your file doesn&rsquo;t save your
+annotation code along with it.
 </p>
-</dd>
-<dt> <kbd>M-x sly-scratch</kbd></dt>
-<dd><a name="index-sly_002dscratch"></a>
-<p>Create a &lsquo;<tt>*sly-scratch*</tt>&rsquo; buffer. In this
-buffer you can enter Lisp expressions and evaluate them with
-<kbd>C-j</kbd>, like in Emacs&rsquo;s &lsquo;<tt>*scratch*</tt>&rsquo; buffer.
+<p>Here&rsquo;s the general workflow
 </p>
-</dd>
-</dl>
+<ul>
+<li>
+In Lisp source files, using <kbd>C-c C-s C-s</kbd> or <code>M-x
+sly-stickers-dwim</code> sets a sticker on any Lisp form.
+</li><li>
+Stickers are &ldquo;armed&rdquo; when a definition or a file is compiled with the
+familar <kbd>C-c C-c</kbd> (<code>M-x sly-compile-defun</code>) or <kbd>C-c C-k</kbd>
+(<code>M-x sly-compile-file</code>) commands. An armed sticker changes color from
+the default grey background to a blue background.
+</li><li>
+From this point on, when the Lisp code is executed, the results of
+evaluating the underlying forms are captured in the Lisp side.
+</li><li>
+<kbd>C-c C-s S</kbd> (<code>M-x sly-stickers-fetch</code>) populates the sticker
+overlay with the captured results, called &ldquo;recordings&rdquo;. If a sticker
+has captured any recordings, it will turn green, otherwise it will turn
+red. A sticker whose Lisp expression has caused a non-local exit, will
+be also be marked with a special face.
+</li><li>
+As an alternative to <code>sly-stickers-fetch</code>, <kbd>C-c C-s C-r</kbd>
+(<code>M-x sly-stickers-fetch-and-replay</code>) interactively walk the user
+through recordings in the order that they occured.
+</li><li>
+At any point, stickers can be removed with the
+same <code>sly-stickers-dwim</code> keybinding, by placing the cursor at the
+beginning of a sticker.
+</li><li>
+Stickers can be nested inside other stickers, so it is possible to
+record the value of an expression inside another expression which is
+also annotated.
+</li><li>
+Stickers are interactive parts just like any other part in <acronym>SLY</acronym> that
+represents Lisp-side objects, so they can be inspected and returned to
+the REPL, for example. To move through the stickers with the keyboard
+use the existing keybindings to move through compilatino notes(<kbd>M-p</kbd>
+and <kbd>M-n</kbd>) or use <kbd>C-c C-s p</kbd> and <kbd>C-c C-s n</kbd>
+(<code>sly-stickers-prev-sticker</code> and <code>sly-stickers-next-sticker</code>).
+</li></ul>
+
+<p>There are some caveats when using <acronym>SLY</acronym> Stickers:
+</p>
+<ul>
+<li>
+Stickers on unevaluated forms (such as <code>let</code> variable bindings, or
+other constructs) are rejected, though the function is still compiled as
+usual. To let the user about this, these stickers remain grey, and are
+marked as &ldquo;disarmed&rdquo;. A message also appears in the echo area.
+</li><li>
+Stickers placed on expressions inside backquoted expressions in macros
+are always armed, even though they may come to provoke a runtime error
+when the macro&rsquo;s expansion is run. Think of this when setting a sticker
+inside a macro definition.
+</li></ul>
 
 <hr size="6">
 <a name="SLY-Trace-Dialog"></a>
 <table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#Scratch-Buffer" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#sly_002dfancy" title="Next section in reading order"> &gt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="#SLY-Stickers" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#TRAMP-Support" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3905,7 +3609,7 @@ buffer you can enter Lisp expressions and evaluate them with
 <td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
 <a name="SLY-Trace-Dialog-1"></a>
-<h2 class="section">8.9 SLY Trace Dialog</h2>
+<h2 class="section">8.6 SLY Trace Dialog</h2>
 
 <p>The <acronym>SLY</acronym> Trace Dialog, in package <code>sly-trace-dialog</code>, is a
 tracing facility, similar to Common Lisp&rsquo;s <code>trace</code>, but
@@ -3922,14 +3626,6 @@ Trace Dialog collects and stores them in your lisp environment until,
 on user&rsquo;s request, they are fetched into Emacs and displayed in a
 dialog-like interactive view.
 </p>
-<p>To use this contrib, add it to <code>sly-contribs</code> in your
-<code>~/.emacs</code>, either directly by setting up <code>sly-fancy</code>
-(see section <a href="#sly_002dfancy">Meta package: <code>sly-fancy</code></a>).
-</p>
-<table><tr><td>&nbsp;</td><td><pre class="example">;; setting up 'sly-fancy would also have worked
-(add-to-list 'sly-contribs 'sly-trace-dialog)
-</pre></td></tr></table>
-
 <p>After starting up <acronym>SLY</acronym>, <acronym>SLY</acronym>&rsquo;s Trace Dialog installs
 a <em>Trace</em> menu in the menu-bar of any <code>sly-mode</code> buffer and
 adds two new commands, with respective key-bindings:
@@ -4033,13 +3729,13 @@ display additional detail about an entry when the cursor moves over
 it.
 </p>
 <hr size="6">
-<a name="sly_002dfancy"></a>
+<a name="TRAMP-Support"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#SLY-Trace-Dialog" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Credits" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Scratch-Buffer" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -4050,19 +3746,67 @@ it.
 <td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<a name="Meta-package_003a-sly_002dfancy"></a>
-<h2 class="section">8.10 Meta package: <code>sly-fancy</code></h2>
+<a name="TRAMP"></a>
+<h2 class="section">8.7 TRAMP</h2>
 
-<p><code>sly-fancy</code> is a meta package which loads a combination of the
-most popular packages.
+<a name="index-TRAMP"></a>
+
+<p>The package <code>sly-tramp</code> provides some functions to set up
+filename translations for TRAMP. (see section <a href="#Setting-up-pathname-translations">Setting up pathname translations</a>)
 </p>
+<hr size="6">
+<a name="Scratch-Buffer"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#TRAMP-Support" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Credits" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Credits" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Scratch-Buffer-1"></a>
+<h2 class="section">8.8 Scratch Buffer</h2>
+
+<p><a name="sly_002dscratch"></a>
+The <acronym>SLY</acronym> scratch buffer, in contrib package <code>sly-scratch</code>,
+imitates Emacs&rsquo; usual <code>*scratch*</code> buffer.
+If <code>sly-scratch-file</code> is set, it is used to back the scratch
+buffer, making it persistent. The buffer is like any other Lisp
+buffer, except for the command bound to <kbd>C-j</kbd>.
+</p>
+<dl compact="compact">
+<dt> <kbd>C-j</kbd></dt>
+<dt> <kbd>M-x sly-eval-print-last-expression</kbd></dt>
+<dd><a name="index-C_002dj"></a>
+<a name="index-sly_002deval_002dprint_002dlast_002dexpression"></a>
+<p>Evaluate the expression sexp before point and insert print value into
+the current buffer.
+</p>
+</dd>
+<dt> <kbd>M-x sly-scratch</kbd></dt>
+<dd><a name="index-sly_002dscratch"></a>
+<p>Create a &lsquo;<tt>*sly-scratch*</tt>&rsquo; buffer. In this
+buffer you can enter Lisp expressions and evaluate them with
+<kbd>C-j</kbd>, like in Emacs&rsquo;s &lsquo;<tt>*scratch*</tt>&rsquo; buffer.
+</p>
+</dd>
+</dl>
+
 <hr size="6">
 <a name="Credits"></a>
 <table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#sly_002dfancy" title="Previous section in reading order"> &lt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="#Scratch-Buffer" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Hackers-of-the-good-hack" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#Contributed-Packages" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Key-Index" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -4105,8 +3849,8 @@ and code-contributors of <acronym>SLY</acronym> are:
 </p>
 <table>
 <tr><td width="33%">Helmut Eller</td><td width="33%">Luke Gorrie</td><td width="33%">Tobias C. Rittweiler</td></tr>
-<tr><td width="33%">Stas Boukarev</td><td width="33%">Marco Baringer</td><td width="33%">Matthias Koeppe</td></tr>
-<tr><td width="33%">João Távora</td><td width="33%">Nikodemus Siivola</td><td width="33%">Joao Tavora</td></tr>
+<tr><td width="33%">João Távora</td><td width="33%">Stas Boukarev</td><td width="33%">Marco Baringer</td></tr>
+<tr><td width="33%">Matthias Koeppe</td><td width="33%">Nikodemus Siivola</td><td width="33%">Joao Tavora</td></tr>
 <tr><td width="33%">Alan Ruttenberg</td><td width="33%">Attila Lendvai</td><td width="33%">Dan Barlow</td></tr>
 <tr><td width="33%">Andras Simon</td><td width="33%">Martin Simmons</td><td width="33%">Geo Carncross</td></tr>
 <tr><td width="33%">Christophe Rhodes</td><td width="33%">Peter Seibel</td><td width="33%">Mark Evenson</td></tr>
@@ -4116,10 +3860,11 @@ and code-contributors of <acronym>SLY</acronym> are:
 <tr><td width="33%">Juan Jose Garcia Ripoll</td><td width="33%">Nathan Trapuzzano</td><td width="33%">Brian Downing</td></tr>
 <tr><td width="33%">Jeffrey Cunningham</td><td width="33%">Espen Wiborg</td><td width="33%">Mark</td></tr>
 <tr><td width="33%">Samuel Freilich</td><td width="33%">Raymond Toy</td><td width="33%">Phil Hargett</td></tr>
-<tr><td width="33%">Paulo Madeira</td><td width="33%">Luís Borges de Oliveira</td><td width="33%">Jan Moringen</td></tr>
-<tr><td width="33%">Francois-Rene Rideau</td><td width="33%">Bozhidar Batsov</td><td width="33%">Syohei YOSHIDA</td></tr>
-<tr><td width="33%">Olof-Joachim Frahm</td><td width="33%">Mario Lang</td><td width="33%">Luis Oliveira</td></tr>
-<tr><td width="33%">Leo Liu</td><td width="33%">Gábor Melis</td><td width="33%">Bart Botta</td></tr>
+<tr><td width="33%">Paulo Madeira</td><td width="33%">Luís Borges de Oliveira</td><td width="33%">Javier Olaechea</td></tr>
+<tr><td width="33%">Jan Moringen</td><td width="33%">Francois-Rene Rideau</td><td width="33%">Bozhidar Batsov</td></tr>
+<tr><td width="33%">Syohei YOSHIDA</td><td width="33%">Olof-Joachim Frahm</td><td width="33%">Mike Clarke</td></tr>
+<tr><td width="33%">Mario Lang</td><td width="33%">Luis Oliveira</td><td width="33%">Leo Liu</td></tr>
+<tr><td width="33%">Gábor Melis</td><td width="33%">Bart Botta</td></tr>
 </table>
 
 <p>... not counting the bundled code from &lsquo;<tt>hyperspec.el</tt>&rsquo;,
@@ -4164,7 +3909,6 @@ Rhodes of <acronym>SBCL</acronym>, Gary Byers of OpenMCL, and Martin Simmons of
 LispWorks. Thanks also to Alain Picard and Memetrics for funding
 Martin&rsquo;s initial work on the LispWorks backend!
 </p>
-
 <hr size="6">
 <a name="Key-Index"></a>
 <table cellpadding="1" cellspacing="1" border="0">
@@ -4267,7 +4011,7 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dc-2"><code>C-c C-c</code></a></td><td valign="top"><a href="#Xref-buffer-commands">3.7.1 Xref buffer commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dc-3"><code>C-c C-c</code></a></td><td valign="top"><a href="#Examining-frames">4.1 Examining frames</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-_0023"><code>C-c C-d #</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-a"><code>C-c C-d a</code></a></td><td valign="top"><a href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-a"><code>C-c C-d a</code></a></td><td valign="top"><a href="#Autodoc">8.4 Autodoc</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-A"><code>C-c C-d A</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-d"><code>C-c C-d d</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-f"><code>C-c C-d f</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
@@ -4275,7 +4019,6 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-p"><code>C-c C-d p</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-z"><code>C-c C-d z</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dd-_007e"><code>C-c C-d ~</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dj"><code>C-c C-j</code></a></td><td valign="top"><a href="#REPL">8.2 REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dk"><code>C-c C-k</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dl"><code>C-c C-l</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dm"><code>C-c C-m</code></a></td><td valign="top"><a href="#Macro_002dexpansion">3.8 Macro-expansion commands</a></td></tr>
@@ -4294,9 +4037,7 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dx-c"><code>C-c C-x c</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dx-n"><code>C-c C-x n</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dx-t"><code>C-c C-x t</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dy"><code>C-c C-y</code></a></td><td valign="top"><a href="#REPL">8.2 REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dz"><code>C-c C-z</code></a></td><td valign="top"><a href="#REPL">8.2 REPL: the &ldquo;top level&rdquo;</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-C_002d_005d"><code>C-c C-]</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-E"><code>C-c E</code></a></td><td valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-I"><code>C-c I</code></a></td><td valign="top"><a href="#Inspector">3.11 Inspector commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-M_002dc"><code>C-c M-c</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
@@ -4305,12 +4046,11 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002dc-M_002dk"><code>C-c M-k</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-M_002dm"><code>C-c M-m</code></a></td><td valign="top"><a href="#Macro_002dexpansion">3.8 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-M_002dp"><code>C-c M-p</code></a></td><td valign="top"><a href="#Recovery">3.10 Abort/Recovery commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-M_002dq"><code>C-c M-q</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-M_002dt"><code>C-c M-t</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-T"><code>C-c T</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C_002dc-M_002dt"><code>C-c M-t</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C_002dc-T"><code>C-c T</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_007e"><code>C-c ~</code></a></td><td valign="top"><a href="#Recovery">3.10 Abort/Recovery commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dj"><code>C-j</code></a></td><td valign="top"><a href="#Scratch-Buffer">8.8 Scratch Buffer</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dk"><code>C-k</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C_002dk"><code>C-k</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dM_002dx"><code>C-M-x</code></a></td><td valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dx-4-_002e"><code>C-x 4 .</code></a></td><td valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dx-5-_002e"><code>C-x 5 .</code></a></td><td valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td></tr>
@@ -4331,10 +4071,10 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-G">G</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Inspector">3.11 Inspector commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-1"><code>g</code></a></td><td valign="top"><a href="#sly_002dmacroexpansion_002dminor_002dmode">5.1 sly-macroexpansion-minor-mode</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-2"><code>g</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-I">I</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-i"><code>i</code></a></td><td valign="top"><a href="#Examining-frames">4.1 Examining frames</a></td></tr>
@@ -4345,8 +4085,6 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-M">M</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-M_002d_002c"><code>M-,</code></a></td><td valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-M_002d_002e"><code>M-.</code></a></td><td valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-M_002dC_002da"><code>M-C-a</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-M_002dC_002de"><code>M-C-e</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-M_002dn"><code>M-n</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-M_002dn-1"><code>M-n</code></a></td><td valign="top"><a href="#Frame-Navigation">4.3 Navigating between frames</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-M_002dp"><code>M-p</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
@@ -4378,7 +4116,6 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-RET"><code>RET</code></a></td><td valign="top"><a href="#Xref-buffer-commands">3.7.1 Xref buffer commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET-1"><code>RET</code></a></td><td valign="top"><a href="#Inspector">3.11 Inspector commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET-2"><code>RET</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-RET-3"><code>RET</code></a></td><td valign="top"><a href="#REPL-commands">8.2.1 REPL commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-S">S</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-s"><code>s</code></a></td><td valign="top"><a href="#Stepping">4.4 Stepping</a></td></tr>
@@ -4487,14 +4224,11 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-sly_002dapropos"><code>sly-apropos</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dapropos_002dall"><code>sly-apropos-all</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dapropos_002dpackage"><code>sly-apropos-package</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002darglist-NAME"><code>sly-arglist NAME</code></a></td><td valign="top"><a href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dautodoc_002dmanually"><code>sly-autodoc-manually</code></a></td><td valign="top"><a href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dautodoc_002dmode"><code>sly-autodoc-mode</code></a></td><td valign="top"><a href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dbeginning_002dof_002ddefun"><code>sly-beginning-of-defun</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dcall_002ddefun"><code>sly-call-defun</code></a></td><td valign="top"><a href="#REPL">8.2 REPL: the &ldquo;top level&rdquo;</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002darglist-NAME"><code>sly-arglist NAME</code></a></td><td valign="top"><a href="#Autodoc">8.4 Autodoc</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dautodoc_002dmanually"><code>sly-autodoc-manually</code></a></td><td valign="top"><a href="#Autodoc">8.4 Autodoc</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dautodoc_002dmode"><code>sly-autodoc-mode</code></a></td><td valign="top"><a href="#Autodoc">8.4 Autodoc</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dcalls_002dwho"><code>sly-calls-who</code></a></td><td valign="top"><a href="#Cross_002dreference">3.7 Cross-reference commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dcd"><code>sly-cd</code></a></td><td valign="top"><a href="#Recovery">3.10 Abort/Recovery commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dclose_002dall_002dparens_002din_002dsexp"><code>sly-close-all-parens-in-sexp</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dcompile_002dand_002dload_002dfile"><code>sly-compile-and-load-file</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dcompile_002ddefun"><code>sly-compile-defun</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dcompile_002dfile"><code>sly-compile-file</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
@@ -4538,18 +4272,15 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-sly_002dedit_002ddefinition_002dother_002dwindow"><code>sly-edit-definition-other-window</code></a></td><td valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dedit_002ddefinition_002dwith_002detags"><code>sly-edit-definition-with-etags</code></a></td><td valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dedit_002dvalue"><code>sly-edit-value</code></a></td><td valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dend_002dof_002ddefun"><code>sly-end-of-defun</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002deval_002ddefun"><code>sly-eval-defun</code></a></td><td valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002deval_002dlast_002dexpression"><code>sly-eval-last-expression</code></a></td><td valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002deval_002dlast_002dexpression_002ddisplay_002doutput"><code>sly-eval-last-expression-display-output</code></a></td><td valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002deval_002dlast_002dexpression_002din_002drepl"><code>sly-eval-last-expression-in-repl</code></a></td><td valign="top"><a href="#REPL">8.2 REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002deval_002dprint_002dlast_002dexpression"><code>sly-eval-print-last-expression</code></a></td><td valign="top"><a href="#Scratch-Buffer">8.8 Scratch Buffer</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002deval_002dregion"><code>sly-eval-region</code></a></td><td valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dfuzzy_002dcomplete_002dsymbol"><code>sly-fuzzy-complete-symbol</code></a></td><td valign="top"><a href="#Fuzzy-Completion">8.3 Fuzzy Completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dgoto_002dconnection"><code>sly-goto-connection</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dgoto_002dxref"><code>sly-goto-xref</code></a></td><td valign="top"><a href="#Xref-buffer-commands">3.7.1 Xref buffer commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dhyperspec_002dlookup"><code>sly-hyperspec-lookup</code></a></td><td valign="top"><a href="#Documentation">3.6 Documentation commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dinsert_002dbalanced_002dcomments"><code>sly-insert-balanced-comments</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dinspect"><code>sly-inspect</code></a></td><td valign="top"><a href="#Inspector">3.11 Inspector commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dinspector_002dcopy_002ddown"><code>sly-inspector-copy-down</code></a></td><td valign="top"><a href="#Inspector">3.11 Inspector commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dinspector_002ddescribe"><code>sly-inspector-describe</code></a></td><td valign="top"><a href="#Inspector">3.11 Inspector commands</a></td></tr>
@@ -4578,7 +4309,6 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-sly_002dmacroexpand_002d1_002dinplace-1"><code>sly-macroexpand-1-inplace</code></a></td><td valign="top"><a href="#sly_002dmacroexpansion_002dminor_002dmode">5.1 sly-macroexpansion-minor-mode</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmacroexpand_002dall"><code>sly-macroexpand-all</code></a></td><td valign="top"><a href="#Macro_002dexpansion">3.8 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmacroexpand_002dundo"><code>sly-macroexpand-undo</code></a></td><td valign="top"><a href="#sly_002dmacroexpansion_002dminor_002dmode">5.1 sly-macroexpansion-minor-mode</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dreturn"><code>sly-mrepl-return</code></a></td><td valign="top"><a href="#REPL-commands">8.2.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dset_002dpackage"><code>sly-mrepl-set-package</code></a></td><td valign="top"><a href="#Recovery">3.10 Abort/Recovery commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dnext_002dnote"><code>sly-next-note</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dnop"><code>sly-nop</code></a></td><td valign="top"><a href="#Other">3.12 Shadowed Commands</a></td></tr>
@@ -4589,7 +4319,6 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-sly_002dpwd"><code>sly-pwd</code></a></td><td valign="top"><a href="#Recovery">3.10 Abort/Recovery commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002drecompile_002dall_002dxrefs"><code>sly-recompile-all-xrefs</code></a></td><td valign="top"><a href="#Xref-buffer-commands">3.7.1 Xref buffer commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002drecompile_002dxref"><code>sly-recompile-xref</code></a></td><td valign="top"><a href="#Xref-buffer-commands">3.7.1 Xref buffer commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dreindent_002ddefun"><code>sly-reindent-defun</code></a></td><td valign="top"><a href="#Editing-Commands">8.5 Editing Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dremove_002dnotes"><code>sly-remove-notes</code></a></td><td valign="top"><a href="#Compilation">3.3 Compilation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002drestart_002dconnection_002dat_002dpoint"><code>sly-restart-connection-at-point</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002drestart_002dinferior_002dlisp"><code>sly-restart-inferior-lisp</code></a></td><td valign="top"><a href="#Recovery">3.10 Abort/Recovery commands</a></td></tr>
@@ -4601,11 +4330,11 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-sly_002dtemp_002dbuffer_002dquit"><code>sly-temp-buffer-quit</code></a></td><td valign="top"><a href="#sly_002dmacroexpansion_002dminor_002dmode">5.1 sly-macroexpansion-minor-mode</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dtemp_002dbuffer_002dquit-1"><code>sly-temp-buffer-quit</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dtoggle_002dtrace_002dfdefinition"><code>sly-toggle-trace-fdefinition</code></a></td><td valign="top"><a href="#Disassembly">3.9 Disassembly commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog"><code>sly-trace-dialog</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog_002dclear_002dfetched_002dtraces"><code>sly-trace-dialog-clear-fetched-traces</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog_002dfetch_002dstatus"><code>sly-trace-dialog-fetch-status</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog_002dfetch_002dtraces"><code>sly-trace-dialog-fetch-traces</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog_002dtoggle_002dtrace"><code>sly-trace-dialog-toggle-trace</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog"><code>sly-trace-dialog</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog_002dclear_002dfetched_002dtraces"><code>sly-trace-dialog-clear-fetched-traces</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog_002dfetch_002dstatus"><code>sly-trace-dialog-fetch-status</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog_002dfetch_002dtraces"><code>sly-trace-dialog-fetch-traces</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dtrace_002ddialog_002dtoggle_002dtrace"><code>sly-trace-dialog-toggle-trace</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dundefine_002dfunction"><code>sly-undefine-function</code></a></td><td valign="top"><a href="#Evaluation">3.2 Evaluation commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002duntrace_002dall"><code>sly-untrace-all</code></a></td><td valign="top"><a href="#Disassembly">3.9 Disassembly commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dupdate_002dconnection_002dlist"><code>sly-update-connection-list</code></a></td><td valign="top"><a href="#Multiple-connections">5.2 Multiple connections</a></td></tr>
@@ -4687,52 +4416,26 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-Debugger">Debugger</a></td><td valign="top"><a href="#Debugger">4. SLY-DB: the SLY debugger</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-I">I</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-inferior_002dlisp_002dprogram"><code>inferior-lisp-program</code></a></td><td valign="top"><a href="#Installation">2.3 Installation</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Input-History">Input History</a></td><td valign="top"><a href="#Input-Navigation">8.2.2 Input navigation</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-L">L</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-LATIN_002d1">LATIN-1</a></td><td valign="top"><a href="#Emacs_002dside-customization">6.1 Emacs-side</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Listener">Listener</a></td><td valign="top"><a href="#REPL">8.2 REPL: the &ldquo;top level&rdquo;</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-load_002dpath"><code>load-path</code></a></td><td valign="top"><a href="#Installation">2.3 Installation</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-M">M</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Macros">Macros</a></td><td valign="top"><a href="#Macro_002dexpansion">3.8 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Meta_002ddot">Meta-dot</a></td><td valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-Methods">Methods</a></td><td valign="top"><a href="#Fancy-Inspector">8.6 Fancy Inspector</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-P">P</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Plugins">Plugins</a></td><td valign="top"><a href="#Loading-Contribs">8.1 Loading Contrib Packages</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-S">S</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dautodoc_002duse_002dmultiline_002dp"><code>sly-autodoc-use-multiline-p</code></a></td><td valign="top"><a href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dcomplete_002dsymbol_002dfunction"><code>sly-complete-symbol-function</code></a></td><td valign="top"><a href="#Emacs_002dside-customization">6.1 Emacs-side</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dconnected_002dhook"><code>sly-connected-hook</code></a></td><td valign="top"><a href="#Hooks">6.1.1 Hooks</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002ddb_002dhook"><code>sly-db-hook</code></a></td><td valign="top"><a href="#Hooks">6.1.1 Hooks</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002ddefault_002dlisp"><code>sly-default-lisp</code></a></td><td valign="top"><a href="#Multiple-Lisps">2.6 Multiple Lisps</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002ddescription_002dautofocus"><code>sly-description-autofocus</code></a></td><td valign="top"><a href="#Temporary-buffers">3.1.1 Temporary buffers</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dfilename_002dtranslations"><code>sly-filename-translations</code></a></td><td valign="top"><a href="#Emacs_002dside-customization">6.1 Emacs-side</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dlisp_002dimplementations"><code>sly-lisp-implementations</code></a></td><td valign="top"><a href="#Multiple-Lisps">2.6 Multiple Lisps</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dmode_002dhook"><code>sly-mode-hook</code></a></td><td valign="top"><a href="#Hooks">6.1.1 Hooks</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dnet_002dcoding_002dsystem"><code>sly-net-coding-system</code></a></td><td valign="top"><a href="#Emacs_002dside-customization">6.1 Emacs-side</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002duse_002dautodoc_002dmode"><code>sly-use-autodoc-mode</code></a></td><td valign="top"><a href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aBACKTRACE_002dPRINTER_002dBINDINGS_002a"><code>SLYNK:*BACKTRACE-PRINTER-BINDINGS*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aCOMMUNICATION_002dSTYLE_002a"><code>SLYNK:*COMMUNICATION-STYLE*</code></a></td><td valign="top"><a href="#Communication-style">6.2.1 Communication style</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aCONFIGURE_002dEMACS_002dINDENTATION_002a"><code>SLYNK:*CONFIGURE-EMACS-INDENTATION*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aDEDICATED_002dOUTPUT_002dSTREAM_002dPORT_002a"><code>SLYNK:*DEDICATED-OUTPUT-STREAM-PORT*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aGLOBAL_002dDEBUGGER_002a"><code>SLYNK:*GLOBAL-DEBUGGER*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aGLOBALLY_002dREDIRECT_002dIO_002a"><code>SLYNK:*GLOBALLY-REDIRECT-IO*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aLOG_002dEVENTS_002a"><code>SLYNK:*LOG-EVENTS*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aMACROEXPAND_002dPRINTER_002dBINDINGS_002a"><code>SLYNK:*MACROEXPAND-PRINTER-BINDINGS*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aSLY_002dDB_002dPRINTER_002dBINDINGS_002a"><code>SLYNK:*SLY-DB-PRINTER-BINDINGS*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aSLY_002dDB_002dQUIT_002dRESTART_002a"><code>SLYNK:*SLY-DB-QUIT-RESTART*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aSLYNK_002dPPRINT_002dBINDINGS_002a"><code>SLYNK:*SLYNK-PPRINT-BINDINGS*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-SLYNK_003a_002aUSE_002dDEDICATED_002dOUTPUT_002dSTREAM_002a"><code>SLYNK:*USE-DEDICATED-OUTPUT-STREAM*</code></a></td><td valign="top"><a href="#Other-configurables">6.2.2 Other configurables</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Stepping">Stepping</a></td><td valign="top"><a href="#Stepping">4.4 Stepping</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Symbol-Completion">Symbol Completion</a></td><td valign="top"><a href="#Completion">3.4 Completion commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-T">T</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAGS">TAGS</a></td><td valign="top"><a href="#Finding-definitions">3.5 Finding definitions (&ldquo;Meta-Point&rdquo; commands).</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-TRAMP">TRAMP</a></td><td valign="top"><a href="#TRAMP">8.7 TRAMP</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-TRAMP">TRAMP</a></td><td valign="top"><a href="#TRAMP-Support">8.7 TRAMP</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-U">U</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Unicode">Unicode</a></td><td valign="top"><a href="#Emacs_002dside-customization">6.1 Emacs-side</a></td></tr>
@@ -4876,7 +4579,7 @@ using that port number instead
     <li><a name="toc-Globally-redirecting-all-IO-to-the-REPL" href="#Global-IO-Redirection">7.2 Globally redirecting all IO to the REPL</a></li>
     <li><a name="toc-Connecting-to-SLY-automatically" href="#Auto_002dSLY">7.3 Connecting to SLY automatically</a></li>
   </ul></li>
-  <li><a name="toc-Contributed-Packages-1" href="#Contributed-Packages">8. Contributed Packages</a>
+  <li><a name="toc-Extensions-1" href="#Extensions">8. Extensions</a>
   <ul class="toc">
     <li><a name="toc-Loading-Contrib-Packages" href="#Loading-Contribs">8.1 Loading Contrib Packages</a>
     <ul class="toc">
@@ -4886,15 +4589,14 @@ using that port number instead
     <ul class="toc">
       <li><a name="toc-REPL-commands-1" href="#REPL-commands">8.2.1 REPL commands</a></li>
       <li><a name="toc-Input-navigation" href="#Input-Navigation">8.2.2 Input navigation</a></li>
+      <li><a name="toc-REPL-output-control-1" href="#REPL-output-control">8.2.3 REPL output control</a></li>
     </ul></li>
     <li><a name="toc-Fuzzy-Completion-1" href="#Fuzzy-Completion">8.3 Fuzzy Completion</a></li>
-    <li><a name="toc-sly_002dautodoc_002dmode-1" href="#sly_002dautodoc_002dmode">8.4 <code>sly-autodoc-mode</code></a></li>
-    <li><a name="toc-Editing-Commands-1" href="#Editing-Commands">8.5 Editing Commands</a></li>
-    <li><a name="toc-Fancy-Inspector-1" href="#Fancy-Inspector">8.6 Fancy Inspector</a></li>
-    <li><a name="toc-TRAMP-1" href="#TRAMP">8.7 TRAMP</a></li>
+    <li><a name="toc-Autodoc-1" href="#Autodoc">8.4 Autodoc</a></li>
+    <li><a name="toc-SLY-Stickers-1" href="#SLY-Stickers">8.5 SLY Stickers</a></li>
+    <li><a name="toc-SLY-Trace-Dialog-1" href="#SLY-Trace-Dialog">8.6 SLY Trace Dialog</a></li>
+    <li><a name="toc-TRAMP" href="#TRAMP-Support">8.7 TRAMP</a></li>
     <li><a name="toc-Scratch-Buffer-1" href="#Scratch-Buffer">8.8 Scratch Buffer</a></li>
-    <li><a name="toc-SLY-Trace-Dialog-1" href="#SLY-Trace-Dialog">8.9 SLY Trace Dialog</a></li>
-    <li><a name="toc-Meta-package_003a-sly_002dfancy" href="#sly_002dfancy">8.10 Meta package: <code>sly-fancy</code></a></li>
   </ul></li>
   <li><a name="toc-Credits-1" href="#Credits">9. Credits</a>
   <ul class="toc">
@@ -4916,7 +4618,7 @@ using that port number instead
 </tr></table>
 <h1>About This Document</h1>
 <p>
-  This document was generated by <em>Joao</em> on <em>September 15, 2014</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao</em> on <em>October 25, 2014</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -5018,7 +4720,7 @@ using that port number instead
 <hr size="1">
 <p>
  <font size="-1">
-  This document was generated by <em>Joao</em> on <em>September 15, 2014</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao</em> on <em>October 25, 2014</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
  </font>
  <br>
 
