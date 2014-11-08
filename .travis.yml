@@ -21,5 +21,9 @@ install:
         sudo apt-get -qq install emacs24-nox;
     fi
 
+matrix:
+  allow_failures:
+    - env: "CHECK_TARGET=check-fancy LISP=cmucl EMACS=emacs24"
+
 script:
   - make LISP=$LISP EMACS=$EMACS $CHECK_TARGET
