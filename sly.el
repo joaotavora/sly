@@ -6822,19 +6822,11 @@ The result is unspecified if there isn't a symbol under the point."
 (defun sly-bounds-of-symbol-at-point ()
   "Return the bounds of the symbol around point.
 The returned bounds are either nil or non-empty."
-  (let ((bounds (bounds-of-thing-at-point 'sly-symbol)))
-    (if (and bounds
-             (< (car bounds)
-                (cdr bounds)))
-        bounds)))
+  (bounds-of-thing-at-point 'sly-symbol))
 
 (defun sly-symbol-at-point ()
   "Return the name of the symbol at point, otherwise nil."
-  ;; (thing-at-point 'symbol) returns "" in empty buffers
-  (let ((bounds (sly-bounds-of-symbol-at-point)))
-    (if bounds
-        (buffer-substring-no-properties (car bounds)
-                                        (cdr bounds)))))
+  (thing-at-point 'sly-symbol 'no-properties))
 
 (defun sly-bounds-of-sexp-at-point ()
   "Return the bounds sexp at point as a pair (or nil)."
