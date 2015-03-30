@@ -30,7 +30,7 @@ xref, etc...) are still available , but with better integration.
 Read about the reasons for forking [here][2] and see the [NEWS.md][6] for
 complete list of differences between the two projects.
 
-SLY is currently *alpha* status. The
+SLY is currently *beta* status. The
 [documentation can be found here][documentation], but beware
 [it's still a little out of date](https://github.com/capitaomorte/sly/issues/9).
 
