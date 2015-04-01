@@ -141,7 +141,7 @@ If FILE is passed use that instead to discover the version."
     (interactive "p")
     (let ((version
            (with-temp-buffer
-             (insert-file-contents-literally
+             (insert-file-contents
               (or file
                   (expand-file-name "sly.el" sly-path))
               nil 0 200)
