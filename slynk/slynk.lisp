@@ -1966,6 +1966,9 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
              (let ((i (car values)))
                (format nil "~D (~a bit~:p, #x~X, #o~O, #b~B)"
                        i (integer-length i) i i i)))
+            ((and (typep (car values) 'ratio) (null (cdr values)))
+             (format nil "~D (~:*~f)" 
+                     (car values)))
             (t
              (let ((strings (loop for v in values
                                   collect (format nil "~S" v))))
