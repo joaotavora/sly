@@ -272,7 +272,7 @@
          (start (loop for i from (excl::ldb-code-index code) downto 0
                       for bpt = (aref debug-info i)
                       for start = (excl::ldb-code-start-char bpt)
-                      when start return start))
+                      when (and start (numberp start)) return start))
          (src-file (excl:source-file func)))
     (cond (start
            (buffer-or-file-location src-file start))
