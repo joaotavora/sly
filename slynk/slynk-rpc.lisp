@@ -99,28 +99,49 @@ to NIL in her ~/.swankrc. Generally best left alone.")
  
 (defun translating-read ()
   "Read a form that conforms to the protocol, otherwise signal an error."
-  (let ((c (read-char)))
-    (case c
-      (#\" (with-output-to-string (*standard-output*)
-             (loop for c = (read-char) do
-               (case c
-                 (#\" (return))
-                 (#\\ (write-char (read-char)))
-                 (t (write-char c))))))
-      (#\( (loop collect (translating-read)
-                 while (ecase (read-char)
-                         (#\) nil)
-                         (#\space t))))
-      (#\' `(quote ,(translating-read)))
-      (t (let ((string (with-output-to-string (*standard-output*)
-                         (loop for ch = c then (read-char nil nil) do
-                           (case ch
-                             ((nil) (return))
-                             (#\\ (write-char (read-char)))
-                             ((#\space #\)) (unread-char ch)(return))
-                             (t (write-char ch)))))))
-           (read-from-string
-            (maybe-convert-package-designator string)))))))
+  (flet ((chomp ()
+           (loop for ch = (read-char nil t)
+                 while (eq ch #\space)
+                 finally (unread-char ch))))
+    (chomp)
+    (let ((c (read-char)))
+      (case c 
+        (#\" (with-output-to-string (*standard-output*)
+               (loop for c = (read-char) do
+                 (case c
+                   (#\" (return))
+                   (#\\ (write-char (read-char)))
+                   (t (write-char c))))))
+        (#\(
+         (chomp)
+         (loop with dotread = nil
+               with retval = nil
+               for read = (read-char)
+               while (case read
+                       (#\) nil)
+                       (#\. (setq dotread t) t)
+                       (t (progn (unread-char read) t)))
+                              
+               when (eq dotread 'should-error)
+                 do (error 'reader-error :format-arguments "Too many things after dot")
+               when dotread
+                 do (setq dotread 'should-error)
+               do (setq retval (nconc retval
+                                      (if dotread
+                                          (translating-read)
+                                          (list (translating-read)))))
+                  (chomp)
+               finally (return retval)))
+        (#\' `(quote ,(translating-read)))
+        (t (let ((string (with-output-to-string (*standard-output*)
+                           (loop for ch = c then (read-char nil nil) do
+                             (case ch
+                               ((nil) (return))
+                               (#\\ (write-char (read-char)))
+                               ((#\" #\( #\space #\)) (unread-char ch)(return))
+                               (t (write-char ch)))))))
+             (read-from-string
+              (maybe-convert-package-designator string))))))))
 
 
 ;;;;; Output
