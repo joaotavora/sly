@@ -793,21 +793,21 @@ Describe the symbol at point.
 @kbditem{C-c C-d f, sly-describe-function}
 Describe the function at point.
 
-@kbditem{C-c C-d A, sly-apropos}
+@kbditem{C-c C-d C-a, sly-apropos}
 Perform an apropos search on Lisp symbol names for a regular expression
 match and display their documentation strings. By default the external
 symbols of all packages are searched. With a prefix argument you can choose a
 specific package and whether to include unexported symbols.
 
-@kbditem{C-c C-d z, sly-apropos-all}
+@kbditem{C-c C-d C-z, sly-apropos-all}
 Like @code{sly-apropos} but also includes internal symbols by default.
 
-@kbditem{C-c C-d p, sly-apropos-package}
+@kbditem{C-c C-d C-p, sly-apropos-package}
 Show apropos results of all symbols in a package. This command is for
 browsing a package at a high-level. With package-name completion it
 also serves as a rudimentary Smalltalk-ish image-browser.
 
-@kbditem{C-c C-d h, sly-hyperspec-lookup}
+@kbditem{C-c C-d C-h, sly-hyperspec-lookup}
 Lookup the symbol at point in the @cite{Common Lisp Hyperspec}. This
 uses the familiar @file{hyperspec.el} to show the appropriate section
 in a web browser. The Hyperspec is found either on the Web or in
@@ -817,10 +817,10 @@ in a web browser. The Hyperspec is found either on the Web or in
 Note: this is one case where @kbd{C-c C-d h} is @emph{not} the same as
 @kbd{C-c C-d C-h}.
 
-@kbditem{C-c C-d ~, hyperspec-lookup-format}
+@kbditem{C-c C-d C-~, hyperspec-lookup-format}
 Lookup a @emph{format character} in the @cite{Common Lisp Hyperspec}.
 
-@kbditem{C-c C-d #, hyperspec-lookup-reader-macro}
+@kbditem{C-c C-d C-#, hyperspec-lookup-reader-macro}
 Lookup a @emph{reader macro} in the @cite{Common Lisp Hyperspec}.
 @end table
 
