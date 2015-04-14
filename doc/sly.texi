@@ -817,10 +817,10 @@ in a web browser. The Hyperspec is found either on the Web or in
 Note: this is one case where @kbd{C-c C-d h} is @emph{not} the same as
 @kbd{C-c C-d C-h}.
 
-@kbditem{C-c C-d C-~, hyperspec-lookup-format}
+@kbditem{C-c C-d ~, hyperspec-lookup-format}
 Lookup a @emph{format character} in the @cite{Common Lisp Hyperspec}.
 
-@kbditem{C-c C-d C-#, hyperspec-lookup-reader-macro}
+@kbditem{C-c C-d #, hyperspec-lookup-reader-macro}
 Lookup a @emph{reader macro} in the @cite{Common Lisp Hyperspec}.
 @end table
 
