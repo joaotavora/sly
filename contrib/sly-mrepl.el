@@ -722,6 +722,7 @@ history entry navigated to."
 ;;; Interactive commands
 ;;;
 (defun sly-mrepl-return (&optional end-of-input)
+  "If the input is a whole expression, evaluate it and return the result."
   (interactive "P")
   (cl-assert (sly-connection))
   (cl-assert (process-live-p (sly-mrepl--process)) nil
