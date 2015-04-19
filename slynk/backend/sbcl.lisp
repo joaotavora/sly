@@ -750,8 +750,9 @@ QUALITIES is an alist with (quality . value)"
     :vop :define-vop
     :source-transform :define-source-transform
     :ir1-convert :def-ir1-translator
-    :declaration declaim)
-  "Map SB-INTROSPECT definition type names to Sly-friendly forms")
+    :declaration declaim
+    :alien-type :define-alien-type)
+  "Map SB-INTROSPECT definition type names to SLY-friendly forms")
 
 (defun definition-specifier (type)
   "Return a pretty specifier for NAME representing a definition of type TYPE."
