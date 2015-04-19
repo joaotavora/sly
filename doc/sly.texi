@@ -1864,7 +1864,39 @@ Select the output buffer, preferably in a different window.
 
 @table @kbd
 
-@c TODO
+@kbditem{RET, sly-mrepl-return}
+
+Evaluate the expression at prompt and return the result.
+
+@kbditem{TAB, sly-indent-and-complete-symbol}
+
+Indent the current line. If line already indented complete the symbol at
+point. If there is not symbol at point show the argument list of the
+most recently enclosed function or macro in the minibuffer.
+
+@kbditem{C-c C-b, sly-interrupt}
+
+Interrupts the current thread of the inferior-lisp process.
+
+For convenience this function is also bound to @kbd{C-c C-c}.
+
+@kbditem{M-p, sly-mrepl-previous-input-or-button}
+
+When at the current prompt fetches to previous input from the history,
+otherwise it jumps to the previous button.
+
+@kbditem{M-n, sly-mrepl-next-input-or-button}
+
+When at the current prompt fetches to next input from the history,
+otherwise it jumps to the next button.
+
+@kbditem{C-M-p, sly-button-backward}
+
+Go to and describe the previous button in the buffer.
+
+@kbditem{C-M-n, sly-button-forward}
+
+Go to and describe the next button in the buffer.
 
 @end table
 
@@ -1874,7 +1906,7 @@ Select the output buffer, preferably in a different window.
 @cindex Input History
 
 The input navigation (a.k.a. history) commands are modelled after
-@code{coming}-mode.
+@code{comint}-mode.
 
 Bash-like keybindings are available: @kbd{M-p} and @kbd{M-n} navigate
 the input history incrementally while @kbd{C-r} does a ``reverse
