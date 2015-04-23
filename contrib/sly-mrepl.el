@@ -192,7 +192,7 @@ for output printed to the REPL (not for evaluation results)")
 (sly-define-channel-method listener :evaluation-aborted (&optional condition)
   (with-current-buffer (sly-channel-get self 'buffer)
     (sly-mrepl--catch-up)
-    (sly-mrepl--insert-note (format "Evaluation aborted on %s\n" condition))))
+    (sly-mrepl--insert-note (format "Evaluation aborted on %s" condition))))
 
 (sly-define-channel-method listener :write-string (string)
   (with-current-buffer (sly-channel-get self 'buffer)
@@ -418,7 +418,7 @@ for output printed to the REPL (not for evaluation results)")
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
   (sly-mrepl--ensure-prompt-face)
   (when condition
-    (sly-mrepl--insert-note (format "Evaluation errored on %s\n" condition)))
+    (sly-mrepl--insert-note (format "Evaluation errored on %s" condition)))
   (buffer-enable-undo))
 
 (defun sly-mrepl--copy-part-to-repl (entry-idx value-idx)
