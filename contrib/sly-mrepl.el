@@ -275,9 +275,12 @@ for output printed to the REPL (not for evaluation results)")
                            (eq sly-buffer-connection process))
                   (sly-mrepl--teardown (process-get process 'sly-net-close-reason))))))
 
-(defun sly-mrepl--process () (get-buffer-process (current-buffer))) ;stupid
+(defun sly-mrepl--process () (or
+                              (get-buffer-process (current-buffer))
+                              (get-buffer-process (sly-mrepl)))) ;stupid
 
 (defun sly-mrepl--mark () (process-mark (sly-mrepl--process)))
+
 (defmacro sly-mrepl--commiting-text (props &rest body)
   (declare (debug (sexp &rest form))
            (indent 1))
