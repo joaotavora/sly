@@ -690,7 +690,7 @@ history entry navigated to."
                  (cons (substring existing 0 offset)
                        (substring existing offset)))))))
 
-(defun sly-mrepl--surround-with-eli-input ()
+(defun sly-mrepl--keep-eli-input-maybe ()
   (when sly-mrepl--eli-input
     (save-excursion
       (goto-char (sly-mrepl--mark))
@@ -738,9 +738,10 @@ history entry navigated to."
     (sly-mrepl--surround-with-eli-input-overlay)))
 
 (defun sly-mrepl--teardown-comint-isearch ()
-  (delete-overlay sly-mrepl--eli-input-overlay)
-  (setq sly-mrepl--eli-input-overlay nil)
-  (sly-mrepl--surround-with-eli-input))
+  (when (overlayp sly-mrepl--eli-input-overlay)
+    (delete-overlay sly-mrepl--eli-input-overlay)
+    (setq sly-mrepl--eli-input-overlay nil))
+  (sly-mrepl--keep-eli-input-maybe))
 
 
 ;;; Interactive commands
@@ -780,7 +781,7 @@ history entry navigated to."
                         sly-mrepl-next-input-or-button))
             (sly-mrepl--set-eli-input))
         (comint-previous-input n)
-        (sly-mrepl--surround-with-eli-input))
+        (sly-mrepl--keep-eli-input-maybe))
     (sly-button-backward n)))
 
 (defun sly-mrepl-next-input-or-button (n)
