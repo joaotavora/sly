@@ -78,6 +78,11 @@
 After running the contents of this hook its default value is
 emptied. See also `sly-mrepl-hook'")
 
+(defvar sly-mrepl-output-filter-functions comint-preoutput-filter-functions
+  "List of functions filtering Slynk's REPL output.
+This variables behaves like `comint-preoutput-filter-functions',
+for output printed to the REPL (not for evaluation results)")
+
 (defvar sly-mrepl-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET")     'sly-mrepl-return)
@@ -96,6 +101,11 @@ emptied. See also `sly-mrepl-hook'")
 (defface sly-mrepl-prompt-face
   `((t (:inherit font-lock-builtin-face)))
   "Face for the regular MREPL prompt."
+  :group 'sly-mode-faces)
+
+(defface sly-mrepl-note-face
+  `((t (:inherit font-lock-keyword-face)))
+  "Face for the MREPL notes."
   :group 'sly-mode-faces)
 
 (defface sly-mrepl-output-face
@@ -182,11 +192,11 @@ emptied. See also `sly-mrepl-hook'")
 (sly-define-channel-method listener :evaluation-aborted (&optional condition)
   (with-current-buffer (sly-channel-get self 'buffer)
     (sly-mrepl--catch-up)
-    (sly-mrepl--insert-output (format "; Evaluation aborted on %s\n" condition))))
+    (sly-mrepl--insert-note (format "Evaluation aborted on %s\n" condition))))
 
 (sly-define-channel-method listener :write-string (string)
   (with-current-buffer (sly-channel-get self 'buffer)
-    (sly-mrepl--insert-output string 'sly-mrepl-output-face)))
+    (sly-mrepl--insert-output string)))
 
 (sly-define-channel-method listener :set-read-mode (mode)
   (with-current-buffer (sly-channel-get self 'buffer)
@@ -223,7 +233,7 @@ emptied. See also `sly-mrepl-hook'")
   (with-current-buffer (sly-channel-get self 'buffer)
     (let ((inhibit-read-only t))
       (erase-buffer)
-      (sly-mrepl--insert-output "; Cleared REPL history"))))
+      (sly-mrepl--insert-note "Cleared REPL history"))))
 
 
 ;;; Button type
@@ -303,31 +313,45 @@ emptied. See also `sly-mrepl-hook'")
   (and (not (eq ?\n (char-after pos)))
        (get-char-property pos 'sly-mrepl-break-output)))
 
-(defun sly-mrepl--insert-output (string &optional face)
+(defun sly-mrepl--insert-output (string &optional face nofilters)
   (cond ((and (not sly-mrepl--read-mode) string)
          (let ((inhibit-read-only t)
-               (start (marker-position sly-mrepl--output-mark)))
+               (start (marker-position sly-mrepl--output-mark))
+               (face (or face
+                         'sly-mrepl-output-face)))
+           
            (save-excursion
              (goto-char sly-mrepl--output-mark)
              (cond ((and (not (bobp))
                          (sly-mrepl--break-output-p (1- start))
                          (not (zerop (current-column))))
                     (insert-before-markers "\n")))
-             (insert-before-markers
-              (concat sly-mrepl--pending-output string))
+             (setq string
+                   (propertize (concat sly-mrepl--pending-output string)
+                               'face face
+                               'font-lock-face face))
+             (setq sly-mrepl--pending-output nil)
+             (unless nofilters
+               (mapc (lambda (fn)
+                       (setq string (funcall fn string)))
+                     sly-mrepl-output-filter-functions))
+             (insert-before-markers string)
              (cond ((and (not (zerop (current-column)))
                          (sly-mrepl--break-output-p (point)))
                     (save-excursion (insert "\n"))))
-             (setq sly-mrepl--pending-output nil)
              (add-text-properties start sly-mrepl--output-mark
                                   `(read-only t front-sticky (read-only)
-                                              face ,face
-                                              font-lock-face ,face
                                               field sly-mrepl--output)))))
         (t
          (setq sly-mrepl--pending-output
                (concat sly-mrepl--pending-output string))
          (sly-message "Some output saved for later insertion"))))
+
+(defun sly-mrepl--insert-note (string &optional face)
+  (sly-mrepl--insert-output
+   (replace-regexp-in-string "^" "; " string)
+   (or face 'sly-mrepl-note-face)
+   t))
 
 (defun sly-mrepl--send-input-sexp ()
   (goto-char (point-max))
@@ -394,7 +418,7 @@ emptied. See also `sly-mrepl-hook'")
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
   (sly-mrepl--ensure-prompt-face)
   (when condition
-    (sly-mrepl--insert-output (format "; Evaluation errored on %s\n" condition)))
+    (sly-mrepl--insert-note (format "Evaluation errored on %s\n" condition)))
   (buffer-enable-undo))
 
 (defun sly-mrepl--copy-part-to-repl (entry-idx value-idx)
@@ -448,7 +472,7 @@ it is a list (ENTRY-IDX VALUE-IDX)."
    :insert-p t
    :before-prompt (lambda (_objects)
                     (when note
-                      (sly-mrepl--insert-output (concat "; " note))))
+                      (sly-mrepl--insert-note note)))
    :after-prompt callback))
 
 (defun sly-mrepl--make-result-button (result idx)
@@ -463,7 +487,7 @@ it is a list (ENTRY-IDX VALUE-IDX)."
 (defun sly-mrepl--insert-results (results)
   (let* ((comint-preoutput-filter-functions nil))
     (if (null results)
-        (sly-mrepl--insert "; No values")
+        (sly-mrepl--insert-note "No values")
       (cl-loop for result in results
                for idx from 0
                do
@@ -597,7 +621,7 @@ recent entry that is discarded."
         (with-current-buffer buffer
           (when (and (cl-plusp (length string))
                      (eq (process-status sly-buffer-connection) 'open))
-            (sly-mrepl--insert-output string 'sly-mrepl-output-face)))
+            (sly-mrepl--insert-output string)))
       (sly-warning "No channel in process %s, probaly torn down" process))))
 
 (defun sly-mrepl--open-dedicated-stream (channel port coding-system)
@@ -811,8 +835,8 @@ handle to distinguish the new buffer from the existing."
         (sly-mrepl-mode)
         (when (and (not existing)
                    (eq sly-mrepl-pop-sylvester t))
-          (sly-mrepl--insert-output
-           (concat ";\n" (sly-mrepl-random-sylvester) "\n;\n")
+          (sly-mrepl--insert-note
+           (concat "\n" (sly-mrepl-random-sylvester) "\n\n")
            'sly-mrepl-output-face))
         (setq sly-buffer-connection connection)
         (start-process (format "sly-pty-%s-%s"
@@ -902,15 +926,15 @@ prefix argument is given."
      :before-prompt
      #'(lambda (results)
          (cl-destructuring-bind (package-2 directory-2) results
-           (sly-mrepl--insert-output
+           (sly-mrepl--insert-note
             (cond ((and package directory)
-                   (format "; Synched package to %s and directory to %s" package-2 directory-2))
+                   (format "Synched package to %s and directory to %s" package-2 directory-2))
                   (directory
-                   (format "; Synched directory to %s" directory-2))
+                   (format "Synched directory to %s" directory-2))
                   (package
-                   (format "; Synched package to %s" package-2))
+                   (format "Synched package to %s" package-2))
                   (t
-                   (format "; Remaining in package %s and directory %s"
+                   (format "Remaining in package %s and directory %s"
                            package-2 directory-2))))))
      :after-prompt
      #'(lambda (_results)
@@ -945,8 +969,8 @@ Doesn't clear input history."
            do (let ((inhibit-read-only t))
                 (delete-region (field-beginning pos)
                                (1+ (field-end pos)))))
-  (sly-mrepl--insert-output (propertize "; Cleared recent output"
-                                        'sly-mrepl-break-output t))
+  (sly-mrepl--insert-note (propertize "Cleared recent output"
+                                      'sly-mrepl-break-output t))
   (sly-message "Cleared recent output"))
 
 
@@ -1216,6 +1240,6 @@ result buttons thus highlighted"
          (woe (sly-random-words-of-encouragement))
          (uncommented
           (replace-regexp-in-string "@@@@" woe sylvester)))
-    (concat "; " (replace-regexp-in-string "\n" "\n; " uncommented))))
+    uncommented))
 
 (provide 'sly-mrepl)
