@@ -269,11 +269,13 @@
   (declare (optimize debug))
   (let* ((func (excl::ldb-code-func code))
          (debug-info (excl::function-source-debug-info func))
-         (start (loop for i from (excl::ldb-code-index code) downto 0
+         (start (and debug-info
+                     (loop for i from (excl::ldb-code-index code) downto 0
                       for bpt = (aref debug-info i)
                       for start = (excl::ldb-code-start-char bpt)
-                      when (and start (numberp start)) return start))
-         (src-file (excl:source-file func)))
+                      when (and start (numberp start)) return start)))
+         (src-file (and func
+                        (excl:source-file func))))
     (cond (start
            (buffer-or-file-location src-file start))
           (func
