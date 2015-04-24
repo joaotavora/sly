@@ -1031,31 +1031,32 @@ Doesn't clear input history."
 
 ;;; The comma shortcut
 ;;;
-(defun sly-mrepl-reset-shortcut-key (value)
-  "Reset REPL keymap according to `sly-mrepl-shortcut-key'."
-  (interactive)
-  (when (boundp 'sly-mrepl-shortcut-key)
-    (define-key sly-mrepl-mode-map (kbd sly-mrepl-shortcut-key) nil))
-  (set-default 'sly-mrepl-shortcut-key value)
-  (define-key sly-mrepl-mode-map (kbd sly-mrepl-shortcut-key)
+(defun sly-mrepl-reset-shortcut (key-sequence)
+  "Set `sly-mrepl-shortcut' and reset REPL keymap accordingly."
+  (interactive "kNew shortcut key sequence? ")
+  (when (boundp 'sly-mrepl-shortcut)
+    (define-key sly-mrepl-mode-map sly-mrepl-shortcut nil))
+  (set-default 'sly-mrepl-shortcut key-sequence)
+  (define-key sly-mrepl-mode-map key-sequence
     '(menu-item "" sly-mrepl-shortcut
                 :filter (lambda (cmd)
-                          (if (sly-mrepl--shortcut-location-p)
+                          (if (and (eq major-mode 'sly-mrepl-mode)
+                                   (sly-mrepl--shortcut-location-p))
                               cmd)))))
 
-(defcustom sly-mrepl-shortcut-key ","
+(defcustom sly-mrepl-shortcut (kbd ",")
   "Keybinding string used for the REPL shortcut commands.
 When setting this variable outside of the Customize interface,
-`sly-mrepl-reset-shortcut-key' must be used."
+`sly-mrepl-reset-shortcut' must be used."
   :group 'sly
-  :type 'string
+  :type 'key-sequence
   :set (lambda (_sym value)
-         (sly-mrepl-reset-shortcut-key value)))
+         (sly-mrepl-reset-shortcut value)))
 
 (defun sly-mrepl--shortcut-location-p ()
   (or (< (point) (sly-mrepl--mark))
       (and (not (sly-inside-string-or-comment-p))
-           (or (not (string= sly-mrepl-shortcut-key ","))
+           (or (not (equal sly-mrepl-shortcut ","))
                (not (save-excursion
                       (search-backward "`" (sly-mrepl--mark) 'noerror)))))))
 
