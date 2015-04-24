@@ -65,8 +65,7 @@
 
 ;; User-visible variables
 ;;
-(defvar sly-mrepl-mode-hook
-  `(sly-mrepl--ensure-no-font-lock)
+(defvar sly-mrepl-mode-hook nil
   "Functions run after `sly-mrepl-mode' is set up")
 
 (defvar sly-mrepl-hook nil
@@ -263,9 +262,6 @@ for output printed to the REPL (not for evaluation results)")
 (defun sly-mrepl--buffer-name (connection &optional handle)
   (sly-buffer-name :mrepl :connection connection
                    :suffix handle))
-
-;; HACK for Emacs 24.3: See issue #1.
-(defun sly-mrepl--ensure-no-font-lock () (font-lock-mode -1))
 
 (defun sly-mrepl--teardown-repls (process)
   (cl-loop for buffer in (buffer-list)
