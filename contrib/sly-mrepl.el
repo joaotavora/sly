@@ -1147,15 +1147,15 @@ result buttons thus highlighted"
                    (format "%s\\([[:digit:]]+\\)?\\(:\\([[:digit:]]+\\)\\|:\\)?"
                            sly-mrepl--backreference-prefix))))
          (entry-idx (and match
-                         (parse-integer (match-string 1)))) 
+                         (string-to-number (match-string 1)))) 
          (value-idx (and match
-                         (or (parse-integer (match-string 3))
+                         (or (string-to-number (match-string 3))
                              (and (not (match-string 2))
                                   0)))))
     (when match
       (let ((buttons (sly-mrepl-highlight-results entry-idx value-idx))
             (overlay (or sly-mrepl--backreference-overlay
-                         (set (make-variable-buffer-local 'sly-mrepl--backreference-overlay)
+                         (set (make-local-variable 'sly-mrepl--backreference-overlay)
                               (make-overlay 0 0)))))
         (move-overlay sly-mrepl--backreference-overlay
                       (match-beginning 0) (match-end 0))
