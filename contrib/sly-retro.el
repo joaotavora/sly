@@ -7,13 +7,14 @@
   (:on-unload (setq sly-net-send-translator nil)))
 
 (defun sly-retro-slynk-to-swank (sexp)
-  (cond ((and (symbolp sexp)
+  (cond ((and sexp
+              (symbolp sexp)
               (string-match "^slynk\\(.*\\)$" (symbol-name sexp)))
          (intern (format "swank%s" (match-string 1 (symbol-name sexp)))))
-        ((and (listp sexp)
-	      (car sexp))
-	 (cons (sly-retro-slynk-to-swank (car sexp))
-	       (sly-retro-slynk-to-swank (cdr sexp))))
+        ((and sexp (listp sexp))
+         (cl-loop for (x . rest) on sexp
+                  append (list (sly-retro-slynk-to-swank x)) into foo
+                  finally (return (append foo (sly-retro-slynk-to-swank rest)))))
         (t
          sexp)))
 
