@@ -1,6 +1,6 @@
 ;;; -*- indent-tabs-mode: nil; outline-regexp: ";;;;;*" -*-
 ;;;
-;;; sly-backend.lisp --- SLY backend interface.
+;;; slynk-backend.lisp --- SLY backend interface.
 ;;;
 ;;; Created by James Bielman in 2003. Released into the public domain.
 ;;;

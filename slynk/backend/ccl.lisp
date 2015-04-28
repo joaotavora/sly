@@ -1,6 +1,6 @@
 ;;;; -*- indent-tabs-mode: nil -*-
 ;;;
-;;; slynk-ccl.lisp --- SLY backend for Clozure CL.
+;;; ccl.lisp --- SLY backend for Clozure CL.
 ;;;
 ;;; Copyright (C) 2003, James Bielman  <jamesjb@jamesjb.com>
 ;;;
