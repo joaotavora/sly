@@ -2576,8 +2576,8 @@ and no continue restart available.")))))
 
 ;;;; Compilation Commands.
 
-(defstruct (:compilation-result
-             (:type list) :named)
+(defstruct (compilation-result
+            (:type list) :named)
   notes
   (successp nil :type boolean)
   (duration 0.0 :type float)
@@ -2588,7 +2588,7 @@ and no continue restart available.")))))
   "Call FUN and return the first return value and the elapsed time.
 The time is measured in seconds."
   (declare (type function fun))
-  (let ((before (get-internal-real-time)))
+  (let ((before (get-internal-real-time))) ;
     (values
      (funcall fun)
      (/ (- (get-internal-real-time) before)
