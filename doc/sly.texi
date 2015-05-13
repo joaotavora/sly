@@ -1614,21 +1614,24 @@ using the default settings.
 (slynk:create-server)
 @end example
 
-Since we're going to be tunneling our connection via ssh@footnote{there
-is a way to connect without an ssh tunnel, but it has the side-effect of
-giving the entire world access to your lisp image, so we're not going to
-talk about it} and we'll only have one port open we want to tell slynk
-to not use an extra connection for output (this is actually the default
-in current @SLY{}):
+Since we're going to be tunneling our connection via
+ssh@footnote{there is a way to connect without an ssh tunnel, but it
+has the side-effect of giving the entire world access to your lisp
+image, so we're not going to talk about it} we'll only have one port
+open we must tell Slynk's REPL (see @REPL{}) to not use an extra
+connection for output, which it will do by default.
 
 @example
-(setf slynk:*use-dedicated-output-stream* nil)
+(setf slynk-mrepl:*use-dedicated-output-stream* nil)
 @end example
 
-If you need to do anything particular
-(like be able to reconnect to slynk after you're done), look into
-@code{slynk:create-server}'s other arguments. Some of these arguments
-are
+@footnote{Alternatively, a separate tunnel for the port set in
+@code{slynk-mrepl:*dedicated-stream-port*} can also be used if a dedicated output
+is essential.}
+
+If you need to do anything particular (like be able to reconnect to
+slynk after you're done), look into @code{slynk:create-server}'s other
+arguments. Some of these arguments are
 @table @code
 
 @item :PORT
