@@ -4337,7 +4337,7 @@ TODO"
     (define-key map (kbd "C-c C-c") 'sly-recompile-xref)
     (define-key map (kbd "C-c C-k") 'sly-recompile-all-xrefs)
 
-    (define-key map (kbd "q")     'quit-window)
+    (define-key map (kbd "q")     'quit-restore-window)
     (set-keymap-parent map button-buffer-map)
     
     map))
@@ -4379,7 +4379,7 @@ The most important commands:
 ;; TODO: Have this button support more options, not just "show source"
 ;; and "goto-source"
 (define-button-type 'sly-xref :supertype 'sly-part 'action
-  'sly-button-goto-source ;default action
+  'sly-button-show-source ;default action
   'sly-button-show-source #'(lambda (location)
                               (sly-xref--show-location location))
   'sly-button-goto-source #'(lambda (location)
@@ -4412,11 +4412,12 @@ source-location."
 
 (defun sly-xref-next-line (arg)
   (interactive "p")
-  (when (forward-button arg) (push-button)))
+  (let ((button (forward-button arg)))
+    (when button (sly-button-show-source button))))
 
 (defun sly-xref-prev-line (arg)
   (interactive "p")
-  (when (backward-button arg) (push-button)))
+  (sly-xref-next-line (- arg)))
 
 (defun sly-xref--show-location (loc)
   (cl-ecase (car loc)
