@@ -4115,11 +4115,3 @@ Collisions are caused because package information is ignored."
     (pushnew :slynk *features*))
   (load-user-init-file)
   (run-hook *after-init-hook*))
-
-;; Local Variables:
-;; coding: latin-1-unix
-;; indent-tabs-mode: nil
-;; outline-regexp: ";;;;;*"
-;; End:
-
-;;; slynk.lisp ends here
