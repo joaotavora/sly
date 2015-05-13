@@ -300,8 +300,9 @@ for output printed to the REPL (not for evaluation results)")
   (declare (indent 1) (debug (sexp &rest form)))
   `(sly-mrepl--call-with-repl ,connection #'(lambda () ,@body)))
 
-(defun sly-mrepl--insert (string)
-  (sly-mrepl--commiting-text ()
+(defun sly-mrepl--insert (string &optional face)
+  (sly-mrepl--commiting-text (when face
+                               `(face ,face font-lock-face ,face))
     (comint-output-filter (sly-mrepl--process)
                           (propertize string 'sly-mrepl-break-output t))))
 
@@ -344,10 +345,15 @@ for output printed to the REPL (not for evaluation results)")
          (sly-message "Some output saved for later insertion"))))
 
 (defun sly-mrepl--insert-note (string &optional face)
-  (sly-mrepl--insert-output
-   (replace-regexp-in-string "^" "; " string)
-   (or face 'sly-mrepl-note-face)
-   t))
+  (let* ((face (or face 'sly-mrepl-note-face))
+         (string (replace-regexp-in-string "^" "; " string)))
+    (cond ((sly-mrepl--process)
+           ;; notes are inserted "synchronously" with the process mark  process
+           (sly-mrepl--ensure-newline)
+           (sly-mrepl--insert string face))
+          (t
+           ;; If no process yet, fall back to the simpler strategy.
+           (sly-mrepl--insert-output string face)))))
 
 (defun sly-mrepl--send-input-sexp ()
   (goto-char (point-max))
