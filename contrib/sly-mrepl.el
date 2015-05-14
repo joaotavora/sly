@@ -401,6 +401,8 @@ for output printed to the REPL (not for evaluation results)")
 (defun sly-mrepl--insert-prompt (package prompt error-level &optional condition)
   (sly-mrepl--accept-process-output)
   (overlay-put sly-mrepl--last-prompt-overlay 'face 'bold)
+  (when condition
+    (sly-mrepl--insert-note (format "Evaluation errored on %s" condition)))
   (sly-mrepl--ensure-newline)
   (sly-mrepl--catch-up)
   (let ((beg (marker-position (sly-mrepl--mark))))
@@ -419,8 +421,6 @@ for output printed to the REPL (not for evaluation results)")
       'sly-mrepl--prompt (downcase package)))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
   (sly-mrepl--ensure-prompt-face)
-  (when condition
-    (sly-mrepl--insert-note (format "Evaluation errored on %s" condition)))
   (buffer-enable-undo))
 
 (defun sly-mrepl--copy-part-to-repl (entry-idx value-idx)
