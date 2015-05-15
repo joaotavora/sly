@@ -4240,11 +4240,11 @@ TODO"
 
 (define-button-type 'sly-apropos-symbol :supertype 'sly-part
   'face nil
-  'action 'sly-button-show-source ;default action
+  'action 'sly-button-goto-source ;default action
   'sly-button-inspect
   #'(lambda (name _type)
       (sly-inspect (format "(quote %s)" name)))
-  'sly-button-show-source
+  'sly-button-goto-source
   #'(lambda (name _type)
       (sly-edit-definition name 'window))
   'sly-button-describe
@@ -4331,13 +4331,13 @@ TODO"
 (defvar sly-xref-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET") 'sly-xref-goto)
-    (define-key map (kbd "SPC") 'sly-xref-goto)
+    (define-key map (kbd "SPC") 'sly-xref-show)
     (define-key map (kbd "n") 'sly-xref-next-line)
     (define-key map (kbd "p") 'sly-xref-prev-line)
     (define-key map (kbd "C-c C-c") 'sly-recompile-xref)
     (define-key map (kbd "C-c C-k") 'sly-recompile-all-xrefs)
 
-    (define-key map (kbd "q")     'quit-restore-window)
+    (define-key map (kbd "q")     'quit-window)
     (set-keymap-parent map button-buffer-map)
     
     map))
@@ -4379,7 +4379,7 @@ The most important commands:
 ;; TODO: Have this button support more options, not just "show source"
 ;; and "goto-source"
 (define-button-type 'sly-xref :supertype 'sly-part 'action
-  'sly-button-show-source ;default action
+  'sly-button-goto-source ;default action
   'sly-button-show-source #'(lambda (location)
                               (sly-xref--show-location location))
   'sly-button-goto-source #'(lambda (location)
