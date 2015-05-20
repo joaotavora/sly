@@ -4426,6 +4426,8 @@ TODO"
     (define-key map (kbd "SPC") 'sly-xref-show)
     (define-key map (kbd "n") 'sly-xref-next-line)
     (define-key map (kbd "p") 'sly-xref-prev-line)
+    (define-key map (kbd ".") 'sly-xref-next-line)
+    (define-key map (kbd ",") 'sly-xref-prev-line)
     (define-key map (kbd "C-c C-c") 'sly-recompile-xref)
     (define-key map (kbd "C-c C-k") 'sly-recompile-all-xrefs)
 
