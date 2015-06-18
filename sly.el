@@ -6289,11 +6289,13 @@ position of point in the current buffer."
 (defun sly-inspector-fetch-all ()
   "Fetch all inspector contents and go to the end."
   (interactive)
-  (goto-char (1- (point-max)))
-  (let ((button (get-text-property (point) 'sly-range-button)))
-    (when button
-      (let (sly-inspector-limit)
-        (sly-inspector-fetch-more button)))))
+  (let ((button (button-at (1- (point-max)))))
+    (cond ((and button
+                (button-get button 'range-args))
+           (let (sly-inspector-limit)
+             (sly-inspector-fetch-more button)))
+          (t
+           (sly-error "No more elements to fetch")))))
 
 (defun sly-inspector-fetch-more (button)
   (cl-destructuring-bind (index prev) (button-get button 'range-args)
