@@ -1203,16 +1203,21 @@ Fall back to `sly-init-using-slynk-loader' if ASDF fails."
                  (run-with-timer
                   0.3 nil
                   #'sly-timer-call #'sly-attempt-connection
+                  nil
                   process (and retries (1- retries))
                   (1+ attempt)))))))
 
-(defun sly-timer-call (fun &rest args)
+(defun sly-timer-call (fun env &rest args)
   "Call function FUN with ARGS, reporting all errors.
+
+FUN is called with the overriding dynamic environment in ENV, an
+alist of bindings.
 
 The default condition handler for timer functions (see
 `timer-event-handler') ignores errors."
   (condition-case data
-      (apply fun args)
+      (cl-progv (mapcar #'car env) (mapcar #'cdr env)
+        (apply fun args))
     ((debug error)
      (debug nil (list "Error in timer" fun args data)))))
 
@@ -2060,15 +2065,19 @@ or nil if nothing suitable can be found.")
              (error "Lisp connection closed unexpectedly"))
            (accept-process-output nil 0.01)))))))
 
-(defun sly-eval-async (sexp &optional cont package)
-  "Evaluate EXPR on the superior Lisp and call CONT with the result."
+(defun sly-eval-async (sexp &optional cont package env)
+  "Evaluate EXPR on the superior Lisp and call CONT with the result.
+
+CONT is called with the overriding dynamic environment in ENV, an
+alist of bindings"
   (declare (indent 1))
   (sly-rex (cont (buffer (current-buffer)))
       (sexp (or package (sly-current-package)))
     ((:ok result)
      (when cont
        (set-buffer buffer)
-       (funcall cont result)))
+       (cl-progv (mapcar #'car env) (mapcar #'cdr env)
+         (funcall cont result))))
     ((:abort condition)
      (sly-message "Evaluation aborted on %s." condition)))
   ;; Guard against arbitrary return values which once upon a time
