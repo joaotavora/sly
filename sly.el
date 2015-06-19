@@ -197,6 +197,13 @@ This applies to the *inferior-lisp* buffer and the network connections."
   :prefix "sly-"
   :group 'sly)
 
+(defcustom sly-ignore-protocol-mismatches nil
+  "If non-nil, ignore protocol mismatches between SLY and Slynk.
+Programatically, this variable can be let-bound around calls to
+`sly' or `sly-connect'."
+  :type 'boolean
+  :group 'sly)
+
 (defcustom sly-init-function 'sly-init-using-asdf
   "Function bootstrapping slynk on the remote.
 
@@ -1203,7 +1210,7 @@ Fall back to `sly-init-using-slynk-loader' if ASDF fails."
                  (run-with-timer
                   0.3 nil
                   #'sly-timer-call #'sly-attempt-connection
-                  nil
+                  `((sly-ignore-protocol-mismatches . ,sly-ignore-protocol-mismatches))
                   process (and retries (1- retries))
                   (1+ attempt)))))))
 
@@ -1708,7 +1715,9 @@ This is automatically synchronized from Lisp.")
   ;; first command.
   (let ((sly-current-thread t))
     (sly-eval-async '(slynk:connection-info)
-      (sly-curry #'sly-set-connection-info proc))))
+      (sly-curry #'sly-set-connection-info proc)
+      nil
+      `((sly-ignore-protocol-mismatches . ,sly-ignore-protocol-mismatches)))))
 
 (defun sly-set-connection-info (connection info)
   "Initialize CONNECTION with INFO received from Lisp."
@@ -1754,7 +1763,7 @@ This is automatically synchronized from Lisp.")
 
 (defun sly-check-version (version conn)
   (or (equal version sly-protocol-version)
-      (equal sly-protocol-version 'ignore)
+      sly-ignore-protocol-mismatches
       (y-or-n-p
        (format "Versions differ: %s (sly) vs. %s (slynk). Continue? "
                sly-protocol-version version))
