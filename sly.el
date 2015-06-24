@@ -5824,6 +5824,7 @@ was called originally."
                (current-buffer)))))))
 
 (defun sly-quit-threads-buffer ()
+  (interactive)
   (when sly-threads-buffer-timer
     (cancel-timer sly-threads-buffer-timer))
   (quit-window t)
