@@ -5821,13 +5821,15 @@ was called originally."
                sly-threads-update-interval
                sly-threads-update-interval
                'sly-update-threads-buffer
-               (current-buffer)))))))
+               (current-buffer))))
+      (add-hook 'kill-buffer-hook  'sly--threads-buffer-teardown
+                'append 'local))))
 
-(defun sly-quit-threads-buffer ()
+(defun sly--threads-buffer-teardown ()
   (when sly-threads-buffer-timer
     (cancel-timer sly-threads-buffer-timer))
-  (quit-window t)
-  (sly-eval-async `(slynk:quit-thread-browser)))
+  (when (sly-current-connection)
+    (sly-eval-async `(slynk:quit-thread-browser))))
 
 (defun sly-update-threads-buffer (&optional buffer)
   (interactive)
@@ -5916,7 +5918,7 @@ was called originally."
     (define-key map "d" 'sly-thread-debug)
     (define-key map "g" 'sly-update-threads-buffer)
     (define-key map "k" 'sly-thread-kill)
-    (define-key map "q" 'sly-quit-threads-buffer)
+    (define-key map "q" 'quit-window)
     map))
 
 (define-derived-mode sly-thread-control-mode fundamental-mode
