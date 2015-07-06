@@ -1386,7 +1386,7 @@ EVAL'd by Lisp."
       (and (not (multibyte-string-p string))
            (not (sly-coding-system-mulibyte-p coding-system)))))
 
-(defun sly-net-close (process reason &optional debug)
+(defun sly-net-close (process reason &optional debug _force)
   (process-put process 'sly-net-close-reason reason)
   (setq sly-net-processes (remove process sly-net-processes))
   (when (eq process sly-default-connection)
@@ -1792,21 +1792,36 @@ This is automatically synchronized from Lisp.")
 
 ;;;;; Commands on connections
 
+(defun sly--purge-connections ()
+  "Purge `sly-net-processes' of dead processes, return living."
+  (cl-loop for process in sly-net-processes
+           if (process-live-p process)
+           collect process
+           else do
+           (sly-warning "process %s in `sly-net-processes' dead. Force closing..." process)
+           (sly-net-close process "process state invalid" nil t)))
+
 (defun sly-prompt-for-connection (&optional prompt)
-  (let* ((connection-names (cl-loop for process in
-                                    (sort sly-net-processes
+  (let* ((connections (sly--purge-connections))
+         (connection-names (cl-loop for process in
+                                    (sort connections
                                           #'(lambda (p1 _p2)
                                               (eq p1 (sly-current-connection))))
                                     collect (sly-connection-name process)))
-         (connection-name (sly-completing-read
-                           (or prompt "Connection: ")
-                           connection-names))
-         (choice-pos (cl-position connection-name connection-names)))
-    (cl-assert choice-pos)
-    (nth choice-pos sly-net-processes)))
+         (connection-name (and connection-names
+                               (sly-completing-read
+                                (or prompt "Connection: ")
+                                connection-names)))
+         (target (cl-find connection-name sly-net-processes :key #'sly-connection-name :test #'eq)))
+    (cond (target
+           target)
+          (connection-name
+           (sly-error "Bug in `sly-prompt-for-connection'"))
+          (t
+           (sly-error "No connections")))))
 
 (defun sly-auto-select-connection ()
-  (let* ((c0 (car sly-net-processes))
+  (let* ((c0 (car (sly--purge-connections)))
          (c (cond ((eq sly-auto-select-connection 'always) c0)
                   ((and (eq sly-auto-select-connection 'ask)
                         (sly-prompt-for-connection "Choose a new default connection: "))))))
@@ -1833,27 +1848,27 @@ means don't wrap around when last connection is reached."
                (c)
                (format "%s %s" (sly-connection-name c) (process-contact c))))
     (cond ((not sly-net-processes)
-           (sly-error "No connections to cycle"))
+             (sly-error "No connections to cycle"))
           ((null (cdr sly-net-processes))
            (sly-message "Only one connection: %s" (connection-full-name (car sly-net-processes))))
-          (t
-           (let* ((dest (append (member (sly-current-connection)
+            (t
+             (let* ((dest (append (member (sly-current-connection)
                                         sly-net-processes)
                                 (unless dont-wrap sly-net-processes)))
                   (len (length sly-net-processes))
-                  (target (nth (mod arg len) 
-                               dest)))
-             (unless target
-               (sly-error "No more connections"))
-             (sly-select-connection target)
-             (if (and sly-buffer-connection
-                      (not (eq sly-buffer-connection target)))
-                 (sly-message "switched to: %s but buffer remains in: %s"
-                              (connection-full-name target)
-                              (connection-full-name sly-buffer-connection))
-               (sly-message "switched to: %s (%s/%s)" (connection-full-name target)
+                    (target (nth (mod arg len) 
+                                 dest)))
+               (unless target
+                 (sly-error "No more connections"))
+               (sly-select-connection target)
+               (if (and sly-buffer-connection
+                        (not (eq sly-buffer-connection target)))
+                   (sly-message "switched to: %s but buffer remains in: %s"
+                                (connection-full-name target)
+                                (connection-full-name sly-buffer-connection))
+                 (sly-message "switched to: %s (%s/%s)" (connection-full-name target)
                             (1+ (cl-position target sly-net-processes))
-                            len))
+                              len))
              (sly--refresh-mode-line))))))
 
 (defun sly-prev-connection (arg &optional dont-wrap)
