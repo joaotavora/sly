@@ -862,9 +862,10 @@ QUALITIES is an alist with (quality . value)"
   (with-definition-source (pathname form-path character-offset plist
                                     file-write-date) definition-source
     (let* ((namestring (namestring (translate-logical-pathname pathname)))
-           (pos (if form-path
-                    (source-file-position namestring file-write-date
-                                          form-path)
+           (pos (or (and form-path
+                         (ignore-errors
+                          (source-file-position namestring file-write-date
+                                                form-path)))
                     character-offset))
            (snippet (source-hint-snippet namestring file-write-date pos)))
       (make-location `(:file ,namestring)
