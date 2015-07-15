@@ -487,7 +487,14 @@ confronted with nasty #.-fu."
        "
        "SLYNK"
        "[ \t]*(defun .foo. "
-       ))
+       )
+      ("(in-package slynk)
+(eval-when (:compile-toplevel) (defparameter *bar* 456))
+(eval-when (:load-toplevel :execute) (makunbound '*bar*))
+(defun bar () #.*bar*)
+(defun .foo. () 123)"
+"SLYNK"
+"[ \t]*(defun .foo. () 123)"))
   (let ((sly-buffer-package buffer-package))
     (with-temp-buffer
       (insert buffer-content)
