@@ -63,7 +63,26 @@
                            (or (cl-position ?\n string) most-positive-fixnum)
                            (1- (window-width (minibuffer-window))))))
 
-(defvar sly-completing-read-function 'ido-completing-read)
+(defvar sly-completing-read-function 'sly-ido-completing-read)
+
+(defun sly-ido-completing-read (prompt choices &optional
+                                       predicate
+                                       require-match
+                                       initial-input
+                                       hist
+                                       def
+                                       inherit-input-method)
+  "Like `ido-completing-read' but treat REQUIRE-MATCH different.
+If REQUIRE-MATCH is nil, offer a \"(none)\" option to return the
+empty string."
+  (let ((res (ido-completing-read prompt
+                       (append
+                        (unless require-match
+                          (list (propertize "(none)" 'sly--none t)))
+                        choices)
+                       predicate require-match initial-input hist def inherit-input-method)))
+    (when (get-text-property 0 'sly--none res)
+      "")))
 
 (defun sly-completing-read (prompt choices &optional
                                    predicate

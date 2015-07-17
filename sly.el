@@ -696,13 +696,18 @@ Minimize point motion if possible."
     (set (make-local-variable 'truncate-lines) t)))
 
 ;; Interface
-(defun sly-read-package-name (prompt &optional initial-value)
-  "Read a package name from the minibuffer, prompting with PROMPT."
-  (let ((completion-ignore-case t))
-    (sly-completing-read (concat "[sly] " prompt)
-                     (sly-eval
-                      `(slynk:list-all-package-names t))
-		     nil t initial-value)))
+(defun sly-read-package-name (prompt &optional initial-value allow-blank)
+  "Read a package name from the minibuffer, prompting with PROMPT.
+If ALLOW-BLANK may return nil to signal no particular package
+selected."
+  (let* ((completion-ignore-case t)
+         (res (sly-completing-read
+               (concat "[sly] " prompt)
+               (sly-eval
+                `(slynk:list-all-package-names t))
+               nil (not allow-blank) initial-value)))
+    (unless (zerop (length res))
+      res)))
 
 ;; Interface
 (defmacro sly-propertize-region (props &rest body)
@@ -4222,8 +4227,8 @@ arg, you're interactively asked for parameters of the search."
    (if current-prefix-arg
        (list (sly-read-from-minibuffer "Apropos: ")
              (y-or-n-p "[sly] External symbols only? ")
-             (let ((pkg (sly-read-package-name "Package (blank for all): ")))
-               (if (string= pkg "") nil pkg))
+             (sly-read-package-name "Package (blank for all): "
+                                    nil 'allow-blank)
              (y-or-n-p "[sly] Case-sensitive? "))
      (list (sly-read-from-minibuffer "Apropos external symbols: ") t nil nil)))
   (sly-eval-async
