@@ -2949,10 +2949,13 @@ Like `describe-symbol-for-emacs' but with at most one line per item."
     (let ((desc (map-if #'stringp #'first-line
                         (describe-symbol-for-emacs symbol))))
       (if desc
-          (list* :designator (list (symbol-name symbol)
-                                   (package-name (symbol-package symbol))
-                                   (symbol-external-p symbol))
-                 desc)))))
+          `(:designator ,(list (symbol-name symbol)
+                               (package-name (symbol-package symbol))
+                               (symbol-external-p symbol))
+                        ,@desc
+                        ,@(let ((arglist (arglist symbol)))
+                            (when (not (eq arglist :not-available))
+                              `(:arglist ,(princ-to-string arglist)))))))))
 
 (defun map-if (test fn &rest lists)
   "Like (mapcar FN . LISTS) but only call FN on objects satisfying TEST.
