@@ -81,8 +81,9 @@ empty string."
                           (list (propertize "(none)" 'sly--none t)))
                         choices)
                        predicate require-match initial-input hist def inherit-input-method)))
-    (when (get-text-property 0 'sly--none res)
-      "")))
+    (if (get-text-property 0 'sly--none res)
+        ""
+      res)))
 
 (defun sly-completing-read (prompt choices &optional
                                    predicate
