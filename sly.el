@@ -4222,15 +4222,23 @@ Return whatever slynk:set-default-directory returns."
 (defun sly-apropos (string &optional only-external-p package
                              case-sensitive-p)
   "Show all bound symbols whose names match STRING. With prefix
-arg, you're interactively asked for parameters of the search."
+arg, you're interactively asked for parameters of the search.
+With M-- (negative) prefix arg, prompt for package only. "
   (interactive
-   (if current-prefix-arg
-       (list (sly-read-from-minibuffer "Apropos: ")
-             (y-or-n-p "[sly] External symbols only? ")
-             (sly-read-package-name "Package (blank for all): "
-                                    nil 'allow-blank)
-             (y-or-n-p "[sly] Case-sensitive? "))
-     (list (sly-read-from-minibuffer "Apropos external symbols: ") t nil nil)))
+   (cond ((eq '- current-prefix-arg)
+          (list (sly-read-from-minibuffer "Apropos external symbols: ")
+                t
+                (sly-read-package-name "Package (blank for all): "
+                                       nil 'allow-blank)
+                nil))
+         (current-prefix-arg
+          (list (sly-read-from-minibuffer "Apropos: ")
+               (y-or-n-p "[sly] External symbols only? ")
+               (sly-read-package-name "Package (blank for all): "
+                                      nil 'allow-blank)
+               (y-or-n-p "[sly] Case-sensitive? ")))
+         (t
+          (list (sly-read-from-minibuffer "Apropos external symbols: ") t nil nil))))
   (sly-eval-async
       `(slynk:apropos-list-for-emacs ,string ,only-external-p
                                      ,case-sensitive-p ',package)
@@ -4273,7 +4281,7 @@ TODO"
                (setq header-line-format summary)
              (insert summary "\n\n"))
            (sly-set-truncate-lines)
-           (sly-print-apropos plists)
+           (sly-print-apropos plists (not package))
            (set-syntax-table lisp-mode-syntax-table)
            (goto-char (point-min))))))
 
@@ -4290,17 +4298,17 @@ TODO"
   #'(lambda (name _type)
       (sly-eval-describe `(slynk:describe-symbol ,name))))
 
-(defun sly-apropos-designator-string (designator)
-  (cond ((listp designator)
-         (concat (cadr designator)
-                 (if (cl-caddr designator) ":" "::")
-                 (car designator)))
-        ((stringp designator)
-         designator)
-        (t
-         (error "unknown designator type"))))
+(defun sly--package-designator-prefix (designator)
+  (unless (listp designator)
+    (error "unknown designator type"))
+  (concat (cadr designator)
+          (if (cl-caddr designator) ":" "::")))
 
-(defun sly-apropos-insert-symbol (designator item bounds)
+(defun sly-apropos-designator-string (designator)
+  (concat (sly--package-designator-prefix designator)
+          (car designator)))
+
+(defun sly-apropos-insert-symbol (designator item bounds package-designator-searched-p)
   (let ((start (point))
         (label (sly-apropos-designator-string designator)))
     (make-text-button label nil
@@ -4310,18 +4318,21 @@ TODO"
                       :type 'sly-apropos-symbol)
     (insert label)
     (when bounds
-      (let ((ov (make-overlay (+ start (cl-first bounds))
-                              (+ start (cl-second bounds)))))
+      (let* ((offset (if package-designator-searched-p
+                         0
+                       (length (sly--package-designator-prefix designator))))
+             (ov (make-overlay (+ start offset (cl-first bounds))
+                              (+ start offset (cl-second bounds)))))
         (overlay-put ov 'face 'highlight)))))
 
-(defun sly-print-apropos (plists)
+(defun sly-print-apropos (plists package-designator-searched-p)
   (cl-loop
    for plist in plists
    for designator = (plist-get plist :designator)
    for item = (substring-no-properties
                (sly-apropos-designator-string designator))
    do
-   (sly-apropos-insert-symbol designator item (plist-get plist :bounds))
+   (sly-apropos-insert-symbol designator item (plist-get plist :bounds) package-designator-searched-p)
    (terpri)
    (cl-loop for (prop value) on plist by #'cddr
             for start = (point)
