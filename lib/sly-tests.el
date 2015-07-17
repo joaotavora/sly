@@ -1373,7 +1373,7 @@ Reconnect afterwards."
 ;;; xref recompilation
 ;;;
 (defun sly-test--eval-now (string)
-  (second (sly-eval `(swank:eval-and-grab-output ,string))))
+  (second (sly-eval `(slynk:eval-and-grab-output ,string))))
 
 (def-sly-test (sly-recompile-all-xrefs (:fails-for "cmucl")) ()
   "Test recompilation of all references within an xref buffer."
@@ -1385,8 +1385,8 @@ Reconnect afterwards."
     (unwind-protect
         (with-temp-file filename
           (set-visited-file-name filename)
-          (sly-test--eval-now "(defparameter swank::*.var.* nil)")
-          (insert "(in-package :swank)
+          (sly-test--eval-now "(defparameter slynk::*.var.* nil)")
+          (insert "(in-package :slynk)
                     (defun .fn1. ())
                     (defun .fn2. () (.fn1.) #.*.var.*)
                     (defun .fn3. () (.fn1.) #.*.var.*)")

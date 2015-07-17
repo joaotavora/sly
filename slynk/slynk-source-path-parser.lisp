@@ -108,9 +108,9 @@ subexpressions of the object to stream positions."
 
 ;; FIXME: do something cleaner than this.
 (defun readtable-for-package (package)
-  ;; KLUDGE: due to the load order we can't reference the swank
+  ;; KLUDGE: due to the load order we can't reference the slynk
   ;; package.
-  (funcall (read-from-string "swank::guess-buffer-readtable")
+  (funcall (read-from-string "slynk::guess-buffer-readtable")
            (string-upcase (package-name package))))
 
 (defun skip-one-toplevel-form (stream read-suppress package readtable)
