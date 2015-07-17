@@ -2953,8 +2953,10 @@ Like `describe-symbol-for-emacs' but with at most one line per item."
                                (package-name (symbol-package symbol))
                                (symbol-external-p symbol))
                         ,@desc
-                        ,@(let ((arglist (arglist symbol)))
-                            (when (not (eq arglist :not-available))
+                        ,@(let ((arglist (and (fboundp symbol)
+                                              (arglist symbol))))
+                            (when (and arglist
+                                       (not (eq arglist :not-available)))
                               `(:arglist ,(princ-to-string arglist)))))))))
 
 (defun map-if (test fn &rest lists)
