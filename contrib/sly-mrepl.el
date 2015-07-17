@@ -158,6 +158,7 @@ for output printed to the REPL (not for evaluation results)")
                 (sly-autodoc-inhibit-autodoc sly-mrepl-inside-string-or-comment-p)
                 (mode-line-process nil)
                 (parse-sexp-ignore-comments t)
+                (syntax-propertize-function sly-mrepl--syntax-propertize)
                 (comint-scroll-show-maximum-output nil)
                 (comint-scroll-to-bottom-on-input nil)
                 (comint-scroll-to-bottom-on-output nil)
@@ -284,6 +285,20 @@ for output printed to the REPL (not for evaluation results)")
        (add-text-properties ,start-sym (sly-mrepl--mark)
                             (append '(read-only t front-sticky (read-only))
                                     ,props)))))
+
+(defun sly-mrepl--syntax-propertize (beg end)
+  "Make everything up to current prompt comment syntax."
+  (let ((end (min end
+                  (if (sly-mrepl--process)
+                      (sly-mrepl--mark)
+                    (1- (point-max)))))
+        (beg beg))
+    (remove-text-properties beg end '(syntax-table nil))
+    (when (= beg (point-min))
+      (add-text-properties (point-min) (1+ (point-min))
+                           `(syntax-table ,(string-to-syntax "!"))))
+    (add-text-properties (1- end) end
+                         `(syntax-table ,(string-to-syntax "!")))))
 
 (defun sly-mrepl--call-with-repl (repl-buffer fn)
   (with-current-buffer repl-buffer
