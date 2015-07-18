@@ -23,7 +23,7 @@
 (autoload 'sly-connect "sly"
   "Connect to a running Slynk server." t)
 
-(autoload 'hyperspec-lookup "hyperspec" nil t)
+(autoload 'hyperspec-lookup "lib/hyperspec" nil t)
 
 (autoload 'sly-editing-mode "sly" "SLY" t)
 
