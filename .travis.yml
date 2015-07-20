@@ -15,11 +15,16 @@ env:
 install:
   - curl https://raw.githubusercontent.com/capitaomorte/cl-travis/master/install.sh | bash
   - if [ "$EMACS" = "emacs24" ]; then
-        sudo add-apt-repository -y ppa:cassou/emacs &&
-        sudo apt-get -qq update &&
-        sudo apt-get -qq -f install &&
-        sudo apt-get -qq install emacs24-nox;
+        SOURCE=http://mirrors.kernel.org/ubuntu/pool/main/e/emacs24;
+        curl -O $SOURCE/emacs24-nox_24.3+1-2ubuntu1_i386.deb;
+        curl -O $SOURCE/emacs24-el_24.3+1-2ubuntu1_all.deb;
+        curl -O $SOURCE/emacs24-common_24.3+1-2ubuntu1_all.deb;
+        curl -O $SOURCE/emacs24-bin-common_24.3+1-2ubuntu1_i386.deb;
+        dpkg -x emacs24-nox_24.3+1-2ubuntu1_i386.deb .;
+        dpkg -x emacs24-el_24.3+1-2ubuntu1_all.deb .;
+        dpkg -x emacs24-common_24.3+1-2ubuntu1_all.deb .;
+        dpkg -x emacs24-bin-common_24.3+1-2ubuntu1_i386.deb .;
     fi
 
 script:
-  - make LISP=$LISP EMACS=$EMACS $CHECK_TARGET
+  - export PATH=./usr/bin:$PATH && make LISP=$LISP EMACS=$EMACS $CHECK_TARGET
