@@ -527,7 +527,7 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
   "Send MSG to the remote channel."
   (sly-send-to-remote-channel sly-mrepl--remote-channel msg))
 
-(defun sly-mrepl--find-buffer (&optional connection)
+(defun sly-mrepl--find-buffer (&optional connection thread)
   "Find the shortest-named (default) `sly-mrepl' buffer for CONNECTION."
   ;; CONNECTION defaults to the `sly-default-connection' passing
   ;; through `sly-connection'. Seems to work OK...
@@ -539,7 +539,9 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
          (repls (cl-remove-if-not (lambda (x)
                                     (with-current-buffer x
                                       (and (eq major-mode 'sly-mrepl-mode)
-                                           (eq sly-buffer-connection connection))))
+                                           (eq sly-buffer-connection connection)
+                                           (or (not thread)
+                                               (eq thread sly-current-thread)))))
                                   (buffer-list)))
          (sorted (cl-sort repls #'< :key (sly-compose #'length #'buffer-name))))
     (car sorted)))
@@ -1016,6 +1018,7 @@ Doesn't clear input history."
   "Evaluate the frame var at point via the REPL (to set `*')."
   (sly-mrepl--save-and-copy-for-repl
    `(slynk-backend:frame-var-value ,frame-id ,var-id)
+   :repl (sly-mrepl--find-buffer nil sly-current-thread)
    :before (format "Returning var %s of frame %s" var-id frame-id)))
 
 (defun sly-apropos-copy-symbol-to-repl (name _type)
