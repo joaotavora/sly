@@ -1583,7 +1583,7 @@ Signal an error if there's no connection."
           ((not conn)
            (or (sly-auto-start)
                (error "Not connected.")))
-          ((not (eq (process-status conn) 'open))
+          ((not (process-live-p conn))
            (error "Connection closed."))
           (t conn))))
 
@@ -5110,7 +5110,8 @@ The chosen buffer the default connection's it if exists."
                          sly-db-continuations))))
 
 (defun sly-db-confirm-buffer-kill ()
-  (when (y-or-n-p "Really kill sly-db buffer and throw to toplevel?")
+  (when (or (not (process-live-p (sly-current-connection)))
+         (y-or-n-p "Really kill sly-db buffer and throw to toplevel?"))
     (ignore-errors (sly-db-quit))
     t))
 
