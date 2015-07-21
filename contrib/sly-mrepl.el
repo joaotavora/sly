@@ -288,17 +288,18 @@ for output printed to the REPL (not for evaluation results)")
 
 (defun sly-mrepl--syntax-propertize (beg end)
   "Make everything up to current prompt comment syntax."
+  (remove-text-properties beg end '(syntax-table nil))
   (let ((end (min end
                   (if (sly-mrepl--process)
                       (sly-mrepl--mark)
-                    (1- (point-max)))))
+                    (point-max))))
         (beg beg))
-    (remove-text-properties beg end '(syntax-table nil))
-    (when (= beg (point-min))
-      (add-text-properties (point-min) (1+ (point-min))
-                           `(syntax-table ,(string-to-syntax "!"))))
-    (add-text-properties (1- end) end
-                         `(syntax-table ,(string-to-syntax "!")))))
+    (when (> end beg)
+      (unless (nth 8 (syntax-ppss beg))
+        (add-text-properties beg (1+ beg)
+                             `(syntax-table ,(string-to-syntax "!"))))
+      (add-text-properties (1- end) end
+                           `(syntax-table ,(string-to-syntax "!"))))))
 
 (defun sly-mrepl--call-with-repl (repl-buffer fn)
   (with-current-buffer repl-buffer
