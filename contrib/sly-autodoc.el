@@ -134,10 +134,7 @@ If it's not in the cache, the cache will be updated asynchronously."
 	 (sly-parse-form-upto-point levels))))
 
 (defun sly-autodoc--parsing-safe-p ()
-  (cond ((fboundp 'sly-repl-inside-string-or-comment-p)
-	 (not (sly-repl-inside-string-or-comment-p)))
-	(t
-	 (not (sly-inside-string-or-comment-p)))))
+  (not (sly-inside-string-or-comment-p)))
 
 (defun sly-autodoc--async (context multilinep)
   (sly-eval-async
