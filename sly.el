@@ -1816,8 +1816,10 @@ This is automatically synchronized from Lisp.")
          (connection-name (and connection-names
                                (sly-completing-read
                                 (or prompt "Connection: ")
-                                connection-names)))
-         (target (cl-find connection-name sly-net-processes :key #'sly-connection-name :test #'eq)))
+                                connection-names
+                                nil t)))
+         (target (cl-find connection-name sly-net-processes :key #'sly-connection-name
+                          :test #'string=)))
     (cond (target
            target)
           (connection-name
