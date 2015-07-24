@@ -1019,7 +1019,7 @@ Doesn't clear input history."
   "Evaluate the frame var at point via the REPL (to set `*')."
   (sly-mrepl--save-and-copy-for-repl
    `(slynk-backend:frame-var-value ,frame-id ,var-id)
-   :repl (sly-mrepl--find-buffer nil sly-current-thread)
+   :repl (sly-mrepl--find-buffer (sly-current-connection) sly-current-thread)
    :before (format "Returning var %s of frame %s" var-id frame-id)))
 
 (defun sly-apropos-copy-symbol-to-repl (name _type)
