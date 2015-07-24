@@ -562,9 +562,7 @@ corresponding values in the CDR of VALUE."
       (unwind-protect (funcall fn)
         (when saving
           (loop for binding in env
-                do (slynk-trace-dialog:trace-format "Setting ~a to ~a"
-                                                    (car binding) (symbol-value (car binding)))
-                   (setf (cdr binding) (symbol-value (car binding)))))))))
+                do (setf (cdr binding) (symbol-value (car binding)))))))))
 
 (defmacro with-listener-bindings (listener &body body)
   "Execute BODY inside LISTENER's environment"
