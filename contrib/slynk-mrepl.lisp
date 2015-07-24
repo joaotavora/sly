@@ -122,7 +122,7 @@ Set this to NIL to turn this feature off.")
                          (unless errored
                            (push err (mrepl-pending-errors repl))
                            (setq aborted err errored err)
-                           (with-listener repl
+                           (with-listener-bindings repl
                              (send-prompt repl errored))))))
            (setq results (mrepl-eval-1 repl string)
                  ;; If MREPL-EVAL-1 errored once but somehow
@@ -130,7 +130,7 @@ Set this to NIL to turn this feature off.")
                  aborted nil))
       (unless (eq (mrepl-mode repl) :teardown)
         (flush-listener-streams repl)
-        (with-listener repl
+        (saving-listener-bindings repl
           (if errored
               (pop (mrepl-pending-errors repl)))
           (cond (aborted
@@ -169,18 +169,21 @@ Set this to NIL to turn this feature off.")
 (defun mrepl-eval-1 (repl string)
   "In REPL's environment, READ and EVAL forms in STRING."
   (with-sly-interrupts
-    ;; Don't change REPL's protected environment here, use
-    ;; WITH-BINDINGS. If EVAL pops up an error in the argument
-    ;; STRING's form, and in the meantime we had some debugging
-    ;; prompts (which make recursive calls to mrepl-eval), the
-    ;; variables *, **, *** and *HISTORY* will get incorrectly
-    ;; clobbered to their pre-debugger values, whereas we want to
-    ;; serialize this history.
+    ;; Use WITH-LISTENER-BINDINGS (not SAVING-LISTENER-BINDINGS)
+    ;; instead, otherwise, if EVAL pops up an error in STRING's form,
+    ;; and in the meantime we had some debugging prompts (which make
+    ;; recursive calls to this function), the variables *, **, *** and
+    ;; *HISTORY* will get incorrectly clobbered to their pre-debugger
+    ;; values, whereas we want to serialize this history.
     ;;
     ;; However, as an exception, we /do/ want *PACKAGE* to be
     ;; clobbered if the evaluation of STRING eventually completes.
     ;;
-    (slynk::with-bindings (slot-value repl 'slynk::env)
+    ;; Another way to see this is: the forms that the user inputs can
+    ;; only change the *PACKAGE* binding of the listener's
+    ;; environment. Everything else in there is handled automatically.
+    ;;
+    (with-listener-bindings repl
       (prog1
           (with-retry-restart (:msg "Retry SLY mREPL evaluation request.")
             (with-input-from-string (in string)
@@ -223,7 +226,7 @@ Set this to NIL to turn this feature off.")
 ;;; Channel methods
 ;;;
 (define-channel-method :inspect-object ((r mrepl) entry-idx value-idx)
-  (with-listener r
+  (with-listener-bindings r
     (send-to-remote-channel
        (mrepl-remote-id r)
        `(:inspect-object
@@ -243,7 +246,7 @@ Set this to NIL to turn this feature off.")
   (call-next-method))
 
 (define-channel-method :clear-repl-history ((r mrepl))
-  (with-listener r
+  (saving-listener-bindings r
     ;; FIXME: duplication... use reinitialize-instance
     (setf *history* (make-array 40 :fill-pointer 0
                                    :adjustable t)
@@ -263,7 +266,7 @@ Set this to NIL to turn this feature off.")
                  :name (format nil "mrepl-remote-~a" remote-id)
                  :out (make-mrepl-output-stream remote-id))))
     (let ((target (maybe-redirect-global-io *emacs-connection*)))
-      (with-listener mrepl
+      (saving-listener-bindings mrepl
         (format *standard-output* "~&; SLY ~a (~a)~%"
                 *slynk-wire-protocol-version*
                 mrepl)
@@ -283,7 +286,8 @@ Set this to NIL to turn this feature off.")
   (setq *saved-objects* (multiple-value-list (apply slave-slyfun args)))
   t)
 
-(defmacro with-eval-for-repl ((remote-id &optional mrepl-sym) &body body)
+(defmacro with-eval-for-repl ((remote-id &optional mrepl-sym
+                                                   update-mrepl) &body body)
   (let ((mrepl-sym (or mrepl-sym
                        (gensym))))
     `(let ((,mrepl-sym (find-channel ,remote-id)))
@@ -294,8 +298,11 @@ Set this to NIL to turn this feature off.")
             (channel-thread-id ,mrepl-sym))
         nil
         "This SLYFUN can only be called from threads belonging to MREPL")
-       (with-listener ,mrepl-sym
-         ,@body))))
+       ,(if update-mrepl
+            `(saving-listener-bindings ,mrepl-sym
+               ,@body)
+            `(with-listener-bindings ,mrepl-sym
+               ,@body)))))
 
 (defslyfun eval-for-mrepl (remote-id slave-slyfun &rest args)
   "A synchronous form for evaluation in the mREPL context.
@@ -303,11 +310,14 @@ Set this to NIL to turn this feature off.")
 Calls SLAVE-SLYFUN with ARGS in the MREPL of REMOTE-ID. Both the
 target MREPL's thread and environment are considered.
 
+SLAVE-SLYFUN is typically destructive to the REPL listener's
+environment.
+
 This function returns a list of two elements. The first is a list
 of arguments as sent in the :PROMPT channel method reply. The second
 is the values list returned by SLAVE-SLYFUN transformed into a normal
 list."
-  (with-eval-for-repl (remote-id mrepl)
+  (with-eval-for-repl (remote-id mrepl 'allow-destructive)
     (let ((objects (multiple-value-list (apply slave-slyfun args))))
       (list
        (prompt-arguments mrepl nil)
@@ -531,7 +541,7 @@ dynamic binding."
 (defun globally-redirect-to-listener (listener)
   "Set the standard I/O streams to redirect to LISTENER.
 Assigns *CURRENT-<STREAM>* for all standard streams."
-  (with-listener listener
+  (saving-listener-bindings listener
     (dolist (o *standard-output-streams*)
       (set (prefixed-var '#:current o)
            *standard-output*))
@@ -580,7 +590,7 @@ Return the current redirection target, or nil"
         (init-global-stream-redirection))
       (setq *target-listener-for-redirection* l)
       (globally-redirect-to-listener l)
-      (with-listener l
+      (with-listener-bindings l
         (format *standard-output* "~&; Redirecting all output to this MREPL~%")
         (flush-listener-streams l)))
     *target-listener-for-redirection*))

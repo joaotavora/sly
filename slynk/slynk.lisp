@@ -556,16 +556,23 @@ corresponding values in the CDR of VALUE."
   (setf (listeners) (nconc (listeners)
                            (list l))))
 
-(defmacro with-listener (listener &body body)
-  "Execute BODY inside LISTENER's environment, update environment afterwards."
-  `(with-slots (env) ,listener
-     (with-bindings
-         env
-       (unwind-protect
-            (progn
-              ,@body)
-         (loop for binding in env
-               do (setf (cdr binding) (symbol-value (car binding))))))))
+(defun call-with-listener (listener fn &optional saving)
+  (with-slots (env) listener
+    (with-bindings env
+      (unwind-protect (funcall fn)
+        (when saving
+          (loop for binding in env
+                do (slynk-trace-dialog:trace-format "Setting ~a to ~a"
+                                                    (car binding) (symbol-value (car binding)))
+                   (setf (cdr binding) (symbol-value (car binding)))))))))
+
+(defmacro with-listener-bindings (listener &body body)
+  "Execute BODY inside LISTENER's environment"
+  `(call-with-listener ,listener (lambda () ,@body)))
+
+(defmacro saving-listener-bindings (listener &body body)
+  "Execute BODY inside LISTENER's environment, update it afterwards."
+  `(call-with-listener ,listener (lambda () ,@body) 'saving))
 
 (defmacro with-default-listener ((connection) &body body)
   "Execute BODY with in CONNECTION's default listener."
@@ -574,7 +581,7 @@ corresponding values in the CDR of VALUE."
     `(let ((,listener-sym (default-listener ,connection))
            (,body-fn-sym #'(lambda () ,@body)))
        (if ,listener-sym
-           (with-listener ,listener-sym
+           (with-listener-bindings ,listener-sym
              (funcall ,body-fn-sym))
            (funcall ,body-fn-sym)))))
 
@@ -4062,7 +4069,8 @@ Collisions are caused because package information is ignored."
                #:send-to-remote-channel
                ;;
                #:listener
-               #:with-listener
+               #:with-listener-bindings
+               #:saving-listener-bindings
                #:flush-listener-streams
                #:default-listener
                #:close-listener
