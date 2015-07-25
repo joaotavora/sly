@@ -2955,7 +2955,9 @@ Like `describe-symbol-for-emacs' but with at most one line per item."
                         (describe-symbol-for-emacs symbol))))
       (if desc
           `(:designator ,(list (symbol-name symbol)
-                               (package-name (symbol-package symbol))
+                               (let ((package (symbol-package symbol)))
+                                 (and package
+                                      (package-name package)))
                                (symbol-external-p symbol))
                         ,@desc
                         ,@(let ((arglist (and (fboundp symbol)
@@ -3067,6 +3069,7 @@ MAKE-APROPOS-MATCHER interface has been implemented.")
             while morep
             for (match end) = (and (or (not external-only)
                                        (symbol-external-p symbol))
+                                   (symbol-package symbol)
                                    (multiple-value-list (funcall matcher symbol)))
             when match
               collect `(,symbol ,@(when end `(:bounds (,match ,end))))))))
