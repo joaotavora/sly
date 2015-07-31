@@ -240,7 +240,8 @@ program.")
       (format nil "~a is now traced for trace dialog" spec))))
 
 (defslyfun dialog-untrace (spec)
-  (slynk-backend:unwrap spec 'trace-dialog)
+  (with-simple-restart (continue "Never mind, i really want this trace to go away")
+    (slynk-backend:unwrap spec 'trace-dialog))
   (setq *traced-specs* (remove spec *traced-specs* :test #'equal))
   (format nil "~a is now untraced for trace dialog" spec))
 
