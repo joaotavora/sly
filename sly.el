@@ -4899,11 +4899,17 @@ argument is given, with CL:MACROEXPAND."
        'slynk:slynk-expand
      'slynk:slynk-expand-1)))
 
-(defun sly-format-string-expand ()
-  "Expand the format-string at point and display it."
-  (interactive)
+(defun sly-format-string-expand (&optional string)
+  "Expand the format-string at point and display it.
+With prefix arg, or if no string at point, prompt the user for a
+string to expand.
+"
+  (interactive (list (or (and (not current-prefix-arg)
+                              (sly-string-at-point))
+                         (sly-read-from-minibuffer "Expand format: "
+                                                   (sly-string-at-point)))))
   (sly-eval-macroexpand 'slynk:slynk-format-string-expand
-                          (sly-string-at-point-or-error)))
+                        string))
 
 
 ;;;; Subprocess control
@@ -6971,7 +6977,8 @@ The returned bounds are either nil or non-empty."
 (defun sly-string-at-point ()
   "Returns the string at point as a string, otherwise nil."
   (let ((sexp (sly-sexp-at-point)))
-    (if (eql (char-syntax (aref sexp 0)) ?\")
+    (if (and sexp
+             (eql (char-syntax (aref sexp 0)) ?\"))
         sexp
       nil)))
 
