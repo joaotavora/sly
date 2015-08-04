@@ -5112,7 +5112,7 @@ The chosen buffer the default connection's it if exists."
                          sly-db-continuations))))
 
 (defun sly-db-confirm-buffer-kill ()
-  (when (or (not (process-live-p (sly-current-connection)))
+  (when (or (not (process-live-p sly-buffer-connection))
          (y-or-n-p "Really kill sly-db buffer and throw to toplevel?"))
     (ignore-errors (sly-db-quit))
     t))
@@ -5862,7 +5862,7 @@ was called originally."
 (defun sly--threads-buffer-teardown ()
   (when sly-threads-buffer-timer
     (cancel-timer sly-threads-buffer-timer))
-  (when (sly-current-connection)
+  (when (process-live-p sly-buffer-connection)
     (sly-eval-async `(slynk:quit-thread-browser))))
 
 (defun sly-update-threads-buffer (&optional buffer)
