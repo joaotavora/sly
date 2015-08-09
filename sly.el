@@ -2433,16 +2433,13 @@ Also rearrange windows."
   (let* ((proc (sly-inferior-process process))
          (args (sly-inferior-lisp-args proc))
          (buffer (buffer-name (process-buffer proc)))
-         ;;(buffer-window (get-buffer-window buffer))
          (new-proc (sly-start-lisp (plist-get args :program)
                                      (plist-get args :program-args)
                                      (plist-get args :env)
                                      nil
                                      buffer)))
     (sly-net-close process "Restarting inferior lisp process")
-    (sly-inferior-connect new-proc args)
-    (switch-to-buffer buffer)
-    (goto-char (point-max))))
+    (sly-inferior-connect new-proc args)))
 
 
 ;;;; Compilation and the creation of compiler-note annotations
