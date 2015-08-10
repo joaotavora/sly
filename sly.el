@@ -1984,6 +1984,9 @@ This is set only in buffers bound to specific packages."))
 ;;; `sly-eval' and `sly-eval-async'. You can use it directly if
 ;;; you need to, but the others are usually more convenient.
 
+(defvar sly-rex-extra-options-functions nil
+  "Functions returning extra options to send with `sly-rex'.")
+
 (cl-defmacro sly-rex ((&rest saved-vars)
                       (sexp &optional
                             (package '(sly-current-package))
@@ -2018,10 +2021,12 @@ versions cannot deal with that."
                               (symbol (list var var))
                               (cons var)))
        (sly-dispatch-event
-        (list :emacs-rex ,sexp ,package ,thread
-              (lambda (,result)
-                (sly-dcase ,result
-                  ,@continuations)))))))
+        (cl-list* :emacs-rex ,sexp ,package ,thread
+                  (lambda (,result)
+                    (sly-dcase ,result
+                      ,@continuations))
+                  (cl-loop for fn in sly-rex-extra-options-functions
+                           append (funcall fn)))))))
 
 ;;; Interface
 (defun sly-current-package ()

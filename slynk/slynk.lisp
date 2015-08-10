@@ -46,6 +46,7 @@
            #:*slynk-pprint-bindings*
            #:*inspector-verbose*
            #:*require-module*
+           #:*eval-for-emacs-wrappers*
            ;; This is SETFable.
            #:debug-on-slynk-error
            ;; These are re-exported directly from the backend:
@@ -1235,11 +1236,11 @@ point the thread terminates and CHANNEL is closed."
   "Handle an event triggered either by Emacs or within Lisp."
   (log-event "dispatch-event: ~s~%" event)
   (destructure-case event
-    ((:emacs-rex form package thread-id id)
+    ((:emacs-rex form package thread-id id &rest extra-rex-options)
      (let ((thread (thread-for-evaluation connection thread-id)))
        (cond (thread
               (add-active-thread connection thread)
-              (send-event thread `(:emacs-rex ,form ,package ,id)))
+              (send-event thread `(:emacs-rex ,form ,package ,id ,@extra-rex-options)))
              (t
               (encode-message
                (list :invalid-rpc id
@@ -1886,10 +1887,29 @@ Fall back to the current if no such package exists."
   (or (and string (guess-package string))
       *package*))
 
-(defun eval-for-emacs (form buffer-package id)
+(defparameter *eval-for-emacs-wrappers* nil
+  "List of functions for fine-grained control over form evaluation.
+Each element must be a function taking an arbitrary number of
+arguments, the first of which is a function of no arguments, call it
+IN-FUNCTION, while the remaining are bound to the EXTRA-REX-OPTIONS
+parameter of EVAL-FOR-EMACS.  Every function *must* return another
+function of no arguments, call it OUT-FUNCTION, that, when called,
+*must* call IN-FUNCTION in whatever dynamic environment it sees fit.
+
+Slynk will go through the elements of this variable in order, passing
+a function that evaluates the form coming from Emacs to the first
+element until it collects the result of the last, which is finally
+called with no arguments.
+
+Be careful when changing this variable since you may mess very basic
+functionality of your Slynk, including the ability to correct any
+errors you make.")
+
+(defun eval-for-emacs (form buffer-package id &rest extra-rex-options)
   "Bind *BUFFER-PACKAGE* to BUFFER-PACKAGE and evaluate FORM.
-Return the result to the continuation ID.
-Errors are trapped and invoke our debugger."
+Return the result to the continuation ID.  Errors are trapped and
+invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
+*EVAL-FOR-EMACS-WRAPPERS*, which see."
   (let (ok result condition)
     (unwind-protect
          (let ((*buffer-package* (guess-buffer-package buffer-package))
@@ -1897,10 +1917,17 @@ Errors are trapped and invoke our debugger."
                (*pending-continuations* (cons id *pending-continuations*)))
            (check-type *buffer-package* package)
            (check-type *buffer-readtable* readtable)
-           ;; APPLY would be cleaner than EVAL.
-           ;; (setq result (apply (car form) (cdr form)))
            (handler-bind ((t (lambda (c) (setf condition c))))
-             (setq result (with-sly-interrupts (eval form))))
+             (setq result (with-sly-interrupts
+                            (flet ((eval-it ()
+                                     ;; APPLY would be cleaner than EVAL.
+                                     ;; (setq result (apply (car form) (cdr form)))
+                                     (eval form)))
+                              ;; Honour *EVAL-FOR-EMACS-WRAPPERS*
+                              ;; 
+                              (loop for lambda = #'eval-it then (apply wrapper lambda extra-rex-options)
+                                    for wrapper in *eval-for-emacs-wrappers*
+                                    finally (return (funcall lambda)))))))
            (run-hook *pre-reply-hook*)
            (setq ok t))
       (send-to-emacs `(:return ,(current-thread)
@@ -4082,6 +4109,7 @@ Collisions are caused because package information is ignored."
                #:*new-connection-hook*
                #:*pre-reply-hook*
                #:*after-toggle-trace-hook*
+               #:*eval-for-emacs-wrappers*
                ;;
                #:defslyfun
                #:destructure-case
