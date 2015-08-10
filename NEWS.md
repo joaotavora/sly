@@ -1,3 +1,70 @@
+Upcaming SLY 1.0.0-beta-2 (estimated September 2015)
+----------------------------------------
+
+## Apropos
+
+Argument list information is present in apropos output like
+this. A sugestion of Javier Olaechea (github #53)
+
+```
+...
+SLYNK:TO-LINE
+  Function: Print OBJECT to a single line. Return the string.
+  Arglist: (OBJECT &OPTIONAL WIDTH)
+...  
+```
+  
+`M-- sly-apropos` prompts for just the package. A suggestion of Javier
+Olaechea (github #53).
+
+`C-u sly-apropos` allows searching all packages (github #53)
+
+## REPL enhancements
+
+Using paren-matching tools like Emacs's own `electric-pair-mode` or
+`paredit-mode` in the REPL should now flawlessly like in every lisp
+buffer, i.e. open parenthesis in REPL output are not matched to the
+users current input.
+
+New variable `sly-mrepl-output-filter-functions` for REPL
+output. These work like `comint-preoutput-filter-functions`. Functions
+like `ansi-color-apply' are good candidates (github #38).
+
+When using multiple REPL, frame variables from SLY-DB triggered in
+secondary REPLs, when returned with M-RET, appear in the correct REPL.
+
+mREPL notes are synched displayed correctly at the "process mark", not
+"output mark". This avoids some `; note` in wrong
+places (github #45).
+
+Popping up SLY-DB buffers from different threads no longer
+misteriously updates a REPL's environment for `*`, `**`, `***`, etc...
+
+Tearing down a reverse-isearch with `C-g` no longer errors (github
+\#39).
+
+## Manual
+
+The "Tips and tricks" section was rewritten.
+
+Keymap documentation was corrected and enhanced by Javier Olaechea
+(github #36).
+
+## Other
+
+The thread-list buffer can now be properly quit. Reported by Javier
+Olaechea (github #51).
+
+Let user ignore protocol mismatches per connection This issue popped
+up in SLIME, where it is still unsolved. See discussion in
+https://github.com/slime/slime/issues/250
+
+`view-mode` bindings no longer creep into SLY's popup
+buffers. By Paul M. Rodriguez.
+
+`sly-inspect-fetch-all` now actually does something (github #49).
+
+
 SLY 1.0.0-beta (March 2015)
 ----------------------------------------
 
