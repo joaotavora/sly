@@ -543,11 +543,17 @@ to some other key.
   "Face for package-name in SLY's mode line."
   :group 'sly)
 
-(defvar sly-mode-line-format `(:eval (sly--mode-line-format)))
+(defvar sly--mode-line-format `(:eval (sly--mode-line-format)))
 
-(put 'sly-mode-line-format 'risky-local-variable t)
+(put 'sly--mode-line-format 'risky-local-variable t)
 
 (defvar sly-menu) ;; forward referenced
+
+(defvar sly-extra-mode-line-constructs nil
+  "A list of mode-line constructs to add to SLY's mode-line.
+Each construct is separated by a \"/\" and may be a regular
+mode-line construct or a symbol naming a function of no arguments
+that returns one such construct.")
 
 (defun sly--mode-line-format ()
   (let* ((conn (sly-current-connection))
@@ -589,9 +595,41 @@ to some other key.
       "/"
       ,(or package-name "*")
       "/"
-      ,(funcall format-number pending)
+      (:propertize ,(funcall format-number pending)
+                   help-echo ,(if conn (format "%s pending events outgoing\n%s"
+                                               pending
+                                               "mouse-1: go to *sly-events* buffer")
+                                "No current connection")
+                   mouse-face mode-line-highlight
+                   face ,(cond ((and pending (plusp pending))
+                                'warning)
+                               (t
+                                'sly-mode-line))
+                   keymap ,(let ((map (make-sparse-keymap)))
+                             (define-key map [mode-line mouse-1] 'sly-events-buffer)
+                             map))
       "/"
-      ,(funcall format-number sly-dbs))))
+      (:propertize ,(funcall format-number sly-dbs)
+                   help-echo ,(if conn (format "%s SLY-DB buffers waiting\n%s"
+                                               pending
+                                               "mouse-1: go to first one")
+                                "No current connection")
+                   mouse-face mode-line-highlight
+                   face ,(cond ((and sly-dbs (plusp sly-dbs))
+                                'warning)
+                               (t
+                                'sly-mode-line))
+                   keymap ,(let ((map (make-sparse-keymap)))
+                             (define-key map [mode-line mouse-1] 'sly-db-pop-to-debugger)
+                             map))
+      ,@(cl-loop for construct in sly-extra-mode-line-constructs
+                 collect "/"
+                 collect (if (and (symbolp construct)
+                                  (fboundp construct))
+                             (condition-case _oops
+                                 (funcall construct)
+                               (error "*sly-invalid*"))
+                           construct)))))
 
 (defun sly--refresh-mode-line ()
   (force-mode-line-update t))
@@ -605,7 +643,7 @@ to some other key.
         (t name)))
 
 (add-to-list 'mode-line-misc-info
-             `(sly-mode (" [" sly-mode-line-format "] ")))
+             `(sly-mode (" [" sly--mode-line-format "] ")))
 
 
 ;;;; Framework'ey bits
@@ -5088,12 +5126,19 @@ PREDICATE is executed in the buffer to test."
   (interactive)
   (let ((b (sly-db-find-buffer sly-current-thread)))
     (if b (pop-to-buffer b)
-      (sly-message "Can't find a *sly-db* debugger for this context"))))
+      (sly-error "Can't find a *sly-db* debugger for this context"))))
 
 (defun sly-db-get-default-buffer ()
   "Get a sly-db buffer.
 The chosen buffer the default connection's it if exists."
-  (car (sly-db-buffers sly-default-connection)))
+  (car (sly-db-buffers (sly-current-connection))))
+
+(defun sly-db-pop-to-debugger ()
+  "Pop to the first *sly-db* buffer if at least one exists."
+  (interactive)
+  (let ((b (sly-db-get-default-buffer)))
+    (if b (pop-to-buffer b)
+      (sly-error "No *sly-db* debugger buffers for this connection"))))
 
 (defun sly-db-get-buffer (thread &optional connection)
   "Find or create a sly-db-buffer for THREAD."
