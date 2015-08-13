@@ -30,7 +30,6 @@ The function should return a READTABLEP object")
                      (find-readtable-by-name named-readtable))))
     (lambda ()
       (with-buffer-syntax (nil guess)
-        (format t "Setting readtable ~a~%" guess)
         (funcall in-function)))))
 
 (pushnew 'wrap-in-named-readtable *eval-for-emacs-wrappers*)

@@ -8,11 +8,8 @@
   (:on-unload (remove-hook 'sly-editing-mode-hook 'sly-named-readtables-mode)))
 
 (defun sly-named-readtable--pretty-name (name)
-  (cond ((string-match "^#?:\\(.*\\)$" name)
-         (match-string 1 name))
-        ((string-match "^\"\\(.*\\)\"$" name)
-         (match-string 1 name))
-        (t name)))
+  ;; Let's leave this abstraction in place for now...
+  name)
 
 (define-minor-mode sly-named-readtables-mode
   "Use EDITOR-HINTS.NAMED-READTABLES if available."
@@ -29,12 +26,12 @@
                (delq 'sly-named-readtables--mode-line-construct
                      sly-extra-mode-line-constructs)
                sly-rex-extra-options-functions
-               (deql 'sly-named-readtables--pass-readtable
+               (delq 'sly-named-readtables--pass-readtable
                      sly-rex-extra-options-functions)))))
 
 (defun sly-named-readtables--grok-current-table ()
   (let ((case-fold-search t)
-        (regexp (concat "^(\\(named-readtables:\\)?in-readtable\\>[ \t']*"
+        (regexp (concat "^(\\(named-readtables:\\)?in-readtable\\>[ \t\n]*"
                         "\\([^)]+\\)[ \t]*)")))
     (save-excursion
       (when (re-search-backward regexp nil t)
@@ -53,6 +50,9 @@
 
 (defun sly-named-readtables--pass-readtable ()
   (list :named-readtable (sly-named-readtables--grok-current-table)))
+
+;;;###autoload
+(add-to-list sly-contribs 'sly-named-readtables 'append)
 
 (provide 'sly-named-readtables)
 ;;; sly-named-readtables.el ends here
