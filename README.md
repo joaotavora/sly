@@ -22,7 +22,7 @@ it:
 * Multiple inspectors with independent history
 * Regexp-capable `M-x sly-apropos`
 * Contribs are first class SLY citizens and enabled by default
-* Use ASDF to loads contribs on demand, like [support for NAMED-READTABLES][11])
+* Use ASDF to loads contribs on demand, like [support for NAMED-READTABLES][11]
 
 SLY tracks SLIME's bugfixes and all its familar features (debugger, inspector,
 xref, etc...) are still available , but with better integration.
@@ -108,7 +108,7 @@ Now, the changes that SLY brings to the table are too deep at the Elisp and
 Lisp level to be accepted to SLIME, given its current focus on stability (for
 the record, I find this perfectly reasonable). The new features such as multiple
 inspectors cannot be realized well using only the existing "contrib" system. 
-Finally, SLY frees itself from the Emacs 23 shackles and supports Emacs 24.3 only 
+Finally, SLY frees itself from the shackles of Emacs 23 and supports Emacs 24.3+ only,
 allowing for much cleaner code and liberal use of lexical binding.
 
 The list of technical reasons is bigger than this though, and you can read up on
