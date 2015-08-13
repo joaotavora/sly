@@ -3,7 +3,7 @@
 
 (define-sly-contrib sly-named-readtables
   "Automatically parse in-readtable forms in Lisp buffers"
-  ;; (:slynk-dependencies slynk-named-readtables)
+  (:slynk-dependencies slynk-named-readtables)
   (:on-load (add-hook 'sly-editing-mode-hook 'sly-named-readtables-mode))
   (:on-unload (remove-hook 'sly-editing-mode-hook 'sly-named-readtables-mode)))
 
@@ -17,13 +17,20 @@
 (define-minor-mode sly-named-readtables-mode
   "Use EDITOR-HINTS.NAMED-READTABLES if available."
   nil nil nil
-  (if sly-named-readtables-mode
-      (add-to-list 'sly-extra-mode-line-constructs
-                   'sly-named-readtables--mode-line-construct
-                   t)
-    (setq sly-extra-mode-line-constructs
-          (delete 'sly-named-readtables--mode-line-construct
-                  sly-extra-mode-line-constructs))))
+  (cond (sly-named-readtables-mode
+         (add-to-list 'sly-extra-mode-line-constructs
+                      'sly-named-readtables--mode-line-construct
+                      t)
+         (add-to-list 'sly-rex-extra-options-functions
+                      'sly-named-readtables--pass-readtable
+                      t))
+        (t
+         (setq sly-extra-mode-line-constructs
+               (delq 'sly-named-readtables--mode-line-construct
+                     sly-extra-mode-line-constructs)
+               sly-rex-extra-options-functions
+               (deql 'sly-named-readtables--pass-readtable
+                     sly-rex-extra-options-functions)))))
 
 (defun sly-named-readtables--grok-current-table ()
   (let ((case-fold-search t)
@@ -43,6 +50,9 @@
                   help-echo ,(if readtable-name
                                  (format "Special NAMED-READTABLE %s" readtable-name)
                                "Default readtable"))))
+
+(defun sly-named-readtables--pass-readtable ()
+  (list :named-readtable (sly-named-readtables--grok-current-table)))
 
 (provide 'sly-named-readtables)
 ;;; sly-named-readtables.el ends here
