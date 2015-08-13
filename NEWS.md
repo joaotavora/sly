@@ -1,6 +1,18 @@
 Upcaming SLY 1.0.0-beta-2 (estimated September 2015)
 ----------------------------------------
 
+## NAMED-READTABLES support
+
+In https://github.com/capitaomorte/sly-named-readtables there is an
+external contrib that adds support for Tobias C Rittweiler's
+`EDITOR.HINTS-NAMED.READTABLES`.
+
+Based on the original idea and implementation by user "budden"
+discussed in https://github.com/slime/slime/pull/259.
+
+This contrib also showcases how third-party contribs with both Elisp
+and CL parts can be written independently of SLY.
+
 ## Apropos
 
 Argument list information is present in apropos output like

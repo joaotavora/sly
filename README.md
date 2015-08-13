@@ -22,7 +22,7 @@ it:
 * Multiple inspectors with independent history
 * Regexp-capable `M-x sly-apropos`
 * Contribs are first class SLY citizens and enabled by default
-* Use ASDF to loads contribs on demand.
+* Use ASDF to loads contribs on demand, like [support for NAMED-READTABLES][11])
 
 SLY tracks SLIME's bugfixes and all its familar features (debugger, inspector,
 xref, etc...) are still available , but with better integration.
@@ -129,6 +129,7 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [8]: http://common-lisp.net/project/slime/doc/html/Credits.html#Credits
 [9]: https://github.com/capitaomorte/sly/blob/master/CONTRIBUTING.md#architecture
 [10]: https://github.com/milkypostman/melpa
+[11]: https://github.com/capitaomorte/sly-named-readtables
 [documentation]: http://capitaomorte.github.io/sly
 
 <!-- Local Variables: -->
