@@ -95,7 +95,7 @@
     :components ((:file "../contrib/slynk-profiler")))
 
 (defsystem :slynk-stickers
-  :components ((:file "../contrib/slynk-stickers")))
+    :components ((:file "../contrib/slynk-stickers")))
 
 (defsystem :slynk-indentation
     :components ((:file "../contrib/slynk-indentation")))
