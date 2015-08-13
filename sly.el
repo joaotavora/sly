@@ -2226,7 +2226,7 @@ Debugged requests are ignored."
   (let ((sly-dispatching-connection (or process (sly-connection))))
     (or (run-hook-with-args-until-success 'sly-event-hooks event)
         (sly-dcase event
-          ((:emacs-rex form package thread continuation &rest extra-option)
+          ((:emacs-rex form package thread continuation &rest extra-options)
            (when (and (sly-use-sigint-for-interrupt) (sly-busy-p))
              (sly-display-oneliner "; pipelined request... %S" form))
            (let ((id (cl-incf (sly-continuation-counter))))
