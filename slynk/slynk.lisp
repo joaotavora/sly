@@ -1682,17 +1682,29 @@ buffer are best read in this package.  See also FROM-STRING and TO-STRING.")
 (defvar-unbound *buffer-readtable*
     "Readtable associated with the current buffer")
 
-(defmacro with-buffer-syntax ((&optional package) &body body)
-  "Execute BODY with appropriate *package* and *readtable* bindings.
+(defmacro with-buffer-syntax ((&optional package-designator
+                                         readtable)
+                              &body body)
+  "Execute BODY with appropriate *PACKAGE* and *READTABLE* bindings.
+
+PACKAGE-DESIGNATOR, if non-NIL, is anything remotely designating a
+package.  READTABLE, if non-NIL, must verify CL:READTABLEP.
+
+It defaults to *BUFFER-READTABLE* as set by GUESS-BUFFER-READTABLE,
+which in turn uses a mapping in *READTABLE-ALIST* as indexed by
+*BUFFER-PACKAGE*, and *not* PACKAGE-DESIGNATOR.
 
 This should be used for code that is conceptionally executed in an
 Emacs buffer."
-  `(call-with-buffer-syntax ,package (lambda () ,@body)))
+  `(call-with-buffer-syntax ,package-designator ,readtable (lambda () ,@body)))
 
-(defun call-with-buffer-syntax (package fun)
+(defun call-with-buffer-syntax (package readtable fun)
   (let ((*package* (if package
                        (guess-buffer-package package)
-                       *buffer-package*)))
+                       *buffer-package*))
+        (*buffer-readtable* (or (and (readtablep readtable)
+                                     readtable)
+                                *buffer-readtable*)))
     ;; Don't shadow *readtable* unnecessarily because that prevents
     ;; the user from assigning to it.
     (if (eq *readtable* *buffer-readtable*)
@@ -1887,7 +1899,7 @@ Fall back to the current if no such package exists."
   (or (and string (guess-package string))
       *package*))
 
-(defparameter *eval-for-emacs-wrappers* nil
+(defvar *eval-for-emacs-wrappers* nil
   "List of functions for fine-grained control over form evaluation.
 Each element must be a function taking an arbitrary number of
 arguments, the first of which is a function of no arguments, call it
@@ -1925,7 +1937,13 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
                                      (eval form)))
                               ;; Honour *EVAL-FOR-EMACS-WRAPPERS*
                               ;; 
-                              (loop for lambda = #'eval-it then (apply wrapper lambda extra-rex-options)
+                              (loop for lambda = #'eval-it then
+                                                           (handler-case
+                                                               (apply wrapper lambda extra-rex-options)
+                                                             (error (e)
+                                                               (warn "~s ignoring wrapper ~a (~a)"
+                                                                     'eval-for-emacs wrapper e)
+                                                               lambda))
                                     for wrapper in *eval-for-emacs-wrappers*
                                     finally (return (funcall lambda)))))))
            (run-hook *pre-reply-hook*)
