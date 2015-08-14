@@ -686,13 +686,16 @@ REPL is the REPL buffer to return the objects to."
        (sly-mrepl--with-repl (or repl (sly-mrepl--find-create (sly-connection)))
          (sly-mrepl--copy-objects-to-repl nil before after)))))
 
-(defun sly-mrepl--insert-call (spec objects)
+(defun sly-mrepl--insert-call (spec results)
   (when (<= (point) (sly-mrepl--mark))
     (goto-char (point-max)))
   (insert (format "%s"
-                  `(,spec ,@(cl-loop for _o in objects
-                                     for i from 0
-                                     collect `(nth ,i /))))))
+                  `(,spec
+                    ,@(cl-loop for o in results
+                               for i from 0
+                               collect (make-symbol (format "#v%d:%d"
+                                                            (cadr o)
+                                                            i)))))))
 
 (defun sly-mrepl--assert-mrepl ()
   (unless (eq major-mode 'sly-mrepl-mode)
@@ -1182,12 +1185,13 @@ result buttons thus highlighted"
                   (looking-at
                    (format "%s\\([[:digit:]]+\\)?\\(:\\([[:digit:]]+\\)\\|:\\)?"
                            sly-mrepl--backreference-prefix))))
-         (entry-idx (and match
-                         (string-to-number (match-string 1)))) 
+         (m1 (and match (match-string 1)))
+         (m2 (and m1 (match-string 2)))
+         (m3 (and m2 (match-string 3)))
+         (entry-idx (and m1 (string-to-number m1))) 
          (value-idx (and match
-                         (or (string-to-number (match-string 3))
-                             (and (not (match-string 2))
-                                  0)))))
+                         (or (and m3 (string-to-number m3))
+                             (and (not m2) 0)))))
     (when match
       (let ((buttons (sly-mrepl-highlight-results entry-idx value-idx))
             (overlay (or sly-mrepl--backreference-overlay
