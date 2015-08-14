@@ -601,7 +601,7 @@ that returns one such construct.")
                                                "mouse-1: go to *sly-events* buffer")
                                 "No current connection")
                    mouse-face mode-line-highlight
-                   face ,(cond ((and pending (plusp pending))
+                   face ,(cond ((and pending (cl-plusp pending))
                                 'warning)
                                (t
                                 'sly-mode-line))
@@ -615,7 +615,7 @@ that returns one such construct.")
                                                "mouse-1: go to first one")
                                 "No current connection")
                    mouse-face mode-line-highlight
-                   face ,(cond ((and sly-dbs (plusp sly-dbs))
+                   face ,(cond ((and sly-dbs (cl-plusp sly-dbs))
                                 'warning)
                                (t
                                 'sly-mode-line))
