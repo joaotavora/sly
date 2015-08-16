@@ -1,6 +1,6 @@
 ;;; -*- indent-tabs-mode: nil -*-
 ;;;
-;;; slynk-lispworks.lisp --- LispWorks specific code for SLIME.
+;;; lispworks.lisp --- LispWorks specific code for SLIME.
 ;;;
 ;;; Created 2003, Helmut Eller
 ;;;
@@ -59,7 +59,7 @@
 
 (eval-when (:compile-toplevel :execute :load-toplevel)
   (defvar *original-defimplementation* (macro-function 'defimplementation))
-  (defmacro defimplementation (&whole whole name args &body body 
+  (defmacro defimplementation (&whole whole name args &body body
                                &environment env)
     (declare (ignore args body))
     `(progn
@@ -93,9 +93,9 @@
       #+(or lispworks4.1 (and macosx lispworks4.3))
       (comm::create-tcp-socket-for-service port)
     (cond (socket socket)
-          (t (error 'network-error 
+          (t (error 'network-error
               :format-control "~A failed: ~A (~D)"
-              :format-arguments (list where 
+              :format-arguments (list where
                                       (list #+unix (lw:get-unix-error errno))
                                       errno))))))
 
@@ -105,7 +105,7 @@
 (defimplementation close-socket (socket)
   (comm::close-socket (socket-fd socket)))
 
-(defimplementation accept-connection (socket 
+(defimplementation accept-connection (socket
                                       &key external-format buffering timeout)
   (declare (ignore buffering))
   (let* ((fd (comm::get-fd-from-socket socket)))
@@ -126,7 +126,7 @@
                              :read-timeout timeout
                              :element-type 'base-char))
              (:utf-8
-              (make-flexi-stream 
+              (make-flexi-stream
                (make-instance 'comm:socket-stream
                               :socket fd
                               :direction :io
@@ -152,7 +152,7 @@
           :test #'equal :key #'car))
 
 (defvar *external-format-to-coding-system*
-  '(((:latin-1 :eol-style :lf) 
+  '(((:latin-1 :eol-style :lf)
      "latin-1-unix" "iso-latin-1-unix" "iso-8859-1-unix")
     ;;((:latin-1) "latin-1" "iso-latin-1" "iso-8859-1")
     ;;((:utf-8) "utf-8")
@@ -180,10 +180,10 @@
 (defun set-sigint-handler ()
   ;; Set SIGINT handler on Slynk request handler thread.
   #-win32
-  (sys::set-signal-handler +sigint+ 
+  (sys::set-signal-handler +sigint+
                            (make-sigint-handler mp:*current-process*)))
 
-#-win32 
+#-win32
 (defimplementation install-sigint-handler (handler)
   (sys::set-signal-handler +sigint+
                            (let ((self mp:*current-process*))
@@ -223,11 +223,11 @@
        (t
         (intern (write-to-string x)))))
    tree))
-               
+
 (defimplementation arglist (symbol-or-function)
   (let ((arglist (lw:function-lambda-list symbol-or-function)))
     (etypecase arglist
-      ((member :dont-know) 
+      ((member :dont-know)
        :not-available)
       (list
        (replace-strings-with-symbols arglist)))))
@@ -245,12 +245,12 @@
   "Return a plist describing SYMBOL.
 Return NIL if the symbol is unbound."
   (let ((result '()))
-    (labels ((first-line (string) 
+    (labels ((first-line (string)
                (let ((pos (position #\newline string)))
                  (if (null pos) string (subseq string 0 pos))))
              (doc (kind &optional (sym symbol))
                (let ((string (or (documentation sym kind))))
-                 (if string 
+                 (if string
                      (first-line string)
                      :not-documented)))
              (maybe-push (property value)
@@ -272,7 +272,7 @@ Return NIL if the symbol is unbound."
                (if (fboundp setf-name)
                    (doc 'setf))))
       (maybe-push
-       :class (if (find-class symbol nil) 
+       :class (if (find-class symbol nil)
                   (doc 'class)))
       result)))
 
@@ -297,7 +297,7 @@ Return NIL if the symbol is unbound."
   (when (boundp sym)
     (format t "~%~%Value: ~A" (symbol-value sym)))
   (let ((doc (documentation sym 'variable)))
-    (when doc 
+    (when doc
       (format t "~%~%Variable documentation:~%~A"  doc)))
   (when (fboundp sym)
     (describe-function sym)))
@@ -309,15 +309,15 @@ Return NIL if the symbol is unbound."
 
 ;;; Debugging
 
-(defclass sly-env (env:environment) 
+(defclass sly-env (env:environment)
   ((debugger-hook :initarg :debugger-hoook)))
 
-(defun sly-env (hook io-bindings) 
-  (make-instance 'sly-env :name "SLY Environment" 
+(defun sly-env (hook io-bindings)
+  (make-instance 'sly-env :name "SLY Environment"
                  :io-bindings io-bindings
                  :debugger-hoook hook))
 
-(defmethod env-internals:environment-display-notifier 
+(defmethod env-internals:environment-display-notifier
     ((env sly-env) &key restarts condition)
   (declare (ignore restarts condition))
   (funcall (slynk-sym :slynk-debugger-hook) condition *debugger-hook*)
@@ -372,7 +372,7 @@ Return NIL if the symbol is unbound."
                        (nth-next-frame frame 1)))
                ((or (null frame)        ; no frame found!
                     (and (dbg::call-frame-p frame)
-                         (eq (dbg::call-frame-function-name frame) 
+                         (eq (dbg::call-frame-function-name frame)
                              name)))
                 (nth-next-frame frame 1)))))
     (or (find-named-frame 'invoke-debugger)
@@ -380,7 +380,7 @@ Return NIL if the symbol is unbound."
         ;; if we can't find a likely top frame, take any old frame
         ;; at the top
         (dbg::debugger-stack-current-frame dbg::*debugger-stack*))))
-  
+
 (defimplementation call-with-debugging-environment (fn)
   (dbg::with-debugger-stack ()
     (let ((*sly-db-top-frame* (find-top-frame)))
@@ -504,7 +504,7 @@ Return NIL if the symbol is unbound."
 
 (defun frame-location (dspec callee-name edit-path)
   (let ((infos (dspec:find-dspec-locations dspec)))
-    (cond (infos 
+    (cond (infos
            (destructuring-bind ((rdspec location) &rest _) infos
              (declare (ignore _))
              (let ((name (and callee-name (symbolp callee-name)
@@ -512,8 +512,8 @@ Return NIL if the symbol is unbound."
                    (path (edit-path-to-cmucl-source-path edit-path)))
                (make-dspec-location rdspec location
                                     `(:call-site ,name :edit-path ,path)))))
-          (t 
-           (list :error (format nil "Source location not available for: ~S" 
+          (t
+           (list :error (format nil "Source location not available for: ~S"
                                 dspec))))))
 
 ;; dbg::call-frame-edit-path is not documented but lets assume the
@@ -536,16 +536,16 @@ Return NIL if the symbol is unbound."
           collect (list dspec (make-dspec-location dspec location)))))
 
 
-;;; Compilation 
+;;; Compilation
 
 (defmacro with-slynk-compilation-unit ((location &rest options) &body body)
   (lw:rebinding (location)
     `(let ((compiler::*error-database* '()))
        (with-compilation-unit ,options
          (multiple-value-prog1 (progn ,@body)
-           (signal-error-data-base compiler::*error-database* 
+           (signal-error-data-base compiler::*error-database*
                                    ,location)
-           (signal-undefined-functions compiler::*unknown-functions* 
+           (signal-undefined-functions compiler::*unknown-functions*
                                        ,location))))))
 
 (defimplementation slynk-compile-file (input-file output-file
@@ -553,9 +553,9 @@ Return NIL if the symbol is unbound."
                                        &key policy)
   (declare (ignore policy))
   (with-slynk-compilation-unit (input-file)
-    (compile-file input-file 
+    (compile-file input-file
                   :output-file output-file
-                  :load load-p 
+                  :load load-p
                   :external-format external-format)))
 
 (defvar *within-call-with-compilation-hooks* nil
@@ -604,9 +604,9 @@ Return NIL if the symbol is unbound."
 
 (defun signal-compiler-condition (message location condition)
   (check-type message string)
-  (signal 
-   (make-instance 'compiler-condition :message message 
-		  :severity (lispworks-severity condition) 
+  (signal
+   (make-instance 'compiler-condition :message message
+		  :severity (lispworks-severity condition)
 		  :location location
 		  :original-condition condition)))
 
@@ -634,7 +634,7 @@ Return NIL if the symbol is unbound."
   (etypecase dspec
     (cons (let ((name (dspec:dspec-primary-name dspec)))
             (typecase name
-              ((or symbol string) 
+              ((or symbol string)
                (list :function-name (string name)))
               (t fallback))))
     (null fallback)
@@ -691,7 +691,7 @@ Return NIL if the symbol is unbound."
          (*load-pathname* *compile-file-pathname*)
          (*load-truename* *compile-file-truename*))
     (with-open-file (stream file)
-      (let ((pos 
+      (let ((pos
              #-(or lispworks4.1 lispworks4.2)
              (ignore-errors (dspec-stream-position stream dspec))))
         (if pos
@@ -705,14 +705,14 @@ Return NIL if the symbol is unbound."
 (defun make-dspec-location (dspec location &optional hints)
   (etypecase location
     ((or pathname string)
-     (multiple-value-bind (file err) 
+     (multiple-value-bind (file err)
          (ignore-errors (namestring (truename location)))
        (if err
            (list :error (princ-to-string err))
            (make-location `(:file ,file)
                           (dspec-file-position file dspec)
                           hints))))
-    (symbol 
+    (symbol
      `(:error ,(format nil "Cannot resolve location: ~S" location)))
     ((satisfies emacs-buffer-location-p)
      (destructuring-bind (_ buffer offset) location
@@ -734,7 +734,7 @@ Return NIL if the symbol is unbound."
          (list :edit-path (edit-path-to-cmucl-source-path edit-path))))))
 
 (defun signal-error-data-base (database &optional location)
-  (map-error-database 
+  (map-error-database
    database
    (lambda (filename dspec condition edit-path)
      (signal-compiler-condition
@@ -748,13 +748,13 @@ function names like \(SETF GET)."
   (cond ((sys::setf-symbol-p symbol)
          (sys::setf-pair-from-underlying-name symbol))
         (t symbol)))
-                    
+
 (defun signal-undefined-functions (htab &optional filename)
   (maphash (lambda (unfun dspecs)
 	     (dolist (dspec dspecs)
-	       (signal-compiler-condition 
+	       (signal-compiler-condition
 		(format nil "Undefined function ~A" (unmangle-unfun unfun))
-		(make-dspec-progenitor-location 
+		(make-dspec-progenitor-location
                  dspec
                  (or filename
                      (gethash (list unfun dspec) *undefined-functions-hash*))
@@ -770,7 +770,7 @@ function names like \(SETF GET)."
   (let* ((location (list :emacs-buffer buffer position))
          (tmpname (hcl:make-temp-file nil "lisp")))
     (with-slynk-compilation-unit (location)
-      (compile-from-temp-file 
+      (compile-from-temp-file
        (with-output-to-string (s)
          (let ((*print-radix* t))
            (print `(eval-when (:compile-toplevel)
@@ -799,7 +799,7 @@ function names like \(SETF GET)."
      #'(lambda (object)
          (when (and #+Harlequin-PC-Lisp (low:compiled-code-p object)
                     #+Harlequin-Unix-Lisp (sys:callablep object)
-                    #-(or Harlequin-PC-Lisp Harlequin-Unix-Lisp) 
+                    #-(or Harlequin-PC-Lisp Harlequin-Unix-Lisp)
                     (sys:compiled-code-p object)
                     (system::find-constant$funcallable name object))
            (vector-push-extend object callers))))
@@ -860,7 +860,7 @@ function names like \(SETF GET)."
   (multiple-value-bind (names values _getter _setter type)
       (lw:get-inspector-values o nil)
     (declare (ignore _getter _setter))
-            (append 
+            (append
              (label-value-line "Type" type)
              (loop for name in names
                    for value in values
@@ -878,7 +878,7 @@ function names like \(SETF GET)."
   (ecase (car fspec)
     ((:defmethod) `(method ,(cdr fspec)))))
 
-(defun tracedp (dspec) 
+(defun tracedp (dspec)
   (member dspec (eval '(trace)) :test #'equal))
 
 (defun toggle-trace-aux (dspec)
@@ -896,7 +896,7 @@ function names like \(SETF GET)."
 
 (defimplementation initialize-multiprocessing (continuation)
   (cond ((not mp::*multiprocessing*)
-         (push (list "Initialize SLY" '() continuation) 
+         (push (list "Initialize SLY" '() continuation)
                mp:*initial-processes*)
          (mp:initialize-multiprocessing))
         (t (funcall continuation))))
@@ -914,14 +914,14 @@ function names like \(SETF GET)."
               (incf *thread-id-counter*)))))
 
 (defimplementation find-thread (id)
-  (find id (mp:list-all-processes) 
+  (find id (mp:list-all-processes)
         :key (lambda (p) (getf (mp:process-plist p) 'id))))
 
 (defimplementation thread-name (thread)
   (mp:process-name thread))
 
 (defimplementation thread-status (thread)
-  (format nil "~A ~D" 
+  (format nil "~A ~D"
           (mp:process-whostate thread)
           (mp:process-priority thread)))
 
@@ -946,7 +946,7 @@ function names like \(SETF GET)."
 (defimplementation thread-alive-p (thread)
   (mp:process-alive-p thread))
 
-(defstruct (mailbox (:conc-name mailbox.)) 
+(defstruct (mailbox (:conc-name mailbox.))
   (mutex (mp:make-lock :name "thread mailbox"))
   (queue '() :type list))
 
@@ -971,7 +971,7 @@ function names like \(SETF GET)."
            (setf (mailbox.queue mbox) (nconc (ldiff q tail) (cdr tail)))
            (return (car tail)))))
      (when (eq timeout t) (return (values nil t)))
-     (mp:process-wait-with-timeout 
+     (mp:process-wait-with-timeout
       "receive-if" 0.3 (lambda () (some test (mailbox.queue mbox)))))))
 
 (defimplementation send (thread message)
@@ -987,7 +987,7 @@ function names like \(SETF GET)."
     (declare (type symbol name))
     (mp:with-lock (lock)
       (etypecase thread
-        (null 
+        (null
          (setf alist (delete name alist :key #'car)))
         (mp:process
          (let ((probe (assoc name alist)))
@@ -1001,7 +1001,7 @@ function names like \(SETF GET)."
 
 
 (defimplementation set-default-initial-binding (var form)
-  (setq mp:*process-initial-bindings* 
+  (setq mp:*process-initial-bindings*
         (acons var `(eval (quote ,form))
                mp:*process-initial-bindings* )))
 
@@ -1012,7 +1012,7 @@ function names like \(SETF GET)."
 ;;; Some intergration with the lispworks environment
 
 (defun slynk-sym (name) (find-symbol (string name) :slynk))
-      
+
 
 ;;;; Weak hashtables
 

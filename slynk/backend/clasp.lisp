@@ -1,6 +1,6 @@
 ;;;; -*- indent-tabs-mode: nil -*-
 ;;;
-;;; slynk-clasp.lisp --- SLIME backend for CLASP.
+;;; clasp.lisp --- SLIME backend for CLASP.
 ;;;
 ;;; This code has been placed in the Public Domain.  All warranties
 ;;; are disclaimed.
@@ -88,7 +88,7 @@
                                                   ((nil) :none)
                                                   (:line :line))
                                      :element-type (if external-format
-                                                       'character 
+                                                       'character
                                                        '(unsigned-byte 8))
                                      :external-format external-format))
 (defun accept (socket)
@@ -106,7 +106,7 @@
 
 (defvar *external-format-to-coding-system*
   '((:latin-1
-     "latin-1" "latin-1-unix" "iso-latin-1-unix" 
+     "latin-1" "latin-1-unix" "iso-latin-1-unix"
      "iso-8859-1" "iso-8859-1-unix")
     (:utf-8 "utf-8" "utf-8-unix")))
 
@@ -198,7 +198,7 @@
              (timeout (return (poll-streams streams 0)))
              (t
               (when-let (ready (poll-streams streams 0.2))
-                        (return ready))))))  
+                        (return ready))))))
 
 ) ; #+serve-event (progn ...
 
@@ -643,7 +643,7 @@
     (error "CLASP's source directory ~A does not exist. ~
             You can specify a different location via the environment ~
             variable `CLASPSRCDIR'."
-           (namestring (translate-logical-pathname #P"SYS:"))))) 
+           (namestring (translate-logical-pathname #P"SYS:")))))
 
 (defun assert-TAGS-file ()
   (unless (probe-file +TAGS+)

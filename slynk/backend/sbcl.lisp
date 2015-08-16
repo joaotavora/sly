@@ -1,6 +1,6 @@
 ;;;;; -*- indent-tabs-mode: nil -*-
 ;;;
-;;; slynk-sbcl.lisp --- SLY backend for SBCL.
+;;; sbcl.lisp --- SLY backend for SBCL.
 ;;;
 ;;; Created 2003, Daniel Barlow <dan@metacircles.com>
 ;;;
@@ -496,7 +496,7 @@ information."
                       (sb-c:compiler-error  :error)
                       (reader-error         :read-error)
                       (error                :error)
-                      #+#.(slynk-backend:with-symbol redefinition-warning 
+                      #+#.(slynk-backend:with-symbol redefinition-warning
                             sb-kernel)
                       (sb-kernel:redefinition-warning
                        :redefinition)
@@ -969,7 +969,7 @@ Return NIL if the symbol is unbound."
      (describe (find-class symbol)))
     (:type
      (describe (sb-kernel:values-specifier-type symbol)))))
-  
+
 #+#.(slynk-sbcl::sbcl-with-xref-p)
 (progn
   (defmacro defxref (name &optional fn-name)
@@ -1789,7 +1789,7 @@ stack."
 
 ;;; Weak datastructures
 
-(defimplementation make-weak-key-hash-table (&rest args)  
+(defimplementation make-weak-key-hash-table (&rest args)
   #+#.(slynk-sbcl::sbcl-with-weak-hash-tables)
   (apply #'make-hash-table :weakness :key args)
   #-#.(slynk-sbcl::sbcl-with-weak-hash-tables)
