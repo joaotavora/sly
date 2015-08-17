@@ -8,6 +8,7 @@
         (set-keymap-parent map button-map)
         (define-key map [down-mouse-3] 'sly-button-popup-part-menu)
         (define-key map [mouse-3] 'sly-button-popup-part-menu)
+        (define-key map [mouse-1] 'push-button)
         map))
 
 (defvar sly-button-popup-part-menu-keymap

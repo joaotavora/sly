@@ -6211,6 +6211,9 @@ was called originally."
   (let ((map (make-sparse-keymap)))
     (define-key map "l" 'sly-inspector-pop)
     (define-key map "n" 'sly-inspector-next)
+    (define-key map [mouse-6] 'slime-inspector-pop)
+    (define-key map [mouse-7] 'slime-inspector-next)
+    
     (define-key map " " 'sly-inspector-next)
     (define-key map "D" 'sly-inspector-describe-inspectee)
     (define-key map "e" 'sly-inspector-eval)
