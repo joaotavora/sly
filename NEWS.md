@@ -92,7 +92,10 @@ SLIME:
 - ABCL backend fixed inspection of frame-locals in the debugger
 
 - Following a suggestion by Attile Lendvai to SLIME, mouse-1 is now
-  activates SLY's "part buttons".
+activates SLY's "part buttons".
+
+### On par with upcoming SLIME 2.15
+
 
 
 SLY 1.0.0-beta (March 2015)
