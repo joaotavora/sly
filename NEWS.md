@@ -1,7 +1,7 @@
 Upcaming SLY 1.0.0-beta-2 (estimated September 2015)
 ----------------------------------------
 
-## NAMED-READTABLES support
+### NAMED-READTABLES support
 
 In https://github.com/capitaomorte/sly-named-readtables there is an
 external contrib that adds support for Tobias C Rittweiler's
@@ -13,7 +13,7 @@ discussed in https://github.com/slime/slime/pull/259.
 This contrib also showcases how third-party contribs with both Elisp
 and CL parts can be written independently of SLY.
 
-## Apropos
+### Apropos
 
 Argument list information is present in apropos output like
 this. A sugestion of Javier Olaechea (github #53)
@@ -31,16 +31,15 @@ Olaechea (github #53).
 
 `C-u sly-apropos` allows searching all packages (github #53)
 
-## REPL enhancements
+### REPL enhancements
 
-Using paren-matching tools like Emacs's own `electric-pair-mode` or
-`paredit-mode` in the REPL should now flawlessly like in every lisp
-buffer, i.e. open parenthesis in REPL output are not matched to the
-users current input.
+`paredit-mode` works in the REPL, as does Emacs 24.4's
+`electric-pair-mode` or other parenthesis-matching tools, just like in
+any other Lisp buffer.
 
 New variable `sly-mrepl-output-filter-functions` for REPL
 output. These work like `comint-preoutput-filter-functions`. Functions
-like `ansi-color-apply' are good candidates (github #38).
+like `ansi-color-apply` are good candidates (github #38).
 
 When using multiple REPL, frame variables from SLY-DB triggered in
 secondary REPLs, when returned with M-RET, appear in the correct REPL.
@@ -55,14 +54,14 @@ misteriously updates a REPL's environment for `*`, `**`, `***`, etc...
 Tearing down a reverse-isearch with `C-g` no longer errors (github
 \#39).
 
-## Manual
+### Manual
 
 The "Tips and tricks" section was rewritten.
 
 Keymap documentation was corrected and enhanced by Javier Olaechea
 (github #36).
 
-## Other
+### Other
 
 The thread-list buffer can now be properly quit. Reported by Javier
 Olaechea (github #51).
@@ -75,6 +74,25 @@ https://github.com/slime/slime/issues/250
 buffers. By Paul M. Rodriguez.
 
 `sly-inspect-fetch-all` now actually does something (github #49).
+
+### On par with SLIME 2.14
+
+Where applicable, SLY tracks bugfixes and improvements contributed to
+SLIME:
+
+- Rationals are displayed in the echo area as floats too
+
+- The sly-c-p-c contrib now takes a better guess at symbol case
+  (issue https://github.com/slime/slime/issues/233)
+
+- SBCL backend now able to jump to ir1-translators, declaims and alien types
+
+- Various updates supporting SBCL 1.2.12
+
+- ABCL backend fixed inspection of frame-locals in the debugger
+
+- Following a suggestion by Attile Lendvai to SLIME, mouse-1 is now
+  activates SLY's "part buttons".
 
 
 SLY 1.0.0-beta (March 2015)
