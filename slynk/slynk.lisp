@@ -26,7 +26,8 @@
            ;;#:inspect-slot-for-emacs
            #:authenticate-client
            #:*loopback-interface*
-           #:to-line)
+           #:to-line
+           #:*buffer-readtable*)
   ;; These are user-configurable variables:
   (:export #:*communication-style*
            #:*dont-close*
@@ -1685,14 +1686,17 @@ buffer are best read in this package.  See also FROM-STRING and TO-STRING.")
 (defmacro with-buffer-syntax ((&optional package-designator
                                          readtable)
                               &body body)
-  "Execute BODY with appropriate *PACKAGE* and *READTABLE* bindings.
+  "Conceptually execute BODY inside a SLY Lisp buffer.
+
+Execute BODY with appropriate *PACKAGE* and *READTABLE* bindings.
 
 PACKAGE-DESIGNATOR, if non-NIL, is anything remotely designating a
 package.  READTABLE, if non-NIL, must verify CL:READTABLEP.
 
-It defaults to *BUFFER-READTABLE* as set by GUESS-BUFFER-READTABLE,
-which in turn uses a mapping in *READTABLE-ALIST* as indexed by
-*BUFFER-PACKAGE*, and *not* PACKAGE-DESIGNATOR.
+READTABLE defaults to *BUFFER-READTABLE* as set by
+GUESS-BUFFER-READTABLE, which in turn uses a mapping in
+*READTABLE-ALIST* as indexed by *BUFFER-PACKAGE*, and *not*
+PACKAGE-DESIGNATOR.
 
 This should be used for code that is conceptionally executed in an
 Emacs buffer."
@@ -4128,6 +4132,7 @@ Collisions are caused because package information is ignored."
                #:*pre-reply-hook*
                #:*after-toggle-trace-hook*
                #:*eval-for-emacs-wrappers*
+               #:*buffer-readtable*
                ;;
                #:defslyfun
                #:destructure-case
