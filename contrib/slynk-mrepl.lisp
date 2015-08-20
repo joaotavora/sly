@@ -115,15 +115,16 @@ Set this to NIL to turn this feature off.")
         (results)
         (errored))
     (unwind-protect
-         (handler-bind
-             ((error #'(lambda (err)
-                         ;; ERRORED means we've been through this
-                         ;; handler before in this level of MREPL-EVAL
-                         (unless errored
-                           (push err (mrepl-pending-errors repl))
-                           (setq aborted err errored err)
-                           (with-listener-bindings repl
-                             (send-prompt repl errored))))))
+         (let* ((previous-hook *debugger-hook*)
+                (*debugger-hook* (lambda (condition hook)
+                                   ;; ERRORED means we've been through this
+                                   ;; handler before in this level of MREPL-EVAL
+                                   (unless errored
+                                     (push condition (mrepl-pending-errors repl))
+                                     (setq aborted condition errored condition)
+                                     (with-listener-bindings repl
+                                       (send-prompt repl errored)))
+                                   (funcall previous-hook condition hook))))
            (setq results (mrepl-eval-1 repl string)
                  ;; If MREPL-EVAL-1 errored once but somehow
                  ;; recovered, set ABORTED to nil
