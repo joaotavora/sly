@@ -252,12 +252,13 @@ render the underlying text unreadable."
 (defun sly-stickers--recording-pretty-description (recording)
   (let ((descs (sly-stickers--recording-value-descriptions recording)))
     (cond ((sly-stickers--recording-exited-non-locally-p recording)
-           "exited non locally")
+           (propertize "exited non locally" 'face 'sly-warn))
           ((null descs)
-           "no values")
+           (propertize "no values" 'face 'sly-action-face))
           (t
            (cl-loop for (v . rest) on descs
-                    concat (format "=> %s" v)
+                    concat (format "=> %s"
+                                   (propertize v 'face 'sly-action-face))
                     when rest
                     concat "\n")))))
 
@@ -573,10 +574,13 @@ veryfying `sly-stickers--recording-void-p' is created."
   (let* ((ignore-list (sly-stickers--state-ignore-list state))
          (recording (sly-stickers--state-recording state))
          (error (sly-stickers--state-error state)))
-    (format "[sly] recording %s of %s in sticker %s\n  %s\n%s%s%s"
+    (format "[sly] recording %s of %s in sticker %s:%s  %s\n%s%s%s"
             (1+ (sly-stickers--recording-id recording))
             (sly-stickers--state-total state)
             (sly-stickers--recording-sticker-id recording)
+            (if sly-stickers--expanded-help
+                "\n\n"
+              "\n")
             (replace-regexp-in-string
              "\n"
              "\n  "
