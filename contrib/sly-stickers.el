@@ -336,6 +336,7 @@ render the underlying text unreadable."
     (sly-stickers--set-face sticker)))
 
 (defun sly-stickers--delete (sticker)
+  "Ensure that sticker is deleted."
   ;; Delete the overlay and take care of priorities for contained and
   ;; containers, but note that a sticker might have no buffer anymore
   ;; if that buffer was killed, for example...
@@ -500,6 +501,7 @@ veryfying `sly-stickers--recording-void-p' is created."
 
 (defun sly-stickers--process-recording
     (recording &optional pop-to-sticker)
+  "Interpret RECORDING, find corresponding sticker and flash it."
   (let* ((sticker-id (sly-stickers--recording-sticker-id recording))
          (sticker (gethash sticker-id (sly-stickers--stickers))))
     (cond ((and sticker (overlay-buffer sticker)
@@ -539,8 +541,8 @@ veryfying `sly-stickers--recording-void-p' is created."
     (define-key map (kbd "DEL") :prev)
     (define-key map (kbd "p") :prev)
     (define-key map (kbd "j") 'jump)
-    (define-key map (kbd "h") 'sly-stickers--replay-help)
-    (define-key map (kbd "C-h") 'sly-stickers--replay-help)
+    (define-key map (kbd "h") 'sly-stickers--toggle-help)
+    (define-key map (kbd "C-h") 'sly-stickers--toggle-help)
     (define-key map (kbd "q") 'quit)
     (define-key map (kbd "C-g") 'quit)
     (define-key map (kbd "i") 'ignore-sticker)
@@ -548,18 +550,12 @@ veryfying `sly-stickers--recording-void-p' is created."
     (define-key map (kbd "M-RET") 'sly-mrepl-copy-part-to-repl)
     map))
 
-(defun sly-stickers--replay-help ()
-  (sly-with-popup-buffer ("sly-stickers help" :mode 'help-mode)
-    (insert (mapconcat #'identity
-                       '("n, SPC         scan recordings forward"
-                         "p, DEL         scan recordings backward"
-                         "i              ignore current sticker"
-                         "R              reset ignore list"
-                         "h, C-h         this help"
-                         "j              jump to recording"
-                         "M-RET          return sticker values to REPL"
-                         "q, C-g         quit")
-                       "\n"))))
+
+(defvar sly-stickers--expanded-help t)
+
+(defun sly-stickers--toggle-help ()
+  (interactive)
+  (setq sly-stickers--expanded-help (not sly-stickers--expanded-help)))
 
 (cl-defstruct (sly-stickers--replay-state
                (:constructor sly-stickers--make-state)
@@ -598,7 +594,19 @@ veryfying `sly-stickers--recording-void-p' is created."
                                 (pp-to-string
                                  (car (last ignore-list)))))
               "")
-            "(n)ext)/(p)revious/(i)gnore/h(elp)/(q)uit")))
+            (if sly-stickers--expanded-help
+                (mapconcat #'identity
+                       '(""
+                         "n, SPC         scan recordings forward"
+                         "p, DEL         scan recordings backward"
+                         "i              ignore current sticker"
+                         "R              reset ignore list"
+                         "h, C-h         toggle help"
+                         "j              jump to recording"
+                         "M-RET          return sticker values to REPL"
+                         "q, C-g         quit")
+                       "\n")
+                "(n)ext)/(p)revious/(i)gnore/h(elp)/(q)uit"))))
 
 (defun sly-stickers--replay-read-binding (state)
   "Read a binding from the user and modify STATE."
@@ -676,7 +684,8 @@ See also `sly-stickers-fetch'."
         (setf (sly-stickers--state-recording state) recording)
         (setf (sly-stickers--state-binding state) (sly-stickers--recording-id recording))))
     (unwind-protect
-        (cl-loop for next-state = (if (or (memq (sly-stickers--state-binding state)
+        (cl-loop with sly-stickers--expanded-help = t
+                 for next-state = (if (or (memq (sly-stickers--state-binding state)
                                                 '(:next :prev))
                                           (numberp (sly-stickers--state-binding state)))
                                       (sly-stickers--replay-fetch-next state)
