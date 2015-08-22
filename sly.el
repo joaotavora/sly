@@ -3457,7 +3457,9 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
 
 (define-button-type 'sly-in-buffer-note :supertype 'sly-note
   'keymap (let ((map (copy-keymap button-map)))
-            (define-key map "RET" nil))
+            (define-key map "RET" nil)
+            map)
+  'mouse-action 'sly-show-notes
   'sly-button-echo 'sly-show-notes
   'modification-hooks '(sly--in-buffer-note-modification))
 
@@ -3482,6 +3484,7 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
                      :type 'sly-in-buffer-note
                      'sly-button-search-id (sly-button-next-search-id)
                      'sly-note note
+                     'help-echo (format "[sly] %s" (sly-note.message note))
                      'priority (1+ (cl-reduce #'max containers
                                               :key (sly-rcurry #'overlay-get 'priority)
                                               :initial-value 0))
