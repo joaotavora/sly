@@ -62,7 +62,7 @@
 ;; connection specific structure, is needed for that.
 ;;
 (defvar *stickers* (make-hash-table))
-(defvar *recordings* (make-array 40 :fill-pointer 0 :adjustable t))
+(defvar *recordings* (make-array 0 :fill-pointer 0 :adjustable t))
 (defvar *visitor* nil)
 
 (defslyfun compile-for-stickers (new-stickers
@@ -132,35 +132,19 @@ INSTRUMENTED-STRING fails, return NIL."
   (declare (ignore x env))
   (error "Sorry, not allowing ~a for ~a" 'setf 'record))
 
-(define-condition abort-search (simple-error) ())
-
-(defun abort-search (format-control &rest format-args)
-  (error 'abort-search :format-control format-control :format-arguments format-args))
-
-(defun search-for-recording-1 (from ignore-list &key direction)
-  ;; if directly requesting a recording, ignore IGNORE-LIST for this
-  ;; invocation.
-  ;; 
-  (when (numberp direction)
-    (setq ignore-list nil))
-  (loop for candidate-id = (cond ((eq direction :next)
-                                  (incf from))
-                                 ((eq direction :prev)
-                                  (decf from))
-                                 ((numberp direction)
-                                  direction)
-                                 (t
-                                  (error "unknown direction spec ~a" direction)))
-        while (< -1 candidate-id (length *recordings*))
-        for recording = (aref *recordings* candidate-id)
-        for sticker-id = (id-of (sticker-of recording))
-        unless (member sticker-id ignore-list)
-          ;; JT@14/11/17: Could also check if STICKER-ID is in
-          ;; *STICKERS* (meaning it has been killed by KILL-STICKERS),
-          ;; but for now it's better to warn the user on the Emacs
-          ;; side.
-          return recording
-        finally (abort-search "No such recording in direction: ~a" direction)))
+(defun search-for-recording-1 (from ignore-dead-p ignore-sticker-ids inc)
+  (loop for starting-position in `(,from ,(if (plusp inc)
+                                              0
+                                              (1- (length *recordings*))))
+          thereis (loop for candidate-id = (incf starting-position inc)
+                        while (< -1 candidate-id (length *recordings*))
+                        for recording = (aref *recordings* candidate-id)
+                        for sticker-id = (id-of (sticker-of recording))
+                        unless (or (member sticker-id ignore-sticker-ids)
+                                   (and
+                                    ignore-dead-p
+                                    (not (gethash sticker-id *stickers*))))
+                          return recording)))
 
 (defun describe-recording-for-emacs (recording)
   "Describe RECORDING as (ID VALUE-DESCRIPTIONS EXITED-NON-LOCALLY-P)
@@ -183,35 +167,46 @@ RECORDING-DESCRIPTION is as given by DESCRIBE-RECORDING-FOR-EMACS."
            (and recording
                 (describe-recording-for-emacs recording)))))
 
-(defslyfun search-for-recording (key ignore-list direction)
+(defslyfun search-for-recording (key ignore-spec dead-stickers direction)
   "Visit the next recording for the visitor KEY.
-Ignore stickers whose ID is in IGNORE-LIST. DIRECTION can be the
-keyword :UP, :DOWN or a recording index.
+IGNORE-SPEC is a list (EXCLUDE-DEAD MORE...): ignore stickers whose ID
+is in MORE and ignore dead stickers if EXCLUDE-DEAD.
 
-If a recording can be found return a list (TOTAL-RECORDINGS
+Kill any stickers in DEAD-STICKERS.
+
+DIRECTION can be the keyword :NEXT, :PREV or an integer recording
+index.  If a recording can be found return a list (TOTAL-RECORDINGS
 . STICKER-DESCRIPTION).  STICKER-DESCRIPTION is as given by
 DESCRIBE-STICKER-FOR-EMACS.
 
 Otherwise returns a list (NIL ERROR-DESCRIPTION)"
+  (kill-stickers dead-stickers)
   (unless (and *visitor*
                (eq key (car *visitor*)))
     (setf *visitor* (cons key -1)))
-  (handler-case 
-      (let ((recording (search-for-recording-1 (cdr *visitor*) ignore-list
-                                               :direction direction)))
-        (setf (cdr *visitor*)  (index-of recording))
-        (list* (length *recordings*)
-               (describe-sticker-for-emacs (sticker-of recording) recording)))
-    (abort-search (error)
-      (list nil (format nil "~a" error)))))
+  (let ((recording (if (numberp direction)
+                       (ignore-errors (aref *recordings* direction))
+                       (search-for-recording-1 (cdr *visitor*)
+                                               (car ignore-spec)
+                                               (cdr ignore-spec)
+                                               (if (eq :next direction) 1 -1)))))
+    (cond (recording
+           (setf (cdr *visitor*)  (index-of recording))
+           (list* (length *recordings*)
+                  (describe-sticker-for-emacs (sticker-of recording) recording)))
+          (t
+           (list nil "No such recording")))))
 
-(defslyfun fetch ()
-  "Describe each known sticker to Emacs."
+(defslyfun fetch (dead-stickers)
+  "Describe each known sticker to Emacs.
+As always, take the opportunity to kill DEAD-STICKERS"
+  (kill-stickers dead-stickers)
   (loop for sticker being the hash-values of *stickers*
         collect (describe-sticker-for-emacs sticker)))
 
-(defslyfun forget ()
+(defslyfun forget (dead-stickers)
   "Forget all sticker recordings."
+  (kill-stickers dead-stickers)
   (maphash (lambda (id sticker)
              (declare (ignore id))
              (setf (recordings-of sticker) nil))
