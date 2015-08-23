@@ -1148,6 +1148,7 @@ result buttons thus highlighted"
              (and (or (not entry-idx)
                       (= e-idx entry-idx))
                   (or (not value-idx)
+                      (eq value-idx 'all)
                       (= v-idx value-idx))))
    collect button and
    do (let ((overlay (make-overlay (button-start button) (button-end button))))
@@ -1185,27 +1186,40 @@ result buttons thus highlighted"
                   (looking-at
                    (format "%s\\([[:digit:]]+\\)?\\(:\\([[:digit:]]+\\)\\|:\\)?"
                            sly-mrepl--backreference-prefix))))
-         (m1 (and match (match-string 1)))
+         (m0 (and match (match-string 0)))
+         (m1 (and m0 (match-string 1)))
          (m2 (and m1 (match-string 2)))
          (m3 (and m2 (match-string 3)))
          (entry-idx (and m1 (string-to-number m1))) 
          (value-idx (and match
                          (or (and m3 (string-to-number m3))
-                             (and (not m2) 0)))))
+                             (and (not m2)
+                                  'all)))))
     (when match
       (let ((buttons (sly-mrepl-highlight-results entry-idx value-idx))
             (overlay (or sly-mrepl--backreference-overlay
                          (set (make-local-variable 'sly-mrepl--backreference-overlay)
-                              (make-overlay 0 0)))))
+                              (make-overlay 0 0))))
+            (message-log-max nil))
         (move-overlay sly-mrepl--backreference-overlay
                       (match-beginning 0) (match-end 0))
         (cond ((null buttons)
+               (overlay-put overlay 'face 'font-lock-warning-face)
+               (sly-message "No history references for backreference `%s'" m0))
+              ((and buttons
+                    entry-idx
+                    value-idx)
+               (overlay-put overlay 'face 'sly-action-face)
+               (if (numberp value-idx)
+                   (sly-message "Matched history entry %s, value %s" entry-idx value-idx)
+                 (sly-message "Matched history entry %s, all values" entry-idx)))
+              (buttons
+               (sly-message "Ambiguous backreference `%s', %s values possible"
+                            m0 (length buttons))
                (overlay-put overlay 'face 'font-lock-warning-face))
-              ((and (not (cdr buttons))
-                    entry-idx)
-               (overlay-put overlay 'face 'highlight))
               (t
-               (overlay-put overlay 'face 'sly-action-face)))))))
+               (overlay-put overlay 'face 'font-lock-warning-face)
+               (sly-message "Invalid backreference `%s'" m0)))))))
 
 
 ;;;; Menu

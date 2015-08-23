@@ -72,16 +72,17 @@
 
 (defun mrepl-get-object-from-history (entry-idx &optional value-idx)
   (let* ((entry (mrepl-get-history-entry entry-idx))
-         (len (length entry))
-         (value-idx (or value-idx 0)))
-    (assert (and value-idx
-                 (integerp value-idx)
-                 (< -1 value-idx len))
+         (len (length entry)))
+    (assert (or (not value-idx)
+                (and (integerp value-idx)
+                     (< -1 value-idx len)))
             nil
             "Illegal value index ~a for ~a-long entry"
             value-idx
             len)
-    (nth value-idx entry)))
+    (if (numberp value-idx)
+        (nth value-idx entry)
+        (values-list entry))))
 
 (defparameter *backreference-character* #\v
   "Character used for #v<entry>:<value> backreferences in the REPL.
