@@ -134,8 +134,9 @@ INSTRUMENTED-STRING fails, return NIL."
 
 (defun search-for-recording-1 (from ignore-dead-p ignore-sticker-ids inc)
   (loop for starting-position in `(,from ,(if (plusp inc)
-                                              0
-                                              (1- (length *recordings*))))
+                                              -1
+                                              (length *recordings*)))
+        for inc in `(,inc ,(if (plusp inc) 1 -1))
           thereis (loop for candidate-id = (incf starting-position inc)
                         while (< -1 candidate-id (length *recordings*))
                         for recording = (aref *recordings* candidate-id)
