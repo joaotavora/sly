@@ -1134,9 +1134,9 @@ When setting this variable outside of the Customize interface,
 ;;;
 (defun sly-mrepl-highlight-results (&optional entry-idx value-idx)
   "Highlight REPL results for ENTRY-IDX and VALUE-IDX.
-If VALUE-IDX is nil, highlight all results for entry ENTRY-IDX.
-If ENTRY-IDX is nil, highlight all results.  Returns a list of
-result buttons thus highlighted"
+If VALUE-IDX is nil or `all', highlight all results for entry
+ENTRY-IDX.  If ENTRY-IDX is nil, highlight all results.  Returns
+a list of result buttons thus highlighted"
   (interactive)
   (cl-loop
    with inhibit-read-only = t
