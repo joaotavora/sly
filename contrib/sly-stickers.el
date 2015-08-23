@@ -22,9 +22,7 @@
 
 ;;; TODO:
 ;;
-;; Save and restore stickers on connection change.
-;;
-;; Breaking stickers
+;; Breaking stickers, i.e. using SLY-DB to step through stickers.
 
 ;;; Code:
 
@@ -118,19 +116,7 @@
 ;; (sly-button-define-part-action sly-stickers--inspect-sticker "Inspect sticker object" nil)
 
 (define-button-type 'sly-stickers-sticker :supertype 'sly-part
-  'sly-button-inspect
-  #'(lambda (_id recording-id)
-      (unless (and recording-id
-                   (cl-plusp recording-id))
-        (sly-error "This sticker doesn't seem to have any recordings"))
-      (sly-eval-for-inspector
-       `(slynk-stickers:inspect-sticker-recording ,recording-id)))
-  ;; 'sly-stickers--inspect-sticker
-  ;; #'(lambda (id _recording_id)
-  ;;     (unless (and id (cl-plusp id))
-  ;;       (sly-error "This sticker is not armed yet"))
-  ;;     (sly-eval-for-inspector
-  ;;      `(slynk-stickers:inspect-sticker ,id)))
+  'sly-button-inspect 'sly-stickers--inspect-recording
   'sly-button-echo 'sly-stickers--echo-sticker
   'keymap sly-stickers--sticker-map)
 
@@ -273,8 +259,7 @@ render the underlying text unreadable."
            (button-put sticker 'part-label (format "Sticker %d has %d recordings" id total))
            (unless (sly-stickers--recording-void-p recording)
              (button-put sticker 'sly-stickers--last-known-recording recording)
-             (button-put sticker 'part-args (list id
-                                                  (sly-stickers--recording-id recording)))
+             (button-put sticker 'part-args (list id recording))
              (sly-stickers--set-tooltip sticker
                                         (format "Newest of %s sticker recordings:\n%s"
                                                 total
@@ -477,7 +462,8 @@ With interactive prefix arg PREFIX always delete stickers.
   (sticker-total nil)
   (id nil)
   (value-descriptions nil)
-  (exited-non-locally-p nil))
+  (exited-non-locally-p nil)
+  (sly-connection nil))
 
 (defun sly-stickers--recording-void-p (recording)
   (not (sly-stickers--recording-id recording)))
@@ -491,7 +477,8 @@ veryfying `sly-stickers--recording-void-p' is created."
       description
     (let ((recording (sly-stickers--make-recording-1
                       :sticker-id sticker-id
-                      :sticker-total sticker-total)))
+                      :sticker-total sticker-total
+                      :sly-connection (sly-current-connection))))
       (when recording-description
         (cl-destructuring-bind (recording-id value-descriptions exited-non-locally-p)
             recording-description
@@ -555,8 +542,8 @@ veryfying `sly-stickers--recording-void-p' is created."
   (def "x" 'ignore-sticker "Ignore this sticker")
   (def "z" 'ignore-zombies "Toggle ignoring deleted stickers")
   (def "R" 'reset-ignored-stickers "Reset ignore list")
-  (def "M-RET" 'sly-mrepl-copy-part-to-repl "Return sticker values to REPL")
-  (def "i" 'sly-button-inspect "Inspect first sticker value"))
+  (def "M-RET" 'sly-stickers--copy-recording-to-repl "Return sticker values to REPL")
+  (def "i" 'sly-stickers--inspect-recording "Inspect first sticker value"))
 
 
 (defvar sly-stickers--expanded-help t)
@@ -659,14 +646,16 @@ veryfying `sly-stickers--recording-void-p' is created."
         (recording (sly-stickers--state-recording state)))
     (setf (sly-stickers--state-binding state)
           (lookup-key sly-stickers--replay-map (vector (read-key prompt)) t))
-    (let ((binding (sly-stickers--state-binding state))
-          (ignored-stickers (sly-stickers--state-ignored-stickers state)))
+    (let* ((binding (sly-stickers--state-binding state))
+           (ignored-stickers (sly-stickers--state-ignored-stickers state))
+           (current-sticker-id (sly-stickers--recording-sticker-id recording)))
       (cond ((and (symbolp binding)
                   (fboundp binding)
                   (string-match "^sly-" (symbol-name binding)))
              (if (commandp binding)
                  (call-interactively binding)
-               (funcall binding))
+               (apply binding
+                      (list current-sticker-id recording)))
              (setq binding 'quit))
             ((eq binding 'ignore-sticker)
              (setcdr ignored-stickers
@@ -745,12 +734,12 @@ See also `sly-stickers-fetch'."
                                           (numberp (sly-stickers--state-binding state)))
                                       (sly-stickers--replay-fetch-next state)
                                     state)
-                 
                  while (not (sly-stickers--replay-quit-state-p state))
                  when (eq (sly-stickers--state-binding state) 'warn)
                  do (sly-message "Invalid key. You can quit this sticker replay with `q' or `C-g'")
                  (sit-for 3)
-                 for sticker = (sly-stickers--process-recording (sly-stickers--state-recording next-state))
+                 for recording = (sly-stickers--state-recording next-state)
+                 for sticker = (sly-stickers--process-recording recording)
                  do
                  ;; pop to and flash the sticker whatever the state was
                  ;;
@@ -805,6 +794,39 @@ See also `sly-stickers-replay'."
           (sly-stickers--reset-zombies)
           (setq sly-stickers--replay-last-state nil)
           (sly-message "Forgot all about sticker recordings.")))))
+
+
+
+;;; Interactive functions for examining recordings
+;;;
+(eval-after-load "sly-mrepl"
+  `(progn
+     (button-type-put 'sly-stickers-sticker
+                      'sly-mrepl-copy-part-to-repl
+                      'sly-stickers--copy-recording-to-repl)))
+
+(defun check-recording (recording)
+  (cond ((null recording)
+         (sly-error "This sticker doesn't seem to have any recordings"))
+        ((not (eq (sly-stickers--recording-sly-connection recording)
+                 (sly-current-connection)))
+         (sly-error "Recording is for a different connection (%s)"
+                    (sly-connection-name 
+                     (sly-stickers--recording-sly-connection recording))))))
+
+(defun sly-stickers--inspect-recording (_sticker-id recording)
+  (check-recording recording)
+  (sly-eval-for-inspector
+   `(slynk-stickers:inspect-sticker-recording ,(sly-stickers--recording-id recording))))
+
+(defun sly-stickers--copy-recording-to-repl (_sticker-id recording)
+  (check-recording recording)
+  (sly-mrepl--save-and-copy-for-repl
+   `(slynk-stickers:find-recording-or-lose
+     ,(sly-stickers--recording-id recording))
+   :before (format "Returning values of recording %s of sticker %s"
+                   (sly-stickers--recording-id recording)
+                   (sly-stickers--recording-sticker-id recording))))
 
 
 ;;; Sticker-aware compilation
