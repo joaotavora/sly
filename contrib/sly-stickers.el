@@ -534,16 +534,19 @@ veryfying `sly-stickers--recording-void-p' is created."
   (def "SPC" :next)
   (def "DEL" :prev "Scan recordings backward")
   (def "p" :prev)
+  (def "i" 'sly-stickers--inspect-recording "Inspect first sticker value")
+  (def "M-RET" 'sly-stickers--copy-recording-to-repl "Return sticker values to REPL")
   (def "j" 'jump "Jump to a recording")
+  (def "J" 'jump-to-newest "Jump to newest recordings")
+  (def ">" 'end "Go to last recording")
+  (def "<" 'beginning "Go to last recording")
   (def "h" 'sly-stickers--toggle-help "Toggle help")
   (def "C-h" 'sly-stickers--toggle-help)
   (def "q" 'quit "Quit")
   (def "C-g" 'quit)
   (def "x" 'ignore-sticker "Ignore this sticker")
   (def "z" 'ignore-zombies "Toggle ignoring deleted stickers")
-  (def "R" 'reset-ignored-stickers "Reset ignore list")
-  (def "M-RET" 'sly-stickers--copy-recording-to-repl "Return sticker values to REPL")
-  (def "i" 'sly-stickers--inspect-recording "Inspect first sticker value"))
+  (def "R" 'reset-ignored-stickers "Reset ignore list"))
 
 
 (defvar sly-stickers--expanded-help t)
@@ -574,32 +577,36 @@ veryfying `sly-stickers--recording-void-p' is created."
           (let* ((recording-sticker-id (sly-stickers--recording-sticker-id recording))
                  (sticker (gethash recording-sticker-id
                                    (sly-stickers--stickers))))
-            (format "%s%s%s"
+            (format "%s%s"
+                    (paragraph)
                     (if sticker
-                        (format "Sticker %s in line %s of %s\n"
+                        (format "Sticker %s in line %s of %s returned %s values:%s"
                                 (sly-stickers--sticker-id sticker)
                                 (line-number-at-pos (overlay-start sticker))
-                                (overlay-buffer sticker))
+                                (overlay-buffer sticker)
+                                (length (sly-stickers--recording-value-descriptions recording))
+                                (paragraph))
                       (format "Deleted or unknown sticker %s\n"
-                              recording-sticker-id))
-                    (format "Recorded %s values:"
-                            (length (sly-stickers--recording-value-descriptions recording)))
-                    (paragraph))))
+                              recording-sticker-id)))))
          (describe-ignored-stickers
           ()
-          (let ((ignored-ids (cdr ignored-stickers)))
-          (format "\n%s%s"
-                  (if (car ignored-stickers) "Skipping recordings of deleted stickers. " "")
-                  (if ignored-ids
-                      (format "Skipping recordings of sticker%s %s."
-                              (if (cadr (cdr ignored-stickers)) "s" "")
-                              (concat (mapconcat #'pp-to-string
-                                     (butlast (cdr ignored-stickers))
-                                     ", ")
-                          (and (cadr (cdr ignored-stickers)) " and ")
-                          (pp-to-string
-                           (car (last (cdr ignored-stickers))))))
-                    ""))))
+          (let ((ignored-ids (cdr ignored-stickers))
+                (ignore-zombies (car ignored-stickers)))
+            (if (or ignored-ids ignore-zombies)
+                (format "%s%s%s"
+                        (paragraph)
+                        (if (car ignored-stickers) "Skipping recordings of deleted stickers. " "")
+                        (if ignored-ids
+                            (format "Skipping recordings of sticker%s %s."
+                                    (if (cadr (cdr ignored-stickers)) "s" "")
+                                    (concat (mapconcat #'pp-to-string
+                                                       (butlast (cdr ignored-stickers))
+                                                       ", ")
+                                            (and (cadr (cdr ignored-stickers)) " and ")
+                                            (pp-to-string
+                                             (car (last (cdr ignored-stickers))))))
+                          ""))
+              "")))
          (describe-help
           ()
           (format "%s%s"
@@ -614,7 +621,7 @@ veryfying `sly-stickers--recording-void-p' is created."
                                                                 maximize (length key) into maxkey
                                                                 maximize (length desc) into maxdesc
                                                                 finally (cl-return (list maxkey maxdesc)))
-                               for (odd even) on rows by #'cddr
+                               for (odd even) on (reverse rows) by #'cddr
                                for (odd-key . odd-desc) = odd
                                for (even-key . even-desc) = (or even '("" . ""))
                                concat (truncate-string-to-width odd-key maxkey 0 ? )
@@ -628,14 +635,25 @@ veryfying `sly-stickers--recording-void-p' is created."
                     "(n)ext)/(p)revious/(i)gnore/h(elp)/(q)uit")))
          (describe-playhead
           ()
-          (format "%sRecording %s of %s"
-                  (paragraph)
+          (let* ((new-total (sly-stickers--state-total state))
+                 (old-total (and sly-stickers--replay-last-state
+                                (sly-stickers--state-total sly-stickers--replay-last-state)))
+                 (diff (- new-total old-total)))
+           (format "Replaying recording %s of %s%s"
                   (1+ (sly-stickers--recording-id recording))
-                  (sly-stickers--state-total state))))
+                  (sly-stickers--state-total state)
+                  (cond ((and old-total
+                              (cl-plusp diff))
+                         (format ", %s new since last replay"
+                                 diff))
+                        (old-total
+                         ", no new recordings")
+                        (t
+                         ""))))))
       (format "%s%s%s%s%s"
+              (describe-playhead)
               (describe-sticker)
               (sly-stickers--recording-pretty-description recording :indent 2)
-              (describe-playhead)
               (if ignored-stickers (describe-ignored-stickers) "")
               (describe-help)))))
 
@@ -655,8 +673,8 @@ veryfying `sly-stickers--recording-void-p' is created."
              (if (commandp binding)
                  (call-interactively binding)
                (apply binding
-                      (list current-sticker-id recording)))
-             (setq binding 'quit))
+                      (list current-sticker-id recording))
+               (signal 'quit nil)))
             ((eq binding 'ignore-sticker)
              (setcdr ignored-stickers
                      (delete-dups
@@ -671,8 +689,20 @@ veryfying `sly-stickers--recording-void-p' is created."
              (let ((read (read-number (format "Jump to which recording [1-%d]?"
                                               (sly-stickers--state-total state)))))
                (setq binding (1- (round read)))))
+            ((eq binding 'jump-to-newest)
+             (let* ((new-total (sly-stickers--state-total state))
+                    (old-total (and sly-stickers--replay-last-state
+                                    (sly-stickers--state-total sly-stickers--replay-last-state)))
+                    (diff (- new-total old-total)))
+               (if (cl-plusp diff)
+                   (setq binding (1- old-total))
+                 (error "No new recordings"))))
+            ((eq binding 'beginning)
+             (setq binding 0))
+            ((eq binding 'end)
+             (setq binding (1- (sly-stickers--state-total state))))
             ((null binding)
-             (setq binding 'warn)))
+             (error "Invalid key. You can quit this sticker replay with `q' or `C-g'")))
       (setf (sly-stickers--state-binding state) binding))
     state))
 
@@ -717,16 +747,13 @@ veryfying `sly-stickers--recording-void-p' is created."
   "Interactively replay sticker recordings fetched from Slynk.
 See also `sly-stickers-fetch'."
   (interactive)
-  (let ((state (sly-stickers--make-state)))
-    (when sly-stickers--replay-last-state
-      (let ((recording (sly-stickers--state-recording
-                        sly-stickers--replay-last-state)))
-        (when (and recording
-                   (y-or-n-p (format "[sly] Resume from last recording %s of sticker %s?"
-                                     (1+ (sly-stickers--recording-id recording))
-                                     (sly-stickers--recording-sticker-id recording))))
-          (setf (sly-stickers--state-recording state) recording)
-          (setf (sly-stickers--state-binding state) (sly-stickers--recording-id recording)))))
+  (let ((state (sly-stickers--make-state))
+        (last-recording (and sly-stickers--replay-last-state
+                             (sly-stickers--state-recording
+                              sly-stickers--replay-last-state))))
+    (when last-recording
+      (setf (sly-stickers--state-recording state) last-recording)
+      (setf (sly-stickers--state-binding state) (sly-stickers--recording-id last-recording)))
     (unwind-protect
         (cl-loop with sly-stickers--expanded-help = t
                  for next-state = (if (or (memq (sly-stickers--state-binding state)
@@ -735,9 +762,6 @@ See also `sly-stickers-fetch'."
                                       (sly-stickers--replay-fetch-next state)
                                     state)
                  while (not (sly-stickers--replay-quit-state-p state))
-                 when (eq (sly-stickers--state-binding state) 'warn)
-                 do (sly-message "Invalid key. You can quit this sticker replay with `q' or `C-g'")
-                 (sit-for 3)
                  for recording = (sly-stickers--state-recording next-state)
                  for sticker = (sly-stickers--process-recording recording)
                  do
@@ -754,7 +778,16 @@ See also `sly-stickers-fetch'."
                        (t
                         (setf (sly-stickers--state-error state)
                               "Can't find sticker (probably deleted!)")))
-                 (setq state (sly-stickers--replay-read-binding next-state))
+                 (setq state
+                       (condition-case err
+                           (sly-stickers--replay-read-binding next-state)
+                         (quit
+                          (setq (sly-stickers--state-binding state) 'quit))
+                         (error
+                          (sit-for 0.01)
+                          (sly-message (second err))
+                          (sit-for 1.5)
+                          state)))
                  (sit-for 0.01)
                  until (sly-stickers--replay-quit-state-p state))
       (cond ((sly-stickers--state-recording state)
