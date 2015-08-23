@@ -162,7 +162,7 @@ Returns a list (ID NRECORDINGS . RECORDING-DESCRIPTION).
 RECORDING-DESCRIPTION is as given by DESCRIBE-RECORDING-FOR-EMACS."
   (let* ((recordings (recordings-of sticker))
          (recording (or recording
-                        (car (last recordings)))))
+                        (first recordings))))
     (list* (id-of sticker)
            (length recordings)
            (and recording
