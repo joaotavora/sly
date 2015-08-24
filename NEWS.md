@@ -1,6 +1,19 @@
 Upcaming SLY 1.0.0-beta-2 (estimated September 2015)
 ----------------------------------------
 
+### Improved `sly-stickers` contrib:
+
+There is now updated documentation for this contrib. See
+http://capitaomorte.github.io/sly/#SLY-Stickers
+
+Added a menu to help discover the functionality. 
+
+Use `M-x sly-stickers-toggle-break-on-stickers` to turn on stepping
+for forms. The debugger pops up with useful restarts and interactive
+buttons.
+
+The "replay" interface, `M-x sly-stickers-replay` has been cleaned up.
+
 ### NAMED-READTABLES support
 
 In https://github.com/capitaomorte/sly-named-readtables there is an

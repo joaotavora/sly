@@ -25,6 +25,14 @@ Written by Luke Gorrie and others.
 This file has been placed in the public domain.
 @end copying
 
+@c For screenshots use
+
+@c (make-frame '((height . 32) (width . 90) (font . "Andale Mono 13")))
+@c M-x load-theme RET base16-bright-light RET
+
+@c preferably on Mac OSX, then Cmd-Shift-4 SPC and click the window
+
+
 @titlepage
 @title @value{TITLE}
 @sp 10
@@ -1571,7 +1579,7 @@ your Lisp system's own listener, usually in the buffer
 @chapter Tips and Tricks
 
 @menu
-* Connecting to a remote lisp::
+* Connecting to a remote Lisp::
 * Global IO Redirection::
 * Auto-SLY::
 @end menu
@@ -1624,6 +1632,7 @@ preffered communication style for your Lisp system. The following
 parameters to @code{slynk:create-server} can be used to change that
 behaviour:
 
+@table @code
 @item :PORT
 Port number for the server to listen on (default: 4005).
 @item :DONT-CLOSE
@@ -1940,8 +1949,8 @@ output in protocol-messages to Emacs.
 
 Notice that using a dedicated output stream also makes it more
 difficult to communicate to a Lisp running on a remote host via SSH
-(@pxref{Connecting to a remote lisp}), so you should probably set this
-variable to @code{nil} when doing so.
+(@pxref{Connecting to a remote Lisp}) , so you should probably set
+this variable to @code{nil} when doing so.
 
 @item @code{SLYNK:*DEDICATED-OUTPUT-STREAM-PORT*}
 
@@ -2067,57 +2076,82 @@ allow long autodoc messages to resize echo area display.
 @section SLY Stickers
 
 @SLY{} Stickers, in package @code{sly-stickers} is a live code
-annotation tool. It can be thought of as a replacement to the ``print''
-statements that programmers often include when debugging to check the
-return value of a particular variable or expression.
+annotation tool. It's an alternative to the ``print'' or ``break''
+statements you add to your code when debugging.
 
-However, in contrast to these annotation techniques, ``stickers'' are
-non-intrusive, meaning that saving your file doesn't save your
-annotation code along with it.
+Contrary to these techniques, ``stickers'' are non-intrusive, meaning
+that saving your file doesn't save your debug code along with it.
 
-Here's the general workflow
+Here's the general workflow:
 
 @itemize @bullet
 @item
 In Lisp source files, using @kbd{C-c C-s C-s} or @code{M-x
-sly-stickers-dwim} sets a sticker on any Lisp form.
+sly-stickers-dwim} places a sticker on any Lisp form. Stickers can
+exist inside other stickers.
+
+@*@image{images/stickers-1-placed-stickers,350pt}@*
+
 @item
 Stickers are ``armed'' when a definition or a file is compiled with the
 familar @kbd{C-c C-c} (@code{M-x sly-compile-defun}) or @kbd{C-c C-k}
 (@code{M-x sly-compile-file}) commands. An armed sticker changes color from
 the default grey background to a blue background.
-@item
+
+@*@image{images/stickers-2-armed-stickers,350pt}@*
+
+@end itemize
+
 From this point on, when the Lisp code is executed, the results of
-evaluating the underlying forms are captured in the Lisp side.
+evaluating the underlying forms are captured in the Lisp
+side. Stickers help you examine your program's behaviour in three
+ways:
+@enumerate
+@item
+@kbd{C-c C-s C-r}
+(or @code{M-x sly-stickers-replay}) interactively walks the user through
+recordings in the order that they occured.
+
+@*@image{images/stickers-3-replay-stickers,350pt}@*
+
+@item
+To step through stickers as your code is executed, ensure that
+``breaking stickers'' are enabled via @code{M-x
+sly-stickers-toggle-break-on-stickers}. Whenever a sticker-covered
+expression is reached, the debugger comes up with useful restarts and
+interactive for the values produced.
+
+@*@image{images/stickers-4-breaking-stickers,350pt}@*
+
 @item
 @kbd{C-c C-s S} (@code{M-x sly-stickers-fetch}) populates the sticker
 overlay with the latest captured results, called ``recordings''. If a sticker
 has captured any recordings, it will turn green, otherwise it will turn
 red. A sticker whose Lisp expression has caused a non-local exit, will
 be also be marked with a special face.
-@item
-@kbd{C-c C-s C-r}
-(@code{M-x sly-stickers-replay}) interactively walk the user through
-recordings in the order that they occured. 
-@item
+
+@*@image{images/stickers-5-fetch-recordings,350pt}@*
+
+@end enumerate
+
 At any point, stickers can be removed with the
 same @code{sly-stickers-dwim} keybinding, by placing the cursor at the
 beginning of a sticker. Additionally adding prefix arguments
 to @code{sly-stickers-dwim} increase its scope, so @kbd{C-u C-c C-s
 C-s} will remove all stickers from the current function and @kbd{C-u
 C-u C-c C-s C-s} will remove all stickers from the current file.
-@item
+
 Stickers can be nested inside other stickers, so it is possible to
 record the value of an expression inside another expression which is
 also annotated.
-@item
+
 Stickers are interactive parts just like any other part in @SLY{} that
 represents Lisp-side objects, so they can be inspected and returned to
 the REPL, for example. To move through the stickers with the keyboard
-use the existing keybindings to move through compilatino notes(@kbd{M-p}
-and @kbd{M-n}) or use @kbd{C-c C-s p} and @kbd{C-c C-s n}
-(@code{sly-stickers-prev-sticker} and @code{sly-stickers-next-sticker}).
-@end itemize
+use the existing keybindings to move through compilatino
+notes(@kbd{M-p} and @kbd{M-n}) or use @kbd{C-c C-s p} and @kbd{C-c C-s
+n} (@code{sly-stickers-prev-sticker} and
+@code{sly-stickers-next-sticker}).
 
 There are some caveats when using @SLY{} Stickers:
 
