@@ -4592,21 +4592,22 @@ This is used by `sly-goto-next-xref'")
   (sly-eval-async
       `(slynk:xref ',type ',symbol)
     (sly-rcurry (lambda (result type symbol package cont)
-                    (sly-check-xref-implemented type result)
-                    (let* ((_xrefs (sly-postprocess-xrefs result))
-                           (file-alist (cadr (sly-analyze-xrefs result))))
-                      (funcall (or cont 'sly-xref--show-results)
-                               file-alist type symbol package)))
-                  type
-                  symbol
-                  (sly-current-package)
-                  continuation)))
+                  (or (sly-check-xref-implemented type result)
+                      (let* ((_xrefs (sly-postprocess-xrefs result))
+                             (file-alist (cadr (sly-analyze-xrefs result))))
+                        (funcall (or cont 'sly-xref--show-results)
+                                 file-alist type symbol package))))
+                type
+                symbol
+                (sly-current-package)
+                continuation)))
 
 (defun sly-check-xref-implemented (type xrefs)
   (when (eq xrefs :not-implemented)
-    (error "%s is not implemented yet on %s."
-           (sly-xref-type type)
-           (sly-lisp-implementation-name))))
+    (sly-display-oneliner "%s is not implemented yet on %s."
+                          (sly-xref-type type)
+                          (sly-lisp-implementation-name))
+    t))
 
 (defun sly-xref-type (type)
   (format "who-%s" (sly-cl-symbol-name type)))
