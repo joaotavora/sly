@@ -2205,7 +2205,7 @@ Debugged requests are ignored."
   (interactive)
   (sly-message "%s" (sly-eval "PONG")))
 
-;;;;; Protocol event handler (cl-the guts)
+;;;;; Protocol event handler (the guts)
 ;;;
 ;;; This is the protocol in all its glory. The input to this function
 ;;; is a protocol event that either originates within Emacs or arrived
@@ -3089,7 +3089,7 @@ which works perfectly well as long as the image reflects the source
 tree that one is currently looking at.
 
 In the other case, however, one can easily end up visiting a file
-in a different source root directory (cl-the one corresponding to
+in a different source root directory (the one corresponding to
 the Lisp image), and is thus easily tricked to modify the wrong
 source files---which can lead to quite some stressfull cursing.
 
