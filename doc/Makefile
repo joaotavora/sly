@@ -52,8 +52,9 @@ publish: sly.html
 	rm -rf gh-pages
 	git clone git@github.com:capitaomorte/sly.git --branch gh-pages --single-branch gh-pages
 	cp sly.html gh-pages/index.html
+	cp -Rf images gh-pages/images
 	cd gh-pages \
-	&& git add index.html \
+	&& git add index.html images/*\
 	&& git commit -a -m "Automatic documentation update" \
 	&& git push origin gh-pages
 
