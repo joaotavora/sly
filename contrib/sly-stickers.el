@@ -494,11 +494,13 @@ the reason why the sticker couldn't be found"
            (let ((buffer (overlay-buffer sticker)))
              (when buffer
                (with-current-buffer buffer
-                 (display-buffer buffer)
-                 (let ((orig (point)))
-                   (goto-char (overlay-start sticker))
-                   (sly-recenter orig))
-                 (sly-button-flash sticker)))))
+                 (let ((window (display-buffer buffer)))
+                   (let ((orig (point)))
+                     (goto-char (overlay-start sticker))
+                     (when window
+                       (with-selected-window window
+                         (sly-recenter orig)
+                         (sly-button-flash sticker)))))))))
           (otherwise
            (funcall otherwise "Can't find sticker (probably deleted!)")))))
 
