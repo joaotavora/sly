@@ -598,7 +598,8 @@ that returns one such construct.")
       (:propertize ,(funcall format-number pending)
                    help-echo ,(if conn (format "%s pending events outgoing\n%s"
                                                pending
-                                               "mouse-1: go to *sly-events* buffer")
+                                               (concat "mouse-1: go to *sly-events* buffer"
+                                                       "mouse-3: forget pending continuations"))
                                 "No current connection")
                    mouse-face mode-line-highlight
                    face ,(cond ((and pending (cl-plusp pending))
@@ -607,6 +608,7 @@ that returns one such construct.")
                                 'sly-mode-line))
                    keymap ,(let ((map (make-sparse-keymap)))
                              (define-key map [mode-line mouse-1] 'sly-events-buffer)
+                             (define-key map [mode-line mouse-3] 'sly-forget-pending-events)
                              map))
       "/"
       (:propertize ,(funcall format-number sly-dbs)
@@ -2459,6 +2461,11 @@ interactively), also pop to the buffer."
                        buffer))))
     (when pop-to-buffer (pop-to-buffer buffer))
     buffer))
+
+(defun sly-forget-pending-events (process)
+  "Forget any outgoing events for the PROCESS"
+  (interactive (list (sly-current-connection)))
+  (setf (sly-rex-continuations process) nil))
 
 
 ;;;;; Cleanup after a quit
