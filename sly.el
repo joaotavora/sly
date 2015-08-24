@@ -3432,8 +3432,8 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
   (interactive)
   (let ((notes (mapcar (sly-rcurry #'button-get 'sly-note)
                        (cons button more-buttons))))
-    (sly-button-flash button (let ((color (face-underline-p (button-get button 'face))))
-                               (if color `(:background ,color) 'highlight)))
+    (sly-button-flash button :face (let ((color (face-underline-p (button-get button 'face))))
+                                     (if color `(:background ,color) 'highlight)))
     ;; If the compilation window is showing, try to land in a suitable
     ;; place there, too...
     ;;
@@ -5196,6 +5196,8 @@ pending Emacs continuations."
                  t)
                () "Bug: sly-db-level is equal but condition differs\n%s\n%s"
                sly-db-condition condition)
+    (pop-to-buffer (current-buffer) '(sly-db--display-in-prev-sly-db-window))
+    (set-window-parameter (selected-window) 'sly-db (current-buffer))
     (unless (equal sly-db-level level)
       (let ((inhibit-read-only t))
         (sly-db-mode)
@@ -5219,8 +5221,6 @@ pending Emacs continuations."
             (insert "[No backtrace]")))
         (run-hooks 'sly-db-hook)
         (set-syntax-table lisp-mode-syntax-table)))
-    (pop-to-buffer (current-buffer) '(sly-db--display-in-prev-sly-db-window))
-    (set-window-parameter (selected-window) 'sly-db (current-buffer))
     (sly-recenter (point-min))
     (when (and sly-stack-eval-tags
                ;; (y-or-n-p "Enter recursive edit? ")
@@ -5297,7 +5297,13 @@ EXTRAS is currently used for the stepper."
             (sly-db-in-face condition type))
     (sly-db-dispatch-extras extras)))
 
-(defvar sly-db-extras-hooks)
+(defvar sly-db-extras-hooks nil
+  "Handlers for the extra options sent in a debugger invocation.
+Each function is called with one argument, a list (OPTION
+VALUE). It should return non-nil iff it can handle OPTION, and
+thus preventing other handlers from trying.
+
+Functions are run in the SLDB buffer.")
 
 (defun sly-db-dispatch-extras (extras)
   ;; this is (mis-)used for the stepper

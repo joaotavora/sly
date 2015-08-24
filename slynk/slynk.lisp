@@ -48,6 +48,7 @@
            #:*inspector-verbose*
            #:*require-module*
            #:*eval-for-emacs-wrappers*
+           #:*debugger-extra-options*
            ;; This is SETFable.
            #:debug-on-slynk-error
            ;; These are re-exported directly from the backend:
@@ -2415,11 +2416,21 @@ conditions are simply reported."
   "Print condition to a string, handling any errors during printing."
   (funcall *sly-db-condition-printer* condition))
 
+(defvar *debugger-extra-options* nil
+  ;; JT@15/08/24: FIXME: Actually, with a nice and proper method-combination for
+  ;; interfaces (as was once quite bravely attempted by Helmut, this variable
+  ;; could go away and contribs could simply add methods to CONDITION-EXTRAS)
+  ;; 
+  "A property list of extra options describing a condition.
+This works much like the CONDITION-EXTRAS interface, but can be
+dynamically bound by contribs when invoking the debugger.")
+
 (defun debugger-condition-for-emacs ()
   (list (safe-condition-message *slynk-debugger-condition*)
         (format nil "   [Condition of type ~S]"
                 (type-of *slynk-debugger-condition*))
-        (condition-extras *slynk-debugger-condition*)))
+        (append (condition-extras *slynk-debugger-condition*)
+                *debugger-extra-options*)))
 
 (defun format-restarts-for-emacs ()
   "Return a list of restarts for *slynk-debugger-condition* in a
@@ -4139,6 +4150,7 @@ Collisions are caused because package information is ignored."
                #:*pre-reply-hook*
                #:*after-toggle-trace-hook*
                #:*eval-for-emacs-wrappers*
+               #:*debugger-extra-options*
                #:*buffer-readtable*
                ;;
                #:defslyfun

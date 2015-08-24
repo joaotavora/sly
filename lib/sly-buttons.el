@@ -130,11 +130,14 @@
   'sly-button-pretty-print nil
   'sly-button-show-source nil)
 
-(defun sly-button-flash (button &optional face)
+(cl-defun sly-button-flash (button &key
+                                   (face 'highlight)
+                                   (times 2)
+                                   (timeout 0.07))
   (sly-flash-region (button-start button) (button-end button)
-                    :timeout 0.07
-                    :times 2
-                    :face (or face 'highlight)))
+                    :timeout timeout
+                    :times times
+                    :face face))
 
 
 (defun sly-button-echo-button (button) (sly-message "A sly button"))
