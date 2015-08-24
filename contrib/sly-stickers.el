@@ -19,11 +19,62 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-
-;;; TODO:
-;;
-;; Breaking stickers, i.e. using SLY-DB to step through stickers.
-
+;;;
+;;; There is much in this library that would merit comment. Just some points:
+;;;
+;;; * Stickers are just overlays that exist on the Emacs side. A lot of the code is just
+;;;   for managing overlay priorities and faces so stickers inside stickers are visually
+;;;   recognizable.
+;;;
+;;;   The main entry-point here is the interactive command `sly-sticker-dwim', which
+;;;   places and removes stickers.
+;;;
+;;;   Stickers are also indexed by an integer and placed in a connection-global
+;;;   hash-table, `sly-stickers--stickers' It can be connection-global because the same
+;;;   sticker with the same id might eventually be sent, multiple times, to many
+;;;   connections. It's the Slynk side that has to be able to tell whence the stickers
+;;;   comes from (this is not done currently).
+;;;
+;;; * The gist of stickers is instrumenting top-level forms. This is done by hooking
+;;;   onto `sly-compile-region-function'. Two separate compilations are performed: one
+;;;   for the uninstrumented form and another for the intrumented form. This is so that
+;;;   warnings and compilations errors that are due to stickers exclusively can be
+;;;   sorted out. If the second compilation fails, the stickers dont "stick", i.e. they
+;;;   are not armed.
+;;;
+;;; * File compilation is also hooked onto via `sly-compilation-finished-hook'. The idea
+;;;   here is to first compile the whole file, then traverse any top-level forms that
+;;;   contain stickers and instrument those.
+;;;
+;;; * On the emacs-side, the sticker overlays are very ephemeral objects. They are not
+;;;   persistently saved in any way. Deleting or modifying text inside them
+;;;   automatically deletes them.
+;;;
+;;;   The slynk side eventually must be told to let go of deleted
+;;;   stickers. Before this happens these stickers are known as zombies.  Reaping
+;;;   happens on almost every SLY -> Slynk call.  Killing the buffer they live in
+;;;   doesn't automatically delete them, but reaping eventually happens anyway via
+;;;   `sly-stickers--sticker-by-id'.
+;;;
+;;;   Before a zombie sticker is reaped, some code may still be running that adds
+;;;   recordings to these stickers, and some of these recordings make it to the Emacs
+;;;   side. The user can ignore them in `sly-stickers--replay', being notified that a
+;;;   deleted sticker is being referenced.
+;;;
+;;;   This need to communicate dead stickers to Slynk is only here because using
+;;;   weak-hash-tables is impractical for stickers indexed by integers. Perhaps this
+;;;   could be fixed if the instrumented forms could reference sticker objects directly.
+;;;
+;;; * To see the results of sticker-instrumented code, there are the interactive
+;;;   commands `sly-stickers--replay' and `sly-stickers--fetch'. If "breaking stickers"
+;;;   is enabled, the debugger is also invoked before a sticker is reached and after a
+;;;   sticker returns (if it returns). Auxiliary data-structures like
+;;;   `sly-stickers--recording' are used here.
+;;;
+;;; * `sly-stickers--replay-state' and `sly-stickers--replay-map' are great big hacks
+;;;   just for handling the `sly-stickers--replay' interactive loop. Should look into
+;;;   recursive minibuffers or something more akin to `ediff', for example.
+;;;
 ;;; Code:
 
 
@@ -51,8 +102,8 @@
               (remove-hook 'sly-db-extras-hooks 'sly-stickers--handle-break)))
 
 
-;;; Sticker display and UI logic
-;;; 
+;;;; Sticker display and UI logic
+;;;; 
 (defgroup sly-stickers nil
   "Mark expressions in source buffers and annotate return values."
   :prefix "sly-stickers-"
@@ -91,6 +142,8 @@
 (defvar sly-stickers-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-s C-s") 'sly-stickers-dwim)
+    (define-key map (kbd "C-c C-s C-d") 'sly-stickers-clear-defun-stickers)
+    (define-key map (kbd "C-c C-s C-k") 'sly-stickers-clear-buffer-stickers)
     map))
 
 (defvar sly-stickers-shortcut-mode-map
@@ -106,9 +159,9 @@
 (define-minor-mode sly-stickers-shortcut-mode
   "Shortcuts for navigating sticker recordings.")
 
-(sly-def-connection-var sly-stickers--counter 0)
+(defvar sly-stickers--counter 0)
 
-(sly-def-connection-var sly-stickers--stickers (make-hash-table))
+(defvar sly-stickers--stickers (make-hash-table))
 
 (defvar sly-stickers--sticker-map
   (let ((map (make-sparse-keymap)))
@@ -199,7 +252,7 @@ render the underlying text unreadable."
                                  'part-label label
                                  'sly-button-search-id (sly-button-next-search-id)
                                  'modification-hooks '(sly-stickers--sticker-modified)
-                                 'sly-stickers-id (cl-incf (sly-stickers--counter))
+                                 'sly-stickers-id (cl-incf sly-stickers--counter)
                                  'sly-stickers--base-help-echo
                                  "mouse-3: Context menu")))
       ;; choose a suitable priorty for ourselves and increase the
@@ -227,7 +280,7 @@ render the underlying text unreadable."
     (button-put sticker 'sly-stickers--last-known-recording nil)
     (sly-stickers--set-tooltip sticker label)
     (sly-stickers--set-face sticker 'sly-stickers-armed-face)
-    (puthash id sticker (sly-stickers--stickers))))
+    (puthash id sticker sly-stickers--stickers)))
 
 (defun sly-stickers--disarm-sticker (sticker)
   (let* ((id (sly-stickers--sticker-id sticker))
@@ -285,7 +338,7 @@ render the underlying text unreadable."
 (cl-defun sly-stickers--pretty-describe-recording (recording &key (separator "\n"))
           (let* ((recording-sticker-id (sly-stickers--recording-sticker-id recording))
                  (sticker (gethash recording-sticker-id
-                                   (sly-stickers--stickers)))
+                                   sly-stickers--stickers))
                  (nvalues (length (sly-stickers--recording-value-descriptions recording))))
             (format "%s%s:%s%s"
                     (if sticker
@@ -390,8 +443,8 @@ render the underlying text unreadable."
   ;; 
   (let ((id (sly-stickers--sticker-id sticker)))
     (when (gethash (sly-stickers--sticker-id sticker)
-                   (sly-stickers--stickers))
-      (remhash id (sly-stickers--stickers))
+                   sly-stickers--stickers)
+      (remhash id sly-stickers--stickers)
       (add-to-list 'sly-stickers--zombie-sticker-ids id))))
 
 (defun sly-stickers--sticker-modified (sticker _after? beg end &optional _pre-change-len)
@@ -507,7 +560,7 @@ With interactive prefix arg PREFIX always delete stickers.
   "Return the sticker for STICKER-ID, or return NIL.
 Perform some housecleaning tasks for stickers that have been
 properly deleted or brutally killed with the buffer they were in."
-  (let* ((sticker (gethash sticker-id (sly-stickers--stickers))))
+  (let* ((sticker (gethash sticker-id sly-stickers--stickers)))
     (cond ((and sticker (overlay-buffer sticker)
                 (buffer-live-p (overlay-buffer sticker)))
            sticker)
@@ -554,8 +607,8 @@ the reason why the sticker couldn't be found"
            (funcall otherwise "Can't find sticker (probably deleted!)")))))
 
 
-;;; Recordings
-;;; 
+;;;; Recordings
+;;;; 
 (cl-defstruct (sly-stickers--recording
                (:constructor sly-stickers--make-recording-1)
                (:conc-name sly-stickers--recording-)
@@ -591,8 +644,8 @@ veryfying `sly-stickers--recording-void-p' is created."
       recording)))
 
 
-;;; Replaying sticker recordings
-;;; 
+;;;; Replaying sticker recordings
+;;;; 
 (defvar sly-stickers--replay-map nil)
 (defvar sly-stickers--replay-help nil)
 
@@ -641,6 +694,9 @@ veryfying `sly-stickers--recording-void-p' is created."
   (error nil)
   (total 0)
   (recording nil))
+
+(sly-def-connection-var sly-stickers--replay-last-state nil
+  "State last left off by `sly-stickers-replay' for this connection")
 
 (defun sly-stickers--replay-prompt (state)
   "Produce a prompt and status string for STATE."
@@ -696,13 +752,13 @@ veryfying `sly-stickers--recording-void-p' is created."
          (describe-playhead
           ()
           (let* ((new-total (sly-stickers--state-total state))
-                 (old-total (and sly-stickers--replay-last-state
-                                (sly-stickers--state-total sly-stickers--replay-last-state)))
-                 (diff (- new-total old-total)))
+                 (old-total (and (sly-stickers--replay-last-state)
+                                (sly-stickers--state-total (sly-stickers--replay-last-state))))
+                 (diff (and old-total (- new-total old-total))))
            (format "Replaying recording %s of %s%s"
                   (1+ (sly-stickers--recording-id recording))
                   (sly-stickers--state-total state)
-                  (cond ((and old-total
+                  (cond ((and diff
                               (cl-plusp diff))
                          (format ", %s new since last replay"
                                  diff))
@@ -751,8 +807,8 @@ veryfying `sly-stickers--recording-void-p' is created."
                (setq binding (1- (round read)))))
             ((eq binding 'jump-to-newest)
              (let* ((new-total (sly-stickers--state-total state))
-                    (old-total (and sly-stickers--replay-last-state
-                                    (sly-stickers--state-total sly-stickers--replay-last-state)))
+                    (old-total (and (sly-stickers--replay-last-state)
+                                    (sly-stickers--state-total (sly-stickers--replay-last-state))))
                     (diff (- new-total old-total)))
                (if (cl-plusp diff)
                    (setq binding (1- old-total))
@@ -801,16 +857,14 @@ veryfying `sly-stickers--recording-void-p' is created."
    (not (sly-stickers--state-recording state))
    (eq (sly-stickers--state-binding state) 'quit)))
 
-(defvar sly-stickers--replay-last-state nil)
-
 (defun sly-stickers-replay ()
   "Interactively replay sticker recordings fetched from Slynk.
 See also `sly-stickers-fetch'."
   (interactive)
   (let ((state (sly-stickers--make-state))
-        (last-recording (and sly-stickers--replay-last-state
+        (last-recording (and (sly-stickers--replay-last-state)
                              (sly-stickers--state-recording
-                              sly-stickers--replay-last-state))))
+                              (sly-stickers--replay-last-state)))))
     (when last-recording
       (setf (sly-stickers--state-recording state) last-recording)
       (setf (sly-stickers--state-binding state) (sly-stickers--recording-id last-recording)))
@@ -836,12 +890,12 @@ See also `sly-stickers-fetch'."
                           'quit))
                    (error
                     (sit-for 0.01)
-                    (sly-message (second err))
+                    (sly-message (cl-second err))
                     (sit-for 1.5)))
                  (sit-for 0.01)
                  until (sly-stickers--replay-quit-state-p state))
       (cond ((sly-stickers--state-recording state)
-             (setq sly-stickers--replay-last-state state)
+             (setf (sly-stickers--replay-last-state) state)
              (sly-message
               (substitute-command-keys "Quit sticker recording replay. You can resume with \\[sly-stickers-replay]")))
             (t
@@ -878,11 +932,11 @@ See also `sly-stickers-replay'."
     (sly-eval-async `(slynk-stickers:forget ',(sly-stickers--zombies))
       #'(lambda (_result)
           (sly-stickers--reset-zombies)
-          (setq sly-stickers--replay-last-state nil)
+          (setf (sly-stickers--replay-last-state) nil)
           (sly-message "Forgot all about sticker recordings.")))))
 
 
-;;; Breaking stickers
+;;;; Breaking stickers
 (defun sly-stickers--handle-break (extra)
   (sly-dcase extra
     ((:slynk-after-sticker description)
@@ -905,8 +959,8 @@ See also `sly-stickers-replay'."
     (sly-message "Breaking on stickers is %s" (if break-p "ON" "OFF"))))
 
 
-;;; Functions for examining recordings
-;;;
+;;;; Functions for examining recordings
+;;;; 
 (eval-after-load "sly-mrepl"
   `(progn
      (button-type-put 'sly-stickers-sticker
@@ -944,8 +998,8 @@ See also `sly-stickers-replay'."
                    (sly-stickers--recording-sticker-id recording))))
 
 
-;;; Sticker-aware compilation
-;;; 
+;;;; Sticker-aware compilation
+;;;; 
 
 (cl-defun sly-stickers--compile-region-aware-of-stickers-1
     (start end callback &key sync fallback flash)
@@ -1061,6 +1115,25 @@ Intented to be placed in `sly-compilation-finished-hook'"
                     (length successful)
                     (cl-reduce #'+ unsuccessful :key (lambda (x) (length (cdr x))))
                     (length unsuccessful))))))))
+
+
+;;;; Menu
+;;;;
+
+(easy-menu-define sly-stickers--shortcut-menu nil
+  "Placing stickers in `lisp-mode' buffers."
+  (let* ((in-source-file 'sly-stickers-mode)
+         (connected '(sly-connected-p)))
+    `("Stickers"
+      ["Add or remove sticker at point" sly-stickers-dwim ,in-source-file]
+      ["Delete stickers from top-level form" sly-stickers-clear-defun-stickers ,in-source-file]
+      ["Delete stickers from buffer" sly-stickers-clear-buffer-stickers ,in-source-file]
+      "--"
+      ["Start sticker recording replay" sly-stickers-replay ,connected]
+      ["Fetch most recent recordings" sly-stickers-fetch ,connected]
+      ["Toggle breaking on stickers" sly-stickers-toggle-break-on-stickers ,connected])))
+
+(easy-menu-add-item sly-menu nil sly-stickers--shortcut-menu "Documentation")
 
 (provide 'sly-stickers)
 ;;; sly-stickers.el ends here
