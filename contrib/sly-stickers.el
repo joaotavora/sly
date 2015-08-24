@@ -237,22 +237,69 @@ render the underlying text unreadable."
     (sly-stickers--set-tooltip sticker label)
     (sly-stickers--set-face sticker 'sly-stickers-placed-face)))
 
-(cl-defun sly-stickers--recording-pretty-description (recording &key
-                                                                (indent 0)
-                                                                (prefix "=> "))
-  (let ((descs (sly-stickers--recording-value-descriptions recording)))
-    (cond ((sly-stickers--recording-exited-non-locally-p recording)
-           (propertize "exited non locally" 'face 'sly-warn))
-          ((null descs)
-           (propertize "no values" 'face 'sly-action-face))
-          (t
-           (cl-loop for (v . rest) on descs
-                    concat (format "%s%s%s"
-                                   (make-string indent ? )
-                                   prefix
-                                   (propertize v 'face 'sly-action-face))
-                    when rest
-                    concat "\n")))))
+(define-button-type 'sly-stickers--recording-part :supertype 'sly-part
+  'sly-button-inspect
+  'sly-stickers--inspect-recording
+  ;; 'sly-button-pretty-print
+  ;; #'(lambda (id) ...)
+  ;; 'sly-button-describe
+  ;; #'(lambda (id) ...)
+  ;; 'sly-button-show-source
+  ;; #'(lambda (id) ...)
+  )
+
+(defun sly-stickers--recording-part (label sticker-id recording vindex &rest props)
+  (apply #'make-text-button
+         label nil
+         :type 'sly-stickers--recording-part
+         'part-args (list sticker-id recording vindex)
+         'part-label "Recorded value"
+         props)
+  label)
+
+(cl-defun sly-stickers--describe-recording-values (recording &key
+                                                             (indent 0)
+                                                             (prefix "=> "))
+  (cl-flet ((indent (str)
+                    (concat (make-string indent ? )str))
+            (prefix (str)
+                    (concat prefix str)))
+    (let ((descs (sly-stickers--recording-value-descriptions recording)))
+      (cond ((sly-stickers--recording-exited-non-locally-p recording)
+             (indent (propertize "exited non locally" 'face 'sly-action-face)))
+            ((null descs)
+             (indent (propertize "no values" 'face 'sly-action-face)))
+            (t
+             (cl-loop for (value-desc . rest) on descs
+                      for vindex from 0
+                      concat
+                      (indent (prefix
+                               (sly-stickers--recording-part
+                                value-desc
+                                (sly-stickers--recording-sticker-id recording)
+                                recording
+                                vindex)))
+                      when rest
+                      concat "\n"))))))
+
+(cl-defun sly-stickers--pretty-describe-recording (recording &key (separator "\n"))
+          (let* ((recording-sticker-id (sly-stickers--recording-sticker-id recording))
+                 (sticker (gethash recording-sticker-id
+                                   (sly-stickers--stickers)))
+                 (nvalues (length (sly-stickers--recording-value-descriptions recording))))
+            (format "%s%s:%s%s"
+                    (if sticker
+                        (format "Sticker %s in line %s of %s"
+                                (sly-stickers--sticker-id sticker)
+                                (line-number-at-pos (overlay-start sticker))
+                                (overlay-buffer sticker))
+                      (format "Deleted or unknown sticker %s"
+                              recording-sticker-id))
+                    (if (cl-plusp nvalues)
+                        (format " returned %s values" nvalues) "")
+                    separator
+                    (sly-stickers--describe-recording-values recording
+                                                             :indent 2))))
 
 (defun sly-stickers--populate-sticker (sticker recording)
   (let* ((id (sly-stickers--sticker-id sticker))
@@ -265,7 +312,7 @@ render the underlying text unreadable."
              (sly-stickers--set-tooltip sticker
                                         (format "Newest of %s sticker recordings:\n%s"
                                                 total
-                                                (sly-stickers--recording-pretty-description recording :prefix "")))
+                                                (sly-stickers--describe-recording-values recording :prefix "")))
              (sly-stickers--set-face sticker
                                      (if (sly-stickers--recording-exited-non-locally-p recording)
                                          'sly-stickers-exited-non-locally-face
@@ -276,7 +323,7 @@ render the underlying text unreadable."
              (when last-known-recording
                (sly-stickers--set-tooltip sticker
                                           (format "No new recordings. Last known:\n%s"
-                                                  (sly-stickers--recording-pretty-description last-known-recording))))
+                                                  (sly-stickers--describe-recording-values last-known-recording))))
              (sly-stickers--set-tooltip sticker "No new recordings")
              (sly-stickers--set-face sticker 'sly-stickers-empty-face))))))
 
@@ -500,7 +547,9 @@ the reason why the sticker couldn't be found"
                      (when window
                        (with-selected-window window
                          (sly-recenter orig)
-                         (sly-button-flash sticker)))))))))
+                         (sly-button-flash sticker
+                                           :timeout 0.2 :times 4
+                                           :face 'highlight)))))))))
           (otherwise
            (funcall otherwise "Can't find sticker (probably deleted!)")))))
 
@@ -599,22 +648,6 @@ veryfying `sly-stickers--recording-void-p' is created."
         (ignored-stickers (sly-stickers--state-ignored-stickers state)))
     (cl-labels
         ((paragraph () (if sly-stickers--expanded-help "\n\n" "\n"))
-         (describe-sticker
-          ()
-          (let* ((recording-sticker-id (sly-stickers--recording-sticker-id recording))
-                 (sticker (gethash recording-sticker-id
-                                   (sly-stickers--stickers))))
-            (format "%s%s"
-                    (paragraph)
-                    (if sticker
-                        (format "Sticker %s in line %s of %s returned %s values:%s"
-                                (sly-stickers--sticker-id sticker)
-                                (line-number-at-pos (overlay-start sticker))
-                                (overlay-buffer sticker)
-                                (length (sly-stickers--recording-value-descriptions recording))
-                                (paragraph))
-                      (format "Deleted or unknown sticker %s\n"
-                              recording-sticker-id)))))
          (describe-ignored-stickers
           ()
           (let ((ignored-ids (cdr ignored-stickers))
@@ -677,10 +710,10 @@ veryfying `sly-stickers--recording-void-p' is created."
                          ", no new recordings")
                         (t
                          ""))))))
-      (format "%s%s%s%s%s"
+      (concat
               (describe-playhead)
-              (describe-sticker)
-              (sly-stickers--recording-pretty-description recording :indent 2)
+              (paragraph)
+              (sly-stickers--pretty-describe-recording recording :separator (paragraph))
               (if ignored-stickers (describe-ignored-stickers) "")
               (describe-help)))))
 
@@ -851,9 +884,19 @@ See also `sly-stickers-replay'."
 
 ;;; Breaking stickers
 (defun sly-stickers--handle-break (extra)
-  (when (eq :slynk-sticker-id (cl-first extra))
-    (sly-stickers--find-and-flash (cl-second extra)
-                                  :otherwise 'sly-message)))
+  (sly-dcase extra
+    ((:slynk-after-sticker description)
+     (let ((sticker-id (first description))
+           (recording (sly-stickers--make-recording description)))
+       (sly-stickers--find-and-flash sticker-id
+                                     :otherwise 'sly-message)
+       (insert
+        "\n\n"
+        (sly-stickers--pretty-describe-recording recording
+                                                 ))))
+    ((:slynk-before-sticker sticker-id)
+     (sly-stickers--find-and-flash sticker-id
+                                   :otherwise 'sly-message))))
 
 
 (defun sly-stickers-toggle-break-on-stickers ()
@@ -868,6 +911,9 @@ See also `sly-stickers-replay'."
   `(progn
      (button-type-put 'sly-stickers-sticker
                       'sly-mrepl-copy-part-to-repl
+                      'sly-stickers--copy-recording-to-repl)
+     (button-type-put 'sly-stickers--recording-part
+                      'sly-mrepl-copy-part-to-repl
                       'sly-stickers--copy-recording-to-repl)))
 
 (defun check-recording (recording)
@@ -879,16 +925,20 @@ See also `sly-stickers-replay'."
                     (sly-connection-name 
                      (sly-stickers--recording-sly-connection recording))))))
 
-(defun sly-stickers--inspect-recording (_sticker-id recording)
+(cl-defun sly-stickers--inspect-recording (_sticker-id recording &optional (vindex 0))
   (check-recording recording)
   (sly-eval-for-inspector
-   `(slynk-stickers:inspect-sticker-recording ,(sly-stickers--recording-id recording))))
+   `(slynk-stickers:inspect-sticker-recording ,(sly-stickers--recording-id recording)
+                                              ,vindex)))
 
-(defun sly-stickers--copy-recording-to-repl (_sticker-id recording)
+
+
+(cl-defun sly-stickers--copy-recording-to-repl (_sticker-id recording &optional (vindex 0))
   (check-recording recording)
   (sly-mrepl--save-and-copy-for-repl
    `(slynk-stickers:find-recording-or-lose
-     ,(sly-stickers--recording-id recording))
+     ,(sly-stickers--recording-id recording)
+     ,vindex)
    :before (format "Returning values of recording %s of sticker %s"
                    (sly-stickers--recording-id recording)
                    (sly-stickers--recording-sticker-id recording))))

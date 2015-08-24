@@ -120,20 +120,25 @@ their ignore-spec is reset nonetheless."
 
 (define-condition sticker-related-condition (condition)
   ((sticker :initarg :sticker :initform (error "~S is required" 'sticker)
-            :accessor sticker-of)))
+            :accessor sticker-of)
+   (debugger-extra-options :initarg :debugger-extra-options
+                           :accessor debugger-extra-options-of)))
 
 (define-condition just-before-sticker (sticker-related-condition)
   ()
   (:report (lambda (c stream)
              (with-slots (sticker) c
-               (format stream "Just before executing sticker ~a" sticker)))))
+               (print-unreadable-object (c stream :type t)
+                 (format stream "~a" (id-of sticker)))))))
 
 (define-condition right-after-sticker (sticker-related-condition)
-  ((recorded-values :initarg :recorded-values :accessor recorded-values))
+  ((recording :initarg :recording :accessor recording-of))
   (:report (lambda (c stream)
-             (with-slots (sticker recorded-values) c
-               (format stream "Just after executing sticker ~a:" sticker)
-               (format stream "~&Got these values:~{~a~^~%~}" recorded-values)))))
+             (with-slots (sticker recording) c
+               (print-unreadable-object (c stream :type t)
+                 (format stream "~a (recorded ~a)"
+                         (id-of sticker)
+                         recording))))))
 
 (defparameter *break-on-stickers* nil
   "If non nil, RECORD breaks before and after recording sticker")
@@ -142,52 +147,66 @@ their ignore-spec is reset nonetheless."
   "Toggle the value of *BREAK-ON-STICKERS*"
   (setq *break-on-stickers* (not *break-on-stickers*)))
 
-(defun invoke-debugger-for-sticker (sticker condition-type &rest initargs)
-  (let ((condition (apply #'make-condition condition-type :sticker sticker
-                          initargs)))
-    (restart-case
-     (let ((*debugger-extra-options* `((:slynk-sticker-id ,(id-of sticker)))))
-       (invoke-debugger condition))
-     (continue () :report "OK, continue")
-     (ignore-this-sticker ()
-                          :report "Stop bothering me about this sticker"
-                          :test (lambda (c)
-                                  (cond ((typep c 'sticker-related-condition)
-                                         (and (eq (sticker-of c) sticker)
-                                              *break-on-stickers*))
-                                        (t
-                                         t)))
-                          (setf (ignore-spec-of sticker)
-                                (list :before :after))))))
+(defun invoke-debugger-for-sticker (sticker condition)
+  (restart-case
+      (let ((*debugger-extra-options* (append (debugger-extra-options-of condition)
+                                              *debugger-extra-options*)))
+        (invoke-debugger condition))
+    (continue () :report "OK, continue")
+    (ignore-this-sticker ()
+      :report "Stop bothering me about this sticker"
+      :test (lambda (c)
+              (cond ((typep c 'sticker-related-condition)
+                     (and (eq (sticker-of c) sticker)
+                          *break-on-stickers*))
+                    (t
+                     t)))
+      (setf (ignore-spec-of sticker)
+            (list :before :after)))))
 
 (defun call-with-sticker-recording (id fn)
   (let* ((sticker (gethash id *stickers*))
-         (values 'exited-non-locally)
-         (last-condition))
-    (unwind-protect
-         (handler-bind ((condition (lambda (condition)
-                                     (setq last-condition condition))))
-           ;; Maybe break before
-           ;; 
-           (when (and *break-on-stickers*
-                      (not (member :before (ignore-spec-of sticker))))
-             (invoke-debugger-for-sticker sticker 'just-before-sticker))
-           ;; Run actual code under the sticker
-           ;; 
-           (setq values (multiple-value-list (funcall fn)))
-           ;; Maybe break after
-           ;; 
-           (when (and *break-on-stickers*
-                      (not (member :after (ignore-spec-of sticker))))
-             (invoke-debugger-for-sticker sticker 'right-after-sticker
-                                          :recorded-values values))
-           
-           (values-list values))
-      (when sticker
-        (make-instance 'recording
-          :sticker sticker
-          :values values
-          :condition (and (eq values 'exited-non-locally) last-condition))))))
+         (mark (gensym))
+         (retval mark)
+         (last-condition)
+         (recording))
+    (handler-bind ((condition (lambda (condition)
+                                (setq last-condition condition))))
+      ;; Maybe break before
+      ;; 
+      (when (and sticker
+                 *break-on-stickers*
+                 (not (member :before (ignore-spec-of sticker))))
+        (invoke-debugger-for-sticker
+         sticker (make-condition 'just-before-sticker
+                                 :sticker sticker
+                                 :debugger-extra-options
+                                 `((:slynk-before-sticker ,id)))))
+      ;; Run actual code under the sticker
+      ;; 
+      (unwind-protect
+           (values-list (setq retval (multiple-value-list (funcall fn))))
+        (when sticker
+          ;; Always make a recording...
+          ;;
+          (setq recording
+                (make-instance 'recording
+                               :sticker sticker
+                               :values (if (eq mark retval)
+                                           'exited-non-locally
+                                           retval)
+                               :condition (and (eq mark retval) last-condition)))
+          ;; ...and then maybe break after.
+          (when (and *break-on-stickers*
+                     (not (member :after (ignore-spec-of sticker))))
+            (invoke-debugger-for-sticker
+             sticker
+             (make-condition 'right-after-sticker
+                             :sticker sticker
+                             :recording recording
+                             :debugger-extra-options
+                             `((:slynk-after-sticker
+                                ,(describe-sticker-for-emacs sticker recording)))))))))))
 
 (defmacro record (id &rest body)
   `(call-with-sticker-recording ,id (lambda () ,@body)))
@@ -278,9 +297,11 @@ As always, take the opportunity to kill DEAD-STICKERS"
            *stickers*)
   (setf (fill-pointer *recordings*) 0))
 
-(defslyfun find-recording-or-lose (recording-id)
+(defslyfun find-recording-or-lose (recording-id vindex)
   (let ((recording (aref *recordings* recording-id)))
-    (values-list (values-of recording))))
+    (if vindex
+        (elt (values-of recording) vindex)
+        (values-list (values-of recording)))))
 
 (defun find-sticker-or-lose (id)
   (let ((probe (gethash id *stickers* :unknown)))
@@ -292,8 +313,8 @@ As always, take the opportunity to kill DEAD-STICKERS"
   (let ((sticker (find-sticker-or-lose sticker-id)))
     (slynk::inspect-object sticker)))
 
-(defslyfun inspect-sticker-recording (recording-id)
-  (let ((recording (find-recording-or-lose recording-id)))
+(defslyfun inspect-sticker-recording (recording-id vindex)
+  (let ((recording (find-recording-or-lose recording-id vindex)))
     (slynk::inspect-object recording)))
 
 (provide 'slynk-stickers)

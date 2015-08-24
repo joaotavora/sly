@@ -111,24 +111,25 @@ empty string."
 (cl-defun sly-flash-region (start end &key timeout face times)
   "Temporarily highlight region from START to END."
   (unless sly-flash-inhibit
-    (let ((overlay (make-overlay start end)))
+    (let ((overlay (make-overlay start end))
+          (buffer (current-buffer)))
       (overlay-put overlay 'face (or face
                                      'highlight))
       (overlay-put overlay 'priority 1000)
       (run-with-timer
        (or timeout 0.2) nil
-       #'(lambda ()
-           (delete-overlay overlay)
-           (when (and times
-                      (> times 1))
-             (run-with-timer
-              (or timeout 0.2) nil
-              #'(lambda ()
-                  (sly-flash-region start end
-                                    :timeout timeout
-                                    :face face
-                                    :times (1- times))))))))))
-
+       (lambda ()
+         (delete-overlay overlay)
+         (when (and times
+                    (> times 1))
+           (run-with-timer
+            (or timeout 0.2) nil
+            (lambda ()
+              (with-current-buffer buffer
+                (sly-flash-region start end
+                                  :timeout timeout
+                                  :face face
+                                  :times (1- times)))))))))))
 
 (provide 'sly-messages)
 ;;; sly-messages.el ends here

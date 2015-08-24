@@ -693,7 +693,7 @@ corresponding values in the CDR of VALUE."
 		   patterns)
 	 ,@(if (eq (caar (last patterns)) t)
 	       '()
-	     `((t (error "Elisp sly-dcase failed: %S" ,tmp))))))))
+	     `((t (sly-error "Elisp sly-dcase failed: %S" ,tmp))))))))
 
 ;;;;; Very-commonly-used functions
 
