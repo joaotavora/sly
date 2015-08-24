@@ -778,16 +778,16 @@ See also `sly-stickers-fetch'."
                        (t
                         (setf (sly-stickers--state-error state)
                               "Can't find sticker (probably deleted!)")))
-                 (setq state
-                       (condition-case err
-                           (sly-stickers--replay-read-binding next-state)
-                         (quit
-                          (setq (sly-stickers--state-binding state) 'quit))
-                         (error
-                          (sit-for 0.01)
-                          (sly-message (second err))
-                          (sit-for 1.5)
-                          state)))
+                 (condition-case err
+                     (setq state
+                           (sly-stickers--replay-read-binding next-state))
+                   (quit
+                    (setf (sly-stickers--state-binding state)
+                          'quit))
+                   (error
+                    (sit-for 0.01)
+                    (sly-message (second err))
+                    (sit-for 1.5)))
                  (sit-for 0.01)
                  until (sly-stickers--replay-quit-state-p state))
       (cond ((sly-stickers--state-recording state)
@@ -828,9 +828,14 @@ See also `sly-stickers-replay'."
           (setq sly-stickers--replay-last-state nil)
           (sly-message "Forgot all about sticker recordings.")))))
 
+(defun sly-stickers-toggle-break-on-stickers ()
+  (interactive)
+  (let ((break-p (sly-eval '(slynk-stickers:toggle-break-on-stickers))))
+    (sly-message "Breaking on stickers is %s" (if break-p "ON" "OFF"))))
+
 
 
-;;; Interactive functions for examining recordings
+;;; Functions for examining recordings
 ;;;
 (eval-after-load "sly-mrepl"
   `(progn

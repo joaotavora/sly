@@ -46,11 +46,12 @@
 
 (defclass sticker ()
   ((id :initform (error "required")  :initarg :id :accessor id-of)
-   (recordings :initform nil :accessor recordings-of)))
+   (recordings :initform nil :accessor recordings-of)
+   (ignore-spec :initform nil :accessor ignore-spec-of)))
 
 (defmethod print-object ((sticker sticker) s)
   (print-unreadable-object (sticker s :type t)
-    (format s "~a new recordings" (length (recordings-of sticker)))))
+    (format s "id: ~a" (id-of sticker))))
 
 (defun exited-non-locally-p (recording)
   (when (or (condition-of recording)
@@ -83,7 +84,12 @@ previous compilation. In this case a list (NOTES NIL) is returned or
 an error is signalled.
 
 If ORIGINAL-STRING is not supplied and compilation of
-INSTRUMENTED-STRING fails, return NIL."
+INSTRUMENTED-STRING fails, return NIL.
+
+New stickers for NEW-STICKERS are registered in *STICKERS* and
+stickers in DEAD-STICKERS are killed. NEW-STICKERS are not necessarily
+\"new\" in the sense that the ids are not assigned by Slynk, but
+their ignore-spec is reset nonetheless."
   ;; Dead stickers are unconditionally removed from *stickers*
   ;; 
   (kill-stickers dead-stickers)
@@ -98,6 +104,7 @@ INSTRUMENTED-STRING fails, return NIL."
     (cond (;; a non-nil and successful compilation result
            (and probe
                 (third probe))
+           ;; new objects for NEW-STICKERS are created
            (loop for id in new-stickers
                  do (setf (gethash id *stickers*)
                           (make-instance 'sticker :id id)))
@@ -110,6 +117,27 @@ INSTRUMENTED-STRING fails, return NIL."
   (loop for id in ids
         do (remhash id *stickers*)))
 
+(define-condition just-before-sticker (condition)
+  ((sticker :initarg :sticker :accessor sticker-of))
+  (:report (lambda (c stream)
+             (with-slots (sticker) c
+               (format stream "Just before executing sticker ~a" sticker)))))
+
+(define-condition right-after-sticker (condition)
+  ((sticker :initarg :sticker :accessor sticker-of)
+   (recorded-values :initarg :recorded-values :accessor recorded-values))
+  (:report (lambda (c stream)
+             (with-slots (sticker recorded-values) c
+               (format stream "Just after executing sticker ~a:" sticker)
+               (format stream "~&Got these values:~{~a~^~%~}" recorded-values)))))
+
+(defparameter *break-on-stickers* nil
+  "If non nil, RECORD breaks before and after recording sticker")
+
+(defslyfun toggle-break-on-stickers ()
+  "Toggle the value of *BREAK-ON-STICKERS*"
+  (setq *break-on-stickers* (not *break-on-stickers*)))
+
 (defun call-with-sticker-recording (id fn)
   (let* ((sticker (gethash id *stickers*))
          (values 'exited-non-locally)
@@ -117,7 +145,29 @@ INSTRUMENTED-STRING fails, return NIL."
     (unwind-protect
          (handler-bind ((condition (lambda (condition)
                                      (setq last-condition condition))))
-           (setq values (multiple-value-list (funcall fn)))
+           (restart-case
+               (progn
+                 (when (and *break-on-stickers*
+                            (not (member :before (ignore-spec-of sticker))))
+                   (with-simple-restart (continue "OK, continue")
+                     (invoke-debugger (make-condition 'just-before-sticker
+                                                      :sticker sticker))))
+                 (setq values (multiple-value-list (funcall fn)))
+                 (when (and *break-on-stickers*
+                            (not (member :after (ignore-spec-of sticker))))
+                   (with-simple-restart (continue "OK, continue")
+                     (invoke-debugger (make-condition 'right-after-sticker
+                                                      :sticker sticker
+                                                      :recorded-values values)))))
+             (ignore-this-sticker ()
+               :report
+               (lambda (stream)
+                 (format stream "Stop bothering me about sticker ~a" (id-of sticker)))
+               :test (lambda (c) 
+                       (and c
+                            (eq (sticker-of c) sticker)
+                            *break-on-stickers*))
+               (setf (ignore-spec-of sticker) '(:before :after))))
            (values-list values))
       (when sticker
         (make-instance 'recording
@@ -130,7 +180,7 @@ INSTRUMENTED-STRING fails, return NIL."
 
 (define-setf-expander record (x &environment env)
   (declare (ignore x env))
-  (error "Sorry, not allowing ~a for ~a" 'setf 'record))
+  (error "Sorry, not allowing ~S for ~S" 'setf 'record))
 
 (defun search-for-recording-1 (from ignore-dead-p ignore-sticker-ids inc)
   (loop for starting-position in `(,from ,(if (plusp inc)
