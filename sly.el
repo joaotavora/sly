@@ -4603,6 +4603,7 @@ This is used by `sly-goto-next-xref'")
                 continuation)))
 
 (defun sly-check-xref-implemented (type xrefs)
+  "Check if xref functionality is available in the implementation."
   (when (eq xrefs :not-implemented)
     (sly-display-oneliner "%s is not implemented yet on %s."
                           (sly-xref-type type)
@@ -4610,6 +4611,7 @@ This is used by `sly-goto-next-xref'")
     t))
 
 (defun sly-xref-type (type)
+  "Return a human readable version of xref-type."
   (format "who-%s" (sly-cl-symbol-name type)))
 
 (defun sly-xref--get-xrefs (types symbol &optional continuation)
