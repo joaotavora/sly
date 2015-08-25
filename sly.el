@@ -3423,8 +3423,7 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
                    (list (region-beginning) (region-end))
                  (list (point-min) (point-max))))
   (cl-loop for existing in (overlays-in beg end)
-           when (button-type-subtype-p (button-type existing)
-                                       'sly-in-buffer-note)
+           when (sly-note-button-p existing)
            do (delete-overlay existing)))
 
 (defun sly-show-notes (button &rest more-buttons)
