@@ -128,8 +128,10 @@ This file has been placed in the public domain.
 * Introduction::
 * Getting started::
 * SLY mode::
+* REPL::
+* Horizontal Functionality::
+* Inspector::
 * Debugger::
-* Misc::
 * Customization::
 * Tips and Tricks::
 * Extensions::
@@ -423,26 +425,24 @@ Then add this to your @file{.emacs}:
 @noindent
 
 @node SLY mode
-@chapter The @code{sly-mode} minor mode
+@chapter Editing Lisp Code
 
-@SLY{}'s commands are provided via @code{sly-mode}, a minor-mode
-used in conjunction with Emacs's @code{lisp-mode}. This chapter
-describes the @code{sly-mode} and its relatives.
+@SLY{}'s commands when editing a Lisp file are provided via
+@code{sly-editing-mode}, a minor-mode used in conjunction with Emacs's
+@code{lisp-mode}.
+
+This chapter generally describes the actions to working in Lisp source
+buffers, though a lot of other functionality in SLY naturally also
+applies there (@pxref{Horizontal Functionality}).
 
 @menu
 * Evaluation::
 * Compilation::
+* Autodoc::
 * Completion::
-* Finding definitions::
-* Documentation::
-* Macro-expansion::
-* Disassembly::
-* Recovery::
-* Inspector::
-* Other::
 * Semantic indentation::
 * Reader conditionals::
-* User-interface conventions::
+* Macro-expansion::
 @end menu
 
 @node Evaluation
@@ -570,6 +570,37 @@ Lisp as for batch compilers.
 
 @end table
 
+@node Autodoc
+@section Autodoc
+
+SLY automatically shows information about symbols near the point. For
+function names the argument list is displayed, and for global
+variables, the value.  Autodoc is implemented by means
+of @code{eldoc-mode} of Emacs.
+
+@table @kbd
+@cmditem{sly-arglist NAME}
+Show the argument list of the function NAME.
+
+@cmditem{sly-autodoc-mode}
+Toggles autodoc-mode on or off according to the argument, and
+toggles the mode when invoked without argument.
+@kbditem{C-c C-d a, sly-autodoc-manually}
+Like sly-autodoc, but when called twice,
+or after sly-autodoc was already automatically called,
+display multiline arglist.
+@end table
+
+If the variable @code{sly-use-autodoc-mode} is set (default), Emacs
+starts a timer, otherwise the information is only displayed after
+pressing SPC.
+
+If @code{sly-autodoc-use-multiline-p} is set to non-nil,
+allow long autodoc messages to resize echo area display.
+
+@code{autodoc-mode} is a contrib and can be turned off if you
+so wish (@pxref{Extensions})
+
 @node Completion
 @section Auto-completion
 
@@ -590,6 +621,249 @@ available in @SLY{}; the default is similar to normal Emacs
 completion (@pxref{sly-complete-symbol-function}).
 
 @end table
+
+@node Semantic indentation
+@section Semantic indentation
+
+@SLY{} automatically discovers how to indent the macros in your Lisp
+system. To do this the Lisp side scans all the macros in the system and
+reports to Emacs all the ones with @code{&body} arguments. Emacs then
+indents these specially, putting the first arguments four spaces in and
+the ``body'' arguments just two spaces, as usual.
+
+This should ``just work.'' If you are a lucky sort of person you needn't
+read the rest of this section.
+
+To simplify the implementation, @SLY{} doesn't distinguish between
+macros with the same symbol-name but different packages. This makes it
+fit nicely with Emacs's indentation code. However, if you do have
+several macros with the same symbol-name then they will all be indented
+the same way, arbitrarily using the style from one of their
+arglists. You can find out which symbols are involved in collisions
+with:
+
+@example
+(slynk:print-indentation-lossage)
+@end example
+
+If a collision causes you irritation, don't have a nervous breakdown,
+just override the Elisp symbol's @code{common-lisp-indent-function}
+property to your taste. @SLY{} won't override your custom settings, it
+just tries to give you good defaults.
+
+A more subtle issue is that imperfect caching is used for the sake of
+performance. @footnote{@emph{Of course} we made sure it was actually too
+slow before making the ugly optimization.}
+
+In an ideal world, Lisp would automatically scan every symbol for
+indentation changes after each command from Emacs. However, this is too
+expensive to do every time. Instead Lisp usually just scans the symbols
+whose home package matches the one used by the Emacs buffer where the
+request comes from. That is sufficient to pick up the indentation of
+most interactively-defined macros. To catch the rest we make a full scan
+of every symbol each time a new Lisp package is created between commands
+-- that takes care of things like new systems being loaded.
+
+You can use @kbd{M-x sly-update-indentation} to force all symbols to
+be scanned for indentation information.
+
+@node Reader conditionals
+@section Reader conditional fontification
+
+@SLY{} automatically evaluates reader-conditional expressions, like
+@code{#+linux}, in source buffers and ``grays out'' code that will be
+skipped for the current Lisp connection.
+
+@node Macro-expansion
+@section Macro-expansion commands
+
+@cindex Macros
+
+@table @kbd
+@kbditem{C-c C-m, sly-macroexpand-1}
+Macroexpand the expression at point once.  If invoked with a prefix
+argument, use macroexpand instead of macroexpand-1.
+
+@kbditem{C-c M-m, sly-macroexpand-all}
+Fully macroexpand the expression at point.
+
+@cmditem{sly-compiler-macroexpand-1}
+Display the compiler-macro expansion of sexp at point.
+
+@cmditem{sly-compiler-macroexpand}
+Repeatedy expand compiler macros of sexp at point.
+
+@end table
+
+Within a sly macroexpansion buffer some extra commands are provided
+(these commands are always available but are only bound to keys in a
+macroexpansion buffer).
+
+@table @kbd
+@kbditem{C-c C-m, sly-macroexpand-1-inplace}
+Just like sly-macroexpand-1 but the original form is replaced with
+the expansion.
+
+@c @anchor{sly-macroexpand-1-inplace}
+@kbditem{g, sly-macroexpand-1-inplace}
+The last macroexpansion is performed again, the current contents of
+the macroexpansion buffer are replaced with the new expansion.
+
+@kbditem{q, sly-temp-buffer-quit}
+Close the expansion buffer.
+
+@kbditem{C-_, sly-macroexpand-undo}
+Undo last macroexpansion operation.
+
+@end table
+
+@node REPL
+@chapter REPL: the ``top level''
+
+@cindex Listener
+
+@SLY{} uses a custom Read-Eval-Print Loop (@REPL{}, also known as a
+``top level'', or listener):
+
+@itemize @bullet
+@item
+Conditions signalled in @REPL{} expressions are debugged with the
+integrated SLY debugger.
+@item
+Return values are interactive buttons distinguished from printed
+output by separate Emacs faces (colours).
+@item
+Output from the Lisp process is inserted in the right place, and
+doesn't get mixed up with user input.
+@item
+The REPL is a central hub for much of SLY's functionality, since
+objects examined in the inspector (@pxref{Inspector}), debugger
+(@pxref{Debugger}), and other extensions can be returned there.
+@end itemize
+
+@table @kbd
+
+@kbditem{C-c C-z, sly-switch-to-output-buffer}
+Select the output buffer, preferably in a different window.
+
+@end table
+
+@menu
+* REPL commands::
+* Input Navigation::
+* REPL output control::
+@end menu
+
+@node REPL commands
+@section REPL commands
+
+@table @kbd
+
+@kbditem{RET, sly-mrepl-return}
+
+Evaluate the expression at prompt and return the result.
+
+@kbditem{TAB, sly-indent-and-complete-symbol}
+
+Indent the current line. If line already indented complete the symbol at
+point. If there is not symbol at point show the argument list of the
+most recently enclosed function or macro in the minibuffer.
+
+@kbditem{C-c C-b, sly-interrupt}
+
+Interrupts the current thread of the inferior-lisp process.
+
+For convenience this function is also bound to @kbd{C-c C-c}.
+
+@kbditem{M-p, sly-mrepl-previous-input-or-button}
+
+When at the current prompt fetches to previous input from the history,
+otherwise it jumps to the previous button.
+
+@kbditem{M-n, sly-mrepl-next-input-or-button}
+
+When at the current prompt fetches to next input from the history,
+otherwise it jumps to the next button.
+
+@kbditem{C-M-p, sly-button-backward}
+
+Go to and describe the previous button in the buffer.
+
+@kbditem{C-M-n, sly-button-forward}
+
+Go to and describe the next button in the buffer.
+
+@end table
+
+@node Input Navigation
+@section Input navigation
+
+@cindex Input History
+
+The input navigation (a.k.a. history) commands are modelled after
+@code{comint}-mode.
+
+Bash-like keybindings are available: @kbd{M-p} and @kbd{M-n} navigate
+the input history incrementally while @kbd{C-r} does a ``reverse
+i-search''. @kbd{C-<up>} and @kbd{C-<up>} work like the up and down
+keys in Bash.
+
+@table @kbd
+
+@c TODO
+
+@end table
+
+@node REPL output control
+@section REPL output control
+
+@itemize
+@item @code{SLYNK-MREPL:*GLOBALLY-REDIRECT-IO*}
+
+When true this causes the standard streams (@code{*standard-output*},
+etc) to be globally redirected to the @REPL{} in Emacs. When
+@code{NIL} (the default) these streams are only temporarily redirected
+to Emacs using dynamic bindings while handling requests. Note that
+@code{*standard-input*} is currently never globally redirected into
+Emacs, because it can interact badly with the Lisp's native @REPL{} by
+having it try to read from the Emacs one.
+
+@item @code{SLYNK-MREPL:*USE-DEDICATED-OUTPUT-STREAM*}
+
+This variable controls whether to use a more efficient mechanism for
+sending printed output from Lisp to Emacs.
+
+When @code{t}, a separate socket is established solely for Lisp to
+send printed output to Emacs through, which is faster than sending the
+output in protocol-messages to Emacs.
+
+Notice that using a dedicated output stream also makes it more
+difficult to communicate to a Lisp running on a remote host via SSH
+(@pxref{Connecting to a remote Lisp}) , so you should probably set
+this variable to @code{nil} when doing so.
+
+@item @code{SLYNK:*DEDICATED-OUTPUT-STREAM-PORT*}
+
+When @code{*USE-DEDICATED-OUTPUT-STREAM*} is @code{t} the stream will
+be opened on this port. The default value, @code{0}, means that the
+stream will be opened on some random port.
+@end itemize
+
+@node Horizontal Functionality
+@chapter Horizontal Functionality
+
+TODO: introduce this chapter
+
+@menu
+* Finding definitions::
+* Interactive objects::
+* Documentation::
+* Multiple connections::
+* Disassembly::
+* Recovery::
+* Other::
+* User-interface conventions::
+@end menu
 
 @node Finding definitions
 @section Navigating code
@@ -707,6 +981,11 @@ Recompile all definitions.
 
 @end table
 
+@node Interactive objects
+@section Interactive objects
+
+TODO: Write me
+
 @node Documentation
 @section Documentation commands
 
@@ -757,29 +1036,80 @@ Lookup a @emph{format character} in the @cite{Common Lisp Hyperspec}.
 Lookup a @emph{reader macro} in the @cite{Common Lisp Hyperspec}.
 @end table
 
-@node Macro-expansion
-@section Macro-expansion commands
+@node Multiple connections
+@section Multiple connections
 
-@cindex Macros
+@SLY{} is able to connect to multiple Lisp processes at the same
+time. The @kbd{M-x sly} command, when invoked with a prefix
+argument, will offer to create an additional Lisp process if one is
+already running. This is often convenient, but it requires some
+understanding to make sure that your @SLY{} commands execute in the
+Lisp that you expect them to.
+
+Some buffers are tied to specific Lisp processes. Each Lisp connection
+has its own @acronym{REPL} buffer, and all expressions entered or
+@SLY{} commands invoked in that buffer are sent to the associated
+connection. Other buffers created by @SLY{} are similarly tied to
+the connections they originate from, including @SLY-DB{} buffers,
+apropos result listings, and so on. These buffers are the result of
+some interaction with a Lisp process, so commands in them always go
+back to that same process.
+
+Commands executed in other places, such as @code{sly-mode} source
+buffers, always use the ``default'' connection. Usually this is the
+most recently established connection, but this can be reassigned via
+the ``connection list'' buffer:
 
 @table @kbd
-@kbditem{C-c C-m, sly-macroexpand-1}
-Macroexpand the expression at point once.  If invoked with a prefix
-argument, use macroexpand instead of macroexpand-1.
+@kbditem{C-c C-x c, sly-list-connections}
+Pop up a buffer listing the established connections. 
 
-@kbditem{C-c M-m, sly-macroexpand-all}
-Fully macroexpand the expression at point.
+@kbditem{C-c C-x n, sly-next-connection}
+Switch to the next Lisp connection by cycling through all connections.
 
-@cmditem{sly-compiler-macroexpand-1}
-Display the compiler-macro expansion of sexp at point.
+@kbditem{C-c C-x p, sly-prev-connection}
+Switch to the previous Lisp connection by cycling through all connections.  
 
-@cmditem{sly-compiler-macroexpand}
-Repeatedy expand compiler macros of sexp at point.
+@kbditem{C-c C-x t, sly-list-threads}
+Pop up a buffer listing the current threads.
 
 @end table
 
-For additional minor-mode commands and discussion,
-@pxref{sly-macroexpansion-minor-mode}.
+The buffer displayed by @code{sly-list-connections} gives a one-line
+summary of each connection. The summary shows the connection's serial
+number, the name of the Lisp implementation, and other details of the
+Lisp process. The current ``default'' connection is indicated with an
+asterisk.
+
+The commands available in the connection-list buffer are:
+
+@table @kbd
+@kbditem{RET, sly-goto-connection}
+Pop to the @acronym{REPL} buffer of the connection at point.
+
+@kbditem{d, sly-connection-list-make-default}
+Make the connection at point the ``default'' connection. It will then
+be used for commands in @code{sly-mode} source buffers.
+
+@kbditem{g, sly-update-connection-list}
+Update the connection list in the buffer.
+
+@kbditem{q, sly-temp-buffer-quit}
+Quit the connection list (kill buffer, restore window configuration).
+
+@kbditem{R, sly-restart-connection-at-point}
+Restart the Lisp process for the connection at point.
+
+@cmditem{sly-connect}
+Connect to a running Slynk server.
+
+@cmditem{sly-disconnect}
+Disconnect all connections.
+
+@cmditem{sly-abort-connection}
+Abort the current attempt to connect.
+
+@end table
 
 @node Disassembly
 @section Disassembly commands
@@ -825,75 +1155,6 @@ Print the current directory of the Lisp process.
 
 @end table
 
-@node Inspector
-@section Inspector commands
-
-The @SLY{} inspector is a Emacs-based alternative to the
-standard @code{INSPECT} function. The inspector presents objects in
-Emacs buffers using a combination of plain text, hyperlinks to related
-objects.
-
-The inspector can easily be specialized for the objects in your own
-programs. For details see the @code{inspect-for-emacs} generic
-function in @file{slynk-backend.lisp}.
-
-@table @kbd
-
-@kbditem{C-c I, sly-inspect}
-Inspect the value of an expression entered in the minibuffer.
-
-@end table
-
-The standard commands available in the inspector are:
-
-@table @kbd
-
-@kbditem{RET, sly-inspector-operate-on-point}
-If point is on a value then recursively call the inspector on that
-value. If point is on an action then call that action.
-
-@kbditem{d, sly-inspector-describe}
-Describe the slot at point.
-
-@kbditem{e, sly-inspector-eval}
-Evaluate an expression in the context of the inspected object.
-
-@kbditem{v, sly-inspector-toggle-verbose}
-Toggle between verbose and terse mode. Default is determined by
-`slynk:*inspector-verbose*'.
-
-@kbditem{l, sly-inspector-pop}
-Go back to the previous object (return from @kbd{RET}).
-
-@kbditem{n, sly-inspector-next}
-The inverse of @kbd{l}. Also bound to @kbd{SPC}.
-
-@kbditem{g, sly-inspector-reinspect}
-Reinspect.
-
-@kbditem{q, sly-inspector-quit}
-Dismiss the inspector buffer.
-
-@kbditem{p, sly-inspector-pprint}
-Pretty print in another buffer object at point.
-
-@kbditem{., sly-inspector-show-source}
-Find source of object at point.
-
-@kbditem{>, sly-inspector-fetch-all}
-Fetch all inspector contents and go to the end.
-
-@kbditem{M-RET, sly-inspector-copy-down}
-Store the value under point in the variable `*'.  This can
-then be used to access the object in the REPL.
-
-@kbditempair{TAB, S-TAB, sly-inspector-next-inspectable-object,
-sly-inspector-previous-inspectable-object}
-
-Jump to the next and previous inspectable object respectively.
-
-@end table
-
 @node Other
 @section Shadowed Commands
 
@@ -903,58 +1164,6 @@ Jump to the next and previous inspectable object respectively.
 This key-binding is shadowed from inf-lisp.
 
 @end table
-
-@node Semantic indentation
-@section Semantic indentation
-
-@SLY{} automatically discovers how to indent the macros in your Lisp
-system. To do this the Lisp side scans all the macros in the system and
-reports to Emacs all the ones with @code{&body} arguments. Emacs then
-indents these specially, putting the first arguments four spaces in and
-the ``body'' arguments just two spaces, as usual.
-
-This should ``just work.'' If you are a lucky sort of person you needn't
-read the rest of this section.
-
-To simplify the implementation, @SLY{} doesn't distinguish between
-macros with the same symbol-name but different packages. This makes it
-fit nicely with Emacs's indentation code. However, if you do have
-several macros with the same symbol-name then they will all be indented
-the same way, arbitrarily using the style from one of their
-arglists. You can find out which symbols are involved in collisions
-with:
-
-@example
-(slynk:print-indentation-lossage)
-@end example
-
-If a collision causes you irritation, don't have a nervous breakdown,
-just override the Elisp symbol's @code{common-lisp-indent-function}
-property to your taste. @SLY{} won't override your custom settings, it
-just tries to give you good defaults.
-
-A more subtle issue is that imperfect caching is used for the sake of
-performance. @footnote{@emph{Of course} we made sure it was actually too
-slow before making the ugly optimization.}
-
-In an ideal world, Lisp would automatically scan every symbol for
-indentation changes after each command from Emacs. However, this is too
-expensive to do every time. Instead Lisp usually just scans the symbols
-whose home package matches the one used by the Emacs buffer where the
-request comes from. That is sufficient to pick up the indentation of
-most interactively-defined macros. To catch the rest we make a full scan
-of every symbol each time a new Lisp package is created between commands
--- that takes care of things like new systems being loaded.
-
-You can use @kbd{M-x sly-update-indentation} to force all symbols to
-be scanned for indentation information.
-
-@node Reader conditionals
-@section Reader conditional fontification
-
-@SLY{} automatically evaluates reader-conditional expressions, like
-@code{#+linux}, in source buffers and ``grays out'' code that will be
-skipped for the current Lisp connection.
 
 @node User-interface conventions
 @section User-interface conventions
@@ -1109,8 +1318,77 @@ in your @file{~/.emacs} file like this:
 which binds @kbd{C-c ;} to the function
 @code{sly-insert-balanced-comments} in the REPL buffer.
 
+@node Inspector
+@chapter The Inspector
+
+The @SLY{} inspector is a Emacs-based alternative to the
+standard @code{INSPECT} function. The inspector presents objects in
+Emacs buffers using a combination of plain text, hyperlinks to related
+objects.
+
+The inspector can easily be specialized for the objects in your own
+programs. For details see the @code{inspect-for-emacs} generic
+function in @file{slynk-backend.lisp}.
+
+@table @kbd
+
+@kbditem{C-c I, sly-inspect}
+Inspect the value of an expression entered in the minibuffer.
+
+@end table
+
+The standard commands available in the inspector are:
+
+@table @kbd
+
+@kbditem{RET, sly-inspector-operate-on-point}
+If point is on a value then recursively call the inspector on that
+value. If point is on an action then call that action.
+
+@kbditem{d, sly-inspector-describe}
+Describe the slot at point.
+
+@kbditem{e, sly-inspector-eval}
+Evaluate an expression in the context of the inspected object.
+
+@kbditem{v, sly-inspector-toggle-verbose}
+Toggle between verbose and terse mode. Default is determined by
+`slynk:*inspector-verbose*'.
+
+@kbditem{l, sly-inspector-pop}
+Go back to the previous object (return from @kbd{RET}).
+
+@kbditem{n, sly-inspector-next}
+The inverse of @kbd{l}. Also bound to @kbd{SPC}.
+
+@kbditem{g, sly-inspector-reinspect}
+Reinspect.
+
+@kbditem{q, sly-inspector-quit}
+Dismiss the inspector buffer.
+
+@kbditem{p, sly-inspector-pprint}
+Pretty print in another buffer object at point.
+
+@kbditem{., sly-inspector-show-source}
+Find source of object at point.
+
+@kbditem{>, sly-inspector-fetch-all}
+Fetch all inspector contents and go to the end.
+
+@kbditem{M-RET, sly-inspector-copy-down}
+Store the value under point in the variable `*'.  This can
+then be used to access the object in the REPL.
+
+@kbditempair{TAB, S-TAB, sly-inspector-next-inspectable-object,
+sly-inspector-previous-inspectable-object}
+
+Jump to the next and previous inspectable object respectively.
+
+@end table
+
 @node Debugger
-@chapter SLY-DB: the SLY debugger
+@chapter The Debugger
 
 @cindex Debugger
 
@@ -1256,114 +1534,6 @@ Inspect the condition currently being debugged.
 Evaluate an expression entered in the minibuffer.
 @kbditem{A, sly-db-break-with-system-debugger}
 Attach debugger (e.g. gdb) to the current lisp process.
-
-@end table
-
-@node Misc
-@chapter Other functionality
-
-@menu
-* sly-macroexpansion-minor-mode::
-* Multiple connections::
-@end menu
-
-@node sly-macroexpansion-minor-mode
-@section sly-macroexpansion-minor-mode
-
-Within a sly macroexpansion buffer some extra commands are provided
-(these commands are always available but are only bound to keys in a
-macroexpansion buffer).
-
-@table @kbd
-@kbditem{C-c C-m, sly-macroexpand-1-inplace}
-Just like sly-macroexpand-1 but the original form is replaced with
-the expansion.
-
-@c @anchor{sly-macroexpand-1-inplace}
-@kbditem{g, sly-macroexpand-1-inplace}
-The last macroexpansion is performed again, the current contents of
-the macroexpansion buffer are replaced with the new expansion.
-
-@kbditem{q, sly-temp-buffer-quit}
-Close the expansion buffer.
-
-@kbditem{C-_, sly-macroexpand-undo}
-Undo last macroexpansion operation.
-
-@end table
-
-@node Multiple connections
-@section Multiple connections
-
-@SLY{} is able to connect to multiple Lisp processes at the same
-time. The @kbd{M-x sly} command, when invoked with a prefix
-argument, will offer to create an additional Lisp process if one is
-already running. This is often convenient, but it requires some
-understanding to make sure that your @SLY{} commands execute in the
-Lisp that you expect them to.
-
-Some buffers are tied to specific Lisp processes. Each Lisp connection
-has its own @acronym{REPL} buffer, and all expressions entered or
-@SLY{} commands invoked in that buffer are sent to the associated
-connection. Other buffers created by @SLY{} are similarly tied to
-the connections they originate from, including @SLY-DB{} buffers,
-apropos result listings, and so on. These buffers are the result of
-some interaction with a Lisp process, so commands in them always go
-back to that same process.
-
-Commands executed in other places, such as @code{sly-mode} source
-buffers, always use the ``default'' connection. Usually this is the
-most recently established connection, but this can be reassigned via
-the ``connection list'' buffer:
-
-@table @kbd
-@kbditem{C-c C-x c, sly-list-connections}
-Pop up a buffer listing the established connections. 
-
-@kbditem{C-c C-x n, sly-next-connection}
-Switch to the next Lisp connection by cycling through all connections.
-
-@kbditem{C-c C-x p, sly-prev-connection}
-Switch to the previous Lisp connection by cycling through all connections.  
-
-@kbditem{C-c C-x t, sly-list-threads}
-Pop up a buffer listing the current threads.
-
-@end table
-
-The buffer displayed by @code{sly-list-connections} gives a one-line
-summary of each connection. The summary shows the connection's serial
-number, the name of the Lisp implementation, and other details of the
-Lisp process. The current ``default'' connection is indicated with an
-asterisk.
-
-The commands available in the connection-list buffer are:
-
-@table @kbd
-@kbditem{RET, sly-goto-connection}
-Pop to the @acronym{REPL} buffer of the connection at point.
-
-@kbditem{d, sly-connection-list-make-default}
-Make the connection at point the ``default'' connection. It will then
-be used for commands in @code{sly-mode} source buffers.
-
-@kbditem{g, sly-update-connection-list}
-Update the connection list in the buffer.
-
-@kbditem{q, sly-temp-buffer-quit}
-Quit the connection list (kill buffer, restore window configuration).
-
-@kbditem{R, sly-restart-connection-at-point}
-Restart the Lisp process for the connection at point.
-
-@cmditem{sly-connect}
-Connect to a running Slynk server.
-
-@cmditem{sly-disconnect}
-Disconnect all connections.
-
-@cmditem{sly-abort-connection}
-Abort the current attempt to connect.
 
 @end table
 
@@ -1766,199 +1936,13 @@ chapter tells you how to load contrib modules and describes what the
 particular packages do.
 
 @menu
-* Loading Contribs::
-* REPL::
 * Fuzzy Completion::
-* Autodoc::
 * SLY Stickers::
 * SLY Trace Dialog::
 * TRAMP Support::
 * Scratch Buffer::
+* Loading Contribs::
 @end menu
-
-@node Loading Contribs
-@section Loading Contrib Packages
-
-@cindex Contribs
-@cindex Contributions
-@cindex Plugins
-
-A special @code{sly-fancy} contrib package is loaded by default. You
-might never want to fiddle with it, but if you find that you don't
-like some package or you are having trouble with a package, you can
-modify your setup a bit.  Generally, you set the
-variable @code{sly-contribs} with the list of package-names that you
-want to use.  For example, a setup to load only the @code{sly-scratch}
-and @code{sly-mrepl} packages looks like:
-
-@example
-;; @emph{Setup load-path and autoloads}
-(add-to-list 'load-path "~/dir/to/cloned/sly")
-(require 'sly-autoloads)
-
-;; @emph{Set your lisp system and some contribs}
-(setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
-(setq sly-contribs '(sly-scratch sly-mrepl))
-@end example
-
-After starting @SLY{}, the commands of both packages should be
-available.
-
-@subsection Loading and unloading ``on the fly''
-
-We recommend that you setup contribs @emph{before} starting @SLY{} via
-@kbd{M-x sly}, but if you want to enable more contribs @emph{after}
-you that, you can set the @code{sly-contribs} variable to another
-value and call @code{M-x sly-setup}. Note this though:
-
-@itemize @bullet
-@item
-If you've removed contribs from the list they won't be unloaded
-automatically.
-@item
-If you have more than one @SLY{} connection currently active, you must
-manually repeat the @code{sly-setup} step for each of them.
-@end itemize
-
-Short of restarting Emacs, a reasonable way of unloading contribs is
-by calling an Emacs Lisp function whose name is obtained by
-adding @code{-unload} to the contrib's name, for every contrib you
-wish to unload. So, to remove @code{sly-mrepl}, you must call
-@code{sly-mrepl-unload}. Because the unload function will only, if
-ever, unload the Emacs Lisp side of the contrib, you may also need to
-restart your lisps.
-
-@node REPL
-@section REPL: the ``top level''
-
-@cindex Listener
-
-@SLY{} uses a custom Read-Eval-Print Loop (@REPL{}, also known as a
-``top level'', or listener):
-
-@itemize @bullet
-@item
-Conditions signalled in @REPL{} expressions are debugged with the
-integrated SLY debugger.
-@item
-Return values are interactive buttons distinguished from printed
-output by separate Emacs faces (colours).
-@item
-Output from the Lisp process is inserted in the right place, and
-doesn't get mixed up with user input.
-@item
-The REPL is a central hub for much of SLY's functionality, since
-objects examined in the inspector (@pxref{Inspector}), debugger
-(@pxref{Debugger}), and other extensions can be returned there.
-@end itemize
-
-@table @kbd
-
-@kbditem{C-c C-z, sly-switch-to-output-buffer}
-Select the output buffer, preferably in a different window.
-
-@end table
-
-@menu
-* REPL commands::
-* Input Navigation::
-* REPL output control::
-@end menu
-
-@node REPL commands
-@subsection REPL commands
-
-@table @kbd
-
-@kbditem{RET, sly-mrepl-return}
-
-Evaluate the expression at prompt and return the result.
-
-@kbditem{TAB, sly-indent-and-complete-symbol}
-
-Indent the current line. If line already indented complete the symbol at
-point. If there is not symbol at point show the argument list of the
-most recently enclosed function or macro in the minibuffer.
-
-@kbditem{C-c C-b, sly-interrupt}
-
-Interrupts the current thread of the inferior-lisp process.
-
-For convenience this function is also bound to @kbd{C-c C-c}.
-
-@kbditem{M-p, sly-mrepl-previous-input-or-button}
-
-When at the current prompt fetches to previous input from the history,
-otherwise it jumps to the previous button.
-
-@kbditem{M-n, sly-mrepl-next-input-or-button}
-
-When at the current prompt fetches to next input from the history,
-otherwise it jumps to the next button.
-
-@kbditem{C-M-p, sly-button-backward}
-
-Go to and describe the previous button in the buffer.
-
-@kbditem{C-M-n, sly-button-forward}
-
-Go to and describe the next button in the buffer.
-
-@end table
-
-@node Input Navigation
-@subsection Input navigation
-
-@cindex Input History
-
-The input navigation (a.k.a. history) commands are modelled after
-@code{comint}-mode.
-
-Bash-like keybindings are available: @kbd{M-p} and @kbd{M-n} navigate
-the input history incrementally while @kbd{C-r} does a ``reverse
-i-search''. @kbd{C-<up>} and @kbd{C-<up>} work like the up and down
-keys in Bash.
-
-@table @kbd
-
-@c TODO
-
-@end table
-
-@node REPL output control
-@subsection REPL output control
-
-@itemize
-@item @code{SLYNK-MREPL:*GLOBALLY-REDIRECT-IO*}
-
-When true this causes the standard streams (@code{*standard-output*},
-etc) to be globally redirected to the @REPL{} in Emacs. When
-@code{NIL} (the default) these streams are only temporarily redirected
-to Emacs using dynamic bindings while handling requests. Note that
-@code{*standard-input*} is currently never globally redirected into
-Emacs, because it can interact badly with the Lisp's native @REPL{} by
-having it try to read from the Emacs one.
-
-@item @code{SLYNK-MREPL:*USE-DEDICATED-OUTPUT-STREAM*}
-
-This variable controls whether to use a more efficient mechanism for
-sending printed output from Lisp to Emacs.
-
-When @code{t}, a separate socket is established solely for Lisp to
-send printed output to Emacs through, which is faster than sending the
-output in protocol-messages to Emacs.
-
-Notice that using a dedicated output stream also makes it more
-difficult to communicate to a Lisp running on a remote host via SSH
-(@pxref{Connecting to a remote Lisp}) , so you should probably set
-this variable to @code{nil} when doing so.
-
-@item @code{SLYNK:*DEDICATED-OUTPUT-STREAM-PORT*}
-
-When @code{*USE-DEDICATED-OUTPUT-STREAM*} is @code{t} the stream will
-be opened on this port. The default value, @code{0}, means that the
-stream will be opened on some random port.
-@end itemize
 
 @node Fuzzy Completion
 @section Fuzzy Completion
@@ -2039,39 +2023,6 @@ And instead of @code{:home-package}, the following can be used:
             #'(lambda (symbol)
                 (not (member (symbol-package symbol) packages))))))
 @end example
-
-@node Autodoc
-@section Autodoc
-
-Autodoc mode is an additional minor-mode for automatically showing
-information about symbols near the point. For function names the
-argument list is displayed, and for global variables, the value.
-Autodoc is implemented by means of @code{eldoc-mode} of Emacs.
-
-The mode can be enabled by default in your @code{~/.emacs}:
-@example
-(add-to-list 'sly-contribs 'sly-autodoc)
-@end example
-
-@table @kbd
-@cmditem{sly-arglist NAME}
-Show the argument list of the function NAME.
-
-@cmditem{sly-autodoc-mode}
-Toggles autodoc-mode on or off according to the argument, and
-toggles the mode when invoked without argument.
-@kbditem{C-c C-d a, sly-autodoc-manually}
-Like sly-autodoc, but when called twice,
-or after sly-autodoc was already automatically called,
-display multiline arglist.
-@end table
-
-If the variable @code{sly-use-autodoc-mode} is set (default), Emacs
-starts a timer, otherwise the information is only displayed after
-pressing SPC.
-
-If @code{sly-autodoc-use-multiline-p} is set to non-nil,
-allow long autodoc messages to resize echo area display.
 
 @node SLY Stickers
 @section SLY Stickers
@@ -2302,6 +2253,58 @@ buffer you can enter Lisp expressions and evaluate them with
 @kbd{C-j}, like in Emacs's @file{*scratch*} buffer.
 
 @end table
+
+@node Loading Contribs
+@section Loading Contrib Packages
+
+@cindex Contribs
+@cindex Contributions
+@cindex Plugins
+
+A special @code{sly-fancy} contrib package is loaded by default. You
+might never want to fiddle with it, but if you find that you don't
+like some package or you are having trouble with a package, you can
+modify your setup a bit.  Generally, you set the
+variable @code{sly-contribs} with the list of package-names that you
+want to use.  For example, a setup to load only the @code{sly-scratch}
+and @code{sly-mrepl} packages looks like:
+
+@example
+;; @emph{Setup load-path and autoloads}
+(add-to-list 'load-path "~/dir/to/cloned/sly")
+(require 'sly-autoloads)
+
+;; @emph{Set your lisp system and some contribs}
+(setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
+(setq sly-contribs '(sly-scratch sly-mrepl))
+@end example
+
+After starting @SLY{}, the commands of both packages should be
+available.
+
+@subsection Loading and unloading ``on the fly''
+
+We recommend that you setup contribs @emph{before} starting @SLY{} via
+@kbd{M-x sly}, but if you want to enable more contribs @emph{after}
+you that, you can set the @code{sly-contribs} variable to another
+value and call @code{M-x sly-setup}. Note this though:
+
+@itemize @bullet
+@item
+If you've removed contribs from the list they won't be unloaded
+automatically.
+@item
+If you have more than one @SLY{} connection currently active, you must
+manually repeat the @code{sly-setup} step for each of them.
+@end itemize
+
+Short of restarting Emacs, a reasonable way of unloading contribs is
+by calling an Emacs Lisp function whose name is obtained by
+adding @code{-unload} to the contrib's name, for every contrib you
+wish to unload. So, to remove @code{sly-mrepl}, you must call
+@code{sly-mrepl-unload}. Because the unload function will only, if
+ever, unload the Emacs Lisp side of the contrib, you may also need to
+restart your lisps.
 
 @node Credits
 @chapter Credits
