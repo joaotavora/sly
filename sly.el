@@ -4417,14 +4417,31 @@ TODO"
 (defun sly-apropos-describe (name type)
   (sly-eval-describe `(slynk:describe-definition-for-emacs ,name ,type)))
 
-(defun sly-info ()
-  "Open SLY manual"
-  (interactive)
+(defun sly-info--file ()
   (let ((file (expand-file-name "doc/sly.info" sly-path)))
-    (if (file-exists-p file)
-        (info file)
-      (sly-message "No sly.info, run `make sly.info' in %s"
-               (expand-file-name "doc/" sly-path)))))
+    (cond ((file-exists-p file) file)
+          (t
+           (sly-error "No sly.info, run `make -C doc sly.info' in %s"
+                      sly-path)))))
+
+(defvar sly-info--cached-node-names nil)
+
+(defun sly-info--node-names (file)
+  (or sly-info--cached-node-names
+      (setq sly-info--cached-node-names
+            (with-temp-buffer
+              (info file (current-buffer))
+              (Info-build-node-completions-1)))))
+
+(defun sly-info (file &optional node)
+  "Open SLY manual"
+  (interactive
+   (let ((file (sly-info--file)))
+     (list file
+           (sly-completing-read "Manual node? (`*' or `Top' to read the whole manual): "
+                                (sly-info--node-names file)
+                                nil t))))
+  (info (if node (format "(%s)%s" file node) file)))
 
 
 ;;;; XREF: cross-referencing
