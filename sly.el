@@ -2154,7 +2154,16 @@ alist of bindings"
      (when cont
        (set-buffer buffer)
        (cl-progv (mapcar #'car env) (mapcar #'cdr env)
-         (funcall cont result))))
+         (if debug-on-error
+             (funcall cont result)
+           (condition-case err
+               (funcall cont result)
+             (error
+              (sly-message "`sly-eval-async' errored: %s"
+                           (if (and (eq 'error (car err))
+                                    (stringp (cadr err)))
+                               (cadr err)
+                             err))))))))
     ((:abort condition)
      (sly-message "Evaluation aborted on %s." condition)))
   ;; Guard against arbitrary return values which once upon a time
