@@ -46,7 +46,7 @@ This file has been placed in the public domain.
 
 @end example
 @sp 10
-@subtitle{version @value{SLYVER}}
+@subtitle version @value{SLYVER}
 @page
 @insertcopying
 
@@ -430,13 +430,11 @@ used in conjunction with Emacs's @code{lisp-mode}. This chapter
 describes the @code{sly-mode} and its relatives.
 
 @menu
-* User-interface conventions::
 * Evaluation::
 * Compilation::
 * Completion::
 * Finding definitions::
 * Documentation::
-* Cross-reference::
 * Macro-expansion::
 * Disassembly::
 * Recovery::
@@ -444,163 +442,11 @@ describes the @code{sly-mode} and its relatives.
 * Other::
 * Semantic indentation::
 * Reader conditionals::
+* User-interface conventions::
 @end menu
-
-@node User-interface conventions
-@section User-interface conventions
-
-To use @SLY{} comfortably it is important to understand a few
-``global'' user-interface characteristics. The most important
-principles are described in this section.
-
-@menu
-* Temporary buffers::
-* Multithreading::
-* Key bindings::
-@end menu
-
-@node Temporary buffers
-@subsection Temporary buffers
-
-Some @SLY{} commands create temporary buffers to display their
-results. Although these buffers usually have their own special-purpose
-major-modes, certain conventions are observed throughout.
-
-Temporary buffers can be dismissed by pressing @kbd{q}. This kills the
-buffer and restores the window configuration as it was before the
-buffer was displayed. Temporary buffers can also be killed with the
-usual commands like @code{kill-buffer}, in which case the previous
-window configuration won't be restored.
-
-Pressing @kbd{RET} is supposed to ``do the most obvious useful
-thing.'' For instance, in an apropos buffer this prints a full
-description of the symbol at point, and in an @acronym{XREF} buffer it
-displays the source code for the reference at point. This convention
-is inherited from Emacs's own buffers for apropos listings,
-compilation results, etc.
-
-Temporary buffers containing Lisp symbols use @code{sly-mode} in
-addition to any special mode of their own. This makes the usual
-@SLY{} commands available for describing symbols, looking up
-function definitions, and so on.
-
-Initial focus of those ``description'' buffers depends on the variable
-@code{sly-description-autofocus}. If @code{nil} (the default),
-description buffers do not receive focus automatically, and vice
-versa.
-
-@node Multithreading
-@subsection Multithreading
-
-If the Lisp system supports multithreading, SLY spawns a new thread
-for each request, e.g., @kbd{C-x C-e} creates a new thread to evaluate
-the expression.  An exception to this rule are requests from the
-@REPL{}: all commands entered in the @REPL{} buffer are evaluated in a
-dedicated @REPL{} thread.
-
-Some complications arise with multithreading and special variables.
-Non-global special bindings are thread-local, e.g., changing the value
-of a let bound special variable in one thread has no effect on the
-binding of the variables with the same name in other threads.  This
-makes it sometimes difficult to change the printer or reader behaviour
-for new threads.  The variable
-@code{slynk:*default-worker-thread-bindings*} was introduced for such
-situations: instead of modifying the global value of a variable, add a
-binding the @code{slynk:*default-worker-thread-bindings*}.  E.g., with
-the following code, new threads will read floating point values as
-doubles by default:
-
-@example
-(push '(*read-default-float-format* . double-float)
-       slynk:*default-worker-thread-bindings*).
-@end example
-
-
-@node Key bindings
-@subsection Key bindings
-
-In general we try to make our key bindings fit with the overall Emacs
-style. We also have the following somewhat unusual convention of our
-own: when entering a three-key sequence, the final key can be pressed
-either with control or unmodified. For example, the
-@code{sly-describe-symbol} command is bound to @kbd{C-c C-d d}, but
-it also works to type @kbd{C-c C-d C-d}. We're simply binding both key
-sequences because some people like to hold control for all three keys
-and others don't, and with the two-key prefix we're not afraid of
-running out of keys.
-
-There is one exception to this rule, just to trip you up. We never
-bind @kbd{C-h} anywhere in a key sequence, so @kbd{C-c C-d C-h}
-doesn't do the same thing as @kbd{C-c C-d h}. This is because Emacs
-has a built-in default so that typing a prefix followed by @kbd{C-h}
-will display all bindings starting with that prefix, so @kbd{C-c C-d
-C-h} will actually list the bindings for all documentation commands.
-This feature is just a bit too useful to clobber!
-
-@quotation
-@i{``Are you deliberately spiting Emacs's brilliant online help facilities? The gods will be angry!''}
-@end quotation
-
-@noindent This is a brilliant piece of advice. The Emacs online help facilities
-are your most immediate, up-to-date and complete resource for keybinding
-information. They are your friends:
-
-@table @kbd
-@kbdanchorc{C-h k <key>, describe-key, ``What does this key do?''}
-Describes current function bound to @kbd{<key>} for focus buffer.
-
-@kbdanchorc{C-h b, describe-bindings, ``Exactly what bindings are available?''}
-Lists the current key-bindings for the focus buffer.
-
-@kbdanchorc{C-h m, describe-mode, ``Tell me all about this mode''}
-Shows all the available major mode keys, then the minor mode keys, for
-the modes of the focus buffer.
-
-@kbdanchorc{C-h l, view-lossage, ``Woah@comma{} what key chord did I just do?''}
-Shows you the literal sequence of keys you've pressed in order.
-
-@c <key> is breaks links PDF, despite that it's not l it's C-h
-@c @kbdanchorc{ <key> l, , ``What starts with?''}
-@c Lists all keybindings that begin with @code{<key>} for the focus buffer mode.
-
-
-@end table
-
-@emph{Note:} In this documentation the designation @kbd{C-h} is a
-@dfn{canonical key} which might actually mean Ctrl-h, or F1, or
-whatever you have @code{help-command} bound to in your
-@code{.emacs}. Here is a common situation:
-
-@example
-(global-set-key [f1]   'help-command)
-(global-set-key "\C-h" 'delete-backward-char)
-@end example
-
-@noindent In this situation everywhere you see @kbd{C-h} in the
-documentation you would substitute @kbd{F1}.
-
-You can assign or change default key bindings globally using the
-@code{global-set-key} function in your @file{~/.emacs} file like this:
-@example
-(global-set-key "\C-c s" 'sly-mrepl-new)
-@end example
-@noindent
-which binds @kbd{C-c s} to the function @code{sly-mrepl-new}, which
-creates a new @REPL{}.
-
-Alternatively, if you want to assign or change a key binding in just a
-particular sly mode, you can use the @code{define-key} function
-in your @file{~/.emacs} file like this:
-@example
-(define-key sly-mrepl-mode-map (kbd "C-c ;")
-            'sly-insert-balanced-comments)
-@end example
-@noindent
-which binds @kbd{C-c ;} to the function
-@code{sly-insert-balanced-comments} in the REPL buffer.
 
 @node Evaluation
-@section Evaluation commands
+@section Evalutating code
 
 These commands each evaluate a Common Lisp expression in a different
 way.  Usually they mimic commands for evaluating Emacs Lisp code.  By
@@ -655,7 +501,7 @@ point.
 @end table
 
 @node Compilation
-@section Compilation commands
+@section Compiling functions and files
 
 @cindex Compilation
 
@@ -725,7 +571,7 @@ Lisp as for batch compilers.
 @end table
 
 @node Completion
-@section Completion commands
+@section Auto-completion
 
 @cindex Completion
 @cindex Symbol Completion
@@ -746,7 +592,9 @@ completion (@pxref{sly-complete-symbol-function}).
 @end table
 
 @node Finding definitions
-@section Finding definitions (``Meta-Point'' commands).
+@section Navigating code
+
+@subsection Jump to source with @code{M-.}
 
 @cindex Meta-dot
 @cindex TAGS
@@ -782,58 +630,12 @@ Use an ETAGS table to find definition at point.
 
 @end table
 
-@node Documentation
-@section Documentation commands
-
-@SLY{}'s online documentation commands follow the example of Emacs
-Lisp. The commands all share the common prefix @kbd{C-c C-d} and allow
-the final key to be modified or unmodified (@pxref{Key bindings}.)
-
-@table @kbd
-
-@kbditem{SPC, sly-space}
-The space key inserts a space, but also looks up and displays the
-argument list for the function at point, if there is one.
-
-@kbditem{C-c C-d d, sly-describe-symbol}
-Describe the symbol at point.
-
-@kbditem{C-c C-d f, sly-describe-function}
-Describe the function at point.
-
-@kbditem{C-c C-d C-a, sly-apropos}
-Perform an apropos search on Lisp symbol names for a regular expression
-match and display their documentation strings. By default the external
-symbols of all packages are searched. With a prefix argument you can choose a
-specific package and whether to include unexported symbols.
-
-@kbditem{C-c C-d C-z, sly-apropos-all}
-Like @code{sly-apropos} but also includes internal symbols by default.
-
-@kbditem{C-c C-d C-p, sly-apropos-package}
-Show apropos results of all symbols in a package. This command is for
-browsing a package at a high-level. With package-name completion it
-also serves as a rudimentary Smalltalk-ish image-browser.
-
-@kbditem{C-c C-d C-h, sly-hyperspec-lookup}
-Lookup the symbol at point in the @cite{Common Lisp Hyperspec}. This
-uses the familiar @file{hyperspec.el} to show the appropriate section
-in a web browser. The Hyperspec is found either on the Web or in
-@code{common-lisp-hyperspec-root}, and the browser is selected by
-@code{browse-url-browser-function}.
-
-Note: this is one case where @kbd{C-c C-d h} is @emph{not} the same as
-@kbd{C-c C-d C-h}.
-
-@kbditem{C-c C-d ~, hyperspec-lookup-format}
-Lookup a @emph{format character} in the @cite{Common Lisp Hyperspec}.
-
-@kbditem{C-c C-d #, hyperspec-lookup-reader-macro}
-Lookup a @emph{reader macro} in the @cite{Common Lisp Hyperspec}.
-@end table
+@menu
+* Cross-reference::
+@end menu
 
 @node Cross-reference
-@section Cross-reference commands
+@subsection Cross-reference (@acronym{XREF})
 
 @cindex xref
 @cindex Cross-referencing
@@ -888,15 +690,9 @@ List callees of a function.
 
 @end table
 
-@menu
-* Xref buffer commands::
-@end menu
+In the resulting @acronym{XREF} buffer, these commands are available:
 
-@node Xref buffer commands
-@subsection Xref buffer commands
-Commands available in Xref buffers
 @table @kbd
-
 @kbditem{RET, sly-show-xref}
 Show definition at point in the other window. Do not leave Xref buffer.
 
@@ -909,6 +705,56 @@ Recompile definition at point.
 @kbditem{C-c C-c, sly-recompile-all-xrefs}
 Recompile all definitions.
 
+@end table
+
+@node Documentation
+@section Documentation commands
+
+@SLY{}'s online documentation commands follow the example of Emacs
+Lisp. The commands all share the common prefix @kbd{C-c C-d} and allow
+the final key to be modified or unmodified (@pxref{Key bindings}.)
+
+@table @kbd
+
+@kbditem{SPC, sly-space}
+The space key inserts a space, but also looks up and displays the
+argument list for the function at point, if there is one.
+
+@kbditem{C-c C-d d, sly-describe-symbol}
+Describe the symbol at point.
+
+@kbditem{C-c C-d f, sly-describe-function}
+Describe the function at point.
+
+@kbditem{C-c C-d C-a, sly-apropos}
+Perform an apropos search on Lisp symbol names for a regular expression
+match and display their documentation strings. By default the external
+symbols of all packages are searched. With a prefix argument you can choose a
+specific package and whether to include unexported symbols.
+
+@kbditem{C-c C-d C-z, sly-apropos-all}
+Like @code{sly-apropos} but also includes internal symbols by default.
+
+@kbditem{C-c C-d C-p, sly-apropos-package}
+Show apropos results of all symbols in a package. This command is for
+browsing a package at a high-level. With package-name completion it
+also serves as a rudimentary Smalltalk-ish image-browser.
+
+@kbditem{C-c C-d C-h, sly-hyperspec-lookup}
+Lookup the symbol at point in the @cite{Common Lisp Hyperspec}. This
+uses the familiar @file{hyperspec.el} to show the appropriate section
+in a web browser. The Hyperspec is found either on the Web or in
+@code{common-lisp-hyperspec-root}, and the browser is selected by
+@code{browse-url-browser-function}.
+
+Note: this is one case where @kbd{C-c C-d h} is @emph{not} the same as
+@kbd{C-c C-d C-h}.
+
+@kbditem{C-c C-d ~, hyperspec-lookup-format}
+Lookup a @emph{format character} in the @cite{Common Lisp Hyperspec}.
+
+@kbditem{C-c C-d #, hyperspec-lookup-reader-macro}
+Lookup a @emph{reader macro} in the @cite{Common Lisp Hyperspec}.
 @end table
 
 @node Macro-expansion
@@ -1110,6 +956,159 @@ be scanned for indentation information.
 @code{#+linux}, in source buffers and ``grays out'' code that will be
 skipped for the current Lisp connection.
 
+@node User-interface conventions
+@section User-interface conventions
+
+To use @SLY{} comfortably it is important to understand a few
+``global'' user-interface characteristics. The most important
+principles are described in this section.
+
+@menu
+* Temporary buffers::
+* Multithreading::
+* Key bindings::
+@end menu
+
+@node Temporary buffers
+@subsection Temporary buffers
+
+Some @SLY{} commands create temporary buffers to display their
+results. Although these buffers usually have their own special-purpose
+major-modes, certain conventions are observed throughout.
+
+Temporary buffers can be dismissed by pressing @kbd{q}. This kills the
+buffer and restores the window configuration as it was before the
+buffer was displayed. Temporary buffers can also be killed with the
+usual commands like @code{kill-buffer}, in which case the previous
+window configuration won't be restored.
+
+Pressing @kbd{RET} is supposed to ``do the most obvious useful
+thing.'' For instance, in an apropos buffer this prints a full
+description of the symbol at point, and in an @acronym{XREF} buffer it
+displays the source code for the reference at point. This convention
+is inherited from Emacs's own buffers for apropos listings,
+compilation results, etc.
+
+Temporary buffers containing Lisp symbols use @code{sly-mode} in
+addition to any special mode of their own. This makes the usual
+@SLY{} commands available for describing symbols, looking up
+function definitions, and so on.
+
+Initial focus of those ``description'' buffers depends on the variable
+@code{sly-description-autofocus}. If @code{nil} (the default),
+description buffers do not receive focus automatically, and vice
+versa.
+
+@node Multithreading
+@subsection Multithreading
+
+If the Lisp system supports multithreading, SLY spawns a new thread
+for each request, e.g., @kbd{C-x C-e} creates a new thread to evaluate
+the expression.  An exception to this rule are requests from the
+@REPL{}: all commands entered in the @REPL{} buffer are evaluated in a
+dedicated @REPL{} thread.
+
+Some complications arise with multithreading and special variables.
+Non-global special bindings are thread-local, e.g., changing the value
+of a let bound special variable in one thread has no effect on the
+binding of the variables with the same name in other threads.  This
+makes it sometimes difficult to change the printer or reader behaviour
+for new threads.  The variable
+@code{slynk:*default-worker-thread-bindings*} was introduced for such
+situations: instead of modifying the global value of a variable, add a
+binding the @code{slynk:*default-worker-thread-bindings*}.  E.g., with
+the following code, new threads will read floating point values as
+doubles by default:
+
+@example
+(push '(*read-default-float-format* . double-float)
+       slynk:*default-worker-thread-bindings*).
+@end example
+
+
+@node Key bindings
+@subsection Key bindings
+
+In general we try to make our key bindings fit with the overall Emacs
+style. We also have the following somewhat unusual convention of our
+own: when entering a three-key sequence, the final key can be pressed
+either with control or unmodified. For example, the
+@code{sly-describe-symbol} command is bound to @kbd{C-c C-d d}, but
+it also works to type @kbd{C-c C-d C-d}. We're simply binding both key
+sequences because some people like to hold control for all three keys
+and others don't, and with the two-key prefix we're not afraid of
+running out of keys.
+
+There is one exception to this rule, just to trip you up. We never
+bind @kbd{C-h} anywhere in a key sequence, so @kbd{C-c C-d C-h}
+doesn't do the same thing as @kbd{C-c C-d h}. This is because Emacs
+has a built-in default so that typing a prefix followed by @kbd{C-h}
+will display all bindings starting with that prefix, so @kbd{C-c C-d
+C-h} will actually list the bindings for all documentation commands.
+This feature is just a bit too useful to clobber!
+
+@quotation
+@i{``Are you deliberately spiting Emacs's brilliant online help facilities? The gods will be angry!''}
+@end quotation
+
+@noindent This is a brilliant piece of advice. The Emacs online help facilities
+are your most immediate, up-to-date and complete resource for keybinding
+information. They are your friends:
+
+@table @kbd
+@kbdanchorc{C-h k <key>, describe-key, ``What does this key do?''}
+Describes current function bound to @kbd{<key>} for focus buffer.
+
+@kbdanchorc{C-h b, describe-bindings, ``Exactly what bindings are available?''}
+Lists the current key-bindings for the focus buffer.
+
+@kbdanchorc{C-h m, describe-mode, ``Tell me all about this mode''}
+Shows all the available major mode keys, then the minor mode keys, for
+the modes of the focus buffer.
+
+@kbdanchorc{C-h l, view-lossage, ``Woah@comma{} what key chord did I just do?''}
+Shows you the literal sequence of keys you've pressed in order.
+
+@c <key> is breaks links PDF, despite that it's not l it's C-h
+@c @kbdanchorc{ <key> l, , ``What starts with?''}
+@c Lists all keybindings that begin with @code{<key>} for the focus buffer mode.
+
+
+@end table
+
+@emph{Note:} In this documentation the designation @kbd{C-h} is a
+@dfn{canonical key} which might actually mean Ctrl-h, or F1, or
+whatever you have @code{help-command} bound to in your
+@code{.emacs}. Here is a common situation:
+
+@example
+(global-set-key [f1]   'help-command)
+(global-set-key "\C-h" 'delete-backward-char)
+@end example
+
+@noindent In this situation everywhere you see @kbd{C-h} in the
+documentation you would substitute @kbd{F1}.
+
+You can assign or change default key bindings globally using the
+@code{global-set-key} function in your @file{~/.emacs} file like this:
+@example
+(global-set-key "\C-c s" 'sly-mrepl-new)
+@end example
+@noindent
+which binds @kbd{C-c s} to the function @code{sly-mrepl-new}, which
+creates a new @REPL{}.
+
+Alternatively, if you want to assign or change a key binding in just a
+particular sly mode, you can use the @code{define-key} function
+in your @file{~/.emacs} file like this:
+@example
+(define-key sly-mrepl-mode-map (kbd "C-c ;")
+            'sly-insert-balanced-comments)
+@end example
+@noindent
+which binds @kbd{C-c ;} to the function
+@code{sly-insert-balanced-comments} in the REPL buffer.
+
 @node Debugger
 @chapter SLY-DB: the SLY debugger
 
@@ -1261,7 +1260,7 @@ Attach debugger (e.g. gdb) to the current lisp process.
 @end table
 
 @node Misc
-@chapter Misc
+@chapter Other functionality
 
 @menu
 * sly-macroexpansion-minor-mode::
@@ -1835,20 +1834,22 @@ restart your lisps.
 @cindex Listener
 
 @SLY{} uses a custom Read-Eval-Print Loop (@REPL{}, also known as a
-``top level'', or listener). The @REPL{} user-interface is written in
-Emacs Lisp, which gives more Emacs-integration than the traditional
-@code{comint}-based Lisp interaction:
+``top level'', or listener):
 
 @itemize @bullet
 @item
-Conditions signalled in @REPL{} expressions are debugged with @SLY-DB{}.
+Conditions signalled in @REPL{} expressions are debugged with the
+integrated SLY debugger.
 @item
-Return values are distinguished from printed output by separate Emacs
-faces (colours).
+Return values are interactive buttons distinguished from printed
+output by separate Emacs faces (colours).
 @item
-Emacs manages the @REPL{} prompt with markers. This ensures that Lisp
-output is inserted in the right place, and doesn't get mixed up with
-user input.
+Output from the Lisp process is inserted in the right place, and
+doesn't get mixed up with user input.
+@item
+The REPL is a central hub for much of SLY's functionality, since
+objects examined in the inspector (@pxref{Inspector}), debugger
+(@pxref{Debugger}), and other extensions can be returned there.
 @end itemize
 
 @table @kbd
