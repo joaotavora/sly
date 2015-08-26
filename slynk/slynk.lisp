@@ -2861,7 +2861,9 @@ designator. Returns a list of all modules available."
     (*print-escape* . t)
     (*print-lines* . nil)
     (*print-level* . nil)
-    (*print-length* . nil)))
+    (*print-length* . nil)
+    (*print-case* . :downcase))
+  "Pretty-pretty bindings to use when expanding macros")
 
 (defun apply-macro-expander (expander string)
   (with-buffer-syntax ()
