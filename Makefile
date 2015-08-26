@@ -62,7 +62,7 @@ check-%: compile contrib/sly-%.elc test/sly-%-tests.elc
 check-fancy: compile compile-contrib
 	$(EMACS) -Q --batch  $(LOAD_PATH) -L test			\
 		--eval "(require (quote sly))"				\
-		--eval "(setq sly-contribs (quote (sly-fancy)))"	\
+		--eval "(sly-setup (quote (sly-fancy)))"		\
 		--eval "(mapc (lambda (sym)				\
 				 (require				\
 				   (intern (format \"%s-tests\" sym))	\
