@@ -100,17 +100,37 @@ Emacs Lisp package.")
   "Path where the bundled Slynk server is located."
   (expand-file-name "slynk/" sly-path))
 
+;;;###autoload
 (defvar sly-contribs '(sly-fancy sly-retro)
   "A list of contrib packages to load with SLY.")
+;;;###autoload
 (define-obsolete-variable-alias 'sly-setup-contribs
 'sly-contribs "2.3.2")
 
 (defun sly-setup (&optional contribs)
-  "Setup Emacs so that lisp-mode buffers always use SLY.
-CONTRIBS is a list of contrib packages to load. If `nil', use
-`sly-contribs'. "
+  "Have SLY load and use extension modules CONTRIBS.
+CONTRIBS defaults to `sly-contribs' and is a list (LIB1 LIB2...)
+symbols of `provide'd and `require'd Elisp libraries.
+
+However, after `require'ing LIB1, LIB2 ..., this command invokes
+additional initialization steps associated with each element
+LIB1, LIB2, which can theoretically be reverted by
+`sly-disable-contrib.'
+
+Notably, one of the extra initialization steps is affecting the
+value of `sly-required-modules' (which see) thus affecting the
+libraries loaded in the Slynk servers.
+
+If SLY is currently connected to a Slynk and a contrib in
+CONTRIBS has never been loaded, that Slynk is told to load the
+associated Slynk extension module.
+
+To ensure that a particular contrib is loaded, use
+`sly-enable-contrib' instead."
+  ;; FIXME: The contract should be like some hypothetical
+  ;; `sly-refresh-contribs'
+  ;; 
   (interactive)
-  (add-hook 'lisp-mode-hook 'sly-editing-mode)
   (when contribs
     (setq sly-contribs contribs))
   (sly--setup-contribs))
@@ -518,16 +538,21 @@ to some other key.
 (defvar sly-dispatching-connection)
 (defvar sly-current-thread)
 
+;;;###autoload
 (define-minor-mode sly-mode
   "Minor mode for horizontal SLY functionality."
   nil nil nil)
 
+;;;###autoload
 (define-minor-mode sly-editing-mode
   "Minor mode for editing `lisp-mode' buffers."
   nil nil nil
   (sly-mode 1)
   (set (make-local-variable 'lisp-indent-function)
        'common-lisp-indent-function))
+
+;;;###autoload
+(add-hook 'lisp-mode-hook 'sly-editing-mode)
 
 (define-minor-mode sly-popup-buffer-mode
   "Minor mode for all read-only SLY buffers"
@@ -927,6 +952,7 @@ See `sly-lisp-implementations'")
 (defvar sly-net-processes)
 (defvar sly-default-connection)
 
+;;;###autoload
 (defun sly (&optional command coding-system)
   "Start an inferior^_superior Lisp and connect to its Slynk server."
   (interactive)
@@ -1069,6 +1095,7 @@ DIRECTORY change to this directory before starting the process.
 (defun sly-start* (options)
   (apply #'sly-start options))
 
+;;;###autoload
 (defun sly-connect (host port &optional _coding-system interactive-p)
   "Connect to a running Slynk server. Return the connection."
   (interactive (list (read-from-minibuffer
@@ -1762,6 +1789,7 @@ This is automatically synchronized from Lisp.")
 ;;; Interface
 (defun sly-setup-connection (process)
   "Make a connection out of PROCESS."
+  (sly--setup-contribs)
   (let ((sly-dispatching-connection process))
     (sly-init-connection-state process)
     (sly-select-connection process)
@@ -4255,6 +4283,7 @@ Return whatever slynk:set-default-directory returns."
   (interactive)
   (call-interactively sly-documentation-lookup-function))
 
+;;;###autoload
 (defun sly-hyperspec-lookup (symbol-name)
   "A wrapper for `hyperspec-lookup'"
   (interactive (list (common-lisp-hyperspec-read-symbol-name
@@ -6658,12 +6687,14 @@ is setup, unless the user already set one explicitly."
     (intern (sly-completing-read "Contrib: " names nil t))))
 
 (defun sly-enable-contrib (name)
+  "Attempt to enable contrib NAME."
   (interactive (list (sly-read-contrib-name)))
   (let ((c (or (sly-find-contrib name)
                (error "Unknown contrib: %S" name))))
     (funcall (sly-contrib-enable c))))
 
 (defun sly-disable-contrib (name)
+  "Attempt to disable contrib NAME."
   (interactive (list (sly-read-contrib-name)))
   (let ((c (or (sly-find-contrib name)
                (error "Unknown contrib: %S" name))))
@@ -7117,10 +7148,7 @@ The returned bounds are either nil or non-empty."
    sly-forward-cruft
    sly-forward-reader-conditional))
 
-(run-hooks 'sly-load-hook)
 (provide 'sly)
-
-(sly-setup)
 
 ;; Local Variables:
 ;; coding: utf-8

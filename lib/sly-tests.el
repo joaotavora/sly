@@ -1350,8 +1350,7 @@ Reconnect afterwards."
   (sly-test-recipe-test-for
    :preflight `((add-to-list 'load-path ,sly-path)
                 (setq inferior-lisp-program ,inferior-lisp-program)
-                (require 'sly-autoloads)
-                (setq sly-contribs '(sly-fancy)))))
+                (require 'sly-autoloads))))
 
 (define-sly-ert-test traditional-recipe ()
   "Test the README.md's traditional recipe."

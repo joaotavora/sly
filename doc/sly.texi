@@ -2284,10 +2284,11 @@ available.
 
 @subsection Loading and unloading ``on the fly''
 
-We recommend that you setup contribs @emph{before} starting @SLY{} via
-@kbd{M-x sly}, but if you want to enable more contribs @emph{after}
-you that, you can set the @code{sly-contribs} variable to another
-value and call @code{M-x sly-setup}. Note this though:
+We recommend that you setup the @code{sly-contribs}
+variable @emph{before} starting @SLY{} via @kbd{M-x sly}, but if you
+want to enable more contribs @emph{after} you that, you can set
+new @code{sly-contribs} variable to another value and call @code{M-x
+sly-setup} or @code{M-x sly-enable-contrib}. Note this though:
 
 @itemize @bullet
 @item

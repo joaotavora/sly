@@ -37,21 +37,13 @@ SLY is currently *beta* status. The
 Install from MELPA
 ------------------
 
-Ensure that [MELPA][10] is setup as usual and that `inferior-lisp-program` points 
-to a valid lisp:
+Ensure that [MELPA][10] is setup as usual and ask `M-x package-install` to
+install the package `sly`.
 
-```el
-(require 'package)
-(add-to-list 'package-archives
-             '("melpa" . "http://melpa.milkbox.net/packages/") t)
-(package-initialize)
+*That's it*. `sly-mode` will automatically come up in every `.lisp` file. To
+ fire up SLY, connect to a Lisp and get a friendly REPL, use `M-x sly`.
 
-(setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
-```
-
-Now do `M-x package-install` and enter `sly` when prompted. Use `M-x sly` to
-fire up SLY and connect to Lisp. You will get a friendly REPL. SLY's `sly-mode`
-will automatically come up in every `.lisp` file.
+<!-- TODO put a screeshot here, maybe -->
 
 Install from Git
 ----------------
@@ -65,9 +57,8 @@ appropriate file names:
 (setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
 ```
 
-`M-x sly` becomes available immediately. If you wish to byte-compile SLY
-yourself (not needed generally) you can do `make compile contrib-compile` in the
-dir where you cloned SLY.
+If you wish to byte-compile SLY yourself (not needed generally) you can do `make
+compile contrib-compile` in the dir where you cloned SLY.
 
 Running the server standalone
 -----------------------------

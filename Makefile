@@ -42,7 +42,6 @@ check: check-core check-fancy
 check-core: compile
 	$(EMACS) -Q --batch $(LOAD_PATH)				\
 		--eval "(require 'sly-tests \"lib/sly-tests\")"	\
-		--eval "(sly-setup)"					\
 		--eval "(setq inferior-lisp-program \"$(LISP)\")"	\
 		--eval '(sly-batch-test (quote $(SELECTOR)))'
 
@@ -51,7 +50,7 @@ check-%: CONTRIB_SELECTOR=(tag contrib)
 check-%: compile contrib/sly-%.elc test/sly-%-tests.elc
 	$(EMACS) -Q --batch $(LOAD_PATH) -L test			\
 		--eval "(require (quote sly))"				\
-		--eval "(sly-setup (quote ($(CONTRIB_NAME))))"		\
+		--eval "(setq sly-contribs (quote ($(CONTRIB_NAME))))"	\
 		--eval "(require					\
 			  (intern					\
 			    (format					\
@@ -63,7 +62,7 @@ check-%: compile contrib/sly-%.elc test/sly-%-tests.elc
 check-fancy: compile compile-contrib
 	$(EMACS) -Q --batch  $(LOAD_PATH) -L test			\
 		--eval "(require (quote sly))"				\
-		--eval "(sly-setup (quote (sly-fancy)))"		\
+		--eval "(setq sly-contribs (quote (sly-fancy)))"	\
 		--eval "(mapc (lambda (sym)				\
 				 (require				\
 				   (intern (format \"%s-tests\" sym))	\
