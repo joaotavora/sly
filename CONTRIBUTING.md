@@ -235,10 +235,10 @@ immediately setup.
 The nicknames pose a compatibility hazard if the user tries to load
 SLIME's Swank server into the Lisp image where Slynk is already
 setup. Therefore, users wishing to run both servers alongside in the
-same Lisp image must take care to not load the `sly-retro` contrib,
-which takes only a line of Emacs-Lisp code:
+same Lisp image must ensure that the `sly-retro` contrib is not in
+`sly-contribs`.
 
-     (setq sly-contribs (delete 'sly-retro sly-contribs))
+     (setq sly-contribs (delq 'sly-retro sly-contribs))
 
 [4]: https://github.com/gigamonkey/swankr
 [5]: https://github.com/brown/swank-client

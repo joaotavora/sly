@@ -27,7 +27,7 @@
 
 (autoload 'sly-editing-mode "sly" "SLY" t)
 
-(defvar sly-contribs '(sly-fancy sly-retro)
+(defvar sly-contribs '(sly-fancy)
   "A list of contrib packages to load with SLY.")
 
 (autoload 'sly-setup "sly"
@@ -36,7 +36,17 @@
 (define-obsolete-variable-alias 'sly-setup-contribs
   'sly-contribs "2.3.2")
 
-(add-hook 'lisp-mode-hook 'sly-editing-mode)
+(if (or (not (memq 'slime-lisp-mode-hook lisp-mode-hook))
+        noninteractive
+        (prog1 (y-or-n-p "[sly] SLIME detected in `lisp-mode-hook', which causes keybinding conflicts.
+Remove it for this Emacs session?")
+          (warn
+           "To restore SLIME in this session, customize `lisp-mode-hook'
+and replace `sly-editing-mode' with `slime-lisp-mode-hook'.")
+          (remove-hook 'lisp-mode-hook 'slime-lisp-mode-hook)))
+    (add-hook 'lisp-mode-hook 'sly-editing-mode)
+  (warn "`sly.el' loaded OK. To use SLY, customize `lisp-mode-hook' and
+replace `slime-lisp-mode-hook' with `sly-editing-mode'."))
 
 (provide 'sly-autoloads)
 

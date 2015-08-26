@@ -101,7 +101,7 @@ Emacs Lisp package.")
   (expand-file-name "slynk/" sly-path))
 
 ;;;###autoload
-(defvar sly-contribs '(sly-fancy sly-retro)
+(defvar sly-contribs '(sly-fancy)
   "A list of contrib packages to load with SLY.")
 ;;;###autoload
 (define-obsolete-variable-alias 'sly-setup-contribs
@@ -550,9 +550,6 @@ to some other key.
   (sly-mode 1)
   (set (make-local-variable 'lisp-indent-function)
        'common-lisp-indent-function))
-
-;;;###autoload
-(add-hook 'lisp-mode-hook 'sly-editing-mode)
 
 (define-minor-mode sly-popup-buffer-mode
   "Minor mode for all read-only SLY buffers"
@@ -6317,8 +6314,8 @@ was called originally."
   (let ((map (make-sparse-keymap)))
     (define-key map "l" 'sly-inspector-pop)
     (define-key map "n" 'sly-inspector-next)
-    (define-key map [mouse-6] 'slime-inspector-pop)
-    (define-key map [mouse-7] 'slime-inspector-next)
+    (define-key map [mouse-6] 'sly-inspector-pop)
+    (define-key map [mouse-7] 'sly-inspector-next)
     
     (define-key map " " 'sly-inspector-next)
     (define-key map "D" 'sly-inspector-describe-inspectee)
@@ -7152,6 +7149,19 @@ The returned bounds are either nil or non-empty."
    sly-forward-reader-conditional))
 
 (provide 'sly)
+
+;;;###autoload
+(if (or (not (memq 'slime-lisp-mode-hook lisp-mode-hook))
+        noninteractive
+        (prog1 (y-or-n-p "[sly] SLIME detected in `lisp-mode-hook', which causes keybinding conflicts.
+Remove it for this Emacs session?")
+          (warn
+           "To restore SLIME in this session, customize `lisp-mode-hook'
+and replace `sly-editing-mode' with `slime-lisp-mode-hook'.")
+          (remove-hook 'lisp-mode-hook 'slime-lisp-mode-hook)))
+    (add-hook 'lisp-mode-hook 'sly-editing-mode)
+  (warn "`sly.el' loaded OK. To use SLY, customize `lisp-mode-hook' and
+replace `slime-lisp-mode-hook' with `sly-editing-mode'."))
 
 ;; Local Variables:
 ;; coding: utf-8

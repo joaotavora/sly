@@ -41,7 +41,10 @@ Ensure that [MELPA][10] is setup as usual and ask `M-x package-install` to
 install the package `sly`.
 
 *That's it*. `sly-mode` will automatically come up in every `.lisp` file. To
- fire up SLY, connect to a Lisp and get a friendly REPL, use `M-x sly`.
+fire up SLY, connect to a Lisp and get a friendly REPL, use `M-x sly`.
+
+Even if you already have SLIME installed, SLY will ask you and temporarily
+disable it for the Emacs session.
 
 <!-- TODO put a screeshot here, maybe -->
 
