@@ -102,6 +102,12 @@ empty string."
            def
            inherit-input-method))
 
+(defun sly-y-or-n-p (format-string &rest args)
+  (let ((prompt (apply #'format (concat "[sly] "
+                                        format-string)
+                       args)))
+    (y-or-n-p prompt)))
+
 
 ;;; Flashing the region
 ;;;

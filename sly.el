@@ -969,7 +969,8 @@ The rules for selecting the arguments are rather complicated:
           (t
            (cl-destructuring-bind (program &rest program-args)
                (split-string-and-unquote
-                (read-shell-command "[sly] Run lisp: " inferior-lisp-program
+                (read-shell-command "[sly] Run lisp: "
+                                    (sly--guess-inferior-lisp-program)
                                     'sly-inferior-lisp-program-history))
              (let ((coding-system
                     (if (eq 16 (prefix-numeric-value current-prefix-arg))
@@ -986,7 +987,8 @@ The rules for selecting the arguments are rather complicated:
                                                    (or name sly-default-lisp
                                                        (car (car table)))))
           (t (cl-destructuring-bind (program &rest args)
-                 (split-string inferior-lisp-program)
+                 (split-string
+                  (sly--guess-inferior-lisp-program))
                (list :program program :program-args args))))))
 
 (defun sly-lookup-lisp-implementation (table name)
@@ -1011,7 +1013,26 @@ The rules for selecting the arguments are rather complicated:
            (sly-message "No *inferior lisp* process for current connection!")))
     buffer))
 
-(cl-defun sly-start (&key (program inferior-lisp-program) program-args
+(defun sly--guess-inferior-lisp-program ()
+  (if (and inferior-lisp-program
+           (executable-find (car
+                             (split-string inferior-lisp-program "[\t\n ]"))))
+      inferior-lisp-program
+    (let ((guessed (cl-some #'executable-find
+                            '("lisp" "sbcl" "clisp" "cmucl"
+                              "acl" "alisp"))))
+      (if (and guessed
+               (sly-y-or-n-p
+                "Can't find `inferior-lisp-program' (set to `%s'). Use `%s' instead? "
+                inferior-lisp-program guessed))
+          guessed
+        (sly-error
+         (substitute-command-keys
+          "Can't find a suitable Lisp. Use \\[sly-info] to read about `Multiple Lisps'"))))))
+
+(cl-defun sly-start (&key (program
+                           (sly-error "must supply :program"))
+                          program-args
                           directory
                           (coding-system sly-net-coding-system)
                           (init sly-init-function)
@@ -1060,7 +1081,7 @@ DIRECTORY change to this directory before starting the process.
                      nil t))
   (when (and interactive-p
              sly-net-processes
-             (y-or-n-p "[sly] Close old connections first? "))
+             (sly-y-or-n-p "[sly] Close old connections first? "))
     (sly-disconnect-all))
   (sly-message "Connecting to Slynk on port %S.." port)
   (let* ((process (sly-net-connect host port))
@@ -1120,7 +1141,7 @@ DIRECTORY change to this directory before starting the process.
     (and (equal (plist-get args :program) program)
          (equal (plist-get args :program-args) program-args)
          (equal (plist-get args :env) env)
-         (not (y-or-n-p "Create an additional *inferior-lisp*? ")))))
+         (not (sly-y-or-n-p "Create an additional *inferior-lisp*? ")))))
 
 (defvar sly-inferior-process-start-hook nil
   "Hook called whenever a new process gets started.")
@@ -1497,10 +1518,10 @@ EVAL'd by Lisp."
                                              :connection (get-buffer-process (current-buffer))))
       (princ (format "%s\nin packet:\n%s" (error-message-string error) packet))
       (goto-char (point-min)))
-    (cond ((y-or-n-p "Skip this packet? ")
+    (cond ((sly-y-or-n-p "Skip this packet? ")
            `(:emacs-skipped-packet ,packet))
           (t
-           (when (y-or-n-p "Enter debugger instead? ")
+           (when (sly-y-or-n-p "Enter debugger instead? ")
              (debug 'error error))
            (signal (car error) (cdr error))))))
 
@@ -1640,7 +1661,7 @@ This doesn't mean it will connect right after SLY is loaded."
 (defun sly-auto-start ()
   (cond ((or (eq sly-auto-start 'always)
              (and (eq sly-auto-start 'ask)
-                  (y-or-n-p "No connection.  Start SLY? ")))
+                  (sly-y-or-n-p "No connection.  Start SLY? ")))
          (save-window-excursion
            (sly)
            (while (not (sly-current-connection))
@@ -1810,7 +1831,7 @@ This is automatically synchronized from Lisp.")
 (defun sly-check-version (version conn)
   (or (equal version sly-protocol-version)
       sly-ignore-protocol-mismatches
-      (y-or-n-p
+      (sly-y-or-n-p
        (format "Versions differ: %s (sly) vs. %s (slynk). Continue? "
                sly-protocol-version version))
       (sly-net-close conn "Versions differ")
@@ -2583,7 +2604,7 @@ See `sly-compile-and-load-file' for further details."
   (check-parens)
   (when (and (buffer-modified-p)
              (or (not compilation-ask-about-save)
-                 (y-or-n-p (format "Save file %s? " (buffer-file-name)))))
+                 (sly-y-or-n-p (format "Save file %s? " (buffer-file-name)))))
     (save-buffer))
   (let ((file (sly-to-lisp-filename (buffer-file-name)))
         (options (sly-simplify-plist `(,@sly-compile-file-options
@@ -2663,7 +2684,7 @@ ASK asks the user."
   (cl-ecase sly-load-failed-fasl
     (never nil)
     (always t)
-    (ask (y-or-n-p "Compilation failed.  Load fasl file anyway? "))))
+    (ask (sly-y-or-n-p "Compilation failed.  Load fasl file anyway? "))))
 
 (defun sly-compilation-finished (result buffer &optional message)
   (let ((notes (sly-compilation-result.notes result))
@@ -3945,7 +3966,7 @@ the display stuff that we neither need nor want."
   (forward-line (1- line-number)))
 
 (defun sly-remote-y-or-n-p (thread tag question)
-  (sly-dispatch-event `(:emacs-return ,thread ,tag ,(y-or-n-p question))))
+  (sly-dispatch-event `(:emacs-return ,thread ,tag ,(sly-y-or-n-p question))))
 
 (defun sly-read-from-minibuffer-for-slynk (thread tag prompt initial-value)
   (let ((answer (condition-case nil
@@ -4293,10 +4314,10 @@ With M-- (negative) prefix arg, prompt for package only. "
                 nil))
          (current-prefix-arg
           (list (sly-read-from-minibuffer "Apropos: ")
-               (y-or-n-p "[sly] External symbols only? ")
+               (sly-y-or-n-p "External symbols only? ")
                (sly-read-package-name "Package (blank for all): "
                                       nil 'allow-blank)
-               (y-or-n-p "[sly] Case-sensitive? ")))
+               (sly-y-or-n-p "Case-sensitive? ")))
          (t
           (list (sly-read-from-minibuffer "Apropos external symbols: ") t nil nil))))
   (sly-eval-async
@@ -5207,7 +5228,7 @@ The chosen buffer the default connection's it if exists."
 
 (defun sly-db-confirm-buffer-kill ()
   (when (or (not (process-live-p sly-buffer-connection))
-         (y-or-n-p "Really kill sly-db buffer and throw to toplevel?"))
+         (sly-y-or-n-p "Really kill sly-db buffer and throw to toplevel?"))
     (ignore-errors (sly-db-quit))
     t))
 
@@ -5252,7 +5273,7 @@ pending Emacs continuations."
         (set-syntax-table lisp-mode-syntax-table)))
     (sly-recenter (point-min))
     (when (and sly-stack-eval-tags
-               ;; (y-or-n-p "Enter recursive edit? ")
+               ;; (sly-y-or-n-p "Enter recursive edit? ")
                )
       (sly-message "Entering recursive edit..")
       (recursive-edit))))
