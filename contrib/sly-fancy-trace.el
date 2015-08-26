@@ -1,5 +1,5 @@
-(eval-and-compile
-  (require 'sly))
+(require 'sly)
+(require 'sly-parse "lib/sly-parse")
 
 (define-sly-contrib sly-fancy-trace
   "Enhanced version of sly-trace capable of tracing local functions,
@@ -7,8 +7,7 @@ methods, setf functions, and other entities supported by specific
 slynk:slynk-toggle-trace backends. Invoke via C-u C-t."
   (:authors "Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>"
             "Tobias C. Rittweiler <tcr@freebits.de>")
-  (:license "GPL")
-  (:sly-dependencies sly-parse))
+  (:license "GPL"))
 
 (defun sly-trace-query (spec)
   "Ask the user which function to trace; SPEC is the default.

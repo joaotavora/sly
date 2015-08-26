@@ -1,11 +1,10 @@
-(eval-and-compile
-  (require 'sly))
+(require 'sly)
+(require 'sly-parse "lib/sly-parse")
 
 (define-sly-contrib sly-fancy-inspector
   "Fancy inspector for CLOS objects."
   (:authors "Marco Baringer <mb@bese.it> and others")
   (:license "GPL")
-  (:sly-dependencies sly-parse)
   (:slynk-dependencies slynk-fancy-inspector))
 
 (defun sly-inspect-definition ()

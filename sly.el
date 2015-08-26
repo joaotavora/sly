@@ -4483,6 +4483,8 @@ TODO"
            (sly-error "No sly.info, run `make -C doc sly.info' in %s"
                       sly-path)))))
 
+(require 'info)
+
 (defvar sly-info--cached-node-names nil)
 
 (defun sly-info--node-names (file)
@@ -4490,7 +4492,8 @@ TODO"
       (setq sly-info--cached-node-names
             (with-temp-buffer
               (info file (current-buffer))
-              (Info-build-node-completions-1)))))
+              (ignore-errors
+                (Info-build-node-completions))))))
 
 (defun sly-info (file &optional node)
   "Open SLY manual"

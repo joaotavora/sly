@@ -11,7 +11,6 @@
             "Lawrence Mitchell  <wence@gmx.li>"
             "Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>"
             "Tobias C. Rittweiler  <tcr@freebits.de>")
-  (:sly-dependencies sly-parse)
   (:slynk-dependencies slynk-arglists)
   (:on-load (add-hook 'sly-mode-hook 'sly-autodoc-mode))
   (:on-unload (remove-hook 'sly-mode-hook 'sly-autodoc-mode)))

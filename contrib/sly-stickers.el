@@ -970,7 +970,18 @@ See also `sly-stickers-replay'."
                       'sly-stickers--copy-recording-to-repl)
      (button-type-put 'sly-stickers--recording-part
                       'sly-mrepl-copy-part-to-repl
-                      'sly-stickers--copy-recording-to-repl)))
+                      'sly-stickers--copy-recording-to-repl)
+
+     (cl-defun sly-stickers--copy-recording-to-repl (_sticker-id recording
+                                                                 &optional (vindex 0))
+       (check-recording recording)
+       (sly-mrepl--save-and-copy-for-repl
+        `(slynk-stickers:find-recording-or-lose
+          ,(sly-stickers--recording-id recording)
+          ,vindex)
+        :before (format "Returning values of recording %s of sticker %s"
+                        (sly-stickers--recording-id recording)
+                        (sly-stickers--recording-sticker-id recording))))))
 
 (defun check-recording (recording)
   (cond ((null recording)
@@ -986,19 +997,6 @@ See also `sly-stickers-replay'."
   (sly-eval-for-inspector
    `(slynk-stickers:inspect-sticker-recording ,(sly-stickers--recording-id recording)
                                               ,vindex)))
-
-
-
-(cl-defun sly-stickers--copy-recording-to-repl (_sticker-id recording &optional (vindex 0))
-  (check-recording recording)
-  (sly-mrepl--save-and-copy-for-repl
-   `(slynk-stickers:find-recording-or-lose
-     ,(sly-stickers--recording-id recording)
-     ,vindex)
-   :before (format "Returning values of recording %s of sticker %s"
-                   (sly-stickers--recording-id recording)
-                   (sly-stickers--recording-sticker-id recording))))
-
 
 ;;;; Sticker-aware compilation
 ;;;; 
