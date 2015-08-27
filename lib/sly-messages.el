@@ -131,11 +131,12 @@ empty string."
            (run-with-timer
             (or timeout 0.2) nil
             (lambda ()
-              (with-current-buffer buffer
-                (sly-flash-region start end
-                                  :timeout timeout
-                                  :face face
-                                  :times (1- times)))))))))))
+              (and (buffer-live-p buffer)
+                   (with-current-buffer buffer
+                     (sly-flash-region start end
+                                       :timeout timeout
+                                       :face face
+                                       :times (1- times))))))))))))
 
 (provide 'sly-messages)
 ;;; sly-messages.el ends here
