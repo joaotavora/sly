@@ -54,7 +54,12 @@
    (setq sly-connection-list-button-action
          #'(lambda (process)
              (let ((sly-default-connection process))
-               (sly-mrepl 'interactive))))))
+               (sly-mrepl 'interactive)))))
+  (:on-unload
+   ;; FIXME: This `:on-unload' is grossly incomplete
+   ;; 
+   (remove-hook 'sly-connected-hook 'sly-mrepl-on-connection)
+   (remove-hook 'sly-net-process-close-hooks 'sly-mrepl--teardown-repls)))
 
 
 ;; User-visible variables

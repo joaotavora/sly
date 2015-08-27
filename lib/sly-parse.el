@@ -1,12 +1,6 @@
 (require 'sly)
 (require 'cl-lib)
 
-(define-sly-contrib sly-parse
-  "Utility contrib containg functions to parse forms in a buffer."
-  (:authors "Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>"
-            "Tobias C. Rittweiler <tcr@freebits.de>")
-  (:license "GPL"))
-
 (defun sly-parse-form-until (limit form-suffix)
   "Parses form from point to `limit'."
   ;; For performance reasons, this function does not use recursion.
