@@ -226,7 +226,9 @@ Scieneer Common Lisp (@acronym{SCL}), version 1.2.7 or newer
 @item
 Embedded Common Lisp (@acronym{ECL})
 @item
-Embedded Common Lisp (@acronym{MKCL})
+ManKai Common Lisp (@acronym{MKCL})
+@item
+Clasp
 @end itemize
 
 Most features work uniformly across implementations, but some are
