@@ -1121,7 +1121,9 @@ DIRECTORY change to this directory before starting the process.
 
 ;;;###autoload
 (defun sly-connect (host port &optional _coding-system interactive-p)
-  "Connect to a running Slynk server. Return the connection."
+  "Connect to a running Slynk server. Return the connection.
+With prefix arg, asks if all connections should be closed
+before."
   (interactive (list (read-from-minibuffer
                       "[sly] Host: " (cl-first sly-connect-host-history)
                       nil nil '(sly-connect-host-history . 1))
@@ -1132,7 +1134,8 @@ DIRECTORY change to this directory before starting the process.
                      nil t))
   (when (and interactive-p
              sly-net-processes
-             (sly-y-or-n-p "[sly] Close old connections first? "))
+             current-prefix-arg
+             (sly-y-or-n-p "[sly] Close all connections first? "))
     (sly-disconnect-all))
   (sly-message "Connecting to Slynk on port %S.." port)
   (let* ((process (sly-net-connect host port))
