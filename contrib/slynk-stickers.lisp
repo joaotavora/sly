@@ -160,7 +160,7 @@ their ignore-spec is reset nonetheless."
                      (and (eq (sticker-of c) sticker)
                           *break-on-stickers*))
                     (t
-                     t)))
+                     nil)))
       (setf (ignore-spec-of sticker)
             (list :before :after)))))
 
