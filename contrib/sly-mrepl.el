@@ -418,7 +418,7 @@ for output printed to the REPL (not for evaluation results)")
   (sly-mrepl--accept-process-output)
   (overlay-put sly-mrepl--last-prompt-overlay 'face 'bold)
   (when condition
-    (sly-mrepl--insert-note (format "Evaluation errored on %s" condition)))
+    (sly-mrepl--insert-note (format "Debugger entered on %s" condition)))
   (sly-mrepl--ensure-newline)
   (sly-mrepl--catch-up)
   (let ((beg (marker-position (sly-mrepl--mark))))
