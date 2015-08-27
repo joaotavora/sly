@@ -256,13 +256,13 @@ In SLY, the elisp variable `sly-init-function` is set to
 load Slynk via `ASDF:LOAD-SYSTEM`. But this will load only Slynk and
 no contribs.
 
-Slynk contribs are also represented as ASDF systems, and
-`sly-load-contribs` will add the contrib's path to the ASDF load
-path. The `SLYNK:REQUIRE-MODULE` abstraction will call then
-`ASDF:LOAD-SYSTEM`.
+Slynk contribs are also represented as ASDF systems. Internally the
+function `sly-contrib--load-slynk-dependencies` will ask Slynk to put
+the contrib's path to the ASDF load path. The `SLYNK:REQUIRE-MODULE`
+abstraction will then call `ASDF:LOAD-SYSTEM`.
 
-This way, contrib's Lisp code is available on demand but not forced
-them on the user's Lisp run-time.
+In SLY, a contrib's associated Slynk modules is loaded on demand, not
+forced on the user's Lisp run-time.
 
 This also allows the developer to write completely independent
 third-party extensions to SLY, with both Emacs and Lisp parts. See the

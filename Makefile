@@ -67,7 +67,7 @@ check-fancy: compile compile-contrib
 				 (require				\
 				   (intern (format \"%s-tests\" sym))	\
 				   nil t))				\
-			      (sly-contrib-all-dependencies		\
+			      (sly-contrib--all-dependencies		\
 				(quote sly-fancy)))"			\
 		--eval '(setq inferior-lisp-program "$(LISP)")'		\
 		--eval '(sly-batch-test (quote (tag contrib)))'	

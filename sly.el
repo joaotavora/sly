@@ -112,6 +112,9 @@ Emacs Lisp package.")
 CONTRIBS defaults to `sly-contribs' and is a list (LIB1 LIB2...)
 symbols of `provide'd and `require'd Elisp libraries.
 
+If CONTRIBS is nil, `sly-contribs' is *not* affected, otherwise
+it is set to CONTRIBS.
+
 However, after `require'ing LIB1, LIB2 ..., this command invokes
 additional initialization steps associated with each element
 LIB1, LIB2, which can theoretically be reverted by
@@ -135,24 +138,37 @@ To ensure that a particular contrib is loaded, use
     (setq sly-contribs contribs))
   (sly--setup-contribs))
 
-(defvar sly-required-modules '()
+
+(defvar sly-contrib--required-slynk-modules '()
   "Alist of MODULE . WHERE for slynk-provided features.
 
 MODULE is a symbol naming a specific Slynk feature and WHERE is
 the full pathname to the directory where the file(s)
 providing the feature are found.")
 
+(defvaralias 'sly-required-modules 'sly-contrib--required-slynk-modules)
+
 (defun sly--setup-contribs ()
   "Load and initialize contribs."
   (add-to-list 'load-path (expand-file-name "contrib" sly-path))
-  (when sly-contribs
-    (dolist (c sly-contribs)
-      (unless (and (featurep c)
-                   (assq c sly-required-modules))
-        (require c)
-        (let ((init (intern (format "%s-init" c))))
-          (when (fboundp init)
-            (funcall init)))))))
+  (mapc #'require sly-contribs)
+  (let* ((all-active-contribs
+          (mapcar #'sly-contrib--find-contrib
+                  (cl-reduce #'append (mapcar #'sly-contrib--all-dependencies
+                                              sly-contribs))))
+         (defined-but-disabled-contribs
+           (cl-remove-if #'(lambda (contrib)
+                             (memq contrib all-active-contribs))
+                         (sly-contrib--all-contribs))))
+    (cl-loop for to-disable in defined-but-disabled-contribs
+             do (funcall (sly-contrib--disable to-disable)))
+    (cl-loop for to-enable in all-active-contribs
+             for name = (sly-contrib--name to-enable)
+             ;; This second step is needed since the previous require
+             ;; step may have only loaded a meta-contrib's code.
+             ;; 
+             do (require name)
+             (funcall (sly-contrib--enable to-enable)))))
 
 (eval-and-compile
   (defun sly-version (&optional interactive file)
@@ -1840,7 +1856,7 @@ This is automatically synchronized from Lisp.")
         (unless (string= (sly-lisp-implementation-name) name)
           (setf (sly-connection-name)
                 (sly-generate-connection-name (symbol-name name)))))
-      (sly-load-contribs)
+      (sly-contrib--load-slynk-dependencies)
       (run-hooks 'sly-connected-hook)
       (sly--when-let (fun (plist-get args ':init-function))
         (funcall fun)))
@@ -6597,13 +6613,13 @@ is setup, unless the user already set one explicitly."
 
 ;;;; Contrib modules
 
-(defun sly-load-contribs ()
+(defun sly-contrib--load-slynk-dependencies ()
   (let ((needed (cl-remove-if (lambda (s)
                                 (cl-find (symbol-name s)
                                          (sly-lisp-modules)
                                          :key #'downcase
                                          :test #'string=))
-                              sly-required-modules
+                              sly-contrib--required-slynk-modules
                               :key #'car)))
     (when needed
       ;; No asynchronous request because with :SPAWN that could result
@@ -6616,7 +6632,9 @@ is setup, unless the user already set one explicitly."
             (sly-eval `(slynk:slynk-require
                           ',(mapcar #'symbol-name (mapcar #'car needed))))))))
 
-(cl-defstruct sly-contrib
+(cl-defstruct (sly-contrib
+               (:conc-name sly-contrib--))
+  enabled-p
   name
   sly-dependencies
   slynk-dependencies
@@ -6637,68 +6655,79 @@ is setup, unless the user already set one explicitly."
     (cl-labels
         ((enable-fn (c) (intern (concat (symbol-name c) "-init")))
          (disable-fn (c) (intern (concat (symbol-name c) "-unload")))
-         (path-sym (c) (intern (concat (symbol-name c) "--path"))))
+         (path-sym (c) (intern (concat (symbol-name c) "--path")))
+         (contrib-sym (c) (intern (concat (symbol-name c) "--contrib"))))
       `(progn
          (defvar ,(path-sym name))
+         (defvar ,(contrib-sym name))
          (setq ,(path-sym name) (and load-file-name
                                      (file-name-directory load-file-name)))
+         (setq ,(contrib-sym name)
+               (put 'sly-contribs ',name
+                    (make-sly-contrib
+                     :name ',name :authors ',authors :license ',license
+                     :sly-dependencies ',sly-dependencies
+                     :slynk-dependencies ',slynk-dependencies
+                     :enable ',(enable-fn name) :disable ',(disable-fn name))))
          ,@(mapcar (lambda (d) `(require ',d)) sly-dependencies)
          (defun ,(enable-fn name) ()
+           (setf (sly-contrib--enabled-p ,(contrib-sym name)) t)
            (mapc #'funcall ',(mapcar
                               #'enable-fn
                               sly-dependencies))
            (cl-loop for dep in ',slynk-dependencies
                     do (cl-pushnew (cons dep ,(path-sym name))
-                                   sly-required-modules
+                                   sly-contrib--required-slynk-modules
                                    :key #'car))
            (when (sly-connected-p)
-             (sly-load-contribs))
+             (sly-contrib--load-slynk-dependencies))
            ,@on-load)
          (defun ,(disable-fn name) ()
-           ,@on-unload
-           (mapc #'funcall ',(mapcar
-                              #'disable-fn
-                              sly-dependencies)))
-         (put 'sly-contribs ',name
-              (make-sly-contrib
-               :name ',name :authors ',authors :license ',license
-               :sly-dependencies ',sly-dependencies
-               :slynk-dependencies ',slynk-dependencies
-               :enable ',(enable-fn name) :disable ',(disable-fn name)))))))
+           (when (sly-contrib--enabled-p ,(contrib-sym name))
+             ,@on-unload
+             (cl-loop for dep in ',slynk-dependencies
+                      do (setq sly-contrib--required-slynk-modules
+                               (cl-remove dep sly-contrib--required-slynk-modules
+                                          :key #'car)))
+             (sly-warning "Disabling contrib %s" ',name)
+             (mapc #'funcall ',(mapcar
+                                #'disable-fn
+                                sly-dependencies))
+             (setf (sly-contrib--enabled-p ,(contrib-sym name)) nil)))))))
 
-(defun sly-all-contribs ()
+(defun sly-contrib--all-contribs ()
+  "All defined `sly-contrib' objects."
   (cl-loop for (nil val) on (symbol-plist 'sly-contribs) by #'cddr
            when (sly-contrib-p val)
            collect val))
 
-(defun sly-contrib-all-dependencies (contrib)
-  "List all contribs recursively needed by CONTRIB, including self."
+(defun sly-contrib--all-dependencies (contrib)
+  "Contrib names recursively needed by CONTRIB, including self."
   (cons contrib
-        (cl-mapcan #'sly-contrib-all-dependencies
-                   (sly-contrib-sly-dependencies
-                    (sly-find-contrib contrib)))))
+        (cl-mapcan #'sly-contrib--all-dependencies
+                   (sly-contrib--sly-dependencies
+                    (sly-contrib--find-contrib contrib)))))
 
-(defun sly-find-contrib (name)
-  (get 'sly-contribs name))
+(defun sly-contrib--find-contrib (designator)
+  (if (sly-contrib-p designator)
+      designator
+      (or (get 'sly-contribs designator)
+          (error "Unknown contrib: %S" designator))))
 
-(defun sly-read-contrib-name ()
-  (let ((names (cl-loop for c in (sly-all-contribs) collect
-                        (symbol-name (sly-contrib-name c)))))
+(defun sly-contrib--read-contrib-name ()
+  (let ((names (cl-loop for c in (sly-contrib--all-contribs) collect
+                        (symbol-name (sly-contrib--name c)))))
     (intern (sly-completing-read "Contrib: " names nil t))))
 
 (defun sly-enable-contrib (name)
   "Attempt to enable contrib NAME."
-  (interactive (list (sly-read-contrib-name)))
-  (let ((c (or (sly-find-contrib name)
-               (error "Unknown contrib: %S" name))))
-    (funcall (sly-contrib-enable c))))
+  (interactive (list (sly-contrib--read-contrib-name)))
+  (funcall (sly-contrib--enable (sly-contrib--find-contrib name))))
 
 (defun sly-disable-contrib (name)
   "Attempt to disable contrib NAME."
-  (interactive (list (sly-read-contrib-name)))
-  (let ((c (or (sly-find-contrib name)
-               (error "Unknown contrib: %S" name))))
-    (funcall (sly-contrib-disable c))))
+  (interactive (list (sly-contrib--read-contrib-name)))
+  (funcall (sly-contrib--disable (sly-contrib--find-contrib name))))
 
 
 ;;;;; Pull-down menu

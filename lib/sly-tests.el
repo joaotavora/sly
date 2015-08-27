@@ -1263,7 +1263,7 @@ Reconnect afterwards."
 ;;;;
 (defvar sly-test-check-repl-forms
   `((unless (and (featurep 'sly-mrepl)
-                 (assq 'slynk-mrepl sly-required-modules))
+                 (assq 'slynk-mrepl sly-contrib--required-slynk-modules))
       (die "`sly-repl' contrib not properly setup"))
     (let ((mrepl-buffer (sly-mrepl--find-buffer)))
       (unless mrepl-buffer
