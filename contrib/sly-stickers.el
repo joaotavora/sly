@@ -103,6 +103,22 @@
               (remove-hook 'sly-compilation-finished-hook 'sly-stickers-after-buffer-compilation)
               (remove-hook 'sly-db-extras-hooks 'sly-stickers--handle-break)))
 
+
+
+;;;; Bookeeping for local stickers
+;;;; 
+(defvar sly-stickers--counter 0)
+
+(defvar sly-stickers--stickers (make-hash-table))
+
+(defvar sly-stickers--zombie-sticker-ids nil
+  "Sticker ids that might exist in Slynk but no longer in Emacs.")
+
+(defun sly-stickers--zombies () sly-stickers--zombie-sticker-ids)
+
+(defun sly-stickers--reset-zombies () (setq sly-stickers--zombie-sticker-ids nil))
+
+
 
 ;;;; Sticker display and UI logic
 ;;;; 
@@ -160,10 +176,6 @@
 
 (define-minor-mode sly-stickers-shortcut-mode
   "Shortcuts for navigating sticker recordings.")
-
-(defvar sly-stickers--counter 0)
-
-(defvar sly-stickers--stickers (make-hash-table))
 
 (defvar sly-stickers--sticker-map
   (let ((map (make-sparse-keymap)))
@@ -551,13 +563,6 @@ With interactive prefix arg PREFIX always delete stickers.
    (t
     (sly-message "No point placing stickers in string literals or comments"))))
 
-(defvar sly-stickers--zombie-sticker-ids nil
-  "Sticker ids that might exist in Slynk but no longer in Emacs.")
-
-(defun sly-stickers--zombies () sly-stickers--zombie-sticker-ids)
-
-(defun sly-stickers--reset-zombies () (setq sly-stickers--zombie-sticker-ids nil))
-
 (defun sly-stickers--sticker-by-id (sticker-id)
   "Return the sticker for STICKER-ID, or return NIL.
 Perform some housecleaning tasks for stickers that have been
@@ -888,6 +893,7 @@ See also `sly-stickers-fetch'."
                      (setq state
                            (sly-stickers--replay-read-binding next-state))
                    (quit
+                    err
                     (setf (sly-stickers--state-binding state)
                           'quit))
                    (error
@@ -962,7 +968,9 @@ See also `sly-stickers-replay'."
 
 
 ;;;; Functions for examining recordings
-;;;; 
+;;;;
+
+
 (eval-after-load "sly-mrepl"
   `(progn
      (button-type-put 'sly-stickers-sticker
@@ -970,9 +978,12 @@ See also `sly-stickers-replay'."
                       'sly-stickers--copy-recording-to-repl)
      (button-type-put 'sly-stickers--recording-part
                       'sly-mrepl-copy-part-to-repl
-                      'sly-stickers--copy-recording-to-repl)
+                      'sly-stickers--copy-recording-to-repl)))
 
-     (cl-defun sly-stickers--copy-recording-to-repl (_sticker-id recording
+
+;;; shoosh byte-compiler
+(declare-function sly-mrepl--save-and-copy-for-repl nil)
+(cl-defun sly-stickers--copy-recording-to-repl (_sticker-id recording
                                                                  &optional (vindex 0))
        (check-recording recording)
        (sly-mrepl--save-and-copy-for-repl
@@ -981,7 +992,7 @@ See also `sly-stickers-replay'."
           ,vindex)
         :before (format "Returning values of recording %s of sticker %s"
                         (sly-stickers--recording-id recording)
-                        (sly-stickers--recording-sticker-id recording))))))
+                        (sly-stickers--recording-sticker-id recording))))
 
 (defun check-recording (recording)
   (cond ((null recording)

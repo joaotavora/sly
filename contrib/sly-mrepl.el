@@ -1084,7 +1084,8 @@ When setting this variable outside of the Customize interface,
 
 (defun sly-mrepl--shortcut-location-p ()
   (or (< (point) (sly-mrepl--mark))
-      (and (not (sly-inside-string-or-comment-p))
+      (and (not (let ((state (syntax-ppss)))
+                  (or (nth 3 state) (nth 4 state))))
            (or (not (equal sly-mrepl-shortcut ","))
                (not (save-excursion
                       (search-backward "`" (sly-mrepl--mark) 'noerror)))))))

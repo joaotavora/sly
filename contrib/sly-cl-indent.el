@@ -769,6 +769,8 @@ For example, the function `case' has an indent property
              (backward-sexp))))
     t))
 
+(defvar sly-cl-indent--containing-sexp)
+
 (defun common-lisp-indent-function-1 (indent-point state)
   ;; If we're looking at a splice, move to the first comma.
   (when (or (common-lisp-looking-back ",") (common-lisp-looking-back ",@"))
@@ -799,7 +801,7 @@ For example, the function `case' has an indent property
       ;; Look over successively less-deep containing forms
       (while (and (not calculated)
                   (< depth lisp-indent-maximum-backtracking))
-        (let ((containing-sexp (point)))
+        (let ((sly-cl-indent--containing-sexp (point)))
           (forward-char 1)
           (parse-partial-sexp (point) indent-point 1 t)
           ;; Move to the car of the relevant containing form
@@ -879,13 +881,13 @@ For example, the function `case' has an indent property
                               t)))
                   (setq calculated (list indent containing-form-start)))))
 
-            (cond ((and (or (eq (char-after (1- containing-sexp)) ?\')
+            (cond ((and (or (eq (char-after (1- sly-cl-indent--containing-sexp)) ?\')
                             (and (not lisp-backquote-indentation)
-                                 (eq (char-after (1- containing-sexp)) ?\`)))
-                        (not (eq (char-after (- containing-sexp 2)) ?\#)))
+                                 (eq (char-after (1- sly-cl-indent--containing-sexp)) ?\`)))
+                        (not (eq (char-after (- sly-cl-indent--containing-sexp 2)) ?\#)))
                    ;; No indentation for "'(...)" elements
                    (setq calculated (1+ sexp-column)))
-                  ((eq (char-after (1- containing-sexp)) ?\#)
+                  ((eq (char-after (1- sly-cl-indent--containing-sexp)) ?\#)
                    ;; "#(...)"
                    (setq calculated (1+ sexp-column)))
                   ((null method)
@@ -945,8 +947,8 @@ For example, the function `case' has an indent property
                          (common-lisp-indent-call-method
                           function method path state indent-point
                           sexp-column normal-indent)))))
-          (goto-char containing-sexp)
-          (setq last-point containing-sexp)
+          (goto-char sly-cl-indent--containing-sexp)
+          (setq last-point sly-cl-indent--containing-sexp)
           (unless calculated
             (condition-case ()
                 (progn (backward-up-list 1)
@@ -985,7 +987,7 @@ For example, the function `case' has an indent property
               (goto-char indent-point)
               (back-to-indentation)
               (let ((p (point)))
-                (goto-char containing-sexp)
+                (goto-char sly-cl-indent--containing-sexp)
                 (down-list)
                 (let ((one (current-column)))
                   (skip-chars-forward " \t")

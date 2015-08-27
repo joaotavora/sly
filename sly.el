@@ -78,6 +78,8 @@
 (require 'sly-messages "lib/sly-messages")
 (require 'sly-buttons "lib/sly-buttons")
 
+(require 'gv) ; for gv--defsetter
+
 (eval-when-compile
   (require 'compile)
   (require 'gud))

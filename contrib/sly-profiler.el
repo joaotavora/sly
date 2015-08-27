@@ -31,7 +31,7 @@ inspecting details of timing functions. Invoke this dialog with C-c Y."
   (set-syntax-table lisp-mode-syntax-table)
   (read-only-mode 1))
 
-(setq sly-profiler-shortcut-mode-map
+(defvar sly-profiler-shortcut-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c Y") 'sly-profiler)
     (define-key map (kbd "C-c C-y") 'sly-profiler-toggle-timing)

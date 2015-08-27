@@ -14,7 +14,7 @@
                      sly-package-fu
                      sly-fontifying-fu
                      sly-trace-dialog
-                     sly-profiler
+                     ;; sly-profiler ;; not ready for prime-time yet
                      sly-stickers
                      sly-indentation
                      sly-tramp))
