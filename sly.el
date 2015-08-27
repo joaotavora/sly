@@ -150,25 +150,36 @@ providing the feature are found.")
 
 (defun sly--setup-contribs ()
   "Load and initialize contribs."
+  ;; active    != enabled
+  ;;   ^            ^
+  ;;   |            |
+  ;;   v            v
+  ;; forgotten != disabled
   (add-to-list 'load-path (expand-file-name "contrib" sly-path))
   (mapc #'require sly-contribs)
   (let* ((all-active-contribs
+          ;; these are the contribs the user chose to activate
+          ;; 
           (mapcar #'sly-contrib--find-contrib
                   (cl-reduce #'append (mapcar #'sly-contrib--all-dependencies
                                               sly-contribs))))
-         (defined-but-disabled-contribs
+         (defined-but-forgotten-contribs
+           ;; "forgotten contribs" are the ones the chose not to
+           ;; activate but whose definitions we have seen
+           ;; 
            (cl-remove-if #'(lambda (contrib)
                              (memq contrib all-active-contribs))
                          (sly-contrib--all-contribs))))
-    (cl-loop for to-disable in defined-but-disabled-contribs
+    ;; Disable any forgotten contribs that are enabled right now.
+    ;;
+    (cl-loop for to-disable in defined-but-forgotten-contribs
+             when (sly-contrib--enabled-p to-disable)
              do (funcall (sly-contrib--disable to-disable)))
+    ;; Enable any active contrib that is *not* enabled right now.
+    ;;
     (cl-loop for to-enable in all-active-contribs
-             for name = (sly-contrib--name to-enable)
-             ;; This second step is needed since the previous require
-             ;; step may have only loaded a meta-contrib's code.
-             ;; 
-             do (require name)
-             (funcall (sly-contrib--enable to-enable)))))
+             unless (sly-contrib--enabled-p to-enable)
+             do (funcall (sly-contrib--enable to-enable)))))
 
 (eval-and-compile
   (defun sly-version (&optional interactive file)
@@ -1802,10 +1813,10 @@ This is automatically synchronized from Lisp.")
 ;;; Interface
 (defun sly-setup-connection (process)
   "Make a connection out of PROCESS."
-  (sly--setup-contribs)
   (let ((sly-dispatching-connection process))
     (sly-init-connection-state process)
     (sly-select-connection process)
+    (sly--setup-contribs)
     process))
 
 (defun sly-init-connection-state (proc)
@@ -6671,29 +6682,39 @@ is setup, unless the user already set one explicitly."
                      :enable ',(enable-fn name) :disable ',(disable-fn name))))
          ,@(mapcar (lambda (d) `(require ',d)) sly-dependencies)
          (defun ,(enable-fn name) ()
-           (setf (sly-contrib--enabled-p ,(contrib-sym name)) t)
-           (mapc #'funcall ',(mapcar
-                              #'enable-fn
-                              sly-dependencies))
+           (mapc #'funcall (mapcar
+                            #'sly-contrib--enable
+                            (cl-remove-if #'sly-contrib--enabled-p
+                                          (list ,@(mapcar #'contrib-sym
+                                                          sly-dependencies)))))
            (cl-loop for dep in ',slynk-dependencies
                     do (cl-pushnew (cons dep ,(path-sym name))
                                    sly-contrib--required-slynk-modules
                                    :key #'car))
-           (when (sly-connected-p)
+           ;; FIXME: It's very tricky to do Slynk calls like
+           ;; `sly-contrib--load-slynk-dependencies' here, and it this
+           ;; should probably loop all connections. Anyway, we try
+           ;; ensure this can only happen from an interactive
+           ;; `sly-setup' call.
+           ;; 
+           (when (and (eq this-command 'sly-setup)
+                      (sly-connected-p))
              (sly-contrib--load-slynk-dependencies))
-           ,@on-load)
+           ,@on-load
+           (setf (sly-contrib--enabled-p ,(contrib-sym name)) t))
          (defun ,(disable-fn name) ()
-           (when (sly-contrib--enabled-p ,(contrib-sym name))
-             ,@on-unload
-             (cl-loop for dep in ',slynk-dependencies
-                      do (setq sly-contrib--required-slynk-modules
-                               (cl-remove dep sly-contrib--required-slynk-modules
-                                          :key #'car)))
-             (sly-warning "Disabling contrib %s" ',name)
-             (mapc #'funcall ',(mapcar
-                                #'disable-fn
-                                sly-dependencies))
-             (setf (sly-contrib--enabled-p ,(contrib-sym name)) nil)))))))
+           ,@on-unload
+           (cl-loop for dep in ',slynk-dependencies
+                    do (setq sly-contrib--required-slynk-modules
+                             (cl-remove dep sly-contrib--required-slynk-modules
+                                        :key #'car)))
+           (sly-warning "Disabling contrib %s" ',name)
+           (mapc #'funcall (mapcar
+                            #'sly-contrib--disable
+                            (cl-remove-if-not #'sly-contrib--enabled-p
+                                              (list ,@(mapcar #'contrib-sym
+                                                              sly-dependencies)))))
+           (setf (sly-contrib--enabled-p ,(contrib-sym name)) nil))))))
 
 (defun sly-contrib--all-contribs ()
   "All defined `sly-contrib' objects."
