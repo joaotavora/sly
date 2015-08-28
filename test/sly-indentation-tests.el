@@ -3,7 +3,7 @@
 
 (define-common-lisp-style "common-lisp-indent-test"
     ;; Used to specify a few complex indentation specs for testing.
-    (:inherit "basic")
+    ;; (:inherit "basic") ; Commented: unnecessatily messes up test 58
     (:indentation
      (complex-indent.1 ((&whole 4 (&whole 1 1 1 1 (&whole 1 1) &rest 1)
                                 &body) &body))
@@ -26,23 +26,50 @@
              (while (> n 0) (cl-decf n) (insert " ")))))))
     (buffer-string))
 
+(defvar sly-indentation--test-function nil
+  "Can be set indentation tests to `indent-region' if need be.")
+
 (eval-and-compile
   (defun sly-indentation-test-form (test-name bindings expected)
     `(define-sly-ert-test ,test-name ()
        ,(format "An indentation test named `%s'" test-name)
-       (with-temp-buffer
-         (lisp-mode)
-         (setq indent-tabs-mode nil)
-         (common-lisp-set-style "common-lisp-indent-test")
-         (let ,(cons `(expected ,expected) bindings)
-           (insert expected)
-           (goto-char (point-min))
-           (let ((mess (sly-indentation-mess-up-indentation)))
-             (when (string= mess expected)
-               (ert-fail "Could not mess up indentation?"))
-             (indent-region (point-min) (point-max))
-             (delete-trailing-whitespace)
-             (should (equal expected (buffer-string))))))))
+       (cl-flet ((count-leading
+                  (line)
+                  (cl-loop for char across line
+                           while (eq char ? )
+                           count 1)))
+         (with-temp-buffer
+           (lisp-mode)
+           (setq indent-tabs-mode nil)
+           (common-lisp-set-style "common-lisp-indent-test")
+           (let ((expected ,expected))
+             ,@(cl-loop for (sym value) in bindings
+                        collect `(set (make-local-variable ',sym) ,value))
+             (insert expected)
+             (goto-char (point-min))
+             (let ((mess (sly-indentation-mess-up-indentation)))
+               (when (string= mess expected)
+                 (ert-fail "Could not mess up indentation?"))
+               (goto-char (point-min))
+               (if (eq sly-indentation--test-function 'indent-region)
+                   (indent-region (point-min) (point-max))
+                 (indent-sexp))
+               (delete-trailing-whitespace)
+               (let ((expected-lines (split-string expected "\n"))
+                     (observed-lines (split-string (buffer-string) "\n")))
+                 (should (= (length expected-lines)
+                            (length observed-lines)))
+                 (cl-loop for expected in expected-lines
+                          for observed in observed-lines
+                          for n-expected = (count-leading expected)
+                          for n-observed = (count-leading observed)
+                          unless (= n-expected n-observed)
+                          do (ert-fail
+                              (format
+                               "Expected line `%s' to have %d leading spaces. Got %d"
+                               expected n-expected n-observed)))
+                 ;; (should (equal expected (buffer-string)))
+                 )))))))
   
   (defun sly-indentation-test-forms-for-file (file)
     (with-current-buffer
