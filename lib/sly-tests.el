@@ -1313,7 +1313,7 @@ Reconnect afterwards."
                (error
                 (die "Unexpected error running preflight/takeoff forms" err)))
              (with-timeout
-                 (20
+                 (30
                   (die "Timeout waiting for recipe test to finish."))
                (while t (sit-for 1)))))))
     (unwind-protect
