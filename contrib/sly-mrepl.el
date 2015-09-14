@@ -385,6 +385,7 @@ for output printed to the REPL (not for evaluation results)")
       `(field sly-mrepl-input
               keymap ,(let ((map (make-sparse-keymap)))
                         (define-key map (kbd "RET") 'sly-mrepl-insert-input)
+                        (define-key map [return] 'sly-mrepl-insert-input)
                         (define-key map [mouse-2] 'sly-mrepl-insert-input)
                         map))
     (comint-send-input))
