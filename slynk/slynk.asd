@@ -71,35 +71,46 @@
 ;;; Contrib systems (should probably go into their own file one day)
 ;;;
 (defsystem :slynk-arglists
-    :components ((:file "../contrib/slynk-arglists")))
+  :depends-on (:slynk)
+  :components ((:file "../contrib/slynk-arglists")))
 
 (defsystem :slynk-c-p-c
-    :components ((:file "../contrib/slynk-c-p-c")))
+  :depends-on (:slynk :slynk-util)
+  :components ((:file "../contrib/slynk-c-p-c")))
 
 (defsystem :slynk-fuzzy
+  :depends-on (:slynk :slynk-util)
   :components ((:file "../contrib/slynk-fuzzy")))
 
 (defsystem :slynk-fancy-inspector
+  :depends-on (:slynk :slynk-util)
   :components ((:file "../contrib/slynk-fancy-inspector")))
 
 (defsystem :slynk-package-fu
+  :depends-on (:slynk)
   :components ((:file "../contrib/slynk-package-fu")))
 
 (defsystem :slynk-mrepl
+  :depends-on (:slynk)
   :components ((:file "../contrib/slynk-mrepl")))
 
 (defsystem :slynk-trace-dialog
+  :depends-on (:slynk)
   :components ((:file "../contrib/slynk-trace-dialog")))
 
 (defsystem :slynk-profiler
-    :components ((:file "../contrib/slynk-profiler")))
+  :depends-on (:slynk)
+  :components ((:file "../contrib/slynk-profiler")))
 
 (defsystem :slynk-stickers
-    :components ((:file "../contrib/slynk-stickers")))
+  :depends-on (:slynk)
+  :components ((:file "../contrib/slynk-stickers")))
 
 (defsystem :slynk-indentation
-    :components ((:file "../contrib/slynk-indentation")))
+  :depends-on (:slynk)
+  :components ((:file "../contrib/slynk-indentation")))
 
 (defsystem :slynk-retro
+  :depends-on (:slynk)
   :components ((:file "../contrib/slynk-retro")))
 
