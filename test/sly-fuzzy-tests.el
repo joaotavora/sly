@@ -19,10 +19,10 @@
       ("cl:m-v-l" ("cl:multiple-value-list" "cl:multiple-values-limit") "cl:multiple-value")
       ("common-lisp" ("common-lisp-user:" "common-lisp:") "common-lisp"))
   (let ((completions (sly-fuzzy-completions prefix)))
-    (cl-loop with head = (cl-subseq (car completions) 0
-                                    (* 3.0 (length required-completions)))
-             for required in required-completions
-             unless (cl-find required head :key #'car :test #'string=)
+    (cl-loop for required in required-completions
+             unless (cl-loop for suggested in (car completions)
+                             for i below 30
+                             when (string= (car suggested) required) return it)
              do (ert-fail (format "Expected to find \"%s\" in the group of %d first suggestions for completing \"%s\""
                                   required
                                   (length head)
