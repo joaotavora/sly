@@ -958,7 +958,10 @@ See also `sly-stickers-replay'."
                                                  ))))
     ((:slynk-before-sticker sticker-id)
      (sly-stickers--find-and-flash sticker-id
-                                   :otherwise 'sly-message))))
+                                   :otherwise 'sly-message))
+    (;; don't do anything if we don't know this "extra" info
+     t
+     nil)))
 
 
 (defun sly-stickers-toggle-break-on-stickers ()
