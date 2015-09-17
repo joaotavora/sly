@@ -438,6 +438,7 @@ for output printed to the REPL (not for evaluation results)")
       'sly-mrepl--prompt (downcase package)))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
   (sly-mrepl--ensure-prompt-face)
+  (buffer-disable-undo)
   (buffer-enable-undo))
 
 (defun sly-mrepl--copy-part-to-repl (entry-idx value-idx)
