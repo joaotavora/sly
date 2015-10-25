@@ -38,7 +38,7 @@
     (car (sly-eval `(slynk:autodoc '(,name ,sly-cursor-marker))))))
 
 (defun sly-autodoc-manually ()
-  "Like autodoc informtion forcing multiline display."
+  "Like autodoc information forcing multiline display."
   (interactive)
   (let ((doc (sly-autodoc t)))
     (cond (doc (eldoc-message "%s" doc))
