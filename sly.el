@@ -1,4 +1,4 @@
-;;; sly.el ---Sylvester the Cat's Common Lisp IDE  -*-lexical-binding:t-*-
+;;; sly.el --- Sylvester the Cat's Common Lisp IDE  -*-lexical-binding:t-*-
 
 ;; Version: 1.0.0-beta
 ;; URL: https://github.com/capitaomorte/sly
