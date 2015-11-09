@@ -211,13 +211,22 @@ Return the form and the source-map."
 	(read-sequence buffer file :end endpos)))
     (source-path-string-position path buffer)))
 
+;; XXX: Indirection to handle implementation dependent backquote objects (like
+;; in the case from of SBCL)
+(defun nth-form (n form)
+  "Return the Nth element in the FORM."
+  (nth n (cond
+           #+sbcl
+           ((sb-impl::comma-p form) (sb-impl::comma-expr form))
+           (t form))))
+
 (defun source-path-source-position (path form source-map)
   "Return the start position of PATH from FORM and SOURCE-MAP.  All
 subforms along the path are considered and the start and end position
 of the deepest (i.e. smallest) possible form is returned."
   ;; compute all subforms along path
   (let ((forms (loop for n in path
-		     for f = form then (nth n f)
+		     for f = form then (nth-form n f)
 		     collect f)))
     ;; select the first subform present in source-map
     (loop for form in (nreverse forms)
