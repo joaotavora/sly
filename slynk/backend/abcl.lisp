@@ -816,4 +816,7 @@ part of *sysdep-pathnames* in slynk.loader.lisp.
 
 (defimplementation quit-lisp ()
   (ext:exit))
-
+;;;
+#+#.(slynk-backend:with-symbol 'package-local-nicknames 'ext)
+(defimplementation package-local-nicknames (package)
+  (ext:package-local-nicknames package))
