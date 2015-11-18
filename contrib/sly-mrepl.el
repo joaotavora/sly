@@ -753,15 +753,17 @@ history entry navigated to."
   ;; `isearch-search-fun-function' should explain the need for this
   ;; lambda madness.
   ;;
-  (set (make-local-variable 'isearch-search-fun-function)
-       #'(lambda ()
-           #'(lambda (&rest args)
-               (cl-letf
-                   (((symbol-function
-                      'comint-line-beginning-position)
-                     #'field-beginning))
-                 (apply (comint-history-isearch-search)
-                        args)))))
+  (unless (eq isearch-search-fun-function
+              'isearch-search-fun-default)
+    (set (make-local-variable 'isearch-search-fun-function)
+         #'(lambda ()
+             #'(lambda (&rest args)
+                 (cl-letf
+                     (((symbol-function
+                        'comint-line-beginning-position)
+                       #'field-beginning))
+                   (apply (comint-history-isearch-search)
+                          args))))))
   (sly-mrepl--set-eli-input)
   (when sly-mrepl-eli-like-history-navigation
     (set (make-local-variable 'isearch-push-state-function)
@@ -774,6 +776,8 @@ history entry navigated to."
     (sly-mrepl--surround-with-eli-input-overlay)))
 
 (defun sly-mrepl--teardown-comint-isearch ()
+  (set (make-local-variable 'isearch-search-fun-function)
+       'isearch-search-fun-default)
   (when (overlayp sly-mrepl--eli-input-overlay)
     (delete-overlay sly-mrepl--eli-input-overlay)
     (setq sly-mrepl--eli-input-overlay nil))
