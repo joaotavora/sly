@@ -77,9 +77,10 @@
                 (and (integerp value-idx)
                      (< -1 value-idx len)))
             nil
-            "Illegal value index ~a for ~a-long entry"
-            value-idx
-            len)
+            "History entry ~a is only ~a elements long."
+            entry-idx
+            len
+            value-idx)
     (if (numberp value-idx)
         (nth value-idx entry)
         (values-list entry))))
@@ -90,7 +91,7 @@ Set this to some other value if it conflicts with some other reader
 macro that you wish to use in the REPL.
 Set this to NIL to turn this feature off.")
 
-(defun back-reference-reader (stream subchar arg)
+(defun backreference-reader (stream subchar arg)
   "Reads #rfoo:bar into (MREPL-GET-OBJECT-FROM-HISTORY foo bar)."
   (declare (ignore subchar arg))
   (let* ((*readtable*
@@ -98,13 +99,59 @@ Set this to NIL to turn this feature off.")
              (set-macro-character #\: (lambda (&rest args) nil) nil table)
              table))
          (entry-idx (progn
-                      (read stream)))
+                      (when (eq #\: (peek-char nil stream nil nil))
+                        (error 'reader-error :stream stream
+                               :format-control "~a found in unexpected place in ~a"
+                               :format-arguments `(#\: backreference-reader)))
+                      (read-preserving-whitespace stream)))
          (value-idx (progn
                       (and (eq #\: (peek-char nil stream nil nil))
                            (read-char stream)
                            (read stream)))))
     `(mrepl-get-object-from-history
       ,entry-idx ,value-idx)))
+
+#+nil
+(defun backreference-reader-tests ()
+  (let ((expectations
+          '(("#v:something" error)
+            ("#vnotanumber:something" (notanumber something))
+            ("#vnotanumber" (notanumber nil))
+            ("#v2 :something" (2 nil) :something)
+            ("#v2:99 :something-else" (2 99) :something-else)))
+        (*readtable* (let ((table (copy-readtable)))
+                       (if *backreference-character*
+                           (set-dispatch-macro-character
+                            #\#
+                            *backreference-character*
+                            #'backreference-reader table))
+                       table)))
+    (loop for (input expected-spec following) in expectations
+          collect
+          (handler-case 
+              (progn
+                (with-input-from-string (s input)
+                  (let* ((observed (read s))
+                         (expected
+                           (progn
+                             (if (eq 'error expected-spec )
+                                 (error "oops, ~a was supposed to have errored, but returned ~a"
+                                        input observed))
+                             `(mrepl-get-object-from-history ,@expected-spec)))
+                         (observed-second (and following
+                                               (read s))))
+                    
+                    
+                    (unless (equal observed expected)
+                      (error "oops, ~a was supposed to have returned ~a, but returned ~a"
+                             input expected observed))
+                    (unless (equal observed-second following)
+                      (error "oops, ~a was have read ~a after, but read ~a"
+                             input following observed-second))
+                    (list observed observed-second))))
+            (reader-error (e)
+              (unless (eq 'error expected-spec)
+                (error "oops, ~a wasn't supposed to error with ~a" input e)))))))
 
 (defun make-results (objects)
   (loop for value in objects
@@ -196,7 +243,7 @@ Set this to NIL to turn this feature off.")
                                              (set-dispatch-macro-character
                                               #\#
                                               *backreference-character*
-                                              #'back-reference-reader table))
+                                              #'backreference-reader table))
                                          table)))
                       (read in nil in))
                     until (eq form in)
