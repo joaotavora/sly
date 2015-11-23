@@ -3956,7 +3956,10 @@ after each command.")
 (defun indentation-cache-loop (connection)
   (with-connection (connection)
     (loop
-     (handle-indentation-cache-request connection (receive)))))
+      (restart-case
+          (handle-indentation-cache-request connection (receive))
+        (abort ()
+          :report "Return to the indentation cache request handling loop.")))))
 
 (defun handle-indentation-cache-request (connection request)
   (destructure-case request
@@ -4004,7 +4007,8 @@ belonging to PACKAGE."
       (cond (force
              (do-all-symbols (symbol)
                (consider symbol)))
-            (t
+            ((package-name package) ; don't try to iterate over a
+                                    ; deleted package.
              (do-symbols (symbol package)
                (when (eq (symbol-package symbol) package)
                  (consider symbol)))))
