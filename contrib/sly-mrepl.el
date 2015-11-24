@@ -1131,6 +1131,10 @@ When setting this variable outside of the Customize interface,
 
 ;;; Backreference highlighting
 ;;;
+(defvar sly-mrepl--backreference-overlays nil
+  "List of overlays on top of REPL result buttons.")
+(make-variable-buffer-local 'sly-mrepl--backreference-overlays)
+
 (defun sly-mrepl-highlight-results (&optional entry-idx value-idx)
   "Highlight REPL results for ENTRY-IDX and VALUE-IDX.
 If VALUE-IDX is nil or `all', highlight all results for entry
@@ -1138,7 +1142,6 @@ ENTRY-IDX.  If ENTRY-IDX is nil, highlight all results.  Returns
 a list of result buttons thus highlighted"
   (interactive)
   (cl-loop
-   with inhibit-read-only = t
    for button in (sly-button-buttons-in (point-min) (point-max))
    for e-idx = (car (button-get button 'part-args))
    for v-idx = (cadr (button-get button 'part-args))
@@ -1151,7 +1154,7 @@ a list of result buttons thus highlighted"
                       (= v-idx value-idx))))
    collect button and
    do (let ((overlay (make-overlay (button-start button) (button-end button))))
-        (button-put button 'sly-mrepl--highlight-overlay overlay)
+        (push overlay sly-mrepl--backreference-overlays)
         (overlay-put overlay 'before-string
                      (concat
                       (propertize
@@ -1164,13 +1167,8 @@ a list of result buttons thus highlighted"
 (defun sly-mrepl-unhighlight-results ()
   "Unhighlight all repl results"
   (interactive)
-  (cl-loop
-   with inhibit-read-only = t
-   for button in (sly-button-buttons-in (point-min) (point-max))
-   for overlay = (button-get button 'sly-mrepl--highlight-overlay)
-   when overlay
-   do (delete-overlay overlay)
-   (button-put button 'sly-mrepl--highlight-overlay nil)))
+  (mapc #'delete-overlay sly-mrepl--backreference-overlays)
+  (setq sly-mrepl--backreference-overlays nil))
 
 (defvar sly-mrepl--backreference-overlay nil)
 (defvar sly-mrepl--backreference-prefix "#v")
