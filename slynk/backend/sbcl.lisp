@@ -12,7 +12,9 @@
 ;;; Administrivia
 
 (defpackage slynk-sbcl
-  (:use cl slynk-backend slynk-source-path-parser slynk-source-file-cache))
+  (:use cl slynk-backend slynk-source-path-parser slynk-source-file-cache)
+  (:export
+   #:with-sbcl-version>=))
 
 (in-package slynk-sbcl)
 
@@ -434,6 +436,16 @@
         (symbol-value symbol)
         (when errorp
           (error "~S does not exist in SLYNK." name)))))
+
+(defun sbcl-version>= (&rest subversions)
+  #+#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
+  (values (ignore-errors (apply #'sb-ext:assert-version->= subversions) t))
+  #-#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
+  nil)
+
+(defmacro with-sbcl-version>= (&rest subversions)
+  `(if (sbcl-version>= ,@subversions)
+       '(:and) '(:or)))
 
 #+#.(slynk-backend:with-symbol 'function-lambda-list 'sb-introspect)
 (defimplementation arglist (fname)
@@ -1947,12 +1959,6 @@ stack."
 
 
 ;;;; wrap interface implementation
-
-(defun sbcl-version>= (&rest subversions)
-  #+#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
-  (values (ignore-errors (apply #'sb-ext:assert-version->= subversions) t))
-  #-#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
-  nil)
 
 (defimplementation wrap (spec indicator &key before after replace)
   (when (wrapped-p spec indicator)
