@@ -189,8 +189,7 @@ Set this to NIL to turn this feature off.")
                 (t
                  (when results
                    (setq /// //  // /  / results
-                         *** **  ** *  * (car results)
-                         +++ ++  ++ + )
+                         *** **  ** *  * (car results))
                    (vector-push-extend results *history*))
                  (send-to-remote-channel
                   (mrepl-remote-id repl)
@@ -247,7 +246,10 @@ Set this to NIL to turn this feature off.")
                                          table)))
                       (read in nil in))
                     until (eq form in)
-                    do (setq values (multiple-value-list (eval (setq + form))))
+                    do (setq values (multiple-value-list
+                                     (eval
+                                      (saving-listener-bindings repl
+                                        (setq +++ ++ ++ + + form)))))
                     finally
                     (return values))))
         (setf (cdr (assoc '*package* (slot-value repl 'slynk::env)))
