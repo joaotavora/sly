@@ -155,7 +155,9 @@ Set this to NIL to turn this feature off.")
 
 (defun make-results (objects)
   (loop for value in objects
-        collect (list (slynk::to-line value)
+        collect (list (slynk::without-printing-errors
+                          (:object value :stream nil)
+                        (prin1-to-string value))
                       (1- (length *history*)))))
 
 (defun mrepl-eval (repl string)
