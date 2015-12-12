@@ -682,7 +682,13 @@ skipped for the current Lisp connection.
 @cindex Macros
 
 @table @kbd
-@kbditem{C-c C-m, sly-macroexpand-1}
+@kbditem{C-c C-m, sly-expand-1}
+Macroexpand (or compiler-macroexpand) the expression at point
+once.  If invoked with a prefix argument use macroexpand instead or
+macroexpand-1 (or compiler-macroexpand instead of
+compiler-macroexpand-1).
+
+@cmditem{sly-macroexpand-1}
 Macroexpand the expression at point once.  If invoked with a prefix
 argument, use macroexpand instead of macroexpand-1.
 
