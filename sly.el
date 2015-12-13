@@ -4179,7 +4179,7 @@ The value is inserted into a temporary buffer for editing and then set
 in Lisp when committed with \\[sly-edit-value-commit]."
   (interactive
    (list (sly-read-from-minibuffer "Edit value (evaluated): "
-				     (sly-sexp-at-point))))
+                                   (sly-sexp-at-point))))
   (sly-eval-async `(slynk:value-for-editing ,form-string)
     (let ((form-string form-string)
                   (package (sly-current-package)))
@@ -4904,7 +4904,8 @@ If PROP-VALUE-FN is non-nil use it to extract PROP's value."
 This variable specifies both what was expanded and how.")
 
 (defun sly-eval-macroexpand (expander &optional string)
-  (let ((string (or string (sly-sexp-at-point))))
+  (let ((string (or string
+                    (sly-sexp-at-point 'interactive))))
     (setq sly-eval-macroexpand-expression `(,expander ,string))
     (sly-eval-async sly-eval-macroexpand-expression
       #'sly-initialize-macroexpansion-buffer)))
@@ -4940,12 +4941,11 @@ This variable specifies both what was expanded and how.")
 
 NB: Does not affect sly-eval-macroexpand-expression"
   (interactive)
-  (let* ((bounds (or (sly-bounds-of-sexp-at-point)
-                     (error "No sexp at point"))))
+  (let* ((bounds (sly-bounds-of-sexp-at-point 'interactive)))
     (let* ((start (copy-marker (car bounds)))
-                   (end (copy-marker (cdr bounds)))
-                   (point (point))
-                   (buffer (current-buffer)))
+           (end (copy-marker (cdr bounds)))
+           (point (point))
+           (buffer (current-buffer)))
       (sly-eval-async
           `(,expander ,(buffer-substring-no-properties start end))
         (lambda (expansion)
@@ -7104,8 +7104,9 @@ The returned bounds are either nil or non-empty."
         (buffer-substring-no-properties (car bounds)
                                         (cdr bounds)))))
 
-(defun sly-bounds-of-sexp-at-point ()
-  "Return the bounds sexp at point as a pair (or nil)."
+(defun sly-bounds-of-sexp-at-point (&optional interactive)
+  "Return the bounds sexp near point as a pair (or nil).
+With non-nil INTERACTIVE, error if can't find such a thing."
   (or (sly-bounds-of-symbol-at-point)
       (and (equal (char-after) ?\()
            (member (char-before) '(?\' ?\, ?\@))
@@ -7113,30 +7114,38 @@ The returned bounds are either nil or non-empty."
            (save-restriction
              (narrow-to-region (point) (point-max))
              (bounds-of-thing-at-point 'sexp)))
-      (bounds-of-thing-at-point 'sexp)))
+      (bounds-of-thing-at-point 'sexp)
+      (and (save-excursion
+             (and (ignore-errors
+                    (backward-sexp 1))
+                  (bounds-of-thing-at-point 'sexp))))
+      (when interactive
+        (user-error "No sexp near point"))))
 
-(defun sly-sexp-at-point ()
-  "Return the sexp at point as a string, otherwise nil."
-  (let ((bounds (sly-bounds-of-sexp-at-point)))
-    (if bounds
+(defun sly-sexp-at-point (&optional interactive stringp)
+  "Return the sexp at point as a string, otherwise nil.
+With non-nil INTERACTIVE, flash the region and error if no sexp
+can be found.
+With non-nil STRINGP, only look for strings"
+  (catch 'return
+    (let ((bounds (sly-bounds-of-sexp-at-point interactive)))
+      (when bounds
+        (when (and stringp
+                   (not (eq (syntax-class (syntax-after (car bounds)))
+                            (char-syntax ?\"))))
+          (if interactive
+                (user-error "No string at point")
+              (throw 'return nil)))
+        (when interactive
+          (sly-flash-region (car bounds) (cdr bounds)))
         (buffer-substring-no-properties (car bounds)
-                                        (cdr bounds)))))
+                                        (cdr bounds))))))
 
-(defun sly-sexp-at-point-or-error ()
-  "Return the sexp at point as a string, othwise signal an error."
-  (or (sly-sexp-at-point) (error "No expression at point.")))
-
-(defun sly-string-at-point ()
-  "Returns the string at point as a string, otherwise nil."
-  (let ((sexp (sly-sexp-at-point)))
-    (if (and sexp
-             (eql (char-syntax (aref sexp 0)) ?\"))
-        sexp
-      nil)))
-
-(defun sly-string-at-point-or-error ()
-  "Return the sexp at point as a string, othwise signal an error."
-  (or (sly-string-at-point) (error "No string at point.")))
+(defun sly-string-at-point (&optional interactive)
+  "Returns the string near point as a string, otherwise nil.
+With non-nil INTERACTIVE, flash the region and error if no string
+can be found."
+  (sly-sexp-at-point interactive 'stringp))
 
 (defun sly-input-complete-p (start end)
   "Return t if the region from START to END contains a complete sexp."

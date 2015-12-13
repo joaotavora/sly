@@ -88,6 +88,10 @@ buffers. By Paul M. Rodriguez.
 
 `sly-inspect-fetch-all` now actually does something (github #49).
 
+`sly-expand-1` and friends error less often and less cryptically when
+no nearby sexp's can be found. The region about to be macroexpanded is
+flashed for visual feedback.
+
 ### On par with SLIME 2.14
 
 Where applicable, SLY tracks bugfixes and improvements contributed to
