@@ -3213,12 +3213,12 @@ If non-nil, called with two arguments SPEC and TRACED-P." )
 (defslyfun slynk-toggle-trace (spec-string)
   (let* ((spec (from-string spec-string))
          (retval (cond ((consp spec) ; handle complicated cases in the backend
-           (toggle-trace spec))
-          ((tracedp spec)
-	   (eval `(untrace ,spec))
-	   (format nil "~S is now untraced." spec))
-	  (t
-           (eval `(trace ,spec))
+                        (toggle-trace spec))
+                       ((tracedp spec)
+                        (eval `(untrace ,spec))
+                        (format nil "~S is now untraced." spec))
+                       (t
+                        (eval `(trace ,spec))
                         (format nil "~S is now traced." spec))))
          (traced-p (let* ((tosearch "is now traced.")
                           (start (- (length retval)
