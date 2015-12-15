@@ -54,8 +54,8 @@
            import-to-slynk-mop
            import-slynk-mop-symbols
 	   ;;
-
-           ))
+           definterface
+           defimplementation))
 
 (defpackage slynk-mop
   (:use)
@@ -173,21 +173,23 @@ Backends implement these functions using DEFIMPLEMENTATION."
             `(pushnew ',name *unimplemented-interfaces*)
             (gen-default-impl))
        (eval-when (:compile-toplevel :load-toplevel :execute)
+         (import ',name :slynk-backend)
          (export ',name :slynk-backend))
        ',name)))
 
 (defmacro defimplementation (name args &body body)
   (assert (every #'symbolp args) ()
           "Complex lambda-list not supported: ~S ~S" name args)
-  `(progn
-     (setf (get ',name 'implementation)
-           ;; For implicit BLOCK. FLET because of interplay w/ decls.
-           (flet ((,name ,args ,@body)) #',name))
-     (if (member ',name *interface-functions*)
-         (setq *unimplemented-interfaces*
-               (remove ',name *unimplemented-interfaces*))
-         (warn "DEFIMPLEMENTATION of undefined interface (~S)" ',name))
-     ',name))
+  (let ((sym (find-symbol (symbol-name name) :slynk-backend)))
+    `(progn
+       (setf (get ',sym 'implementation)
+             ;; For implicit BLOCK. FLET because of interplay w/ decls.
+             (flet ((,sym ,args ,@body)) #',sym))
+       (if (member ',sym *interface-functions*)
+           (setq *unimplemented-interfaces*
+                 (remove ',sym *unimplemented-interfaces*))
+           (warn "DEFIMPLEMENTATION of undefined interface (~S)" ',sym))
+       ',sym)))
 
 (defun warn-unimplemented-interfaces ()
   "Warn the user about unimplemented backend features.
