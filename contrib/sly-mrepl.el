@@ -158,6 +158,7 @@ for output printed to the REPL (not for evaluation results)")
                 (mode-line-process nil)
                 (parse-sexp-ignore-comments t)
                 (syntax-propertize-function sly-mrepl--syntax-propertize)
+                (forward-sexp-function sly-mrepl--forward-sexp)
                 (comint-scroll-show-maximum-output nil)
                 (comint-scroll-to-bottom-on-input nil)
                 (comint-scroll-to-bottom-on-output nil)
@@ -274,7 +275,14 @@ for output printed to the REPL (not for evaluation results)")
 
 (defun sly-mrepl--process () (get-buffer-process (current-buffer))) ;stupid
 
-(defun sly-mrepl--mark () (process-mark (sly-mrepl--process)))
+(defun sly-mrepl--mark ()
+  "Returns a marker to the end of the last prompt."
+  (process-mark (sly-mrepl--process)))
+
+(defun sly-mrepl--safe-mark ()
+  "Like `sly-mrepl--mark', but safe if there's no process."
+  (if (sly-mrepl--process) (sly-mrepl--mark) (point-max)))
+
 (defmacro sly-mrepl--commiting-text (props &rest body)
   (declare (debug (sexp &rest form))
            (indent 1))
@@ -286,13 +294,18 @@ for output printed to the REPL (not for evaluation results)")
                             (append '(read-only t front-sticky (read-only))
                                     ,props)))))
 
+(defun sly-mrepl--forward-sexp (n)
+  "Just like `forward-sexp' unless point it at prompt start.
+In that case, moving a sexp backward does nothing."
+  (if (or (cl-plusp n)
+          (/= (point) (sly-mrepl--safe-mark)))
+      (let ((forward-sexp-function nil))
+        (forward-sexp n))))
+
 (defun sly-mrepl--syntax-propertize (beg end)
   "Make everything up to current prompt comment syntax."
   (remove-text-properties beg end '(syntax-table nil))
-  (let ((end (min end
-                  (if (sly-mrepl--process)
-                      (sly-mrepl--mark)
-                    (point-max))))
+  (let ((end (min end (sly-mrepl--safe-mark)))
         (beg beg))
     (when (> end beg)
       (unless (nth 8 (syntax-ppss beg))
