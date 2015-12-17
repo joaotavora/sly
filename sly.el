@@ -6337,7 +6337,7 @@ was called originally."
                            (and name
                                 (format " in inspector \"%s\"" name))
                            " (evaluated): ")
-                   (sly-sexp-at-point))))
+                   (sly-sexp-at-point 'interactive))))
      (list string name)))
   (sly-eval-for-inspector `(slynk:init-inspector ,string)
                           :inspector-name inspector-name))
@@ -7117,7 +7117,8 @@ With non-nil INTERACTIVE, error if can't find such a thing."
       (bounds-of-thing-at-point 'sexp)
       (and (save-excursion
              (and (ignore-errors
-                    (backward-sexp 1))
+                    (backward-sexp 1)
+                    t)
                   (bounds-of-thing-at-point 'sexp))))
       (when interactive
         (user-error "No sexp near point"))))
