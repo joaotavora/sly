@@ -64,8 +64,13 @@
   :components ((:file "slynk-util")))
 
 (defmethod perform :after ((o load-op) (c (eql (find-system :slynk))))
-  (format *error-output* "&SLYNK's ASDF loader finished")
+  (format *debug-io* "~&SLYNK's ASDF loader finished.")
   (funcall (read-from-string "slynk::init")))
+
+#+sbcl
+(defmethod operate :around ((o load-op) (c (eql (find-system :slynk))) &key &allow-other-keys)
+  (let ((asdf:*compile-file-failure-behaviour* :warn))
+    (call-next-method)))
 
 
 ;;; Contrib systems (should probably go into their own file one day)
