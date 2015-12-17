@@ -191,7 +191,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
               overlay)))))
 
 (defun sly-trace-dialog--buffer-name ()
-  (sly-buffer-name :traces :connection sly-default-connection))
+  (sly-buffer-name :traces :connection (sly-current-connection)))
 
 (defun sly-trace-dialog--live-dialog (&optional buffer-or-name)
   (let ((buffer-or-name (or buffer-or-name
@@ -204,24 +204,25 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 (defun sly-trace-dialog--ensure-buffer ()
   (let ((name (sly-trace-dialog--buffer-name)))
     (or (sly-trace-dialog--live-dialog name)
-        (with-current-buffer (get-buffer-create name)
-          (let ((inhibit-read-only t))
-            (erase-buffer))
-          (sly-trace-dialog-mode)
-          (save-excursion
-            (buffer-disable-undo)
-            (sly-trace-dialog--insert-and-overlay
-             "[waiting for the traced specs to be available]"
-             sly-trace-dialog--specs-overlay)
-            (sly-trace-dialog--insert-and-overlay
-             "[waiting for some info on trace download progress ]"
-             sly-trace-dialog--progress-overlay)
-            (sly-trace-dialog--insert-and-overlay
-             "[waiting for the actual traces to be available]"
-             sly-trace-dialog--tree-overlay)
-            (current-buffer))
-          (setq sly-buffer-connection sly-default-connection)
-          (current-buffer)))))
+        (let ((connection (sly-current-connection)))
+          (with-current-buffer (get-buffer-create name)
+            (let ((inhibit-read-only t))
+              (erase-buffer))
+            (sly-trace-dialog-mode)
+            (save-excursion
+              (buffer-disable-undo)
+              (sly-trace-dialog--insert-and-overlay
+               "[waiting for the traced specs to be available]"
+               sly-trace-dialog--specs-overlay)
+              (sly-trace-dialog--insert-and-overlay
+               "[waiting for some info on trace download progress ]"
+               sly-trace-dialog--progress-overlay)
+              (sly-trace-dialog--insert-and-overlay
+               "[waiting for the actual traces to be available]"
+               sly-trace-dialog--tree-overlay)
+              (current-buffer))
+            (setq sly-buffer-connection connection)
+            (current-buffer))))))
 
 (defun sly-trace-dialog--set-collapsed (collapsed-p trace button)
   (save-excursion
