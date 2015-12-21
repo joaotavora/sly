@@ -187,7 +187,9 @@ Set this to NIL to turn this feature off.")
           (cond (aborted
                  (send-to-remote-channel (mrepl-remote-id repl)
                                          `(:evaluation-aborted
-                                           ,(prin1-to-string aborted))))
+                                           ,(slynk::without-printing-errors
+                                                (:object aborted :stream nil)
+                                              (prin1-to-string aborted)))))
                 (t
                  (when results
                    (setq /// //  // /  / results
