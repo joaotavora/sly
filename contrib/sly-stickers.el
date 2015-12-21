@@ -349,7 +349,11 @@ render the underlying text unreadable."
                       when rest
                       concat "\n"))))))
 
-(cl-defun sly-stickers--pretty-describe-recording (recording &key (separator "\n"))
+(defconst sly-stickers--newline "\n"
+  "Work around bug #63, actually Emacs bug #21839.
+\"25.0.50; can't use newlines in defaults in cl functions\"")
+
+(cl-defun sly-stickers--pretty-describe-recording (recording &key (separator sly-stickers--newline))
           (let* ((recording-sticker-id (sly-stickers--recording-sticker-id recording))
                  (sticker (gethash recording-sticker-id
                                    sly-stickers--stickers))
