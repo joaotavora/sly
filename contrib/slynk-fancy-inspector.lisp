@@ -102,10 +102,9 @@
                 (:defined
                  (or (sb-int:info :type :expander symbol) t))
                 (:primitive
-                 (or #+#.(slynk-sbcl::with-sbcl-version>= 1 3 1)
-                     (car (sb-int:info :type :expander symbol))
-                     #-#.(slynk-sbcl::with-sbcl-version>= 1 3 1)
-                     (sb-int:info :type :translator symbol)
+                 (or (if (slynk-sbcl::sbcl-version>= 1 3 1)
+                         (car (sb-int:info :type :expander symbol))
+                         (sb-int:info :type :translator symbol))
                      t)))))
     (when fun
       (append
