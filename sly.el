@@ -1089,7 +1089,8 @@ The rules for selecting the arguments are rather complicated:
                           (coding-system sly-net-coding-system)
                           (init sly-init-function)
                           name
-                          (buffer "*inferior-lisp*")
+                          (buffer (format "*sly-started inferior-lisp for %s*"
+                                          (file-name-nondirectory program)))
                           init-function
                           env)
   "Start a Lisp process and connect to it.
@@ -1114,7 +1115,7 @@ DIRECTORY change to this directory before starting the process.
                     :init-function init-function :env env)))
     (sly-check-coding-system coding-system)
     (let ((proc (sly-maybe-start-lisp program program-args env
-                                        directory buffer)))
+                                      directory buffer)))
       (sly-inferior-connect proc args)
       (sly-inferior-lisp-buffer proc 'pop-to-buffer))))
 
@@ -1184,7 +1185,7 @@ before."
   (cond ((not (comint-check-proc buffer))
          (sly-start-lisp program program-args env directory buffer))
         (t (sly-start-lisp program program-args env directory
-                             (generate-new-buffer-name buffer)))))
+                           (generate-new-buffer-name buffer)))))
 
 (defvar sly-inferior-process-start-hook nil
   "Hook called whenever a new process gets started.")
@@ -1870,6 +1871,8 @@ This is automatically synchronized from Lisp.")
         (when (get-buffer events-buffer-name)
           (kill-buffer events-buffer-name))
         (rename-buffer (sly-buffer-name :events :connection connection))))
+    (with-current-buffer (process-buffer connection)
+      (rename-buffer (sly-buffer-name :inferior-lisp :connection connection)))
     (sly-message "Connected. %s" (sly-random-words-of-encouragement))))
 
 (defun sly-check-version (version conn)
