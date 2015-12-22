@@ -12,7 +12,9 @@
 ;;; Administrivia
 
 (defpackage slynk-sbcl
-  (:use cl slynk-backend slynk-source-path-parser slynk-source-file-cache))
+  (:use cl slynk-backend slynk-source-path-parser slynk-source-file-cache)
+  (:export
+   #:with-sbcl-version>=))
 
 (in-package slynk-sbcl)
 
@@ -138,13 +140,13 @@
 
   (defun sigio-handler (signal code scp)
     (declare (ignore signal code scp))
-    (mapc (lambda (handler)
-            (funcall (the function (cdr handler))))
-          *sigio-handlers*))
+    (sb-sys:with-interrupts
+      (mapc (lambda (handler)
+              (funcall (the function (cdr handler))))
+            *sigio-handlers*)))
 
   (defun set-sigio-handler ()
-    (sb-sys:enable-interrupt sb-unix:sigio (lambda (signal code scp)
-                                             (sigio-handler signal code scp))))
+    (sb-sys:enable-interrupt sb-unix:sigio #'sigio-handler))
 
   (defun enable-sigio-on-fd (fd)
     (sb-posix::fcntl fd sb-posix::f-setfl sb-posix::o-async)
@@ -344,7 +346,10 @@
     (symbol (member feature list :test #'eq))
     (cons (flet ((subfeature-in-list-p (subfeature)
                    (feature-in-list-p subfeature list)))
-            (ecase (first feature)
+            ;; Don't use ECASE since SBCL also has :host-feature,
+            ;; don't need to handle it or anything else appearing in
+            ;; the future or in erronous code.
+            (case (first feature)
               (:or  (some  #'subfeature-in-list-p (rest feature)))
               (:and (every #'subfeature-in-list-p (rest feature)))
               (:not (destructuring-bind (e) (cdr feature)
@@ -418,6 +423,12 @@
     (loop for p in (remove-if-not #'sbcl-package-p (list-all-packages))
           collect (cons (package-name p) readtable))))
 
+;;; Packages
+
+#+#.(slynk-backend:with-symbol 'package-local-nicknames 'sb-ext)
+(defimplementation package-local-nicknames (package)
+  (sb-ext:package-local-nicknames package))
+
 ;;; Utilities
 
 (defun slynk-value (name &optional errorp)
@@ -428,6 +439,16 @@
         (symbol-value symbol)
         (when errorp
           (error "~S does not exist in SLYNK." name)))))
+
+(defun sbcl-version>= (&rest subversions)
+  #+#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
+  (values (ignore-errors (apply #'sb-ext:assert-version->= subversions) t))
+  #-#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
+  nil)
+
+(defmacro with-sbcl-version>= (&rest subversions)
+  `(if (sbcl-version>= ,@subversions)
+       '(:and) '(:or)))
 
 #+#.(slynk-backend:with-symbol 'function-lambda-list 'sb-introspect)
 (defimplementation arglist (fname)
@@ -1942,12 +1963,6 @@ stack."
 
 ;;;; wrap interface implementation
 
-(defun sbcl-version>= (&rest subversions)
-  #+#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
-  (values (ignore-errors (apply #'sb-ext:assert-version->= subversions) t))
-  #-#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
-  nil)
-
 (defimplementation wrap (spec indicator &key before after replace)
   (when (wrapped-p spec indicator)
     (warn "~a already wrapped with indicator ~a, unwrapping first"
@@ -1989,3 +2004,11 @@ stack."
            (values-list retlist))
       (when after
         (funcall after (if completed retlist :exited-non-locally))))))
+
+#+#.(slynk-backend:with-symbol 'comma-expr 'sb-impl)
+(progn
+  (defmethod sexp-in-bounds-p ((s sb-impl::comma) i)
+    (= i 1))
+
+  (defmethod sexp-ref ((s sb-impl::comma) i)
+    (sb-impl::comma-expr s)))

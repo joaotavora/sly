@@ -435,7 +435,7 @@
          (*backtrace* (loop for ihs from 0 below *ihs-top*
                             collect (list (si::ihs-fun ihs)
                                           (si::ihs-env ihs)
-                                          nil))))
+                                          ihs))))
     (declare (special *ihs-current*))
 #+frs    (loop for f from *frs-base* until *frs-top*
           do (let ((i (- (si::frs-ihs f) *ihs-base* 1)))
@@ -450,13 +450,10 @@
     (let ((*ihs-base* *ihs-top*))
       (funcall debugger-loop-fn))))
 
-
-
 (defimplementation compute-backtrace (start end)
-  (when (numberp end)
-    (setf end (min end (length *backtrace*))))
-  (loop for f in (subseq *backtrace* start end)
-        collect f))
+  (subseq *backtrace* start
+          (and (numberp end)
+               (min end (length *backtrace*)))))
 
 (defun frame-name (frame)
   (let ((x (first frame)))
@@ -486,7 +483,11 @@
     (values fun position)))
 
 (defimplementation print-frame (frame stream)
-  (format stream "(~s ...)" (function-name (first frame))))
+  (format stream "(~s~{ ~s~})" (function-name (first frame))
+          #+#.(slynk-backend:with-symbol 'ihs-arguments 'core)
+          (coerce (core:ihs-arguments (third frame)) 'list)
+          #-#.(slynk-backend:with-symbol 'ihs-arguments 'core)
+          nil))
 
 (defimplementation frame-source-location (frame-number)
   (nth-value 1 (frame-function (elt *backtrace* frame-number))))
@@ -657,23 +658,6 @@
 (defun source-location (object)
   (converting-errors-to-error-location
    (typecase object
-     (c-function
-      (assert-source-directory)
-      (assert-TAGS-file)
-      (let ((lisp-name (function-name object)))
-        (assert lisp-name)
-        (multiple-value-bind (flag c-name) (si:mangle-name lisp-name t)
-          (assert flag)
-          ;; In CLASP's code base sometimes the mangled name is used
-          ;; directly, sometimes CLASP's DPP magic of @SI::SYMBOL or
-          ;; @EXT::SYMBOL is used. We cannot predict here, so we just
-          ;; provide several candidates.
-          (apply #'make-TAGS-location
-                 c-name
-                 (loop with s = (symbol-name lisp-name)
-                       for p in (package-names (symbol-package lisp-name))
-                       collect (format nil "~A::~A" p s)
-                       collect (format nil "~(~A::~A~)" p s))))))
      (function
       (multiple-value-bind (file pos) (ext:compiled-function-file object)
         (cond ((not file)

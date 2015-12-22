@@ -263,7 +263,10 @@ TIME-LIMIT-IN-MSEC is NIL, an infinite time limit is assumed."
                                           :filter (or filter #'identity)))
            (find-packages (designator time-limit)
              (fuzzy-find-matching-packages designator
-                                           :time-limit-in-msec time-limit)))
+                                           :time-limit-in-msec time-limit))
+           (maybe-find-local-package (name)
+             (or (find-locally-nicknamed-package name *buffer-package*)
+                 (find-package name))))
       (let ((time-limit time-limit-in-msec) (symbols) (packages) (results)
             (dedup-table (make-hash-table :test #'equal)))
         (cond ((not parsed-package-name) ; E.g. STRING = "asd"

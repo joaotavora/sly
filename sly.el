@@ -5002,8 +5002,13 @@ With optional JUST-ONE prefix arg, use CL:MACROEXPAND-1."
 
 (defun sly-expand-1 (&optional repeatedly)
   "Display the macro expansion of the form at point.
+
 The form is expanded with CL:MACROEXPAND-1 or, if a prefix
-argument is given, with CL:MACROEXPAND."
+argument is given, with CL:MACROEXPAND.
+
+Contrary to `sly-macroexpand-1', if the form denotes a compiler
+macro, SWANK/BACKEND:COMPILER-MACROEXPAND or
+SWANK/BACKEND:COMPILER-MACROEXPAND-1 are used instead."
   (interactive "P")
   (sly-eval-macroexpand
    (if repeatedly
