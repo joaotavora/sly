@@ -1,4 +1,4 @@
-Upcaming SLY 1.0.0-beta-2 (estimated September 2015)
+Upcaming SLY 1.0.0-beta-2 (estimated somewhere 2016)
 ----------------------------------------
 
 ### Improved `sly-stickers` contrib:
@@ -43,6 +43,11 @@ SLYNK:TO-LINE
 Olaechea (github #53).
 
 `C-u sly-apropos` allows searching all packages (github #53)
+
+### Macroexpansion
+
+Discovery of the "sexp near point" has been much improved and won't
+error cryptically when there is no macroexpansion possible.
 
 ### REPL enhancements
 
@@ -92,7 +97,7 @@ buffers. By Paul M. Rodriguez.
 no nearby sexp's can be found. The region about to be macroexpanded is
 flashed for visual feedback.
 
-### On par with SLIME 2.14
+### On par with SLIME 2.14 and 2.15
 
 Where applicable, SLY tracks bugfixes and improvements contributed to
 SLIME:
@@ -111,8 +116,14 @@ SLIME:
 - Following a suggestion by Attile Lendvai to SLIME, mouse-1 is now
 activates SLY's "part buttons".
 
-### On par with upcoming SLIME 2.15
+- SBCL's M-. can locate forms within PROGN/MACROLET/etc. Needs SBCL 1.2.15
 
+### On par with upcoming SLIME 2.16
+
+- SBCL and ABCL support completion of package-local nicknames
+
+- Robustify the indentation cache request handler
+  (issue https://github.com/slime/slime/issues/280)
 
 
 SLY 1.0.0-beta (March 2015)
