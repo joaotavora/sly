@@ -1183,21 +1183,8 @@ before."
   "Return a new or existing inferior lisp process."
   (cond ((not (comint-check-proc buffer))
          (sly-start-lisp program program-args env directory buffer))
-        ((sly-reinitialize-inferior-lisp-p program program-args env buffer)
-         (sly--when-let (conn (cl-find (get-buffer-process buffer)
-                                  sly-net-processes
-                                  :key #'sly-inferior-process))
-           (sly-net-close conn "Killing existing connection first"))
-         (get-buffer-process buffer))
         (t (sly-start-lisp program program-args env directory
                              (generate-new-buffer-name buffer)))))
-
-(defun sly-reinitialize-inferior-lisp-p (program program-args env buffer)
-  (let ((args (sly-inferior-lisp-args (get-buffer-process buffer))))
-    (and (equal (plist-get args :program) program)
-         (equal (plist-get args :program-args) program-args)
-         (equal (plist-get args :env) env)
-         (not (sly-y-or-n-p "Create an additional *inferior-lisp*? ")))))
 
 (defvar sly-inferior-process-start-hook nil
   "Hook called whenever a new process gets started.")
