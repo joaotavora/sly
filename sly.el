@@ -3542,10 +3542,10 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
         ;; Else, do the next best thing, which is echo the messages.
         ;;
         (if (cdr notes)
-            (sly-message (format "%s notes:\n%s"
-                                 (length notes)
-                                 (mapconcat #'sly-note.message notes "\n")))
-          (sly-message (sly-note.message (car notes))))))))
+            (sly-message "%s notes:\n%s"
+                         (length notes)
+                         (mapconcat #'sly-note.message notes "\n"))
+          (sly-message "%s" (sly-note.message (car notes))))))))
 
 (define-button-type 'sly-note :supertype 'sly-button)
 
