@@ -69,7 +69,8 @@
 
 #+sbcl
 (defmethod operate :around ((o load-op) (c (eql (find-system :slynk))) &key &allow-other-keys)
-  (let ((asdf:*compile-file-failure-behaviour* :warn))
+  (let ((asdf:*compile-file-failure-behaviour* :warn)
+        (sb-ext:*on-package-variance* '(:warn t)))
     (call-next-method)))
 
 
