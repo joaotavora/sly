@@ -1053,16 +1053,27 @@ The rules for selecting the arguments are rather complicated:
     (cl-destructuring-bind ((prog &rest args) &rest keys) arguments
       (cl-list* :name name :program prog :program-args args keys))))
 
-(defun sly-inferior-lisp-buffer (process &optional pop-to-buffer)
+(defun sly-inferior-lisp-buffer (sly-process-or-connection &optional pop-to-buffer)
   "Return PROCESS's buffer, with POP-TO-BUFFER, pop to it."
   (interactive (list (sly-process) t))
-  (let ((buffer (and process
-                     (process-buffer process))))
+  (let ((buffer (cond ((and sly-process-or-connection
+                            (process-get sly-process-or-connection
+                                         'sly-inferior-lisp-process))
+                       (process-buffer sly-process-or-connection))
+                      (sly-process-or-connection
+                       ;; call ourselves recursively with a
+                       ;; sly-started process
+                       ;; 
+                       (sly-inferior-lisp-buffer (sly-process sly-process-or-connection)
+                                                 pop-to-buffer )))))
     (cond ((and buffer
                 pop-to-buffer)
            (pop-to-buffer buffer))
+          ((and pop-to-buffer
+                sly-process-or-connection)
+           (sly-message "No *inferior lisp* process for current connection!"))
           (pop-to-buffer
-           (sly-message "No *inferior lisp* process for current connection!")))
+           (sly-error "No *inferior lisp* buffer")))
     buffer))
 
 (defun sly--guess-inferior-lisp-program ()
@@ -1145,13 +1156,6 @@ before."
          (sly-dispatching-connection process))
     (sly-setup-connection process)))
 
-;; FIXME: seems redundant
-(defun sly-start-and-init (options fun)
-  (let* ((rest (plist-get options :init-function))
-         (init (cond (rest `(lambda () (funcall ',rest) (funcall ',fun)))
-                     (t fun))))
-    (sly-start* (plist-put (cl-copy-list options) :init-function init))))
-
 ;;;;; Start inferior lisp
 ;;;
 ;;; Here is the protocol for starting SLY via `M-x sly':
@@ -1202,6 +1206,7 @@ Return the created process."
       (comint-exec (current-buffer) "inferior-lisp" program nil program-args))
     (lisp-mode-variables t)
     (let ((proc (get-buffer-process (current-buffer))))
+      (process-put proc 'sly-inferior-lisp-process t)
       (set-process-query-on-exit-flag proc (not sly-kill-without-query-p))
       (run-hooks 'sly-inferior-process-start-hook)
       proc)))
@@ -1871,8 +1876,13 @@ This is automatically synchronized from Lisp.")
         (when (get-buffer events-buffer-name)
           (kill-buffer events-buffer-name))
         (rename-buffer (sly-buffer-name :events :connection connection))))
-    (with-current-buffer (process-buffer connection)
-      (rename-buffer (sly-buffer-name :inferior-lisp :connection connection)))
+    ;; Rename the inferior lisp buffer if there is one (i.e. when
+    ;; started via `M-x sly')
+    ;; 
+    (let ((inferior-lisp-buffer (sly-inferior-lisp-buffer (sly-process connection))))
+      (when inferior-lisp-buffer
+        (with-current-buffer inferior-lisp-buffer
+          (rename-buffer (sly-buffer-name :inferior-lisp :connection connection)))))
     (sly-message "Connected. %s" (sly-random-words-of-encouragement))))
 
 (defun sly-check-version (version conn)
