@@ -155,13 +155,17 @@ subexpressions of the object to stream positions."
   (let* ((point (file-position stream))
 	 (pkg *package*))
     (file-position stream 0)
-    (loop for line = (read-line stream nil nil) do
-	  (when (not line) (return))
-	  (when (or (starts-with-p line "(in-package ")
-		    (starts-with-p line "(cl:in-package "))
-	    (let ((p (extract-package line)))
-	      (when p (setf pkg p)))
-	    (return)))
+    (loop for read-line = (read-line stream nil nil)
+          for line = (and read-line
+                          (string-trim '(#\Space #\Tab #\Linefeed #\Page #\Return #\Rubout)
+                                       read-line))
+          do
+             (when (not line) (return))
+             (when (or (starts-with-p line "(in-package ")
+                       (starts-with-p line "(cl:in-package "))
+               (let ((p (extract-package line)))
+                 (when p (setf pkg p)))
+               (return)))
     (file-position stream point)
     (values (readtable-for-package pkg) pkg)))
 
