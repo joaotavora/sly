@@ -1959,14 +1959,27 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
                                     `(:abort ,(prin1-to-string condition)))
                                ,id)))))
 
+(defparameter *format-integer-for-emacs-extra* nil
+  "If non-nil, extra fanciness when formatting integers for the echo-area.
+Value should be a (FORMAT-STRING . FORMATTERS). FORMAT-STRING is
+applied to the values produced by calling each of FORMATTERS on the
+integer value to be echoed to SLY.")
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (export '*format-integer-for-emacs-extra*))
+
 (defun format-values-for-emacs (values)
   (with-buffer-syntax ()
     (let ((*print-readably* nil))
       (cond ((null values) "; No value")
             ((and (integerp (car values)) (null (cdr values)))
              (let ((i (car values)))
-               (format nil "~D (~a bit~:p, #x~X, #o~O, #b~B)"
-                       i (integer-length i) i i i)))
+               (format nil "~D (~a bit~:p, #x~X, #o~O, #b~B~?)"
+                       i (integer-length i) i i i
+                       (or (car *format-integer-for-emacs-extra*) "")
+                       (mapcar (lambda (fn)
+                                 (funcall fn i))
+                               (cdr *format-integer-for-emacs-extra*)))))
             ((and (typep (car values) 'ratio) (null (cdr values)))
              (ignore-errors
               ;; The ratio may be to large to be represented as a single float
