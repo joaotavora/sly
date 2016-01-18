@@ -1001,10 +1001,12 @@ the buffer's undo-list."
                          #'sly-test-macroexpansion=)))
     (setq sly-buffer-package ":cl-user"))
 
-(defun sly-test-macroexpansion= (string1 string2)
+(defun sly-test-macroexpansion= (string1 string2 &optional ignore-case)
   (let ((string1 (replace-regexp-in-string " *\n *" " " string1))
         (string2 (replace-regexp-in-string " *\n *" " " string2)))
-    (equal string1 string2)))
+    (compare-strings string1 nil nil
+                     string2 nil nil
+                     ignore-case)))
 
 (def-sly-test indentation (buffer-content point-markers)
         "Check indentation update to work correctly."
