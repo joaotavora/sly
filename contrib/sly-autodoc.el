@@ -166,8 +166,8 @@ If it's not in the cache, the cache will be updated asynchronously."
 	 (set (make-local-variable 'eldoc-minor-mode-string) "")
 	 (setq sly-autodoc-mode (eldoc-mode sly-autodoc-mode)))
 	(t
-	 (set (make-local-variable 'eldoc-documentation-function) nil)
-	 (set (make-local-variable 'eldoc-minor-mode-string) " ElDoc")
-	 (eldoc-mode -1))))
+	 (eldoc-mode -1)
+         (set (make-local-variable 'eldoc-documentation-function) nil)
+	 (set (make-local-variable 'eldoc-minor-mode-string) " ElDoc"))))
 
 (provide 'sly-autodoc)
