@@ -21,8 +21,7 @@
       (setq cursexp (pop sexps))
       (cond
        ;; End of an sexp?
-       ((and (or (looking-at "\\s)") (eolp))
-             (car sexps))
+       ((or (looking-at "\\s)") (eolp))
         (cl-decf depth)
         (push (nreverse cursexp) (car sexps)))
        ;; Start of a new sexp?
