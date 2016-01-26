@@ -1,25 +1,36 @@
-language: emacs
+language: generic
+sudo: false
+git:
+  submodules: false
 
 env:
-  - "CHECK_TARGET=check-core  LISP=sbcl  EMACS=emacs24"
-  # - "CHECK_TARGET=check-core  LISP=cmucl EMACS=emacs24"
-  - "CHECK_TARGET=check-core  LISP=ccl   EMACS=emacs24"
-  - "CHECK_TARGET=check-fancy LISP=sbcl  EMACS=emacs24"
-  # - "CHECK_TARGET=check-fancy LISP=cmucl EMACS=emacs24"
-  - "CHECK_TARGET=check-fancy LISP=ccl   EMACS=emacs24"
+  - "CHECK_TARGET=check-core  LISP=sbcl  EMACS_VERSION=24.5"
+  # - "CHECK_TARGET=check-core  LISP=cmucl EMACS_VERSION=24.5"
+  # - "CHECK_TARGET=check-core  LISP=ccl   EMACS_VERSION=24.5"
+  - "CHECK_TARGET=check-fancy LISP=sbcl  EMACS_VERSION=24.5"
+  # - "CHECK_TARGET=check-fancy LISP=cmucl EMACS_VERSION=24.5"
+  # - "CHECK_TARGET=check-fancy LISP=ccl   EMACS_VERSION=24.5"
 
   # also, for emacs24/sbcl test some more contribs in isolation
-  - "CHECK_TARGET=check-mrepl LISP=sbcl EMACS=emacs24"
-  - "CHECK_TARGET=check-indentation LISP=sbcl EMACS=emacs24"
+  - "CHECK_TARGET=check-mrepl LISP=sbcl EMACS_VERSION=24.5"
+  - "CHECK_TARGET=check-indentation LISP=sbcl EMACS_VERSION=24.5"
 
 install:
-  - curl https://raw.githubusercontent.com/capitaomorte/cl-travis/master/install.sh | bash
-  - if [ "$EMACS" = "emacs24" ]; then
-        sudo add-apt-repository -y ppa:cassou/emacs &&
-        sudo apt-get -qq update &&
-        sudo apt-get -qq -f install &&
-        sudo apt-get -qq install emacs24-nox;
-    fi
+  # Intall SBCL directly
+  #
+  - curl -LO http://downloads.sourceforge.net/sbcl/sbcl-1.2.6-x86-64-linux-binary.tar.bz2
+  - mkdir -p /tmp
+  - tar -xaf sbcl-1.2.6-x86-64-linux-binary.tar.bz2 -C /tmp
+  - export LISP=/tmp/sbcl-1.2.6-x86-64-linux/run-sbcl.sh
+  
+  # Install Emacs from npostavs repo (see https://github.com/capitaomorte/yasnippet/pull/652)
+  # 
+  - curl -LO https://github.com/npostavs/emacs-travis/releases/download/bins/emacs-bin-${EMACS_VERSION}.tar.gz
+  - tar -xaf emacs-bin-${EMACS_VERSION}.tar.gz -C /
+  - export PATH=/tmp/emacs/bin:${PATH} # the untar command installed to /tmp
+  - emacs --version
 
 script:
-  - make LISP=$LISP EMACS=$EMACS $CHECK_TARGET
+  # The EMACS=emacs should point to the newly installed emacs
+  # 
+  - make LISP=$LISP EMACS=emacs $CHECK_TARGET
