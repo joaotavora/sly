@@ -811,7 +811,7 @@ available."
         (and (consp form) (length=2 form)
              (eq (first form) 'setf) (symbolp (second form))))))
 
-(definterface macroexpand-all (form)
+(definterface macroexpand-all (form &optional env)
    "Recursively expand all macros in FORM.
 Return the resulting form.")
 

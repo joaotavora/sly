@@ -207,7 +207,8 @@ already exported/unexported."
                (cl-incf number-of-actions))))))
       (when sly-export-save-file
         (save-buffer))
-      number-of-actions)))
+      (cons number-of-actions
+            (current-buffer)))))
 
 (defun sly-add-export ()
   (let (point)
@@ -284,18 +285,24 @@ symbol in the Lisp image if possible."
 	(symbol (sly-symbol-at-point)))
     (unless symbol (error "No symbol at point."))
     (cond (current-prefix-arg
-	   (if (cl-plusp (sly-frob-defpackage-form package :unexport symbol))
-	       (sly-message "Symbol `%s' no longer exported form `%s'"
-                        symbol package)
-             (sly-message "Symbol `%s' is not exported from `%s'"
-                      symbol package))
+           (let* ((attempt (sly-frob-defpackage-form package :unexport symbol))
+                  (howmany (car attempt))
+                  (where (buffer-file-name (cdr attempt))))
+             (if (cl-plusp howmany)
+                 (sly-message "Symbol `%s' no longer exported from `%s' in %s"
+                              symbol package where)
+               (sly-message "Symbol `%s' is not exported from `%s' in %s"
+                            symbol package where)))
 	   (sly-unexport-symbol symbol package))
 	  (t
-	   (if (cl-plusp (sly-frob-defpackage-form package :export symbol))
-	       (sly-message "Symbol `%s' now exported from `%s'"
-                        symbol package)
-             (sly-message "Symbol `%s' already exported from `%s'"
-                      symbol package))
+           (let* ((attempt (sly-frob-defpackage-form package :export symbol))
+                  (howmany (car attempt))
+                  (where (buffer-file-name (cdr attempt))))
+             (if (cl-plusp howmany)
+                 (sly-message "Symbol `%s' now exported from `%s' in %s"
+                              symbol package where)
+               (sly-message "Symbol `%s' already exported from `%s' in %s"
+                            symbol package where)))
 	   (sly-export-symbol symbol package)))))
 
 (defun sly-export-class (name)
@@ -305,7 +312,7 @@ symbol in the Lisp image if possible."
   (let* ((package (sly-current-package))
          (symbols (sly-eval `(slynk:export-structure ,name ,package))))
     (sly-message "%s symbols exported from `%s'"
-             (sly-frob-defpackage-form package :export symbols)
+             (car (sly-frob-defpackage-form package :export symbols))
              package)))
 
 (defalias 'sly-export-structure 'sly-export-class)

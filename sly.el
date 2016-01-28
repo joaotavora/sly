@@ -6342,7 +6342,7 @@ was called originally."
                            (and name
                                 (format " in inspector \"%s\"" name))
                            " (evaluated): ")
-                   (sly-sexp-at-point 'interactive))))
+                   (sly-sexp-at-point 'interactive nil nil))))
      (list string name)))
   (sly-eval-for-inspector `(slynk:init-inspector ,string)
                           :inspector-name inspector-name))
@@ -7128,18 +7128,20 @@ With non-nil INTERACTIVE, error if can't find such a thing."
       (when interactive
         (user-error "No sexp near point"))))
 
-(defun sly-sexp-at-point (&optional interactive stringp)
+(cl-defun sly-sexp-at-point (&optional interactive stringp (errorp t))
   "Return the sexp at point as a string, otherwise nil.
-With non-nil INTERACTIVE, flash the region and error if no sexp
-can be found.
-With non-nil STRINGP, only look for strings"
+With non-nil INTERACTIVE, flash the region and also error if no
+sexp can be found, unless ERRORP, which defaults to t, is passed
+as nil.  With non-nil STRINGP, only look for strings"
   (catch 'return
-    (let ((bounds (sly-bounds-of-sexp-at-point interactive)))
+    (let ((bounds (sly-bounds-of-sexp-at-point (and interactive
+                                                    errorp))))
       (when bounds
         (when (and stringp
                    (not (eq (syntax-class (syntax-after (car bounds)))
                             (char-syntax ?\"))))
-          (if interactive
+          (if (and interactive
+                   interactive)
                 (user-error "No string at point")
               (throw 'return nil)))
         (when interactive

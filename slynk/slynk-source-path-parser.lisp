@@ -155,9 +155,10 @@ subexpressions of the object to stream positions."
   (let* ((point (file-position stream))
 	 (pkg *package*))
     (file-position stream 0)
-    (loop for line = (string-trim '(#\Space #\Newline #\Backspace #\Tab 
-                                    #\Linefeed #\Page #\Return #\Rubout)
-                                  (read-line stream nil nil))
+    (loop for read-line = (read-line stream nil nil)
+          for line = (and read-line
+                          (string-trim '(#\Space #\Tab #\Linefeed #\Page #\Return #\Rubout)
+                                       read-line))
           do
              (when (not line) (return))
              (when (or (starts-with-p line "(in-package ")

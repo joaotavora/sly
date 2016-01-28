@@ -99,8 +99,10 @@ that the character is not escaped."
               (t
                ;; We're at a symbol, so make sure we get the whole symbol.
                (sly-end-of-symbol)))
-        (let ((pt (point)))
-          (ignore-errors (up-list (if max-levels (- max-levels) -5)))
+        (let ((pt (point))
+              (ppss (syntax-ppss)))
+          (unless (zerop (car ppss))
+            (ignore-errors (up-list (if max-levels (- max-levels) -5))))
           (ignore-errors (down-list))
           (sly-parse-form-until pt suffix))))))
 
