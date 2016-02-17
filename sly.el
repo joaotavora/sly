@@ -476,7 +476,7 @@ PROPERTIES specifies any default face properties."
                            (define-key map "c" 'sly-list-connections)
                            (define-key map "t" 'sly-list-threads)
                            (define-key map "d" 'sly-db-pop-to-debugger-maybe)
-                           (define-key map "e" 'sly-events-buffer)
+                           (define-key map "e" 'sly-pop-to-events-buffer)
                            (define-key map "i" 'sly-inferior-lisp-buffer)
                            map)
   "A keymap for frequently used SLY shortcuts.
@@ -658,7 +658,7 @@ that returns one such construct.")
                                (t
                                 'sly-mode-line))
                    keymap ,(let ((map (make-sparse-keymap)))
-                             (define-key map [mode-line mouse-1] 'sly-events-buffer)
+                             (define-key map [mode-line mouse-1] 'sly-pop-to-events-buffer)
                              (define-key map [mode-line mouse-3] 'sly-forget-pending-events)
                              map))
       "/"
@@ -1870,7 +1870,7 @@ This is automatically synchronized from Lisp.")
       (sly--when-let (fun (plist-get args ':init-function))
         (funcall fun)))
     ;; Give the events buffer its final name
-    (with-current-buffer (sly-events-buffer connection)
+    (with-current-buffer (sly--events-buffer connection)
       (let ((events-buffer-name (sly-buffer-name :events :connection connection)))
         ;; Trample over any existing buffers on reconnection
         (when (get-buffer events-buffer-name)
@@ -2500,7 +2500,7 @@ Debugged requests are ignored."
 (defun sly-log-event (event process)
   "Record the fact that EVENT occurred in PROCESS."
   (when sly-log-events
-    (with-current-buffer (sly-events-buffer process)
+    (with-current-buffer (sly--events-buffer process)
       ;; trim?
       (when (> (buffer-size) 100000)
         (goto-char (/ (buffer-size) 2))
@@ -2521,12 +2521,9 @@ Debugged requests are ignored."
 	(pp-escape-newlines t))
     (pp event buffer)))
 
-(defun sly-events-buffer (process &optional pop-to-buffer)
-  "Return or create the event log buffer.
-With optional POP-TO-BUFFER (on by default when calling
-interactively), also pop to the buffer."
-  (interactive (list (sly-current-connection) t))
-  (let* ((probe (process-get process 'sly-events-buffer))
+(defun sly--events-buffer (process)
+  "Return or create the event log buffer."
+  (let* ((probe (process-get process 'sly--events-buffer))
          (buffer (or (and (buffer-live-p probe)
                           probe)
                      (let ((buffer (get-buffer-create
@@ -2544,10 +2541,14 @@ interactively), also pop to the buffer."
                            (outline-minor-mode))
                          (set (make-local-variable 'sly-buffer-connection) process)
                          (sly-mode 1))
-                       (process-put process 'sly-events-buffer buffer)
+                       (process-put process 'sly--events-buffer buffer)
                        buffer))))
-    (when pop-to-buffer (pop-to-buffer buffer))
     buffer))
+
+(defun sly-pop-to-events-buffer (process)
+  "Pop to the SLY events buffer for PROCESS"
+  (interactive (list (sly-current-connection)))
+  (pop-to-buffer (sly--events-buffer process)))
 
 (defun sly-forget-pending-events (process)
   "Forget any outgoing events for the PROCESS"
@@ -7204,7 +7205,7 @@ can be found."
 (sly-byte-compile-hotspots
  '(sly-alistify
    sly-log-event
-   sly-events-buffer
+   sly--events-buffer
    sly-process-available-input
    sly-dispatch-event
    sly-net-filter
