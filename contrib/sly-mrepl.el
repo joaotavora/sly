@@ -455,9 +455,14 @@ In that case, moving a sexp backward does nothing."
   (buffer-enable-undo))
 
 (defun sly-mrepl--copy-part-to-repl (entry-idx value-idx)
-  (sly-mrepl--copy-objects-to-repl `(,entry-idx ,value-idx)
+  (cond (current-prefix-arg
+         (save-excursion
+           (goto-char (point-max))
+           (insert (format "%s%s:%s" sly-mrepl--backreference-prefix entry-idx value-idx))))
+        (t
+         (sly-mrepl--copy-objects-to-repl `(,entry-idx ,value-idx)
                                    (format "Returning value %s of history entry %s"
-                                           value-idx entry-idx)))
+                                           value-idx entry-idx)))))
 
 (cl-defun sly-mrepl--eval-for-repl (slyfun-and-args &key insert-p before-prompt after-prompt)
   "Evaluate SLYFUN-AND-ARGS in Slynk, then call callbacks.
@@ -1144,9 +1149,11 @@ When setting this variable outside of the Customize interface,
 
 ;;; Backreference highlighting
 ;;;
-(defvar sly-mrepl--backreference-overlays nil
+(defvar sly-mrepl--backreference-result-overlays nil
   "List of overlays on top of REPL result buttons.")
-(make-variable-buffer-local 'sly-mrepl--backreference-overlays)
+(defvar sly-mrepl--valid-backreference-overlays nil
+  "List of overlays covering valid backreferences")
+(make-variable-buffer-local 'sly-mrepl--backreference-result-overlays)
 
 (defun sly-mrepl-highlight-results (&optional entry-idx value-idx)
   "Highlight REPL results for ENTRY-IDX and VALUE-IDX.
@@ -1167,7 +1174,7 @@ a list of result buttons thus highlighted"
                       (= v-idx value-idx))))
    collect button and
    do (let ((overlay (make-overlay (button-start button) (button-end button))))
-        (push overlay sly-mrepl--backreference-overlays)
+        (push overlay sly-mrepl--backreference-result-overlays)
         (overlay-put overlay 'before-string
                      (concat
                       (propertize
@@ -1180,17 +1187,57 @@ a list of result buttons thus highlighted"
 (defun sly-mrepl-unhighlight-results ()
   "Unhighlight all repl results"
   (interactive)
-  (mapc #'delete-overlay sly-mrepl--backreference-overlays)
-  (setq sly-mrepl--backreference-overlays nil))
+  (mapc #'delete-overlay sly-mrepl--backreference-result-overlays)
+  (setq sly-mrepl--backreference-result-overlays nil))
 
-(defvar sly-mrepl--backreference-overlay nil)
+(defun sly-mrepl--handle-valid-backreference-overlays ()
+  (cl-loop for ov in sly-mrepl--valid-backreference-overlays
+           do (cond ((null (overlay-buffer ov))
+                     (setq sly-mrepl--valid-backreference-overlays
+                           (delete ov
+                                   sly-mrepl--valid-backreference-overlays)))
+                    ((and (overlay-buffer sly-mrepl--current-backreference-overlay)
+                          (<= (overlay-start sly-mrepl--current-backreference-overlay)
+                              (overlay-start ov) (overlay-end ov)
+                              (overlay-end sly-mrepl--current-backreference-overlay)))
+                     (overlay-put ov 'display nil))
+                    (t
+                     (overlay-put ov 'display
+                                  (overlay-get ov 'sly-mrepl--valid-backreference-display))))))
+
+(defvar sly-mrepl--current-backreference-overlay nil)
 (defvar sly-mrepl--backreference-prefix "#v")
+
+(defun sly-mrepl--make-valid-backreference-overlay (current-overlay buttons)
+  (let* ((existing (cl-loop for o in (overlays-at (overlay-start current-overlay))
+                            when (overlay-get o 'sly-mrepl--valid-backreference-display)
+                            return o))
+         (overlay (or existing
+                      (let ((new (make-overlay (point) (point) nil t nil)))
+                        (push new sly-mrepl--valid-backreference-overlays)
+                        new))))
+    (move-overlay overlay
+                  (overlay-start current-overlay)
+                  (overlay-end current-overlay))
+    (overlay-put overlay
+                 'sly-mrepl--valid-backreference-display
+                 (let ((results
+                        (loop for b in buttons
+                              collect (button-get b 'sly-mrepl--result))))
+                   (if (cdr results)
+                       (format "%s"
+                               `(values ,@(mapcar #'car results)))
+                     (caar results))))
+    (overlay-put overlay
+                 'evaporate t)))
 
 (defun sly-mrepl--highlight-backreferences-maybe ()
   "Intended to be placed in `post-command-hook'."
   (sly-mrepl-unhighlight-results)
-  (when sly-mrepl--backreference-overlay
-    (delete-overlay sly-mrepl--backreference-overlay))
+  
+  (when sly-mrepl--current-backreference-overlay
+    (delete-overlay sly-mrepl--current-backreference-overlay))
+  
   (let* ((match (save-excursion
                   (sly-beginning-of-symbol)
                   (looking-at
@@ -1207,11 +1254,11 @@ a list of result buttons thus highlighted"
                                   'all)))))
     (when match
       (let ((buttons (sly-mrepl-highlight-results entry-idx value-idx))
-            (overlay (or sly-mrepl--backreference-overlay
-                         (set (make-local-variable 'sly-mrepl--backreference-overlay)
+            (overlay (or sly-mrepl--current-backreference-overlay
+                         (set (make-local-variable 'sly-mrepl--current-backreference-overlay)
                               (make-overlay 0 0))))
             (message-log-max nil))
-        (move-overlay sly-mrepl--backreference-overlay
+        (move-overlay sly-mrepl--current-backreference-overlay
                       (match-beginning 0) (match-end 0))
         (cond ((null buttons)
                (overlay-put overlay 'face 'font-lock-warning-face)
@@ -1220,16 +1267,20 @@ a list of result buttons thus highlighted"
                     entry-idx
                     value-idx)
                (overlay-put overlay 'face 'sly-action-face)
-               (if (numberp value-idx)
-                   (sly-message "Matched history entry %s, value %s" entry-idx value-idx)
-                 (sly-message "Matched history entry %s, all values" entry-idx)))
+               (cond ((cdr buttons)
+                      (sly-message "Matched history entry %s, all values" entry-idx))
+                     (t
+                      (sly-message "Matched history entry %s, value %s" entry-idx value-idx)))
+               (sly-mrepl--make-valid-backreference-overlay sly-mrepl--current-backreference-overlay
+                                                            buttons))
               (buttons
                (sly-message "Ambiguous backreference `%s', %s values possible"
                             m0 (length buttons))
                (overlay-put overlay 'face 'font-lock-warning-face))
               (t
                (overlay-put overlay 'face 'font-lock-warning-face)
-               (sly-message "Invalid backreference `%s'" m0)))))))
+               (sly-message "Invalid backreference `%s'" m0)))))
+    (sly-mrepl--handle-valid-backreference-overlays)))
 
 
 ;;;; Menu
