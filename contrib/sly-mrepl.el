@@ -1198,7 +1198,8 @@ a list of result buttons thus highlighted"
                      (setq sly-mrepl--valid-backreference-overlays
                            (delete ov
                                    sly-mrepl--valid-backreference-overlays)))
-                    ((and (overlay-buffer sly-mrepl--current-backreference-overlay)
+                    ((and sly-mrepl--current-backreference-overlay
+                          (overlay-buffer sly-mrepl--current-backreference-overlay)
                           (<= (overlay-start sly-mrepl--current-backreference-overlay)
                               (overlay-start ov) (overlay-end ov)
                               (overlay-end sly-mrepl--current-backreference-overlay)))
