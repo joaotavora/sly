@@ -1190,6 +1190,8 @@ a list of result buttons thus highlighted"
   (mapc #'delete-overlay sly-mrepl--backreference-result-overlays)
   (setq sly-mrepl--backreference-result-overlays nil))
 
+(defvar sly-mrepl--current-backreference-overlay nil)
+
 (defun sly-mrepl--handle-valid-backreference-overlays ()
   (cl-loop for ov in sly-mrepl--valid-backreference-overlays
            do (cond ((null (overlay-buffer ov))
@@ -1205,7 +1207,6 @@ a list of result buttons thus highlighted"
                      (overlay-put ov 'display
                                   (overlay-get ov 'sly-mrepl--valid-backreference-display))))))
 
-(defvar sly-mrepl--current-backreference-overlay nil)
 (defvar sly-mrepl--backreference-prefix "#v")
 
 (defun sly-mrepl--make-valid-backreference-overlay (current-overlay buttons)
