@@ -34,17 +34,32 @@
     (setq sly--last-message (format "[sly] %s" body))
     (message "%s" sly--last-message)))
 
+(add-hook 'echo-area-clear-hook
+          'sly--message-clear-last-message)
+
+(defun sly--message-clear-last-message ()
+  (setq sly--last-message nil))
+
 (defun sly-temp-message (wait sit-for format &rest args)
+  "Wait WAIT seconds then display a message for SIT-FOR seconds.
+A nil value for WAIT means \"now\".
+SIT-FOR is has the semantincs of `minibuffer-message-timeout', which see."
   (run-with-timer
    wait nil
    #'(lambda ()
-       (let ((existing sly--last-message))
-         (apply #'sly-message format args)
-         (run-with-timer
-          sit-for
-          nil
-          #'(lambda ()
-              (message "%s" existing)))))))
+       (let ((existing sly--last-message)
+             (text (apply #'format format args)))
+         (if (minibuffer-window-active-p (minibuffer-window))
+             (let ((minibuffer-message-timeout sit-for))
+               (minibuffer-message "[sly] %s" text))
+           (message "[sly] %s" text) ; don't sly-message here
+           (run-with-timer
+            sit-for
+            nil
+            #'(lambda ()
+                ;; restore the message
+                (when existing
+                  (message "%s" existing)))))))))
 
 (defun sly-warning (format-string &rest args)
   (display-warning '(sly warning) (apply #'format format-string args)))
