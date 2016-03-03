@@ -466,6 +466,7 @@ PROPERTIES specifies any default face properties."
     (define-key map (kbd "C-f") 'sly-describe-function)
     (define-key map (kbd "C-h") 'sly-documentation-lookup)
     (define-key map (kbd "~") 'common-lisp-hyperspec-format)
+    (define-key map (kbd "C-g") 'common-lisp-hyperspec-glossary-term)
     (define-key map (kbd "#") 'common-lisp-hyperspec-lookup-reader-macro)
     map))
 
