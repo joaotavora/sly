@@ -1273,8 +1273,9 @@ a list of result buttons thus highlighted"
                       (sly-message "Matched history entry %s, all values" entry-idx))
                      (t
                       (sly-message "Matched history entry %s, value %s" entry-idx value-idx)))
-               (sly-mrepl--make-valid-backreference-overlay sly-mrepl--current-backreference-overlay
-                                                            buttons))
+               ;; (sly-mrepl--make-valid-backreference-overlay sly-mrepl--current-backreference-overlay
+               ;;                                              buttons)
+               )
               (buttons
                (sly-message "Ambiguous backreference `%s', %s values possible"
                             m0 (length buttons))
