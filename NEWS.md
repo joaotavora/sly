@@ -1,5 +1,8 @@
-Upcaming SLY 1.0.0-beta-2 (estimated somewhere 2016)
-----------------------------------------
+Upcoming SLY 1.0.0-beta-3 (Somewhere 2016)
+-----------------------------------------
+
+SLY 1.0.0-beta-2 (March 2016)
+-----------------------------
 
 ### Improved `sly-stickers` contrib:
 
@@ -14,17 +17,24 @@ buttons.
 
 The "replay" interface, `M-x sly-stickers-replay` has been cleaned up.
 
-### NAMED-READTABLES support
+### Three new independant SLY contribs
 
 In https://github.com/capitaomorte/sly-named-readtables there is an
 external contrib that adds support for Tobias C Rittweiler's
-`EDITOR.HINTS-NAMED.READTABLES`.
+`EDITOR.HINTS-NAMED.READTABLES`. Available on MELPA.
 
-Based on the original idea and implementation by user "budden"
-discussed in https://github.com/slime/slime/pull/259.
+In https://github.com/capitaomorte/sly-macrostep there is a SLY
+contrib for expanding CL macros right inside the source
+file. Available on MELPA.
 
-This contrib also showcases how third-party contribs with both Elisp
-and CL parts can be written independently of SLY.
+In https://github.com/capitaomorte/sly-quicklisp there is a SLY
+contrib for expanding CL macros right inside the source
+file. Available on MELPA.
+
+These contribs also showcase how third-party contribs with both Elisp
+and CL parts can be written independently of SLY. See
+https://github.com/capitaomorte/sly-hello-world for how to write such
+contribs.
 
 ### Apropos
 

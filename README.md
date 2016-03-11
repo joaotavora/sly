@@ -13,7 +13,7 @@
 SLY is Sylvester the Cat's Common Lisp IDE for Emacs. See it in action in
 [this screencast][7].
 
-SLY is a direct fork of [SLIME][1], and contains the following improvements over
+SLY is a fork of [SLIME][1], and contains the following improvements over
 it:
 
 * Completely redesigned REPL based on Emacs's own full-featured `comint.el`
@@ -21,8 +21,9 @@ it:
 * Consistent interactive button interface. Everything can be copied to the REPL.
 * Multiple inspectors with independent history
 * Regexp-capable `M-x sly-apropos`
-* Contribs are first class SLY citizens and enabled by default
-* Use ASDF to loads contribs on demand, like [support for NAMED-READTABLES][11]
+* Contribs are first class SLY citizens, enabled by default, loaded with ASDF on
+  demand.
+* Support for [NAMED-READTABLES][11], [macrostep.el][12] and [quicklisp][13]
 
 SLY tracks SLIME's bugfixes and all its familar features (debugger, inspector,
 xref, etc...) are still available , but with better integration.
@@ -124,6 +125,8 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [9]: https://github.com/capitaomorte/sly/blob/master/CONTRIBUTING.md#architecture
 [10]: https://github.com/milkypostman/melpa
 [11]: https://github.com/capitaomorte/sly-named-readtables
+[12]: https://github.com/capitaomorte/sly-macrostep
+[13]: https://github.com/capitaomorte/sly-quicklisp
 [documentation]: http://capitaomorte.github.io/sly
 
 <!-- Local Variables: -->
