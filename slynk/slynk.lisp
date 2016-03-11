@@ -67,7 +67,8 @@
            #:y-or-n-p-in-emacs
            #:*find-definitions-right-trim*
            #:*find-definitions-left-trim*
-           #:*after-toggle-trace-hook*))
+           #:*after-toggle-trace-hook*
+           #:*format-integer-functions*))
 
 (in-package :slynk)
 
@@ -1959,14 +1960,30 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
                                     `(:abort ,(prin1-to-string condition)))
                                ,id)))))
 
+(defun format-integer-length (i) (format nil "~a bit~:p" (integer-length i)))
+(defun format-integer-as-hex (i) (format nil "#x~X" i))
+(defun format-integer-as-octal (i) (format nil "#o~O" i))
+(defun format-integer-as-binary (i) (format nil "#b~B" i))
+
+(defparameter *format-integer-functions*
+  '(format-integer-length format-integer-as-hex format-integer-as-octal format-integer-as-binary)
+  "List of functions used for echoing integer values.
+Each function takes a single integer argument and should return a
+string to be echoed to the SLY client. If nil is returned,
+that particular echo is disregarded.")
+
 (defun format-values-for-emacs (values)
   (with-buffer-syntax ()
     (let ((*print-readably* nil))
       (cond ((null values) "; No value")
             ((and (integerp (car values)) (null (cdr values)))
              (let ((i (car values)))
-               (format nil "~D (~a bit~:p, #x~X, #o~O, #b~B)"
-                       i (integer-length i) i i i)))
+               (format nil "~D (~{~a~^, ~})"
+                       i
+                       (remove nil
+                               (mapcar (lambda (fn) (or (ignore-errors (funcall fn i))
+                                                        "<error echoing>"))
+                                       *format-integer-functions*)))))
             ((and (typep (car values) 'ratio) (null (cdr values)))
              (ignore-errors
               ;; The ratio may be to large to be represented as a single float
@@ -1979,6 +1996,12 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
                          strings)
                    (format nil "~{~a~^~%~}" strings)
                    (format nil "~{~a~^, ~}" strings))))))))
+
+(defun format-for-emacs (value)
+  "Format VALUE in a way suitable to be displayed in the SLY client"
+  (if (numberp value)
+      (format-values-for-emacs (list value))
+      (to-line value)))
 
 (defmacro values-to-string (values)
   `(format-values-for-emacs (multiple-value-list ,values)))
@@ -4178,7 +4201,9 @@ Collisions are caused because package information is ignored."
                ;;
                #:*slynk-wire-protocol-version*
                ;;
-               #:*slynk-require-hook*)))
+               #:*slynk-require-hook*
+               ;;
+               #:format-for-emacs)))
     (loop for sym in api
           for slynk-api-sym = (intern (string sym) :slynk-api)
           for slynk-sym = (intern (string sym) :slynk)

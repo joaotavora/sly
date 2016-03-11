@@ -1,6 +1,13 @@
 Upcoming SLY 1.0.0-beta-3 (Somewhere 2016)
 -----------------------------------------
 
+### New variable *SLYNK:FORMAT-INTEGER-FUNCTIONS*
+
+Customize the formats that integer numbers get echoed back to SLY,
+additionally to the binary, octal and hex defaults. Good when working
+with Unix Epoch times, for example. See manual "Other configurables"
+for an example.
+
 SLY 1.0.0-beta-2 (March 2016)
 -----------------------------
 

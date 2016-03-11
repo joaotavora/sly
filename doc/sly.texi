@@ -1742,6 +1742,48 @@ the pretty printer for formatting backtraces in @SLY-DB{}, you can use:
 (push '(*print-pretty* . t) slynk:*sly-db-printer-bindings*).
 @end example
 
+@item SLYNK:*FORMAT-INTEGER-FUNCTIONS*
+This variable holds a list of functions used for echoing integer
+values to the SLY client.  Each function takes a single integer
+argument and should return a string to be echoed to the SLY client. If
+nil is returned, that particular echo is disregarded.
+
+The default value echoes every integer in its binary, hexadecimal and
+octal representation, but you can add more functions to it.
+
+If, for example, your application is using integers to represent
+@uref{https://en.wikipedia.org/wiki/Unix_time,,Unix Epoch Time} you
+can use this function to display a human-readable time
+whenever you evaluate an integer.
+
+@example
+(defconstant *day-names* '("Monday" "Tuesday" "Wednesday"
+                           "Thursday" "Friday" "Saturday"
+                           "Sunday"))
+
+(defun fancy-unix-epoch-time (integer)
+  (multiple-value-bind
+	(second minute hour date month year day-of-week dst-p tz)
+      (decode-universal-time (+ integer
+                                (encode-universal-time 0 0 0 1 1 1970 0)))
+    (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d/~2,'0d/~d (GMT~@d)"
+	      hour
+	      minute
+	      second
+	      (nth day-of-week *day-names*)
+	      month
+	      date
+	      year
+	      (- tz))))
+
+(pushnew 'fancy-unix-epoch-time
+         slynk:*format-integer-functions*)
+
+;;; 42 seconds after the Unix Epoch are represented like
+;;;
+42 ; => 42 (00:00:42 of Thursday, 1/01/1970 (GMT+0), 6 bits, #x2a, #o52, #b101010)
+@end example
+
 @item SLYNK:*LOG-EVENTS*
 Setting this variable to @code{t} causes all protocol messages
 exchanged with Emacs to be printed to @code{*TERMINAL-IO*}. This is

@@ -30,13 +30,13 @@
   (let ((values (values-of recording))
         (condition (condition-of recording)))
     (cond (condition
-           (format stream "exited non-locally with: ~a" (slynk::to-line condition)))
+           (format stream "exited non-locally with: ~a" (format-for-emacs condition)))
           ((eq values 'exited-non-locally)
            (format stream "exited non-locally"))
           ((listp values)
            (if (and print-first-value
                     values)
-               (format stream "~a" (slynk::to-line (car values)))
+               (format stream "~a" (format-for-emacs (car values)))
                (format stream "~a values" (length values))))
           (t
            (format stream "corrupt recording")))))
@@ -236,7 +236,8 @@ ID is a number. VALUE-DESCRIPTIONS is a list of
 strings. EXITED-NON-LOCALLY-P is an integer."
   (list (index-of recording)
         (and (listp (values-of recording))
-             (mapcar #'slynk::to-line (values-of recording)))
+             (loop for value in (values-of recording)
+                   collect (slynk-api:format-for-emacs value)))
         (exited-non-locally-p recording)))
 
 (defun describe-sticker-for-emacs (sticker &optional recording)
