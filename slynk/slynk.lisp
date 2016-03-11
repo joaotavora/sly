@@ -2980,66 +2980,6 @@ designator. Returns a list of all modules available."
         (disassemble (eval (read-from-string form)))))))
 
 
-;;;; Simple completion
-
-(defslyfun simple-completions (prefix package)
-  "Return a list of completions for the string PREFIX."
-  (let ((strings (all-completions prefix package)))
-    (list strings (longest-common-prefix strings))))
-
-(defun all-completions (prefix package)
-  (multiple-value-bind (name pname intern) (tokenize-symbol prefix)
-    (let* ((extern (and pname (not intern)))
-	   (pkg (cond ((equal pname "") keyword-package)
-                      ((not pname) (guess-buffer-package package))
-                      (t (guess-package pname))))
-	   (test (lambda (sym) (prefix-match-p name (symbol-name sym))))
-	   (syms (and pkg (matching-symbols pkg extern test)))
-           (strings (loop for sym in syms
-                          for str = (unparse-symbol sym)
-                          when (prefix-match-p name str) ; remove |Foo|
-                          collect str)))
-      (format-completion-set strings intern pname))))
-
-(defun matching-symbols (package external test)
-  (let ((test (if external
-		  (lambda (s)
-		    (and (symbol-external-p s package)
-			 (funcall test s)))
-		  test))
-	(result '()))
-    (do-symbols (s package)
-      (when (funcall test s)
-	(push s result)))
-    (remove-duplicates result)))
-
-(defun unparse-symbol (symbol)
-  (let ((*print-case* (case (readtable-case *readtable*)
-                        (:downcase :upcase)
-                        (t :downcase))))
-    (unparse-name (symbol-name symbol))))
-
-(defun prefix-match-p (prefix string)
-  "Return true if PREFIX is a prefix of STRING."
-  (not (mismatch prefix string :end2 (min (length string) (length prefix))
-                 :test #'char-equal)))
-
-(defun longest-common-prefix (strings)
-  "Return the longest string that is a common prefix of STRINGS."
-  (if (null strings)
-      ""
-      (flet ((common-prefix (s1 s2)
-               (let ((diff-pos (mismatch s1 s2)))
-                 (if diff-pos (subseq s1 0 diff-pos) s1))))
-        (reduce #'common-prefix strings))))
-
-(defun format-completion-set (strings internal-p package-name)
-  "Format a set of completion strings.
-Returns a list of completions with package qualifiers if needed."
-  (mapcar (lambda (string) (untokenize-symbol package-name internal-p string))
-          (sort strings #'string<)))
-
-
 ;;;; Simple arglist display
 
 (defslyfun operator-arglist (name package)
@@ -4246,7 +4186,20 @@ Collisions are caused because package information is ignored."
                #:*slynk-require-hook*
                ;;
                #:present-for-emacs
-               #:excluded-from-searches-p)))
+               ;; packages
+               ;;
+               #:cl-package
+               #:keyword-package
+               #:guess-package
+               #:guess-buffer-package
+               ;; symbols
+               ;;
+               #:tokenize-symbol
+               #:untokenize-symbol
+               #:symbol-external-p
+               #:unparse-name
+               #:excluded-from-searches-p
+               )))
     (loop for sym in api
           for slynk-api-sym = (intern (string sym) :slynk-api)
           for slynk-sym = (intern (string sym) :slynk)

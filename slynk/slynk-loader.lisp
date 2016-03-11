@@ -232,7 +232,7 @@ If LOAD is true, load the fasl file."
           (mapcar #'ensure-list files)))
 
 (defvar *slynk-files*
-  `(slynk-backend ,@*sysdep-files* #-armedbear slynk-gray slynk-match slynk-rpc slynk))
+  `(slynk-backend ,@*sysdep-files* #-armedbear slynk-gray slynk-match slynk-rpc slynk slynk-completion))
 
 (defun load-slynk (&key (src-dir *source-directory*)
                      (fasl-dir *fasl-directory*)

@@ -77,6 +77,7 @@
 
 (require 'sly-messages "lib/sly-messages")
 (require 'sly-buttons "lib/sly-buttons")
+(require 'sly-completion "lib/sly-completion")
 
 (require 'gv) ; for gv--defsetter
 
@@ -357,13 +358,6 @@ argument."
                    (and tags-table-list
                         (sly-etags-definitions name))))))
 
-(defcustom sly-complete-symbol-function 'sly-simple-complete-symbol
-  "*Function to perform symbol completion."
-  :group 'sly-mode
-  :type '(choice (const :tag "Simple" sly-simple-complete-symbol)
-                 (const :tag "Compound style" sly-c-p-c-complete-symbol)
-                 (const :tag "Fuzzy" sly-fuzzy-complete-symbol)))
-
 ;;;;; sly-mode-faces
 
 (defgroup sly-mode-faces nil
@@ -534,7 +528,7 @@ to some other key.
     ;; Include PREFIX keys...
     (define-key map (kbd "C-c")     sly-prefix-map)
     ;; Completion
-    (define-key map (kbd "C-c TAB") 'sly-complete-symbol)
+    (define-key map (kbd "C-c TAB") 'completion-at-point)
     ;; Evaluating
     (define-key map (kbd "C-c C-p") 'sly-pprint-eval-last-expression)
     ;; Macroexpand
@@ -3591,33 +3585,8 @@ For insertion in the `compilation-mode' buffer"
   label)
 
 
-;;;; Completion
-
-(defun sly-complete-symbol ()
-  "Complete the symbol at point.
-Sets `completion-at-point-functions' and calls `completion-at-point'."
-  (interactive)
-  (let ((completion-at-point-functions
-         (list sly-complete-symbol-function)))
-    (completion-at-point)))
-
-(defun sly-simple-complete-symbol ()
-  "Complete the symbol at point.
-Perform completion more similar to Emacs' complete-symbol."
-  (let* ((end (point))
-         (beg (sly-symbol-start-pos))
-         (prefix (and beg
-                      (buffer-substring-no-properties beg end)))
-         (result (and prefix
-                      (sly-simple-completions prefix))))
-    (when result
-      (list beg end (car result)))))
-
-(defun sly-simple-completions (prefix)
-  (let ((sly-current-thread t))
-    (sly-eval
-     `(slynk:simple-completions ,prefix ',(sly-current-package)))))
-
+;;;; Basic arglisting
+;;;;
 (defun sly-show-arglist ()
   (let ((op (ignore-errors
               (save-excursion
@@ -3629,87 +3598,6 @@ Perform completion more similar to Emacs' complete-symbol."
         (lambda (arglist)
           (when arglist
             (sly-message "%s" arglist)))))))
-
-(defun sly-indent-and-complete-symbol (arg)
-  "Indent the current line and perform symbol completion.
-First indent the line. If indenting doesn't move point, complete
-the symbol. If there's no symbol at the point, show the arglist
-for the most recently enclosed macro or function."
-  (interactive "P")
-  (let ((pos (point)))
-    (indent-for-tab-command arg)
-    (when (= pos (point))
-      (cond ((save-excursion (re-search-backward "[^() \n\t\r]+\\=" nil t))
-             (sly-complete-symbol))
-            ((memq (char-before) '(?\t ?\ ))
-             (sly-show-arglist))))))
-
-(defun sly-minibuffer-respecting-message (format &rest format-args)
-  "Display TEXT as a message, without hiding any minibuffer contents."
-  (let ((text (format " [%s]" (apply #'format format format-args))))
-    (if (minibuffer-window-active-p (minibuffer-window))
-        (minibuffer-message text)
-      (message "%s" text))))
-
-
-;;;; Minibuffer reading
-
-(defvar sly-minibuffer-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map minibuffer-local-map)
-    (define-key map "\t" 'sly-complete-symbol)
-    map)
-  "Minibuffer keymap used for reading CL expressions.")
-
-(defvar sly-minibuffer-read-symbol-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map sly-minibuffer-map)
-    (define-key map "\s" 'sly-complete-symbol)
-    map)
-  "Minibuffer keymap used for reading CL smbols")
-
-(defvar sly-minibuffer-history '()
-  "History list of expressions read from the minibuffer.")
-
-(defun sly-minibuffer-setup-hook ()
-  (cons (let ((package (sly-current-package))
-                      (connection (sly-connection)))
-          (lambda ()
-            (setq sly-buffer-package package)
-            (setq sly-buffer-connection connection)
-            (set-syntax-table lisp-mode-syntax-table)))
-        minibuffer-setup-hook))
-
-(defun sly-read-from-minibuffer (prompt &optional initial-value history allow-empty keymap)
-  "Read a string from the minibuffer, prompting with PROMPT.
-If INITIAL-VALUE is non-nil, it is inserted into the minibuffer
-before reading input.  The result is a string (\"\" if no input
-was given and ALLOW-EMPTY is non-nil)."
-  (let ((minibuffer-setup-hook (sly-minibuffer-setup-hook)))
-    (cl-loop
-     for i from 0
-     for read = (read-from-minibuffer
-                 (concat "[sly] " (when (cl-plusp i)
-                                    "[can't be blank] ")
-                         prompt)
-                 (and (zerop i)
-                      initial-value)
-                 (or keymap sly-minibuffer-map)
-                 nil (or history 'sly-minibuffer-history))
-     when (or (> (length read) 0)
-              allow-empty)
-     return read)))
-
-(defun sly-read-symbol-name (prompt &optional query)
-  "Either read a symbol name or choose the one at point.
-The user is prompted if a prefix argument is in effect, if there is no
-symbol at point, or if QUERY is non-nil."
-  (cond ((or current-prefix-arg query (not (sly-symbol-at-point)))
-         (sly-read-from-minibuffer prompt (sly-symbol-at-point)
-                                   nil
-                                   nil
-                                   sly-minibuffer-read-symbol-map))
-        (t (sly-symbol-at-point))))
 
 
 ;;;; Edit definition

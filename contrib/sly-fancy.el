@@ -9,7 +9,6 @@
                      sly-autodoc
                      sly-fancy-inspector
                      sly-fancy-trace
-                     sly-fuzzy
                      sly-scratch
                      sly-package-fu
                      sly-fontifying-fu

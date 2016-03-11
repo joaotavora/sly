@@ -58,7 +58,8 @@
    (:file "slynk-gray")
    (:file "slynk-match")
    (:file "slynk-rpc")
-   (:file "slynk")))
+   (:file "slynk")
+   (:file "slynk-completion")))
 
 (defsystem :slynk-util
   :components ((:file "slynk-util")))
@@ -79,14 +80,6 @@
 (defsystem :slynk-arglists
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-arglists")))
-
-(defsystem :slynk-c-p-c
-  :depends-on (:slynk :slynk-util)
-  :components ((:file "../contrib/slynk-c-p-c")))
-
-(defsystem :slynk-fuzzy
-  :depends-on (:slynk :slynk-util)
-  :components ((:file "../contrib/slynk-fuzzy")))
 
 (defsystem :slynk-fancy-inspector
   :depends-on (:slynk :slynk-util)

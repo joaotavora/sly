@@ -9,9 +9,6 @@
 
 (in-package :slynk)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (slynk-require :slynk-c-p-c))
-
 ;;;; Utilities
 
 (defun compose (&rest functions)
@@ -1214,33 +1211,6 @@ Second, a boolean value telling whether the returned string can be cached."
                             (remove-if #'empty-arg-p provided-args
                                        :from-end t :count 1))
          :prefix "" :suffix "")))))
-
-(defslyfun completions-for-keyword (keyword-string raw-form)
-  "Return a list of possible completions for KEYWORD-STRING relative
-to the context provided by RAW-FORM."
-  (with-buffer-syntax ()
-    (let ((arglist (find-immediately-containing-arglist
-                    (parse-raw-form raw-form))))
-      (when (arglist-available-p arglist)
-        ;; It would be possible to complete keywords only if we are in
-        ;; a keyword position, but it is not clear if we want that.
-        (let* ((keywords
-                (append (mapcar #'keyword-arg.keyword
-                                (arglist.keyword-args arglist))
-                        (remove-if-not #'keywordp (arglist.any-args arglist))))
-               (keyword-name
-                (tokenize-symbol keyword-string))
-               (matching-keywords
-                (find-matching-symbols-in-list
-                 keyword-name keywords (make-compound-prefix-matcher #\-)))
-               (converter (completion-output-symbol-converter keyword-string))
-               (strings
-                (mapcar converter
-                        (mapcar #'symbol-name matching-keywords)))
-               (completion-set
-                (format-completion-set strings nil "")))
-          (list completion-set
-                (longest-compound-prefix completion-set)))))))
 
 (defparameter +cursor-marker+ '%cursor-marker%)
 

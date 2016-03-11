@@ -1572,8 +1572,8 @@ on. It can however cause information to spill off the screen.
 @anchor{sly-complete-symbol-function}
 @item sly-complete-symbol-function
 The function to use for completion of Lisp symbols. Two completion
-styles are available: @code{sly-simple-complete-symbol}
-and @code{sly-fuzzy-complete-symbol} (@pxref{Fuzzy Completion}).
+styles are available: @code{sly-simple-completions}
+and @code{sly-flex-completions} (@pxref{Completion}).
 
 @item sly-filename-translations
 This variable controls filename translation between Emacs and the Lisp
@@ -2001,93 +2001,12 @@ chapter tells you how to load contrib modules and describes what the
 particular packages do.
 
 @menu
-* Fuzzy Completion::
 * SLY Stickers::
 * SLY Trace Dialog::
 * TRAMP Support::
 * Scratch Buffer::
 * Loading Contribs::
 @end menu
-
-@node Fuzzy Completion
-@section Fuzzy Completion
-
-The package @code{sly-fuzzy} implements yet another symbol
-completion heuristic.
-
-@table @kbd
-@anchor{sly-fuzzy-complete-symbol}
-@kbditem{C-c M-i, sly-fuzzy-complete-symbol}
-Presents a list of likely completions to choose from for an
-abbreviation at point.  If you set the
-variable @code{sly-complete-symbol-function} to this command, fuzzy
-completion will also be used for @kbd{M-TAB}.
-@end table
-
-@subsection The Algorithm
-
-It attempts to complete a symbol all at once, instead of in pieces.
-For example, ``mvb'' will find ``@code{multiple-value-bind}'' and
-``norm-df'' will find
-``@code{least-positive-normalized-double-float}''.
-
-The algorithm tries to expand every character in various ways and
-rates the list of possible completions with the following heuristic.
-
-Letters are given scores based on their position in the string.
-Letters at the beginning of a string or after a prefix letter at
-the beginning of a string are scored highest.  Letters after a
-word separator such as #\- are scored next highest.  Letters at
-the end of a string or before a suffix letter at the end of a
-string are scored medium, and letters anywhere else are scored
-low.
-
-If a letter is directly after another matched letter, and its
-intrinsic value in that position is less than a percentage of the
-previous letter's value, it will use that percentage instead.
-
-Finally, a small scaling factor is applied to favor shorter
-matches, all other things being equal.
-
-@subsection Duplicate symbols
-
-In case a symbol is accessible via several packages, duplicate symbol
-filter specified via @code{*fuzzy-duplicate-symbol-filter*} swank
-variable is applied. @code{:nearest-package} value specifies that only
-symbols in the package with highest score should be kept. 
-@code{:home-package} specifies that only the match that represents the home
-package of the symbol is used, and @code{:all} value specifies that
-duplicate symbol filter mode should be turned off.
-
-To specify a custom filter, set @code{*fuzzy-duplicate-symbol-filter*}
-to a function accepting three arguments: the name of package being
-examined, the list of names of all packages being examined with
-packages with highest matching score listed first and an @code{equal}
-hash-table that is shared between calls to the function and can be
-used for deduplication purposes. The function should return a
-deduplication filter function which accepts a symbol and returns true
-if the symbol should be kept.
-
-For example, the effect of @code{:nearest-package} can be also achieved
-by specifying the following custom filter in @file{~/.swank.lisp}:
-@example
-(setf *fuzzy-duplicate-symbol-filter*
-      #'(lambda (cur-package all-packages dedup-table)
-          (declare (ignore cur-package all-packages))
-          #'(lambda (symbol)
-              (unless (gethash (symbol-name symbol) dedup-table)
-                (setf (gethash (symbol-name symbol) dedup-table) t)))))
-@end example
-And instead of @code{:home-package}, the following can be used:
-@example
-(setf *fuzzy-duplicate-symbol-filter*
-      #'(lambda (cur-package all-packages dedup-table)
-          (declare (ignore dedup-table))
-          (let ((packages (mapcar #'find-package
-                                  (remove cur-package all-packages))))
-            #'(lambda (symbol)
-                (not (member (symbol-package symbol) packages))))))
-@end example
 
 @node SLY Stickers
 @section SLY Stickers

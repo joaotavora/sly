@@ -85,7 +85,7 @@ for output printed to the REPL (not for evaluation results)")
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET")     'sly-mrepl-return)
     (define-key map [return]        'sly-mrepl-return)
-    (define-key map (kbd "TAB")     'sly-indent-and-complete-symbol)
+    (define-key map (kbd "TAB")     'sly-mrepl-indent-and-complete-symbol)
     (define-key map (kbd "C-c C-b") 'sly-interrupt)
     (define-key map (kbd "C-c C-c") 'sly-interrupt)
     (define-key map (kbd "M-p")     'sly-mrepl-previous-input-or-button)
@@ -799,6 +799,20 @@ history entry navigated to."
 
 ;;; Interactive commands
 ;;;
+(defun sly-mrepl-indent-and-complete-symbol (arg)
+  "Indent the current line, perform symbol completion or show arglist.
+Completion performed by `completion-at-point'.  If there's no
+symbol at the point, show the arglist for the most recently
+enclosed macro or function."
+  (interactive "P")
+  (let ((pos (point)))
+    (indent-for-tab-command arg)
+    (when (= pos (point))
+      (cond ((save-excursion (re-search-backward "[^() \n\t\r]+\\=" nil t))
+             (completion-at-point))
+            ((memq (char-before) '(?\t ?\ ))
+             (sly-show-arglist))))))
+
 (defun sly-mrepl-return (&optional end-of-input)
   "If the input is a whole expression, evaluate it and return the result."
   (interactive "P")
@@ -1249,7 +1263,7 @@ a list of result buttons thus highlighted"
   "Menu for SLY's MREPL"
   (let* ((C '(sly-connected-p)))
     `("SLY-mREPL"
-      [ " Complete symbol at point " sly-indent-and-complete-symbol ,C ]
+      [ " Complete symbol at point " sly-mrepl-indent-and-complete-symbol ,C ]
       [ " Interrupt " sly-interrupt ,C ]
       [ " Isearch history backward " isearch-backward ,C]
       "----"
