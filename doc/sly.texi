@@ -610,18 +610,40 @@ so wish (@pxref{Extensions})
 @cindex Symbol Completion
 
 Completion commands are used to complete a symbol or form based on
-what is already present at point. Classical completion assumes an
-exact prefix and gives choices only where branches may occur. Fuzzy
-completion tries harder.
+what is already present at point. Emacs has many completion mechanisms
+that @SLY{} tries to mimic as much as possible.
+
+SLY provides two styles of completion. The choice between them happens
+in the Emacs customization variable
+@pxref{sly-complete-symbol-function}, which can be set to two values.
+
+@enumerate
+@item @code{sly-flex-completions}
+Use ``flex'' (also sometimes known as ``scatter'' or ``fuzzy'')
+completion on a pattern. This method tries hard to search all
+available symbols, including symbols not accessible from the current
+package, and present them to the user in a list sorted according to
+the probable usefulness of the symbol in that context.
+
+@item @code{sly-simple-completions}
+Use ``classical'' completion on a prefix. This method is simpler and
+more predictable. It's closer to the default Emacs completion method
+@end enumerate
+
+As an enhancement in @SLY{} over Emacs' built-in completion styles,
+when the @code{*sly-completions*} buffer pops up, the following
+keybindings are active momentarily, until the user selects a
+completion or gives up:
 
 @table @kbd
-@kbditem{M-TAB,sly-complete-symbol}
-@c @itemx ESC TAB
-@c @itemx C-M-i
-Complete the symbol at point. Note that three styles of completion are
-available in @SLY{}; the default is similar to normal Emacs
-completion (@pxref{sly-complete-symbol-function}).
+@kbditem{C-n, sly-next-completion}
+Select the next completion.
 
+@kbditem{C-p, sly-previous-completion}
+Select the previous completion.
+
+@kbditem{tab, RET, sly-choose-completion}
+Choose the currently selected completion and enter it at point.
 @end table
 
 @node Semantic indentation
@@ -1798,6 +1820,13 @@ whenever you evaluate an integer.
 42 ; => 42 (6 bits, #x2A, #o52, #b101010)
 1451404675 ; => 1451404675 (15:57:55 on Tuesday, 12/29/2015 (GMT+0), 31 bits, #x5682AD83)
 @end example
+
+@item SLYNK:*EXCLUDE-SYMBOL-FUNCTIONS*
+This variable holds a list of functions used for excluding certain
+symbols from functionality like \"apropos\"" listings (see
+@pxref{Documentation}) or @pxref{Completion} listings. By default, it
+contains a single function that excludes symbols with names so long
+and contorted they wouldn't fit properly in the completions window.
 
 @item SLYNK:*LOG-EVENTS*
 Setting this variable to @code{t} causes all protocol messages
