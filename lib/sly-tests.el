@@ -562,6 +562,23 @@ confronted with nasty #.-fu."
   (let ((completions (sly-simple-completions prefix)))
     (sly-test-expect "Completion set" expected-completions completions)))
 
+(def-sly-test flex-complete-symbol
+    (prefix expectations)
+    "Find the flex completions of a symbol-name prefix."
+    '(("m-v-b" (("multiple-value-bind" 1)))
+      ("mvbind" (("multiple-value-bind" 1)))
+      ("mvcall" (("multiple-value-call" 1)))
+      ("mvlist" (("multiple-value-list" 10)))
+      ("echonumberlist" (("slynk:*echo-number-alist*" 1))))
+  (let ((completions (car (sly-flex-completions prefix))))
+    (cl-loop for (completion before-or-at) in expectations
+             for pos = (cl-position completion completions :test #'string=)
+             unless pos
+             do (ert-fail (format "Didn't find %s in the completions for %s" completion prefix))
+             unless (< pos before-or-at)
+             do (ert-fail (format "Expected to find %s in the first %s completions for %s, but it came in %s"
+                                  completion before-or-at prefix (1+ pos))))))
+
 (def-sly-test read-from-minibuffer
   (input-keys expected-result)
   "Test `sly-read-from-minibuffer' with INPUT-KEYS as events."

@@ -1,13 +1,14 @@
 (require 'sly-mrepl)
 (require 'sly-tests "lib/sly-tests")
 (require 'cl-lib)
+(require 'ert-x)
 
 
 (cl-defun sly-mrepl-tests--assert-prompt (&optional (prompt "CL-USER>"))
   (let ((proper-prompt-p nil))
     (cl-loop 
      repeat 5
-     when (looking-back (format "%s $" prompt))
+     when (looking-back (format "%s $" prompt) (- (point) 100))
      do (setq proper-prompt-p t)
      (cl-return)
      do (sit-for 0.3))
@@ -46,6 +47,9 @@
        (unless sly-mrepl-tests--debug
          (kill-buffer (current-buffer))))))
 
+(defun sly-mrepl-tests--current-input-string ()
+  (buffer-substring-no-properties (sly-mrepl--mark) (point-max)))
+
 (define-sly-ert-test basic-repl-setup ()
   (sly-mrepl-tests--with-basic-repl-setup))
 
@@ -60,5 +64,30 @@
     (call-interactively 'sly-button-backward))
    (call-interactively 'sly-button-forward)))
 
+(define-sly-ert-test repl-completion-pop-up-window ()
+  (sly-mrepl-tests--with-basic-repl-setup
+   (insert "(setq echonumberli)")
+   (backward-char 1)
+   (ert-simulate-command '(completion-at-point))
+   (should (get-buffer-window "*sly-completions*"))))
+
+(define-sly-ert-test repl-completion-choose-candidates ()
+  (sly-mrepl-tests--with-basic-repl-setup
+   (insert "'(mvbind)")
+   (backward-char 1)
+   (ert-simulate-command '(completion-at-point))
+   (should (get-buffer-window "*sly-completions*"))
+   (ert-simulate-command '(sly-choose-completion))
+   (should (string= "'(multiple-value-bind)"
+                    (sly-mrepl-tests--current-input-string)))
+   (backward-sexp) (kill-sexp) (insert "mvbind")
+   (ert-simulate-command '(completion-at-point))
+   (ert-simulate-command '(sly-next-completion 1))
+   (ert-simulate-command '(sly-choose-completion))
+   ;; FIXME this part is very brittle since I don't know if I
+   ;; shouldn't be filtering this duplicate
+   ;; 
+   (should (string= "'(cl:multiple-value-bind)"
+                    (sly-mrepl-tests--current-input-string)))))
 
 (provide 'sly-mrepl-tests)
