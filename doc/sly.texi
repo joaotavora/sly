@@ -1742,14 +1742,15 @@ the pretty printer for formatting backtraces in @SLY-DB{}, you can use:
 (push '(*print-pretty* . t) slynk:*sly-db-printer-bindings*).
 @end example
 
-@item SLYNK:*PRESENT-NUMBER-ALIST*
+@item SLYNK:*ECHO-NUMBER-ALIST*
+@itemx SLYNK:*PRESENT-NUMBER-ALIST*
 These variables hold function designators used for displaying numbers
 in certain contexts of SLY client.
 
 The difference between the two is that @code{*PRESENT-NUMBER-ALIST*}
 overrides @code{*ECHO-NUMBER-ALIST*} for the @pxref{REPL}, @pxref{SLY
 Trace Dialog} and @pxref{SLY Stickers} context, while the latter is
-always used for @pxref{Evaluation} commands like @kbditem{C-x C-e}
+always used for @pxref{Evaluation} commands like @kbd{C-x C-e}
 
 Both variables have the same structure: each element in the alist
 takes the form (TYPE . FUNCTIONS), where TYPE is a type designator and
@@ -1776,26 +1777,26 @@ whenever you evaluate an integer.
                             "Sunday"))
 
 (defun fancy-unix-epoch-time (integer)
-  (multiple-value-bind
-	(second minute hour date month year day-of-week dst-p tz)
-      (decode-universal-time (+ integer
-                                (encode-universal-time 0 0 0 1 1 1970 0)))
-    (format nil "~2,'0d:~2,'0d:~2,'0d of ~a, ~d/~2,'0d/~d (GMT~@d)"
-	      hour
-	      minute
-	      second
-	      (nth day-of-week *day-names*)
-	      month
-	      date
-	      year
-	      (- tz))))
+  "Format INTEGER as a Unix Epoch Time if within 10 years from now."
+  (let ((now (get-universal-time))
+        (tenyears (encode-universal-time 0 0 0 1 1 1910 0))
+        (unix-to-universal
+          (+ integer
+             (encode-universal-time 0 0 0 1 1 1970 0))))
+    (when (< (- now tenyears) unix-to-universal (+ now tenyears))
+      (multiple-value-bind
+            (second minute hour date month year day-of-week dst-p tz)
+          (decode-universal-time unix-to-universal)
+        (declare (ignore dst-p))
+        (format nil "~2,'0d:~2,'0d:~2,'0d on ~a, ~d/~2,'0d/~d (GMT~@@d)"
+                hour minute second (nth day-of-week *day-names*)
+                month date year (- tz))))))
 
 (pushnew 'fancy-unix-epoch-time
-         slynk:*format-integer-functions*)
+         (cdr (assoc 'integer slynk:*echo-number-alist*)))
 
-;;; 42 seconds after the Unix Epoch are represented like
-;;;
-42 ; => 42 (00:00:42 of Thursday, 1/01/1970 (GMT+0), 6 bits, #x2a, #o52, #b101010)
+42 ; => 42 (6 bits, #x2A, #o52, #b101010)
+1451404675 ; => 1451404675 (15:57:55 on Tuesday, 12/29/2015 (GMT+0), 31 bits, #x5682AD83)
 @end example
 
 @item SLYNK:*LOG-EVENTS*
