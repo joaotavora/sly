@@ -4081,7 +4081,14 @@ inserted in the current buffer."
     (lambda (result)
       (cl-destructuring-bind (output value) result
         (push-mark)
-        (insert output value)))))
+        (let* ((start (point))
+               (ppss (syntax-ppss))
+               (string-or-comment-p (or (nth 3 ppss) (nth 4 ppss))))
+          (insert output (if string-or-comment-p
+                             ""
+                           " => ") value)
+          (unless string-or-comment-p
+            (comment-region start (point) 1)))))))
 
 (defun sly-eval-save (string)
   "Evaluate STRING in Lisp and save the result in the kill ring."
