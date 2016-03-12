@@ -26,7 +26,8 @@
            ;;#:inspect-slot-for-emacs
            #:authenticate-client
            #:*loopback-interface*
-           #:*buffer-readtable*)
+           #:*buffer-readtable*
+           #:*exclude-symbol-functions*)
   ;; These are user-configurable variables:
   (:export #:*communication-style*
            #:*dont-close*
@@ -875,6 +876,18 @@ about internal symbols most times. As the spec says:
   "True if SYMBOL is external in PACKAGE.
 If PACKAGE is not specified, the home package of SYMBOL is used."
   (eq (symbol-status symbol package) :external))
+
+(defun baroque-symbol-name-p (symbol)
+  (or (> (length (symbol-name symbol)) 60)))
+
+(defparameter *exclude-symbol-functions*
+  '(baroque-symbol-name-p)
+  "Functions excluding symbols from completion.
+Holds a list of boolean predicates of a single argument, a symbol")
+
+(defun excluded-from-searches-p (symbol)
+  "Tell if SYMBOL should be excluded from \"apropos\" or completion."
+  (some (lambda (fn) (funcall fn symbol)) *exclude-symbol-functions*))
 
 
 ;;;; TCP Server
@@ -3185,7 +3198,8 @@ MAKE-APROPOS-MATCHER interface has been implemented.")
     (with-package-iterator (next packages :external :internal)
       (loop for (morep symbol) = (multiple-value-list (next))
             while morep
-            for (match end) = (and (or (not external-only)
+            for (match end) = (and (not (excluded-from-searches-p symbol))
+                                   (or (not external-only)
                                        (symbol-external-p symbol))
                                    (symbol-package symbol)
                                    (multiple-value-list (funcall matcher symbol)))
@@ -4231,7 +4245,8 @@ Collisions are caused because package information is ignored."
                ;;
                #:*slynk-require-hook*
                ;;
-               #:present-for-emacs)))
+               #:present-for-emacs
+               #:excluded-from-searches-p)))
     (loop for sym in api
           for slynk-api-sym = (intern (string sym) :slynk-api)
           for slynk-sym = (intern (string sym) :slynk)
