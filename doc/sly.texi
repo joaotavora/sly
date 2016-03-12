@@ -1742,24 +1742,38 @@ the pretty printer for formatting backtraces in @SLY-DB{}, you can use:
 (push '(*print-pretty* . t) slynk:*sly-db-printer-bindings*).
 @end example
 
-@item SLYNK:*FORMAT-INTEGER-FUNCTIONS*
-This variable holds a list of functions used for echoing integer
-values to the SLY client.  Each function takes a single integer
-argument and should return a string to be echoed to the SLY client. If
-nil is returned, that particular echo is disregarded.
+@item SLYNK:*PRESENT-NUMBER-ALIST*
+These variables hold function designators used for displaying numbers
+in certain contexts of SLY client.
 
-The default value echoes every integer in its binary, hexadecimal and
-octal representation, but you can add more functions to it.
+The difference between the two is that @code{*PRESENT-NUMBER-ALIST*}
+overrides @code{*ECHO-NUMBER-ALIST*} for the @pxref{REPL}, @pxref{SLY
+Trace Dialog} and @pxref{SLY Stickers} context, while the latter is
+always used for @pxref{Evaluation} commands like @kbditem{C-x C-e}
 
-If, for example, your application is using integers to represent
-@uref{https://en.wikipedia.org/wiki/Unix_time,,Unix Epoch Time} you
+Both variables have the same structure: each element in the alist
+takes the form (TYPE . FUNCTIONS), where TYPE is a type designator and
+FUNCTIONS is a list of function designators for displaying that number
+in SLY. Each function takes the number as a single argument and
+returns a string, or nil, if that particular representation is to be
+disregarded.
+
+Additionally if a given function chooses to return @code{t} as its
+optional second value, then all the remaining functions following it
+in the list are disregarded.
+
+For integer numbers, the default value of this variable holds function
+designators that echo an integer number in its binary, hexadecimal and
+octal representation. However, if your application is using integers
+to represent
+@uref{https://en.wikipedia.org/wiki/Unix_time,,Unix Epoch Times} you
 can use this function to display a human-readable time
 whenever you evaluate an integer.
 
 @example
-(defconstant *day-names* '("Monday" "Tuesday" "Wednesday"
-                           "Thursday" "Friday" "Saturday"
-                           "Sunday"))
+(defparameter *day-names* '("Monday" "Tuesday" "Wednesday"
+                            "Thursday" "Friday" "Saturday"
+                            "Sunday"))
 
 (defun fancy-unix-epoch-time (integer)
   (multiple-value-bind

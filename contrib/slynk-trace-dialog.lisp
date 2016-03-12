@@ -116,10 +116,10 @@ program.")
     ,(spec-of trace)
     ,(loop for arg in (args-of trace)
            for i from 0
-           collect (list i (format-for-emacs arg)))
+           collect (list i (present-for-emacs arg)))
     ,(loop for retval in (slynk::ensure-list (retlist-of trace))
            for i from 0
-           collect (list i (format-for-emacs retval)))))
+           collect (list i (present-for-emacs retval)))))
 
 
 ;;;; slyfuns

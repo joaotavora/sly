@@ -157,7 +157,7 @@ Set this to NIL to turn this feature off.")
   (loop for value in objects
         collect (list (slynk::without-printing-errors
                           (:object value :stream nil)
-                        (prin1-to-string value))
+                        (present-for-emacs value #'prin1-to-string))
                       (1- (length *history*)))))
 
 (defun mrepl-eval (repl string)

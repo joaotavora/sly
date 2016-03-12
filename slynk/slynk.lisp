@@ -26,7 +26,6 @@
            ;;#:inspect-slot-for-emacs
            #:authenticate-client
            #:*loopback-interface*
-           #:to-line
            #:*buffer-readtable*)
   ;; These are user-configurable variables:
   (:export #:*communication-style*
@@ -68,7 +67,8 @@
            #:*find-definitions-right-trim*
            #:*find-definitions-left-trim*
            #:*after-toggle-trace-hook*
-           #:*format-integer-functions*))
+           #:*echo-number-alist*
+           #:*present-number-alist*))
 
 (in-package :slynk)
 
@@ -1961,57 +1961,85 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
                                ,id)))))
 
 (defun format-integer-length (i) (format nil "~a bit~:p" (integer-length i)))
-(defun format-integer-as-hex (i) (format nil "#x~X" i))
-(defun format-integer-as-octal (i) (format nil "#o~O" i))
-(defun format-integer-as-binary (i) (format nil "#b~B" i))
+(defun format-integer-as-hex (i)
+  (unless (or (minusp i) (> (integer-length i) 64)) (format nil "#x~X" i)))
+(defun format-integer-as-octal (i)
+  (unless (or (minusp i) (> (integer-length i) 8)) (format nil "#o~O" i)))
+(defun format-integer-as-binary (i) -128
+  (unless (or (minusp i) (> (integer-length i) 8)) (format nil "#b~B" i)))
+(defun format-ratio-as-float (r) (ignore-errors (format nil "~f" r)))
+(defun format-as-percentage-maybe (f) (when (< 0 (abs f) 2) (format nil "~2,'0d%" (* f 100))))
 
-(defparameter *format-integer-functions*
-  '(format-integer-length format-integer-as-hex format-integer-as-octal format-integer-as-binary)
-  "List of functions used for echoing integer values.
-Each function takes a single integer argument and should return a
-string to be echoed to the SLY client. If nil is returned,
-that particular echo is disregarded.")
+(defparameter *echo-number-alist*
+  '((integer . (format-integer-length format-integer-as-hex format-integer-as-octal format-integer-as-binary))
+    (ratio . (format-ratio-as-float format-as-percentage-maybe))
+    (float . (format-as-percentage-maybe)))
+  "Alist of functions used for presenting numbers in the echo area.
 
-(defun format-values-for-emacs (values)
-  (with-buffer-syntax ()
-    (let ((*print-readably* nil))
-      (cond ((null values) "; No value")
-            ((and (integerp (car values)) (null (cdr values)))
-             (let ((i (car values)))
-               (format nil "~D (~{~a~^, ~})"
-                       i
-                       (remove nil
-                               (mapcar (lambda (fn) (or (ignore-errors (funcall fn i))
-                                                        "<error echoing>"))
-                                       *format-integer-functions*)))))
-            ((and (typep (car values) 'ratio) (null (cdr values)))
-             (ignore-errors
-              ;; The ratio may be to large to be represented as a single float
-              (format nil "~D (~:*~f)" 
-                      (car values))))
-            (t
-             (let ((strings (loop for v in values
-                                  collect (format nil "~S" v))))
-               (if (some #'(lambda (s) (find #\Newline s))
-                         strings)
-                   (format nil "~{~a~^~%~}" strings)
-                   (format nil "~{~a~^, ~}" strings))))))))
+Each element takes the form (TYPE . FUNCTIONS), where TYPE is a type
+designator and FUNCTIONS is a list of function designators for
+displaying that number in SLY. Each function takes the number as a
+single argument and returns a string, or nil, if that particular
+representation is to be disregarded.
 
-(defun format-for-emacs (value)
-  "Format VALUE in a way suitable to be displayed in the SLY client"
+Additionally if a given function chooses to return t as its optional
+second value, then all the remaining functions following it in the
+list are disregarded.")
+
+(defparameter *present-number-alist* nil
+  "Alist of functions used for presenting numbers the REPL.
+
+This is an \"override\". If nil the (the alist is empty) the value of
+*ECHO-NUMBER-ALIST* is used, otherwise the structure is exactly the
+same as that variable.")
+
+(defun present-number-considering-alist (number alist)
+  (let* ((functions (cdr (assoc number alist :test #'typep)))
+         (extra-presentations
+           (loop for fn in functions
+                 for (display skip)
+                   = (multiple-value-list
+                      (handler-case
+                          (funcall fn number)
+                        (error (e)
+                          (declare (ignore e))
+                          "<error echoing>")))
+                 when display collect it
+                   until skip)))
+    (if extra-presentations
+        (format nil "~D (~{~a~^, ~})"
+                number extra-presentations)
+        (format nil "~D" number))))
+
+(defun echo-for-emacs (values)
+  "Format VALUES in a way suitable to be echoed in the SLY client"
+  (let ((*print-readably* nil))
+    (cond ((null values) "; No value")
+          ((and (numberp (car values))
+                (null (cdr values)))
+           (present-number-considering-alist (car values) *echo-number-alist*))
+          (t
+           (let ((strings (loop for v in values
+                                collect (format nil "~S" v))))
+             (if (some #'(lambda (s) (find #\Newline s))
+                       strings)
+                 (format nil "~{~a~^~%~}" strings)
+                 (format nil "~{~a~^, ~}" strings)))))))
+
+(defun present-for-emacs (value &optional (fn #'to-line))
+  "Format VALUE in a way suitable to be displayed in the SLY client.
+FN is only used if value is not a number"
   (if (numberp value)
-      (format-values-for-emacs (list value))
-      (to-line value)))
-
-(defmacro values-to-string (values)
-  `(format-values-for-emacs (multiple-value-list ,values)))
+      (present-number-considering-alist value (or *present-number-alist*
+                                                  *echo-number-alist*))
+      (funcall fn value)))
 
 (defslyfun interactive-eval (string)
   (with-buffer-syntax ()
     (with-retry-restart (:msg "Retry SLY interactive evaluation request.")
       (let ((values (multiple-value-list (eval (from-string string)))))
         (finish-output)
-        (format-values-for-emacs values)))))
+        (echo-for-emacs values)))))
 
 (defslyfun eval-and-grab-output (string)
   (with-buffer-syntax ()
@@ -2020,7 +2048,7 @@ that particular echo is disregarded.")
              (*standard-output* s)
              (values (multiple-value-list (eval (from-string string)))))
         (list (get-output-stream-string s)
-              (format nil "~{~S~^~%~}" values))))))
+              (echo-for-emacs values))))))
 
 (defun eval-region (string)
   "Evaluate STRING.
@@ -2040,7 +2068,7 @@ last form."
 (defslyfun interactive-eval-region (string)
   (with-buffer-syntax ()
     (with-retry-restart (:msg "Retry SLY interactive evaluation request.")
-      (format-values-for-emacs (eval-region string)))))
+      (echo-for-emacs (eval-region string)))))
 
 (defslyfun re-evaluate-defvar (form)
   (with-buffer-syntax ()
@@ -2604,7 +2632,7 @@ has changed, ignore the request."
       (funcall print values))))
 
 (defslyfun eval-string-in-frame (string frame package)
-  (eval-in-frame-aux frame string package #'format-values-for-emacs))
+  (eval-in-frame-aux frame string package #'echo-for-emacs))
 
 (defslyfun pprint-eval-string-in-frame (string frame package)
   (eval-in-frame-aux frame string package #'slynk-pprint))
@@ -4203,7 +4231,7 @@ Collisions are caused because package information is ignored."
                ;;
                #:*slynk-require-hook*
                ;;
-               #:format-for-emacs)))
+               #:present-for-emacs)))
     (loop for sym in api
           for slynk-api-sym = (intern (string sym) :slynk-api)
           for slynk-sym = (intern (string sym) :slynk)
@@ -4230,3 +4258,7 @@ Collisions are caused because package information is ignored."
     (pushnew :slynk *features*))
   (load-user-init-file)
   (run-hook *after-init-hook*))
+
+;; Local Variables:
+;; sly-load-failed-fasl: ask
+;; End:
