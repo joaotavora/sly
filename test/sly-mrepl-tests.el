@@ -64,30 +64,31 @@
     (call-interactively 'sly-button-backward))
    (call-interactively 'sly-button-forward)))
 
-(define-sly-ert-test repl-completion-pop-up-window ()
-  (sly-mrepl-tests--with-basic-repl-setup
-   (insert "(setq echonumberli)")
-   (backward-char 1)
-   (ert-simulate-command '(completion-at-point))
-   (should (get-buffer-window "*sly-completions*"))))
+(when (>= emacs-major-version 25)
+  (define-sly-ert-test repl-completion-pop-up-window ()
+    (sly-mrepl-tests--with-basic-repl-setup
+     (insert "(setq echonumberli)")
+     (backward-char 1)
+     (ert-simulate-command '(completion-at-point))
+     (should (get-buffer-window "*sly-completions*"))))
 
-(define-sly-ert-test repl-completion-choose-candidates ()
-  (sly-mrepl-tests--with-basic-repl-setup
-   (insert "'(mvbind)")
-   (backward-char 1)
-   (ert-simulate-command '(completion-at-point))
-   (should (get-buffer-window "*sly-completions*"))
-   (ert-simulate-command '(sly-choose-completion))
-   (should (string= "'(multiple-value-bind)"
-                    (sly-mrepl-tests--current-input-string)))
-   (backward-sexp) (kill-sexp) (insert "mvbind")
-   (ert-simulate-command '(completion-at-point))
-   (ert-simulate-command '(sly-next-completion 1))
-   (ert-simulate-command '(sly-choose-completion))
-   ;; FIXME this part is very brittle since I don't know if I
-   ;; shouldn't be filtering this duplicate
-   ;; 
-   (should (string= "'(cl:multiple-value-bind)"
-                    (sly-mrepl-tests--current-input-string)))))
+  (define-sly-ert-test repl-completion-choose-candidates ()
+    (sly-mrepl-tests--with-basic-repl-setup
+     (insert "'(mvbind)")
+     (backward-char 1)
+     (ert-simulate-command '(completion-at-point))
+     (should (get-buffer-window "*sly-completions*"))
+     (ert-simulate-command '(sly-choose-completion))
+     (should (string= "'(multiple-value-bind)"
+                      (sly-mrepl-tests--current-input-string)))
+     (backward-sexp) (kill-sexp) (insert "mvbind")
+     (ert-simulate-command '(completion-at-point))
+     (ert-simulate-command '(sly-next-completion 1))
+     (ert-simulate-command '(sly-choose-completion))
+     ;; FIXME this part is very brittle since I don't know if I
+     ;; shouldn't be filtering this duplicate
+     ;; 
+     (should (string= "'(cl:multiple-value-bind)"
+                      (sly-mrepl-tests--current-input-string))))))
 
 (provide 'sly-mrepl-tests)

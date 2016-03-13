@@ -56,6 +56,48 @@
 (declare-function with-displayed-buffer-window "window")
 
 
+;;; Backward compatibility shim for emacs < 25.
+;;;
+(eval-when-compile
+  (unless (fboundp 'with-displayed-buffer-window)
+    (defmacro with-displayed-buffer-window (buffer-or-name action quit-function &rest body)
+      "Show a buffer BUFFER-OR-NAME and evaluate BODY in that buffer.
+This construct is like `with-current-buffer-window' but unlike that
+displays the buffer specified by BUFFER-OR-NAME before running BODY."
+      (declare (debug t))
+      (let ((buffer (make-symbol "buffer"))
+            (window (make-symbol "window"))
+            (value (make-symbol "value")))
+        (macroexp-let2 nil vbuffer-or-name buffer-or-name
+          (macroexp-let2 nil vaction action
+            (macroexp-let2 nil vquit-function quit-function
+              `(let* ((,buffer (temp-buffer-window-setup ,vbuffer-or-name))
+                      (standard-output ,buffer)
+                      ,window ,value)
+                 (with-current-buffer ,buffer
+                   (setq ,window (temp-buffer-window-show
+                                  ,buffer
+                                  ;; Remove window-height when it's handled below.
+                                  (if (functionp (cdr (assq 'window-height (cdr ,vaction))))
+                                      (assq-delete-all 'window-height (copy-sequence ,vaction))
+                                    ,vaction))))
+
+                 (let ((inhibit-read-only t)
+                       (inhibit-modification-hooks t))
+                   (setq ,value (progn ,@body)))
+
+                 (set-window-point ,window (point-min))
+
+                 (when (functionp (cdr (assq 'window-height (cdr ,vaction))))
+                   (ignore-errors
+                     (funcall (cdr (assq 'window-height (cdr ,vaction))) ,window)))
+
+                 (if (functionp ,vquit-function)
+                     (funcall ,vquit-function ,window ,value)
+                   ,value)))))))))
+
+
+
 ;;; Customization
 ;;;
 (defcustom sly-complete-symbol-function 'sly-flex-completions
@@ -362,11 +404,26 @@ Intended to go into `completion-at-point-functions'"
 (defvar sly--completion-reference-buffer nil
   "Like `completion-reference-buffer', which see")
 
+(defmacro sly--completion-with-displayed-buffer-window (buffer
+                                                        action
+                                                        quit-function
+                                                        &rest body)
+  ;;; WITH-DISPLAYED-BUFFER-WINDOW doesn't work noninteractively
+  (let ((original-sym (cl-gensym "original-buffer-")))
+    `(if noninteractive
+         (let ((,original-sym (current-buffer)))
+           (display-buffer (get-buffer-create ,buffer) ,action)
+           (let ((standard-output ,buffer))
+             (with-current-buffer ,original-sym
+               ,@body)))
+       (with-displayed-buffer-window ,buffer ,action ,quit-function
+                                     ,@body))))
+
 (defun sly--completion-pop-up-completions-buffer (_pattern completions)
   (let ((display-buffer-mark-dedicated 'soft)
         (pop-up-windows nil)
         completions-buffer first-completion-point)
-    (with-displayed-buffer-window
+    (sly--completion-with-displayed-buffer-window
      (sly-buffer-name :completions)
      `((display-buffer--maybe-same-window
         display-buffer-reuse-window
@@ -413,7 +470,7 @@ Intended to go into `completion-at-point-functions'"
              (insert (propertize completion 'mouse-face 'highlight
                                  'sly--completion t))
              (insert (make-string (max
-                                   0
+                                   1
                                    (- (window-width)
                                       (length completion)
                                       (length annotation)))
