@@ -315,6 +315,9 @@ Intended to go into `completion-at-point-functions'"
   :variable sly--completion-transient-mode
   :global t
   (remove-hook 'post-command-hook #'sly--completion-transient-mode-postch)
+  (setq display-buffer-alist
+        (delq (assq 'sly--completion-transient-mode-display-guard-p display-buffer-alist)
+              display-buffer-alist))
   (setq minor-mode-overriding-map-alist
         (delq (assq 'completion-in-region-mode minor-mode-overriding-map-alist)
               minor-mode-overriding-map-alist))
@@ -322,7 +325,11 @@ Intended to go into `completion-at-point-functions'"
       (sly--completion-turn-off-transient-mode)
     (add-hook 'post-command-hook #'sly--completion-transient-mode-postch)
     (push `(sly--completion-transient-mode . ,sly--completion-transient-mode-map)
-          minor-mode-overriding-map-alist)))
+          minor-mode-overriding-map-alist)
+    (push `(sly--completion-transient-mode-display-guard-p
+            (sly--completion-transient-mode-teardown-before-displaying
+             . ,display-buffer-alist))
+          display-buffer-alist)))
 
 ;; `define-minor-mode' added to `minor-mode-map-alist', but we wanted
 ;; `minor-mode-overriding-map-alist' instead, so undo changes to
@@ -331,6 +338,20 @@ Intended to go into `completion-at-point-functions'"
 (setq minor-mode-map-alist
       (delq (assq 'sly--completion-transient-mode minor-mode-map-alist)
             minor-mode-map-alist))
+
+;; displaying other buffers with pop-to-buffer while in
+;; `sly--completion-transient-mode' is problematic, because it
+;; dedicates a window. Try some crazy `display-buffer-alist' shit to
+;; prevent that.
+;;
+(defun sly--completion-transient-mode-display-guard-p (buffer-name _action)
+  (not (string-match-p "^*sly-completions*" buffer-name)))
+
+(defun sly--completion-transient-mode-teardown-before-displaying (_buffer _alist)
+  (sly--completion-transient-mode -1)
+  ;; returns nil, hoping some other function in alist will display the
+  ;; buffer as intended.
+  nil)
 
 (defun sly--completion-hide-completions ()
   (let* ((buffer (get-buffer (sly-buffer-name :completions)))
