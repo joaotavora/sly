@@ -221,7 +221,7 @@ already exported/unexported."
            (sly-end-of-list))
           (t
            (sly-end-of-list)
-           (unless (looking-back "^\\s-*")
+           (unless (looking-back "^\\s-*" (line-beginning-position) nil)
              (newline-and-indent))
            (insert "(:export ")
            (save-excursion (insert ")"))))))
@@ -258,7 +258,7 @@ already exported/unexported."
 (defun sly-insert-export (symbol-name)
   ;; Assumes we're at the inside :export after the last symbol
   (let ((symbol-name (sly-format-symbol-for-defpackage symbol-name)))
-    (unless (looking-back "^\\s-*")
+    (unless (looking-back "^\\s-*" (line-beginning-position) nil)
       (newline-and-indent))
     (insert symbol-name)))
 
