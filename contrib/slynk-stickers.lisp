@@ -60,8 +60,8 @@
     t))
 
 
-;; FIXME: This won't work for multiple-connections. A channel, or some
-;; connection specific structure, is needed for that.
+;; FIXME: This won't work for multiple connected SLY clients. A
+;; channel, or some connection specific structure, is needed for that.
 ;;
 (defvar *stickers* (make-hash-table))
 (defvar *recordings* (make-array 0 :fill-pointer 0 :adjustable t))
@@ -219,6 +219,9 @@ their ignore-spec is reset nonetheless."
   (loop for starting-position in `(,from ,(if (plusp inc)
                                               -1
                                               (length *recordings*)))
+        ;; this funky scheme has something to do with rollover
+        ;; semantics probably
+        ;; 
         for inc in `(,inc ,(if (plusp inc) 1 -1))
           thereis (loop for candidate-id = (incf starting-position inc)
                         while (< -1 candidate-id (length *recordings*))
@@ -252,15 +255,21 @@ RECORDING-DESCRIPTION is as given by DESCRIBE-RECORDING-FOR-EMACS."
            (and recording
                 (describe-recording-for-emacs recording)))))
 
-(defslyfun search-for-recording (key ignore-spec dead-stickers direction)
+(defslyfun search-for-recording (key ignore-spec dead-stickers index
+                                     &optional (absolute-p t))
   "Visit the next recording for the visitor KEY.
 IGNORE-SPEC is a list (EXCLUDE-DEAD MORE...): ignore stickers whose ID
 is in MORE and ignore dead stickers if EXCLUDE-DEAD.
 
 Kill any stickers in DEAD-STICKERS.
 
-DIRECTION can be the keyword :NEXT, :PREV or an integer recording
-index.  If a recording can be found return a list (TOTAL-RECORDINGS
+INDEX is an integer designating a recording to move the playhead
+to. If ABSOLUTE-P is t, INDEX is taken relative to the current
+playhead and the search jumps over recordings of stickers in
+IGNORE-SPEC, otherwise search for the INDEXth recording
+unconditionally.
+
+If a recording can be found return a list (TOTAL-RECORDINGS
 . STICKER-DESCRIPTION).  STICKER-DESCRIPTION is as given by
 DESCRIBE-STICKER-FOR-EMACS.
 
@@ -269,12 +278,13 @@ Otherwise returns a list (NIL ERROR-DESCRIPTION)"
   (unless (and *visitor*
                (eq key (car *visitor*)))
     (setf *visitor* (cons key -1)))
-  (let ((recording (if (numberp direction)
-                       (ignore-errors (aref *recordings* direction))
+  (let ((recording (if absolute-p
+                       (aref *recordings* (mod index
+                                               (length *recordings*)))
                        (search-for-recording-1 (cdr *visitor*)
                                                (car ignore-spec)
                                                (cdr ignore-spec)
-                                               (if (eq :next direction) 1 -1)))))
+                                               index))))
     (cond (recording
            (setf (cdr *visitor*)  (index-of recording))
            (list* (length *recordings*)
