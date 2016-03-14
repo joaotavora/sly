@@ -75,8 +75,9 @@
 (require 'bytecomp) ;; for `byte-compile-current-file' and
                     ;; `sly-byte-compile-hotspots'.
 
-(require 'sly-messages "lib/sly-messages")
-(require 'sly-buttons "lib/sly-buttons")
+(require 'sly-common     "lib/sly-common")
+(require 'sly-messages   "lib/sly-messages")
+(require 'sly-buttons    "lib/sly-buttons")
 (require 'sly-completion "lib/sly-completion")
 
 (require 'gv) ; for gv--defsetter

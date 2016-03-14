@@ -136,45 +136,6 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 
 ;;;; Helper functions
 ;;;
-(defun sly-trace-dialog--call-refreshing (buffer
-                                            overlay
-                                            dont-erase
-                                            recover-point-p
-                                            fn)
-  (with-current-buffer buffer
-    (let ((inhibit-point-motion-hooks t)
-          (inhibit-read-only t)
-          (saved (point)))
-      (save-restriction
-        (when overlay
-          (narrow-to-region (overlay-start overlay)
-                            (overlay-end overlay)))
-        (unwind-protect
-            (if dont-erase
-                (goto-char (point-max))
-              (delete-region (point-min) (point-max)))
-          (funcall fn)
-          (when recover-point-p
-            (goto-char saved)))
-        (when sly-trace-dialog-flash
-          (sly-flash-region (point-min) (point-max)))))
-    buffer))
-
-(cl-defmacro sly-trace-dialog--refresh ((&key
-                                           overlay
-                                           dont-erase
-                                           recover-point-p
-                                           buffer)
-                                          &rest body)
-  (declare (indent 1)
-           (debug (sexp &rest form)))
-  `(sly-trace-dialog--call-refreshing ,(or buffer
-                                             `(current-buffer))
-                                        ,overlay
-                                        ,dont-erase
-                                        ,recover-point-p
-                                        #'(lambda () ,@body)))
-
 (defmacro sly-trace-dialog--insert-and-overlay (string overlay)
   `(save-restriction
      (let ((inhibit-read-only t))
@@ -308,7 +269,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
                          (slynk-trace-dialog:report-specs))
                      #'(lambda (results)
                          (sly-trace-dialog--open-specs results))))))
-    (sly-trace-dialog--refresh
+    (sly-refreshing
         (:overlay sly-trace-dialog--specs-overlay
                   :recover-point-p t)
       (insert
@@ -336,7 +297,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 
 (defun sly-trace-dialog--update-progress (total &optional show-stop-p remaining-p)
   ;; `remaining-p' indicates `total' is the number of remaining traces.
-  (sly-trace-dialog--refresh
+  (sly-refreshing
       (:overlay sly-trace-dialog--progress-overlay
                 :recover-point-p t)
     (let* ((done (hash-table-count sly-trace-dialog--traces))
@@ -616,7 +577,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 
 (defun sly-trace-dialog--update-tree (tuples)
   (save-excursion
-    (sly-trace-dialog--refresh
+    (sly-refreshing
         (:overlay sly-trace-dialog--tree-overlay
                   :dont-erase t)
       (cl-loop for tuple in tuples
@@ -638,7 +599,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
        (cl-gensym "sly-trace-dialog-fetch-key-"))
   (set (make-local-variable 'sly-trace-dialog--traces)
        (make-hash-table))
-  (sly-trace-dialog--refresh
+  (sly-refreshing
       (:overlay sly-trace-dialog--tree-overlay))
   (sly-trace-dialog--update-progress nil))
 
