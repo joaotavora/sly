@@ -1,5 +1,10 @@
 Upcoming SLY 1.0.0-beta-3 (Somewhere 2016)
 -----------------------------------------
+### Loading contribs is a more robust process
+
+If the SLYNK-side of a contrib fails to load for whatever
+reason, a CONTINUE restart is provided. On the SLY side, the user
+can choose to disable that contrib temporarily.
 
 ### New variables *SLYNK:ECHO-NUMBER-ALIST* and *SLYNK:PRESENT-NUMBER-ALIST*
 

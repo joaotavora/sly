@@ -143,11 +143,12 @@ To ensure that a particular contrib is loaded, use
 
 
 (defvar sly-contrib--required-slynk-modules '()
-  "Alist of MODULE . WHERE for slynk-provided features.
+  "Alist of (MODULE . (WHERE CONTRIB)) for slynk-provided features.
 
-MODULE is a symbol naming a specific Slynk feature and WHERE is
+MODULE is a symbol naming a specific Slynk feature, WHERE is
 the full pathname to the directory where the file(s)
-providing the feature are found.")
+providing the feature are found and CONTRIB is a symbol as found
+in `sly-contribs.'")
 
 (defvaralias 'sly-required-modules 'sly-contrib--required-slynk-modules)
 
@@ -6543,11 +6544,30 @@ is setup, unless the user already set one explicitly."
       ;; in the attempt to load modules concurrently which may not be
       ;; supported by the host Lisp.
       (sly-eval `(slynk:slynk-add-load-paths ',(cl-remove-duplicates
-                                                  (mapcar #'cdr needed)
-                                                  :test #'string=)))
-      (setf (sly-lisp-modules)
-            (sly-eval `(slynk:slynk-require
-                          ',(mapcar #'symbol-name (mapcar #'car needed))))))))
+                                                (mapcar #'cl-second needed)
+                                                :test #'string=)))
+      (let* ((result (sly-eval `(slynk:slynk-require
+                                 ',(mapcar #'symbol-name (mapcar #'cl-first needed)))))
+             (all-modules (cl-first result))
+             (loaded-now (cl-second result)))
+        ;; check if everything went OK
+        ;; 
+        (cl-loop for n in needed
+                 unless (cl-find (cl-first n) loaded-now :test #'string=)
+                 
+                 ;; string= compares symbols and strings nicely
+                 ;; 
+                 do (when (y-or-n-p (format
+                                     "\
+Watch out! SLY failed to load SLYNK module %s for contrib %s!\n
+Disable it?" (cl-first n) (cl-third n)))
+                      (sly-disable-contrib (cl-third n))
+                      (sly-temp-message 3 3 "\
+You'll need to re-enable %s manually with `sly-enable-contrib'\
+if/when you fix the error" (cl-third n))))
+        ;; Update the connection-local list of all *MODULES*
+        ;;
+        (setf (sly-lisp-modules) all-modules)))))
 
 (cl-defstruct (sly-contrib
                (:conc-name sly-contrib--))
@@ -6594,9 +6614,9 @@ is setup, unless the user already set one explicitly."
                                           (list ,@(mapcar #'contrib-sym
                                                           sly-dependencies)))))
            (cl-loop for dep in ',slynk-dependencies
-                    do (cl-pushnew (cons dep ,(path-sym name))
+                    do (cl-pushnew (list dep ,(path-sym name) ',name)
                                    sly-contrib--required-slynk-modules
-                                   :key #'car))
+                                   :key #'cl-first))
            ;; FIXME: It's very tricky to do Slynk calls like
            ;; `sly-contrib--load-slynk-dependencies' here, and it this
            ;; should probably loop all connections. Anyway, we try
@@ -6613,7 +6633,7 @@ is setup, unless the user already set one explicitly."
            (cl-loop for dep in ',slynk-dependencies
                     do (setq sly-contrib--required-slynk-modules
                              (cl-remove dep sly-contrib--required-slynk-modules
-                                        :key #'car)))
+                                        :key #'cl-first)))
            (sly-warning "Disabling contrib %s" ',name)
            (mapc #'funcall (mapcar
                             #'sly-contrib--disable

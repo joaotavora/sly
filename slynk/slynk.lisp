@@ -2905,12 +2905,15 @@ managed to load it.")
 
 MODULES is a list of strings designators or a single string
 designator. Returns a list of all modules available."
-  (dolist (module (ensure-list modules))
-    (funcall #'require-module *module-loading-method* module)
-    (pushnew (string-upcase module) *modules* :test #'equal)
-    (loop for fn in *slynk-require-hook*
-          do (funcall fn modules)))
-  *modules*)
+  (let ((loaded))
+    (dolist (module (ensure-list modules))
+      (with-simple-restart (continue "Continue without SLY contrib ~a" module)
+        (funcall #'require-module *module-loading-method* module)
+        (push module loaded)
+        (pushnew (string-upcase module) *modules* :test #'equal))
+      (loop for fn in *slynk-require-hook*
+            do (funcall fn loaded)))
+    (list *modules* loaded)))
 
 (defslyfun slynk-add-load-paths (paths)
   (dolist (path paths)
