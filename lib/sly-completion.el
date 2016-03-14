@@ -162,14 +162,14 @@ collected from the Slynk server."
                           cached-result
                         (setq cached-arg string
                               cached-result (funcall fn string))))))
-        (pcase command
+        (cl-case command
           (;; identify this as super-special sly-completion
            ;;
-           `sly--identify
+           sly--identify
            t)
           (;; metadata request
            ;;
-           `metadata
+           metadata
            (list 'metadata
                  (cons 'display-sort-function #'identity)
                  (cons 'annotation-function
@@ -177,11 +177,11 @@ collected from the Slynk server."
                          (get-text-property 0 'sly--annotation completion)))))
           ;; all completions
           ;; 
-          (`t
+          ((t)
            (all))
           ;; try completion
           ;;
-          (`nil
+          ((nil)
            (let ((all (all)))
              (if (and all
                       (null (cdr all)))
@@ -190,16 +190,13 @@ collected from the Slynk server."
                    string)
                (and all
                     string))))
-          ;; boundaries
+          ;; boundaries or any other value
           ;;
-          (`(boundaries . ,suffix)
-           (completion-boundaries string (all) pred suffix))
-          ;; any other value
-          ;;
-          (_
-           nil
-           ;; (sly-error "Unrecognized completion command %s" command)
-           ))))))
+          (t
+           (if (eq (car command) 'boundaries)
+               (completion-boundaries string (all) pred (cdr command))
+             ;; (sly-error "Unrecognized completion command %s" command)
+             nil)))))))
 
 (defun sly--completions-complete-symbol-1 (fn)
   (let* ((beg (sly-symbol-start-pos))
