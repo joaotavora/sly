@@ -153,6 +153,16 @@ in `sly-contribs.'")
 
 (defvaralias 'sly-required-modules 'sly-contrib--required-slynk-modules)
 
+(cl-defmacro sly--contrib-safe (contrib &body body)
+  "Run BODY catching and resignalling any errors for CONTRIB"
+  (declare (indent 1))
+  `(condition-case e
+       (progn
+         ,@body)
+     (error (sly-error "There's an error in %s: %s"
+                       ,contrib
+                       e))))
+      
 (defun sly--setup-contribs ()
   "Load and initialize contribs."
   ;; active    != enabled
@@ -178,12 +188,14 @@ in `sly-contribs.'")
     ;; Disable any forgotten contribs that are enabled right now.
     ;;
     (cl-loop for to-disable in defined-but-forgotten-contribs
-             when (sly-contrib--enabled-p to-disable)
+             when (sly--contrib-safe to-disable
+                    (sly-contrib--enabled-p to-disable))
              do (funcall (sly-contrib--disable to-disable)))
     ;; Enable any active contrib that is *not* enabled right now.
     ;;
     (cl-loop for to-enable in all-active-contribs
-             unless (sly-contrib--enabled-p to-enable)
+             unless (sly--contrib-safe to-enable
+                      (sly-contrib--enabled-p to-disable))
              do (funcall (sly-contrib--enable to-enable)))))
 
 (eval-and-compile
@@ -6651,10 +6663,11 @@ if/when you fix the error" (cl-third n))))
 
 (defun sly-contrib--all-dependencies (contrib)
   "Contrib names recursively needed by CONTRIB, including self."
-  (cons contrib
-        (cl-mapcan #'sly-contrib--all-dependencies
-                   (sly-contrib--sly-dependencies
-                    (sly-contrib--find-contrib contrib)))))
+  (sly--contrib-safe contrib
+      (cons contrib
+            (cl-mapcan #'sly-contrib--all-dependencies
+                       (sly-contrib--sly-dependencies
+                        (sly-contrib--find-contrib contrib))))))
 
 (defun sly-contrib--find-contrib (designator)
   (if (sly-contrib-p designator)
@@ -6670,12 +6683,14 @@ if/when you fix the error" (cl-third n))))
 (defun sly-enable-contrib (name)
   "Attempt to enable contrib NAME."
   (interactive (list (sly-contrib--read-contrib-name)))
-  (funcall (sly-contrib--enable (sly-contrib--find-contrib name))))
+  (sly--contrib-safe name
+    (funcall (sly-contrib--enable (sly-contrib--find-contrib name)))))
 
 (defun sly-disable-contrib (name)
   "Attempt to disable contrib NAME."
   (interactive (list (sly-contrib--read-contrib-name)))
-  (funcall (sly-contrib--disable (sly-contrib--find-contrib name))))
+  (sly--contrib-safe name
+    (funcall (sly-contrib--disable (sly-contrib--find-contrib name)))))
 
 
 ;;;;; Pull-down menu
