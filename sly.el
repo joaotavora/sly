@@ -195,7 +195,7 @@ in `sly-contribs.'")
     ;;
     (cl-loop for to-enable in all-active-contribs
              unless (sly--contrib-safe to-enable
-                      (sly-contrib--enabled-p to-disable))
+                      (sly-contrib--enabled-p to-enable))
              do (funcall (sly-contrib--enable to-enable)))))
 
 (eval-and-compile
