@@ -193,7 +193,8 @@ collected from the Slynk server."
           ;; boundaries or any other value
           ;;
           (t
-           (if (eq (car command) 'boundaries)
+           (if (and (consp command)
+                    (eq (car command) 'boundaries))
                (completion-boundaries string (all) pred (cdr command))
              ;; (sly-error "Unrecognized completion command %s" command)
              nil)))))))
@@ -232,7 +233,20 @@ Intended to go into `completion-at-point-functions'"
                                                                     sly-complete-symbol))
                                   ;; A custom function for `completion-in-region-function'
                                   ;;
-                                  (completion-in-region-function . sly--completion-in-region-function))
+                                  (completion-in-region-function . sly--completion-in-region-function)
+                                  ;; Support emacs 24.3
+                                  ;;
+                                  ,@(when (version< emacs-version "24.4")
+                                      `((completion-list-insert-choice-function
+					 .
+					 (lambda (beg end newtext)
+					   (goto-char beg)
+					   (delete-region beg end)
+					   (insert newtext)))
+					(completion-in-region-functions
+                                         .
+                                         (,(lambda (_next &rest args)
+                                             (apply #'sly--completion-in-region-function args)))))))
            do (set (make-local-variable var) value)))
 
 (add-hook 'sly-mode-hook 'sly--completion-setup-target-buffer)
