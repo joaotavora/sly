@@ -20,9 +20,11 @@
 
 ;;; Commentary:
 
-;; 
+;; Common utilities for SLY and its contribs
 
 ;;; Code:
+(require 'cl-lib)
+
 (defun sly--call-refreshing (buffer
                               overlay
                               dont-erase
