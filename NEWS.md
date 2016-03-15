@@ -1,17 +1,36 @@
 Upcoming SLY 1.0.0-beta-3 (Somewhere 2016)
 -----------------------------------------
-### Loading contribs is a more robust process
 
-If the SLYNK-side of a contrib fails to load for whatever
-reason, a CONTINUE restart is provided. On the SLY side, the user
-can choose to disable that contrib temporarily.
+### Redesigned completion mechanism
 
-### New variables *SLYNK:ECHO-NUMBER-ALIST* and *SLYNK:PRESENT-NUMBER-ALIST*
+The `sly-fuzzy` and `sly-c-p-c` contribs are gone, but the choice
+between "simple" and "flex/fuzzy/scatter" completion remains in place
+(see the `sly-complete-symbol-function`). Fuzzy completion also been
+redesigned and enhanced to include the package designators in the
+string to search so you can search other package's symbols even when
+outside a package.
+
+CL-USER> (quiloa)         ->  (ql:quickload)
+CL-USER> (scan)         ->    (ppcre:scan)
+CL-USER> (setf locadirs)  ->  (setf ql:*local-project-directories*)
+CL-USER> (mvbind)         ->  (multiple-value-bind)
+
+The UI was also redesigned and is now invoked via built-in
+`completion-at-point` mechanism for a more consistent UI with the rest
+of Emacs.
+
+### New variables `*SLYNK:ECHO-NUMBER-ALIST*` and `*SLYNK:PRESENT-NUMBER-ALIST*`
 
 Customize the formats that integer numbers get presented back to SLY,
 additionally to the binary, octal and hex defaults. Good when working
 with Unix Epoch times, for example. See manual "Other configurables"
 for documentation and example.
+
+### Loading contribs is a more robust process
+
+If the SLYNK-side of a contrib fails to load for whatever
+reason, a CONTINUE restart is provided. On the SLY side, the user
+can choose to disable that contrib temporarily.
 
 SLY 1.0.0-beta-2 (March 2016)
 -----------------------------
