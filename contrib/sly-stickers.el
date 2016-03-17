@@ -729,6 +729,8 @@ Structure is (IGNORE-ZOMBIES-P . STICKER-ID-LIST)")
   "A symbol identifying a particular replaying session in the
   Slynk server.")
 
+(defvar sly-stickers--replay-pop-to-stickers t)
+
 (defun sly-stickers--replay-refresh ()
   "Produce a prompt and status string for STATE."
   (cl-assert (eq major-mode 'sly-stickers--replay-mode)
@@ -917,8 +919,6 @@ Interactively, COMMAND is nil."
       (sly-message "Now ignoring zombie stickers")
     (sly-message "No longer ignoring zombie stickers"))
   (sly-stickers-replay-next 0))
-
-(defvar sly-stickers--replay-pop-to-stickers t)
 
 (defun sly-stickers-replay-pop-to-current-sticker (sticker-id)
   "Pop to sticker with STICKER-ID"
