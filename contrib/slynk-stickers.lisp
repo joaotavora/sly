@@ -282,8 +282,9 @@ Otherwise returns a list (NIL ERROR-DESCRIPTION)"
   (let ((recording (cond
                      ((and command
                            (not (numberp command)))
-                      (aref *recordings* (mod index
-                                              (length *recordings*))))
+                      (and (plusp (length *recordings*))
+                           (aref *recordings* (mod index
+                                                   (length *recordings*)))))
                      (t
                       (search-for-recording-1 (cdr *visitor*)
                                               :increment index
@@ -301,7 +302,7 @@ Otherwise returns a list (NIL ERROR-DESCRIPTION)"
            (list* (length *recordings*)
                   (describe-sticker-for-emacs (sticker-of recording) recording)))
           (t
-           (list nil "No such recording")))))
+           (list nil "No recording matches that criteria")))))
 
 (defslyfun fetch (dead-stickers)
   "Describe each known sticker to Emacs.
