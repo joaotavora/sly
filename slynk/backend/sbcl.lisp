@@ -981,6 +981,12 @@ QUALITIES is an alist with (quality . value)"
                                :function
                                (or name (function-name function))))
 
+(defun setf-expander-p (symbol)
+  (or 
+   #+#.(cl:if (sb-c::meta-info :setf :inverse ()) '(:and) '(:or))
+   (sb-int:info :setf :inverse symbol)
+   (sb-int:info :setf :expander symbol)))
+
 (defimplementation describe-symbol-for-emacs (symbol)
   "Return a plist describing SYMBOL.
 Return NIL if the symbol is unbound."
@@ -1005,9 +1011,8 @@ Return NIL if the symbol is unbound."
                (t :function))
          (doc 'function)))
       (maybe-push
-       :setf (if (or (sb-int:info :setf :inverse symbol)
-                     (sb-int:info :setf :expander symbol))
-                 (doc 'setf)))
+       :setf (and (setf-expander symbol) 
+                  (doc 'setf)))
       (maybe-push
        :type (if (sb-int:info :type :kind symbol)
                  (doc 'type)))
@@ -1020,8 +1025,7 @@ Return NIL if the symbol is unbound."
     (:function
      (describe (symbol-function symbol)))
     (:setf
-     (describe (or (sb-int:info :setf :inverse symbol)
-                   (sb-int:info :setf :expander symbol))))
+     (describe (setf-expander symbol)))
     (:class
      (describe (find-class symbol)))
     (:type
