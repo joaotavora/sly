@@ -4499,8 +4499,9 @@ The most important commands:
 
 ;; TODO: Have this button support more options, not just "show source"
 ;; and "goto-source"
-(define-button-type 'sly-xref :supertype 'sly-part 'action
-  'sly-button-goto-source ;default action
+(define-button-type 'sly-xref :supertype 'sly-part
+  'action 'sly-button-goto-source ;default action
+  'mouse-action 'sly-button-goto-source ;default action
   'sly-button-show-source #'(lambda (location)
                               (sly-xref--show-location location))
   'sly-button-goto-source #'(lambda (location)
