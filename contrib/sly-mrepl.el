@@ -164,7 +164,8 @@ for output printed to the REPL (not for evaluation results)")
                 (comint-scroll-to-bottom-on-output nil)
                 (inhibit-field-text-motion nil)
                 (lisp-indent-function common-lisp-indent-function)
-                (open-paren-in-column-0-is-defun-start nil))
+                (open-paren-in-column-0-is-defun-start nil)
+                (buffer-file-coding-system utf-8-unix))
            do (set (make-local-variable var) value))
   (set-marker-insertion-type sly-mrepl--output-mark nil)
   (add-hook 'kill-emacs-hook 'sly-mrepl--save-all-histories)
@@ -596,7 +597,7 @@ recent entry that is discarded."
        (comint-input-ring-separator sly-mrepl--history-separator))
     ;; this sets `comint-input-ring' from the file
     ;;
-    (comint-read-input-ring)
+    (sly-mrepl--read-input-ring)
     ;; loop `current-ring', which potentially contains new entries and
     ;; re-add entries to `comint-input-ring', which is now synched
     ;; with the file and will be written to disk. Respect
@@ -617,7 +618,8 @@ recent entry that is discarded."
              unless (ring-member comint-input-ring item)
              do (ring-insert comint-input-ring item))
     ;; Now save `comint-input-ring'
-    (comint-write-input-ring)
+    (let ((coding-system-for-write 'utf-8-unix))
+      (comint-write-input-ring))
     (set (make-local-variable 'sly-mrepl--dirty-history) nil)))
 
 (defun sly-mrepl--save-all-histories ()
