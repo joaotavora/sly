@@ -128,7 +128,8 @@ ALIST is a list of the form ((VAR . VAL) ...)."
           (funcall fun)))))
 
 (defmacro with-bindings (alist &body body)
-  "See `call-with-bindings'."
+  "See `call-with-bindings'.
+Bindings appearing earlier in the list take priority"
   `(call-with-bindings ,alist (lambda () ,@body)))
 
 ;;; The `DEFSLYFUN' macro defines a function that Emacs can call via
@@ -2033,13 +2034,13 @@ same as that variable.")
            (present-number-considering-alist (car values) *echo-number-alist*))
           (t
            (let ((strings (loop for v in values
-                                collect (format nil "~S" v))))
+                                collect (slynk-pprint-to-line v))))
              (if (some #'(lambda (s) (find #\Newline s))
                        strings)
                  (format nil "~{~a~^~%~}" strings)
                  (format nil "~{~a~^, ~}" strings)))))))
 
-(defun present-for-emacs (value &optional (fn #'to-line))
+(defun present-for-emacs (value &optional (fn #'slynk-pprint))
   "Format VALUE in a way suitable to be displayed in the SLY client.
 FN is only used if value is not a number"
   (if (numberp value)
@@ -2093,25 +2094,53 @@ last form."
           (makunbound name)
           (prin1-to-string (eval form)))))))
 
-(defvar *slynk-pprint-bindings*
+(defparameter *slynk-pprint-bindings*
   `((*print-pretty*   . t)
     (*print-level*    . nil)
     (*print-length*   . nil)
-    (*print-circle*   . t)
+    (*print-circle*   . nil)
     (*print-gensym*   . t)
     (*print-readably* . nil))
   "A list of variables bindings during pretty printing.
 Used by pprint-eval.")
 
-(defun slynk-pprint (values)
-  "Bind some printer variables and pretty print each object in VALUES."
-  (with-buffer-syntax ()
+(defun slynk-pprint (object &key (stream nil))
+  "Pretty print OBJECT to STREAM using *SLYNK-PPRINT-BINDINGS*.
+If STREAM is nil, use a string"
+  (with-bindings *slynk-pprint-bindings*
+    (without-printing-errors (:object object :stream stream)
+      (if stream
+          (write object :stream stream :pretty t :escape t)
+          (with-output-to-string (s)
+            (slynk-pprint object :stream s))))))
+
+(defun slynk-pprint-values (values &key (stream nil))
+  "Pretty print each of VALUES to STREAM using *SLYNK-PPRINT-BINDINGS*.
+Separated by a newline. If no values indicate that in a comment.
+If STREAM is nil, use a string"
+  (labels ((print-one (object s)
+             (let ((*slynk-pprint-bindings* nil))
+               (slynk-pprint object :stream s)))
+           (print-all (s)
+             (loop for o in values
+                   do (print-one o s)
+                      (terpri))))
     (with-bindings *slynk-pprint-bindings*
-      (cond ((null values) "; No value")
-            (t (with-output-to-string (*standard-output*)
-                 (dolist (o values)
-                   (pprint o)
-                   (terpri))))))))
+      (cond ((null values)
+             (format stream "; No value"))
+            (t
+             (if stream
+                 (print-all stream)
+                 (with-output-to-string (s)
+                   (print-all s))))))))
+
+(defun slynk-pprint-to-line (object &optional width)
+  "Print OBJECT to a single line at most. Return the string."
+  (let ((*slynk-pprint-bindings*
+          `((*print-right-margin* . ,(or width 512))
+            (*print-lines* . 1)
+            ,@*slynk-pprint-bindings*)))
+    (slynk-pprint object)))
 
 (defslyfun pprint-eval (string)
   (with-buffer-syntax ()
@@ -2121,7 +2150,7 @@ Used by pprint-eval.")
                   (*trace-output* s))
               (multiple-value-list (eval (read-from-string string))))))
       (cat (get-output-stream-string s)
-           (slynk-pprint values)))))
+           (slynk-pprint-values values)))))
 
 (defslyfun set-package (name)
   "Set *package* to the package named NAME.
@@ -2178,13 +2207,6 @@ aborted and return immediately with the output written so far."
             (with-string-stream (,var :length ,length)
               . ,body)))))
 
-(defun to-line (object &optional width)
-  "Print OBJECT to a single line. Return the string."
-  (let ((width (or width 512)))
-    (without-printing-errors (:object object :stream nil)
-      (with-string-stream (stream :length width)
-        (write object :stream stream :right-margin width :lines 1)))))
-
 (defun escape-string (string stream &key length (map '((#\" . "\\\"")
                                                        (#\\ . "\\\\"))))
   "Write STRING to STREAM surronded by double-quotes.
@@ -2211,7 +2233,7 @@ MAP -- rewrite the chars in STRING according to this alist."
 (defvar *canonical-package-nicknames*
   `((:common-lisp-user . :cl-user))
   "Canonical package names to use instead of shortest name/nickname.")
-
+  
 (defvar *auto-abbreviate-dotted-packages* t
   "Abbreviate dotted package names to their last component if T.")
 
@@ -2465,7 +2487,7 @@ conditions are simply reported."
           (ignore-errors
             (with-standard-io-syntax
               (let ((*print-readably* nil))
-                (format stream "~&Error (~a) during printing: " (type-of c))
+                (format stream "~&Error (~a) printing the following condition: " (type-of c))
                 (print-unreadable-object (condition stream :type t
                                                     :identity t))))))))))
 
@@ -2648,7 +2670,7 @@ has changed, ignore the request."
   (eval-in-frame-aux frame string package #'echo-for-emacs))
 
 (defslyfun pprint-eval-string-in-frame (string frame package)
-  (eval-in-frame-aux frame string package #'slynk-pprint))
+  (eval-in-frame-aux frame string package #'slynk-pprint-values))
 
 (defslyfun frame-package-name (frame)
   (let ((pkg (frame-package frame)))
@@ -2669,7 +2691,7 @@ TAGS has is a list of strings."
             (list :name (let ((*package* (or (frame-package index) *package*)))
                           (prin1-to-string name))
                   :id id
-                  :value (to-line value *print-right-margin*))))))
+                  :value (slynk-pprint-to-line value *print-right-margin*))))))
 
 (defslyfun sly-db-disassemble (index)
   (with-output-to-string (*standard-output*)
@@ -3551,7 +3573,7 @@ DSPEC is a string and LOCATION a source location. NAME is a string."
 
 (defun print-part-to-string (value)
   (let* ((*print-readably* nil)
-         (string (to-line value))
+         (string (slynk-pprint-to-line value))
          (pos (position value
                         (inspector-%history (current-inspector))
                         :key #'istate.object)))
@@ -3641,10 +3663,7 @@ Return nil if there's no previous object."
                         ,form)))))
 
 (defslyfun inspector-history ()
-  (with-output-to-string (out)
-      (pprint
-       (inspector-%history (current-inspector))
-       out)))
+  (slynk-pprint-to-line (inspector-%history (current-inspector))))
 
 (defslyfun quit-inspector ()
   (reset-inspector)
@@ -3663,7 +3682,7 @@ Return nil if there's no previous object."
 (defslyfun pprint-inspector-part (index)
   "Pretty-print part INDEX of the currently inspected object."
   (with-buffer-syntax ()
-    (slynk-pprint (list (inspector-nth-part index)))))
+    (slynk-pprint (inspector-nth-part index))))
 
 (defslyfun inspect-in-frame (string index)
   (with-buffer-syntax ()
@@ -3683,7 +3702,7 @@ Return nil if there's no previous object."
 
 (defslyfun pprint-frame-var (frame var)
   (with-buffer-syntax ()
-    (slynk-pprint (list (frame-var-value frame var)))))
+    (slynk-pprint (frame-var-value frame var))))
 
 (defslyfun describe-frame-var (frame var)
   (with-buffer-syntax ()
@@ -4202,7 +4221,11 @@ Collisions are caused because package information is ignored."
                #:symbol-external-p
                #:unparse-name
                #:excluded-from-searches-p
-               )))
+               ;;
+               ;;
+               #:slynk-pprint
+               #:slynk-pprint-values
+               #:slynk-pprint-to-line)))
     (loop for sym in api
           for slynk-api-sym = (intern (string sym) :slynk-api)
           for slynk-sym = (intern (string sym) :slynk)

@@ -154,10 +154,8 @@ Set this to NIL to turn this feature off.")
                 (error "oops, ~a wasn't supposed to error with ~a" input e)))))))
 
 (defun make-results (objects)
-  (loop for value in objects
-        collect (list (slynk::without-printing-errors
-                          (:object value :stream nil)
-                        (present-for-emacs value #'prin1-to-string))
+  (loop for value in objects 
+        collect (list (present-for-emacs value #'slynk-pprint)
                       (1- (length *history*)))))
 
 (defun mrepl-eval (repl string)
