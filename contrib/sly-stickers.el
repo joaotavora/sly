@@ -710,7 +710,7 @@ veryfying `sly-stickers--recording-void-p' is created."
   (interactive)
   (set (make-local-variable 'sly-stickers--replay-expanded-help)
        (not sly-stickers--replay-expanded-help))
-  (sly-stickers--replay-refresh))
+  (sly-stickers--replay-refresh-1))
 
 (sly-def-connection-var sly-stickers--replay-ignored-stickers
     (cons t '())
@@ -769,23 +769,36 @@ buffer"
                 (if sly-stickers--replay-expanded-help
                     (substitute-command-keys "\\{sly-stickers--replay-mode-map}")
                   "(n)ext)/(p)revious/(i)gnore/h(elp)/(q)uit")))
+       (describe-number-of-recordings
+        (new-total)
+        (let* ((old-total sly-stickers--replay-old-total)
+               (diff (and old-total (- new-total old-total))))
+          (format "%s total recordings%s"
+                  new-total
+                  (cond ((and diff
+                              (cl-plusp diff))
+                         (propertize (format ", %s new in the meantime"
+                                             diff)
+                                     'face 'bold))
+                        (t
+                         "")))))
        (describe-playhead
         ()
-        (let* ((new-total (sly-stickers--replay-total))
-               (old-total sly-stickers--replay-old-total)
-               (diff (and old-total (- new-total old-total))))
-          (if new-total
-              (format "Replaying recording %s of %s%s"
-                      (1+ (sly-stickers--recording-id (sly-stickers--replay-recording)))
-                      new-total
-                      (cond ((and diff
-                                  (cl-plusp diff))
-                             (propertize (format ", %s new in the meantime"
-                                                 diff)
-                                         'face 'bold))
-                            (t
-                             "")))
-            (format "No recordings! Perhaps you need to run some sticker-aware code first")))))
+        (let ((new-total (sly-stickers--replay-total)))
+          (cond ((and new-total
+                      (sly-stickers--replay-recording))
+                 (format "Playhead at recording %s of %s"
+                         (ignore-errors (1+ (sly-stickers--recording-id
+                                             (sly-stickers--replay-recording))))
+                         (describe-number-of-recordings new-total)))
+                (new-total
+                 (format "Playhead detached (ignoring too many stickers?) on %s"
+                         (describe-number-of-recordings new-total)))
+                ((sly-stickers--replay-recording)
+                 (substitute-command-keys
+                  "Playhead confused (perhaps hit \\[sly-stickers-replay-refresh])"))
+                (t
+                 (format "No recordings! Perhaps you need to run some sticker-aware code first"))))))
     (sly-refreshing ()
       (insert (describe-playhead) (paragraph))
       (let ((rec (sly-stickers--replay-recording)))
@@ -845,7 +858,7 @@ no recording was fetched."
                    ',(sly-stickers--replay-ignored-stickers)
                    ',(sly-stickers--zombies)  
                    ,n
-                   ,command))))
+                   ',command))))
     ;; presumably, Slynk cleaned up the zombies we passed it.
     ;; 
     (sly-stickers--reset-zombies)
