@@ -165,12 +165,19 @@
             (typecase spec
               (slynk-mop:eql-specializer
                `(eql ,(slynk-mop:eql-specializer-object spec)))
-              #-sbcl (t
+              #-sbcl
+              (t
                (slynk-mop:class-name spec))
-              #+sbcl (t
-                      (sb-pcl:unparse-specializer-using-class
-                       (sb-mop:method-generic-function method)
-                       spec))))
+              #+sbcl
+              (t
+               ;; SBCL has extended specializers
+               (let ((gf (sb-mop:method-generic-function method)))
+                 (cond (gf
+                        (sb-pcl:unparse-specializer-using-class gf spec))
+                       ((typep spec 'class)
+                        (class-name spec))
+                       (t
+                        spec))))))
           (slynk-mop:method-specializers method)))
 
 (defun method-for-inspect-value (method)
