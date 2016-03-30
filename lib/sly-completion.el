@@ -482,7 +482,7 @@ Intended to go into `completion-at-point-functions'"
                                  'sly--completion t))
              (insert (make-string (max
                                    1
-                                   (- (window-width)
+                                   (- (1- (window-width))
                                       (length completion)
                                       (length annotation)))
                                   ? )
