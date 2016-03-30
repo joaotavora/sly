@@ -307,8 +307,14 @@ Intended to go into `completion-at-point-functions'"
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] 'sly-choose-completion)
     (define-key map [mouse-2] 'sly-choose-completion)
+    (define-key map "\t"     'sly-next-completion)
+    (define-key map [backtab]     'sly-prev-completion)
+    (define-key map (kbd "q") 'quit-window)
+    (define-key map (kbd "z") 'kill-this-buffer)
     (define-key map [remap previous-line] 'sly-prev-completion)
     (define-key map [remap next-line] 'sly-next-completion)
+    (define-key map [left] 'sly-prev-completion)
+    (define-key map [right] 'sly-next-completion)
     (define-key map (kbd "RET") 'sly-choose-completion)
     map)
   "Keymap used in the *sly-completions* buffer")
@@ -455,6 +461,7 @@ Intended to go into `completion-at-point-functions'"
      (let ((reference (current-buffer)))
        (with-current-buffer standard-output
          (sly--completion-display-mode)
+         (set (make-local-variable 'cursor-type) nil)
          (setq sly--completion-reference-buffer reference)
          (sly--completion-fill-completions-buffer completions)
          (setq completions-buffer standard-output
