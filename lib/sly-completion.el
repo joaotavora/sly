@@ -118,7 +118,8 @@ collected from the Slynk server."
      nil)))
 
 (defun sly-simple-completions (prefix)
-  "Returns list whose car are propertized strings prefix-completing PREFIX"
+  "Returns (COMPLETIONS NIL) where COMPLETIONS complete the PREFIX.
+COMPLETIONS is a list of propertized strings."
   (cl-loop with first-difference-pos = (length prefix)
            with (completions common) =
            (sly--completion-request-completions prefix 'slynk-completion:simple-completions)
@@ -133,7 +134,8 @@ collected from the Slynk server."
            finally return (list formatted common)))
 
 (defun sly-flex-completions (pattern)
-  "Returns list whose car is propertized strings flex-completing PATTERN"
+  "Returns (COMPLETIONS NIL) where COMPLETIONS flex-complete PATTERN.
+COMPLETIONS is a list of propertized strings."
   (cl-loop with (completions _) =
            (sly--completion-request-completions pattern 'slynk-completion:flex-completions)
            for (completion _score chunks classification) in completions
@@ -151,6 +153,25 @@ collected from the Slynk server."
                               completion)
            collect completion into formatted
            finally return (list formatted nil)))
+
+(defun sly-completion-annotation (completion)
+  "Grab the annotation of COMPLETION, a string, if any"
+  (get-text-property 0 'sly--annotation completion))
+
+;;; backward-compatibility
+(defun sly-fuzzy-completions (pattern)
+  "This function is obsolete since 1.0.0-beta-2;
+use ‘sly-flex-completions’ instead, but notice the updated protocol.
+
+Returns (COMPLETIONS NIL) where COMPLETIONS flex-complete PATTERN.
+
+COMPLETIONS is a list of elements of the form (STRING NIL NIL
+ANNOTATION) describing each completion possibility."
+  (let ((new (sly-flex-completions pattern)))
+    (list (mapcar (lambda (string)
+		    (list string nil nil (sly-completion-annotation string)))
+		  (car new))
+	  (cadr new))))
 
 (defun sly--completion-function-wrapper (fn)
   (let (cached-result cached-arg)
@@ -172,9 +193,7 @@ collected from the Slynk server."
            metadata
            (list 'metadata
                  (cons 'display-sort-function #'identity)
-                 (cons 'annotation-function
-                       (lambda (completion)
-                         (get-text-property 0 'sly--annotation completion)))))
+                 (cons 'annotation-function #'sly-completion-annotation)))
           ;; all completions
           ;; 
           ((t)
