@@ -1236,9 +1236,26 @@ a list of result buttons thus highlighted"
                     entry-idx
                     value-idx)
                (overlay-put overlay 'face 'sly-action-face)
-               (if (numberp value-idx)
-                   (sly-message "Matched history entry %s, value %s" entry-idx value-idx)
-                 (sly-message "Matched history entry %s, all values" entry-idx)))
+               (let* ((prefix (if (numberp value-idx)
+                                  (format "Matched history value %s of entry%s: "
+                                               value-idx
+                                               entry-idx)
+                                (format "Matched history entry %s%s: "
+                                             entry-idx
+                                             (if (rest buttons)
+                                                 (format " (%s values)" (length buttons))
+                                               ""))))
+                      (hint (propertize
+                             (truncate-string-to-width
+                              (replace-regexp-in-string "\n" " " (button-label (first buttons)))
+                              (- (window-width (minibuffer-window))
+                                 (length prefix) 10)
+                              nil
+                              nil
+                              "...")
+                             'face
+                             'sly-action-face)))
+                 (sly-message (format "%s%s" prefix hint))))
               (buttons
                (sly-message "Ambiguous backreference `%s', %s values possible"
                             m0 (length buttons))
