@@ -2108,11 +2108,18 @@ Used by pprint-eval.")
   "Pretty print OBJECT to STREAM using *SLYNK-PPRINT-BINDINGS*.
 If STREAM is nil, use a string"
   (with-bindings *slynk-pprint-bindings*
-    (without-printing-errors (:object object :stream stream)
-      (if stream
-          (write object :stream stream :pretty t :escape t)
-          (with-output-to-string (s)
-            (slynk-pprint object :stream s))))))
+    ;; a failsafe for *PRINT-LENGTH*: if it's NIL and *PRINT-CIRCLE*
+    ;; is also nil we could be in trouble printing circular lists, for example.
+    ;; 
+    (let ((*print-length* (if (and (not *print-circle*)
+                                   (not *print-length*))
+                              512
+                              *print-length*)))
+      (without-printing-errors (:object object :stream stream)
+        (if stream
+            (write object :stream stream :pretty t :escape t)
+            (with-output-to-string (s)
+              (slynk-pprint object :stream s)))))))
 
 (defun slynk-pprint-values (values &key (stream nil))
   "Pretty print each of VALUES to STREAM using *SLYNK-PPRINT-BINDINGS*.
