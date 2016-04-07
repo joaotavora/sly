@@ -605,7 +605,10 @@ the reason why the sticker couldn't be found"
            (let ((buffer (overlay-buffer sticker)))
              (when buffer
                (with-current-buffer buffer
-                 (let ((window (display-buffer buffer)))
+                 (let ((window (display-buffer buffer
+                                               '(display-buffer-use-some-window
+                                                 .
+                                                 ((inhibit-same-window . t))))))
                    (when window
                      (with-selected-window window
                        (push-mark)
@@ -700,7 +703,6 @@ veryfying `sly-stickers--recording-void-p' is created."
   (let ((win (get-buffer-window (current-buffer))))
     (when (and win
                (window-live-p win))
-      (set-window-dedicated-p win 'soft)
       (ignore-errors
         (set-window-text-height win (line-number-at-pos (point-max)))))))
 
