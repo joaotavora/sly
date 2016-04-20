@@ -159,11 +159,18 @@ Returns two values: \(A B C\) and \(1 2 3\)."
          (do-symbols (s package)
            (collect-maybe #'collect pattern (symbol-name s) s)))))
 
+(defmacro do-all-symbols-with-home-package ((var &optional result-form) &body body)
+  "Iterates over accessible symbols with a home package. This excludes
+apparently uninterned symbols."
+  `(do-all-symbols (,var ,result-form)
+     (when (symbol-package ,var)
+       ,@body)))
+
 (defun qualified-matching (pattern package)
   (declare (ignore package))
   (and (not (char= (aref pattern 0) #\:))
        (collecting (collect-external collect-internal)
-         (do-all-symbols (s)
+         (do-all-symbols-with-home-package (s)
            (let* ((symbol-package (symbol-package s))
                   (nicknames (package-nicknames symbol-package))
                   (sorted-nicknames (sort (cons (package-name symbol-package)
