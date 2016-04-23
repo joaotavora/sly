@@ -8,7 +8,20 @@
   (:import-from #:slynk-backend #:when-let)
   (:export
    #:flex-completions
-   #:simple-completions))
+   #:simple-completions)
+  (:documentation "This package provides two strategies for completion: Simple
+  completion and flex/fuzzy completion.
+
+Simple completion looks for the pattern in the beginning of the symbols.
+
+Flex completion ranks the match with a combination of the candidate length and
+the number of characters from the pattern found in the candidate as well as the
+distance between the matching characters. Taking into account the length of the
+candidate has the unfortunate consequence that candidates that don't contain
+any character from the pattern are ranked by length alone, the shorter the
+better.
+
+See ido.el For a more thorough description."))
 
 (in-package :slynk-completion)
 
@@ -82,6 +95,12 @@ Returns a list of completions with package qualifiers if needed."
 ;;; Fancy "flex" completion
 ;;; 
 (defun score-completion (indexes short full)
+  "Return a float, between 0 and 1, that represents the likelihood that the
+SHORT string refers to with the FULL string. The higher the better.
+
+INDEXES: As list of integers, as returned by FLEX-MATCHES.
+SHORT: An abbreviation used as a pattern for the completion.
+FULL: A candidate for completion. "
   (declare (ignore short))
   (float
    (/ 1
@@ -112,6 +131,12 @@ Returns two values: \(A B C\) and \(1 2 3\)."
          (values ,@(mapcar #'(lambda (v) `(reverse ,v)) vars))))))
 
 (defun to-chunks (string indexes)
+  "Return a list of pairs. Each pair is made by the index and the character
+found in the STRING of the position referenced by the index. The character is
+presented a string of length 1.
+
+STRING: The candidate for completion.
+INDEXES: The indexes as returned by FLEX-MATCHES."
   (reverse (reduce (lambda (chunk-list number)
                      (if (and chunk-list
                               (= (1+ (first (first chunk-list)))
@@ -126,6 +151,8 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                    :initial-value nil)))
 
 (defun flex-matches (pattern string)
+  "Return a list of the positions where each character of the PATTERN is first
+found on STRING."
   (let ((indexes (loop for char across pattern
         for from = 0 then (1+ pos)
         for pos = (position char string :start from :test #'char-equal)
@@ -147,20 +174,33 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 
 (defun sort-by-score (what)
   (sort what #'> :key #'fourth))
+  "When STRING matches PATTERN, collect the match object using COLLECTOR."
+(defun sort-by-score (matches)
+  "Sort MATCHES by completion score."
+  (sort matches #'> :key #'fourth))
 
 (defun keywords-matching (pattern)
+  "Returns the matches of the PATTERN against the symbols in the keyword
+package."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
          (do-symbols (s (find-package :keyword))
            (collect-maybe #'collect pattern (format nil ":~a" (symbol-name s)) s)))))
 
 (defun accessible-matching (pattern package)
-  (and (not (find #\: pattern))
+  "Returns the matches of the PATTERN against all symbols accessible from
+PACKAGE."
+  (and (not (find #\: pattern))        ; Make sure the pattern does not contain a package prefix. (Package marker ?)
        (collecting (collect)
          (do-symbols (s package)
            (collect-maybe #'collect pattern (symbol-name s) s)))))
 
 (defun qualified-matching (pattern package)
+  "Match the PATTERN against all symbols with the exception of apparently
+uninterned symbols. The parameter PACKAGE is ignored.
+
+ Returns a list of matches, where each match is a list of the string resulting
+ from printing the symbol, the symbol, the indexes and the matching score."
   (declare (ignore package))
   (and (not (char= (aref pattern 0) #\:))
        (collecting (collect-external collect-internal)
