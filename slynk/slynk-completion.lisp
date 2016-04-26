@@ -5,7 +5,9 @@
 ;;
 (defpackage :slynk-completion
   (:use #:cl #:slynk-api)
-  (:import-from #:slynk-backend #:when-let)
+  (:import-from #:slynk-backend
+                #:mappend
+                #:when-let)
   (:export
    #:flex-completions
    #:simple-completions)
@@ -154,30 +156,32 @@ INDEXES: The indexes as returned by FLEX-MATCHES."
   "Return a list of the positions where each character of the PATTERN is first
 found on STRING."
   (let ((indexes (loop for char across pattern
-        for from = 0 then (1+ pos)
-        for pos = (position char string :start from :test #'char-equal)
-        unless pos
-          return nil
-        collect pos)))
+                       for from = 0 then (1+ pos)
+                       for pos = (position char string :start from :test #'char-equal)
+                       unless pos
+                         return nil
+                       collect pos)))
     indexes))
 
 (defun collect-maybe (collector pattern string symbol)
-  (let ((indexes (flex-matches pattern string)))
-    (when indexes
-      (funcall collector
-               (list string
-                     symbol
-                     indexes
-                     (score-completion indexes
-                                       pattern
-                                       string))))))
-
-(defun sort-by-score (what)
-  (sort what #'> :key #'fourth))
   "When STRING matches PATTERN, collect the match object using COLLECTOR."
+  (when-let (indexes (flex-matches pattern string))
+    (funcall collector
+             (list string
+                   symbol
+                   indexes
+                   (score-completion indexes
+                                     pattern
+                                     string)))))
+
+(declaim (inline completion-score))
+(defun completion-score (match)
+  "Return the completion score of the MATCH object."
+  (fourth match))
+
 (defun sort-by-score (matches)
   "Sort MATCHES by completion score."
-  (sort matches #'> :key #'fourth))
+  (sort matches #'> :key #'completion-score))
 
 (defun keywords-matching (pattern)
   "Returns the matches of the PATTERN against the symbols in the keyword
@@ -195,50 +199,50 @@ PACKAGE."
          (do-symbols (s package)
            (collect-maybe #'collect pattern (symbol-name s) s)))))
 
-(defun qualified-matching (pattern package)
-  "Match the PATTERN against all symbols with the exception of apparently
-uninterned symbols. The parameter PACKAGE is ignored.
+;;; TODO: Add SBCL specific version for package local nicknames
+(defun preferred-package-name (package)
+  "Return the preferred string representation to refer to a package. The
+shorter the name or nickname, the better."
+  (first (sort (cons (package-name package)
+                     (copy-list (package-nicknames package)))
+               #'<
+               :key #'length)))
+
+(defun symbol-information (symbol)
+  "Return the symbol, the preferred name for the package and a boolean
+representing if the symbol is external or not in said package. If symbol is an
+apparently uninterned symbol return NIL."
+  (when-let (symbol-package (symbol-package symbol))
+    (values (symbol-name symbol)
+            (preferred-package-name symbol-package)
+            (slynk::symbol-external-p symbol))))
+
+(defun qualified-matching-1 (pattern package)
+  "Match the PATTERN against all symbols in PACKAGE.
+
+Return two values, The list of matches of the external symbols and a list of
+matches of the internal symbols."
+  (collecting (collect-external collect-internal)
+    (do-symbols (symbol package)
+      (multiple-value-bind
+            (symbol-name symbol-package externalp) (symbol-information symbol)
+        (if externalp
+            ;; XXX: Consider factoring both calls to formats below
+            (collect-maybe #'collect-external pattern (format nil "~A:~A"  symbol-package symbol-name) symbol)
+            (collect-maybe #'collect-internal pattern (format nil "~A::~A" symbol-package symbol-name) symbol))))))
+
+(defun qualified-matching (pattern &optional package)
+  "Match the PATTERN against all symbols in PACKAGE. If package is nil match
+the PATTERN against all the symbols with a home package. This excludes
+apparently uninterned symbols.
 
  Returns a list of matches, where each match is a list of the string resulting
- from printing the symbol, the symbol, the indexes and the matching score."
-  (declare (ignore package))
+ of printing the symbol, the symbol, the indexes and the matching score."
   (and (not (char= (aref pattern 0) #\:))
-       (collecting (collect-external collect-internal)
-         (do-all-symbols (s)
-           (when-let (symbol-package (symbol-package s))
-             (let* ((nicknames (package-nicknames symbol-package))
-                    (sorted-nicknames (sort (cons (package-name symbol-package)
-                                                  (copy-list nicknames))
-                                            #'<
-                                            :key #'length)))
-               (when (and (not (excluded-from-searches-p s))
-                          ;; keyword symbols are handled explicitly by
-                          ;; `keyword-matching', so don't repeat them here.
-                          ;;
-                          (and (not (eq (find-package :keyword)
-                                        symbol-package))))
-                 (loop ;; TODO: add package-local nicknames: `package' might
-                       ;; now `symbol-package' under more nicknames. They
-                       ;; should be added and perhaps also sorted according to
-                       ;; length.
-                       ;;
-                       for nickname in sorted-nicknames
-                       for external-p = (slynk::symbol-external-p s)
-                       do
-                          (cond (external-p
-                                 (collect-maybe #'collect-external
-                                                pattern
-                                                (format nil "~a:~a"
-                                                        nickname
-                                                        (symbol-name s))
-                                                s))
-                                (t
-                                 (collect-maybe #'collect-internal
-                                                pattern
-                                                (format nil "~a::~a"
-                                                        nickname
-                                                        (symbol-name s))
-                                                s)))))))))))
+       (if package
+           (qualified-matching-1 pattern package)
+           (mappend #'(lambda (package) (qualified-matching-1 pattern package))
+                    (list-all-packages)))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Return \"flex\"completions for PATTERN.

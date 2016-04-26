@@ -60,4 +60,3 @@ boundp fboundp generic-function class macro special-operator package"
       (when (find-package symbol)       (flip #\p))
       result)))
 
-(provide :slynk-util)
