@@ -253,17 +253,16 @@ Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
               for (string symbol indexes score)
                 in
                 (remove-duplicates
-                 (loop with (external internal)
-                         = (multiple-value-list (qualified-matching pattern package))
-                       for e in (append (sort-by-score
-                                         (keywords-matching pattern))
-                                        (sort-by-score
-                                         (append (accessible-matching pattern package)
-                                                 external))
-                                        (sort-by-score
-                                         internal))
-                       for i upto limit
-                       collect e)
+                 (multiple-value-bind (external internal) (qualified-matching pattern package)
+                   (loop for e in (append (sort-by-score
+                                           (keywords-matching pattern))
+                                          (sort-by-score
+                                           (append (accessible-matching pattern package)
+                                                   external))
+                                          (sort-by-score
+                                           internal))
+                         for i upto limit
+                         collect e))
                  :from-end t
                  :test #'string=
                  :key #'first)
