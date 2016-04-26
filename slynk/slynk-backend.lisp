@@ -255,6 +255,13 @@ This will be used like so:
       '(:and)
       '(:or)))
 
+;; Copied verbatim from Alexandria.
+(defun mappend (function &rest lists)
+  "Applies FUNCTION to respective element(s) of each LIST, appending all the
+all the result list to a single list. FUNCTION must return a list."
+  (loop for results in (apply #'mapcar function lists)
+        append results))
+
 
 ;;;; UFT8
 
