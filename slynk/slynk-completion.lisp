@@ -164,40 +164,40 @@ Returns two values: \(A B C\) and \(1 2 3\)."
   (and (not (char= (aref pattern 0) #\:))
        (collecting (collect-external collect-internal)
          (do-all-symbols (s)
-           (let* ((symbol-package (symbol-package s))
-                  (nicknames (package-nicknames symbol-package))
-                  (sorted-nicknames (sort (cons (package-name symbol-package)
-                                                (copy-list nicknames))
-                                          #'<
-                                          :key #'length)))
-             (when (and (not (excluded-from-searches-p s))
-                        ;; keyword symbols are handled explicitly by
-                        ;; `keyword-matching', so don't repeat them here.
-                        ;; 
-                        (and (not (eq (find-package :keyword)
-                                      symbol-package))))
-               (loop ;; TODO: add package-local nicknames: `package' might
-                     ;; now `symbol-package' under more nicknames. They
-                     ;; should be added and perhaps also sorted according to
-                     ;; length.
-                     ;;
-                     for nickname in sorted-nicknames
-                     for external-p = (slynk::symbol-external-p s)
-                     do
-                        (cond (external-p
-                               (collect-maybe #'collect-external
-                                              pattern
-                                              (format nil "~a:~a"
-                                                      nickname
-                                                      (symbol-name s))
-                                              s))
-                              (t
-                               (collect-maybe #'collect-internal
-                                              pattern
-                                              (format nil "~a::~a"
-                                                      nickname
-                                                      (symbol-name s))
-                                              s))))))))))
+           (slynk-backend:when-let (symbol-package (symbol-package s))
+             (let* ((nicknames (package-nicknames symbol-package))
+                    (sorted-nicknames (sort (cons (package-name symbol-package)
+                                                  (copy-list nicknames))
+                                            #'<
+                                            :key #'length)))
+               (when (and (not (excluded-from-searches-p s))
+                          ;; keyword symbols are handled explicitly by
+                          ;; `keyword-matching', so don't repeat them here.
+                          ;; 
+                          (and (not (eq (find-package :keyword)
+                                        symbol-package))))
+                 (loop ;; TODO: add package-local nicknames: `package' might
+                       ;; know `symbol-package' under more nicknames. They
+                       ;; should be added and perhaps also sorted according to
+                       ;; length.
+                       ;;
+                       for nickname in sorted-nicknames
+                       for external-p = (slynk::symbol-external-p s)
+                       do
+                          (cond (external-p
+                                 (collect-maybe #'collect-external
+                                                pattern
+                                                (format nil "~a:~a"
+                                                        nickname
+                                                        (symbol-name s))
+                                                s))
+                                (t
+                                 (collect-maybe #'collect-internal
+                                                pattern
+                                                (format nil "~a::~a"
+                                                        nickname
+                                                        (symbol-name s))
+                                                s)))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Return \"flex\"completions for PATTERN.
