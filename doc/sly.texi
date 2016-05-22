@@ -177,7 +177,7 @@ the table, by default, a richer feature set brought together by a
 consistent user interface.
 
 To understand the differences between the two projects read
-@SLY{}'s @uref{https://github.com/capitaomorte/sly/blob/master/NEWS.md,,NEWS.md}
+@SLY{}'s @uref{https://github.com/joaotavora/sly/blob/master/NEWS.md,,NEWS.md}
 file.
 
 @node Getting started
@@ -241,11 +241,11 @@ commands (like ``restart frame'').
 
 You can choose between using a released version of @SLY{} or accessing
 our @Git{} repository directly. You can releases from
-@url{https://github.com/capitaomorte/sly/releases}. Alternatively
+@url{https://github.com/joaotavora/sly/releases}. Alternatively
 download the very latest @SLY{}:
 
 @example
-git clone https://github.com/capitaomorte/sly.git
+git clone https://github.com/joaotavora/sly.git
 @end example
 
 You might substitute @code{https} for @code{http} if you're having
@@ -259,7 +259,7 @@ git log HEAD..origin/master
 
 If you want to hack on @SLY{}, use Github's @emph{fork} functionality
 and submit a @emph{pull request}. Be sure to first read the
-@uref{https://github.com/capitaomorte/sly/blob/master/CONTRIBUTING.md,,CONTRIBUTING.md} file first.
+@uref{https://github.com/joaotavora/sly/blob/master/CONTRIBUTING.md,,CONTRIBUTING.md} file first.
 
 @node Installation
 @section Installation

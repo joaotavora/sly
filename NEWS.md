@@ -38,7 +38,7 @@ SLY 1.0.0-beta-2 (March 2016)
 ### Improved `sly-stickers` contrib:
 
 There is now updated documentation for this contrib. See
-http://capitaomorte.github.io/sly/#SLY-Stickers
+http://joaotavora.github.io/sly/#SLY-Stickers
 
 Added a menu to help discover the functionality. 
 
@@ -50,21 +50,21 @@ The "replay" interface, `M-x sly-stickers-replay` has been cleaned up.
 
 ### Three new independant SLY contribs
 
-In https://github.com/capitaomorte/sly-named-readtables there is an
+In https://github.com/joaotavora/sly-named-readtables there is an
 external contrib that adds support for Tobias C Rittweiler's
 `EDITOR.HINTS-NAMED.READTABLES`. Available on MELPA.
 
-In https://github.com/capitaomorte/sly-macrostep there is a SLY
+In https://github.com/joaotavora/sly-macrostep there is a SLY
 contrib for expanding CL macros right inside the source
 file. Available on MELPA.
 
-In https://github.com/capitaomorte/sly-quicklisp there is a SLY
+In https://github.com/joaotavora/sly-quicklisp there is a SLY
 contrib for expanding CL macros right inside the source
 file. Available on MELPA.
 
 These contribs also showcase how third-party contribs with both Elisp
 and CL parts can be written independently of SLY. See
-https://github.com/capitaomorte/sly-hello-world for how to write such
+https://github.com/joaotavora/sly-hello-world for how to write such
 contribs.
 
 ### Apropos
@@ -221,7 +221,7 @@ SLY 1.0.0-alpha-3 (December 2014)
 `sly-stickers` is a live code annotation tool, a replacement for the
 "print" statements that are often included for debugging the value of
 a particular variable or expression. See a much more complete
-description in http://capitaomorte.github.io/sly/#SLY-Stickers.
+description in http://joaotavora.github.io/sly/#SLY-Stickers.
 
 Thanks to Artem Malyshev for early testing and ideas.
 
@@ -229,7 +229,7 @@ Thanks to Artem Malyshev for early testing and ideas.
 
 The documentation rewrite is underway (github issue #9), mentioning
 only a residual amount of SLIME-specific functionality. Browse to
-http://capitaomorte.github.io/sly for the online version in HTML.
+http://joaotavora.github.io/sly for the online version in HTML.
 
 ### SLY is available in MELPA
 
@@ -385,7 +385,7 @@ program will behave in a similar non-intrusive manner.
 
 This change also enables developers to write completely independent
 third-party extensions like
-[in this example](http://github.com/capitaomorte/sly-hello-world).
+[in this example](http://github.com/joaotavora/sly-hello-world).
 
 See the CONTRIBUTING.md file for more details on architecture changes.
 

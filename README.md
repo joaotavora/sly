@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/capitaomorte/sly.png?branch=master)](https://travis-ci.org/capitaomorte/sly)
+[![Build Status](https://travis-ci.org/joaotavora/sly.png?branch=master)](https://travis-ci.org/joaotavora/sly)
 [![MELPA](http://melpa.org/packages/sly-badge.svg)](http://melpa.org/#/sly)
 
 ```
@@ -33,7 +33,7 @@ complete list of differences between the two projects.
 
 SLY is currently *beta* status. The
 [documentation can be found here][documentation], but beware
-[it's still a little out of date](https://github.com/capitaomorte/sly/issues/9).
+[it's still a little out of date](https://github.com/joaotavora/sly/issues/9).
 
 Install from MELPA
 ------------------
@@ -116,18 +116,18 @@ Contributing
 first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 
 [1]: http://www.common-lisp.net/project/slime/
-[2]: https://github.com/capitaomorte/sly/blob/master/README.md#fork
-[4]: https://github.com/capitaomorte/sly/issues
-[5]: https://github.com/capitaomorte/sly/blob/master/CONTRIBUTING.md
-[6]: https://github.com/capitaomorte/sly/blob/master/NEWS.md
+[2]: https://github.com/joaotavora/sly/blob/master/README.md#fork
+[4]: https://github.com/joaotavora/sly/issues
+[5]: https://github.com/joaotavora/sly/blob/master/CONTRIBUTING.md
+[6]: https://github.com/joaotavora/sly/blob/master/NEWS.md
 [7]: https://www.youtube.com/watch?v=xqWkVvubnSI
 [8]: http://common-lisp.net/project/slime/doc/html/Credits.html#Credits
-[9]: https://github.com/capitaomorte/sly/blob/master/CONTRIBUTING.md#architecture
+[9]: https://github.com/joaotavora/sly/blob/master/CONTRIBUTING.md#architecture
 [10]: https://github.com/milkypostman/melpa
-[11]: https://github.com/capitaomorte/sly-named-readtables
-[12]: https://github.com/capitaomorte/sly-macrostep
-[13]: https://github.com/capitaomorte/sly-quicklisp
-[documentation]: http://capitaomorte.github.io/sly
+[11]: https://github.com/joaotavora/sly-named-readtables
+[12]: https://github.com/joaotavora/sly-macrostep
+[13]: https://github.com/joaotavora/sly-quicklisp
+[documentation]: http://joaotavora.github.io/sly
 
 <!-- Local Variables: -->
 <!-- fill-column: 80 -->

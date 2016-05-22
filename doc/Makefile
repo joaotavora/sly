@@ -50,7 +50,7 @@ DOCDIR=/project/sly/public_html/doc
 
 publish: sly.html
 	rm -rf gh-pages
-	git clone git@github.com:capitaomorte/sly.git --branch gh-pages --single-branch gh-pages
+	git clone git@github.com:joaotavora/sly.git --branch gh-pages --single-branch gh-pages
 	cp sly.html gh-pages/index.html
 	cp -Rf images/*.png gh-pages/images
 	cd gh-pages \

@@ -266,7 +266,7 @@ forced on the user's Lisp run-time.
 
 This also allows the developer to write completely independent
 third-party extensions to SLY, with both Emacs and Lisp parts. See the
-URL http://github.com/capitaomorte/sly-hello-world for an example
+URL http://github.com/joaotavora/sly-hello-world for an example
 extension.
 
 Additionally, if SLY detects that ASDF is not available in the Lisp

@@ -82,7 +82,7 @@
 (require 'sly-parse "lib/sly-parse")
 (require 'sly-buttons "lib/sly-buttons")
 (eval-when-compile (require 'cl)) ; Using `cl-defstruct' needs it apparently. See issue
-                                  ; https://github.com/capitaomorte/sly/issues/54
+                                  ; https://github.com/joaotavora/sly/issues/54
 (require 'cl-lib)
 (require 'hi-lock) ;; for the faces
 (require 'color)
