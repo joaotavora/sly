@@ -138,10 +138,14 @@ Bindings appearing earlier in the list take priority"
 ;;; The `DEFSLYFUN' macro defines a function that Emacs can call via
 ;;; RPC.
 
+(defvar *slyfuns* (make-hash-table)
+  "A map of Sly functions.")
+
 (defmacro defslyfun (name arglist &body rest)
   "A DEFUN for functions that Emacs can call by RPC."
   `(progn
      (defun ,name ,arglist ,@rest)
+     (setf (gethash ',name *slyfuns*) #',name)
      ;; see <http://www.franz.com/support/documentation/6.2/\
      ;; doc/pages/variables/compiler/\
      ;; s_cltl1-compile-file-toplevel-compatibility-p_s.htm>
