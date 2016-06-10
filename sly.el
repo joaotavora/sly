@@ -4018,7 +4018,7 @@ inserted in the current buffer."
                                     :connection t
                                     :select sly-description-autofocus
                                     :mode 'lisp-mode)
-      (read-only-mode 1)
+      (sly-popup-buffer-mode)
       (princ string)
       (goto-char (point-min)))))
 
