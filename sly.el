@@ -987,50 +987,67 @@ See `sly-lisp-implementations'")
 (defvar sly-default-connection)
 
 ;;;###autoload
-(defun sly (&optional command coding-system)
-  "Start an inferior^_superior Lisp and connect to its Slynk server."
-  (interactive)
+(defun sly (&optional command coding-system interactive)
+  "Start a Lisp implementation and connect to it.
+
+COMMAND specifies the Lisp implementation to start. It is either
+a pathname to a lisp implementation, as `inferior-lisp-program',
+or a symbol indexing `sly-lisp-implementations'. CODING-SYSTEM is
+a symbol overriding `sly-net-coding-system'.
+
+Interactively, both COMMAND and CODING-SYSTEM are nil and the
+prefix argument controls the precise behaviour:
+
+- With no prefix arg, try to automatically find a Lisp. First
+  lookup `sly-lisp-implementations', using `sly-default-lisp' as
+  a default strategy. Then try `inferior-lisp-program' if it
+  looks like it points to a valid lisp. Failing that, guess the
+  location of a lisp implementation.
+
+- With a positive prefix arg (one C-u), prompt for a command
+  string that starts a Lisp implementation.
+
+- With a negative prefix arg (M-- M-x sly, for example) prompt
+  for a symbol indexing one of the entries in
+  `sly-lisp-implementations'"
+  (interactive (list nil nil t))
   (let ((inferior-lisp-program (or command inferior-lisp-program))
         (sly-net-coding-system (or coding-system sly-net-coding-system)))
     (sly-start* (cond ((and command (symbolp command))
-                         (sly-lisp-options command))
-                        (t (sly-read-interactive-args))))))
+                       (sly-lookup-lisp-implementation
+                        sly-lisp-implementations
+                        command))
+                      (interactive
+                       (sly--read-interactive-args))))))
 
 (defvar sly-inferior-lisp-program-history '()
-  "History list of command strings.  Used by `sly'.")
+  "History list of command strings.  Used by M-x sly.")
 
-(defun sly-read-interactive-args ()
+(defun sly--read-interactive-args ()
   "Return the list of args which should be passed to `sly-start'.
-
-The rules for selecting the arguments are rather complicated:
-
-- In the most common case, i.e. if there's no prefix-arg in
-  effect and if `sly-lisp-implementations' is nil, use
-  `inferior-lisp-program' as fallback.
-
-- If the table `sly-lisp-implementations' is non-nil use the
-  implementation with name `sly-default-lisp' or if that's nil
-  the first entry in the table.
-
-- If the prefix-arg is `-', prompt for one of the registered
-  lisps.
-
-- If the prefix-arg is positive, read the command to start the
-  process."
+Helper for M-x sly"
   (let ((table sly-lisp-implementations))
-    (cond ((not current-prefix-arg) (sly-lisp-options))
+    (cond ((not current-prefix-arg)
+           (cond (sly-lisp-implementations
+                  (sly-lookup-lisp-implementation sly-lisp-implementations
+                                                  (or sly-default-lisp
+                                                      (car (car table)))))
+                 (t (cl-destructuring-bind (program &rest args)
+                        (split-string-and-unquote
+                         (sly--guess-inferior-lisp-program t))
+                      (list :program program :program-args args)))))
           ((eq current-prefix-arg '-)
            (let ((key (sly-completing-read
                        "Lisp name: " (mapcar (lambda (x)
                                                (list (symbol-name (car x))))
                                              table)
                        nil t)))
-             (sly-lookup-lisp-implementation table (intern key))))
+             (sly--lookup-lisp-implementation table (intern key))))
           (t
            (cl-destructuring-bind (program &rest program-args)
                (split-string-and-unquote
                 (read-shell-command "[sly] Run lisp: "
-                                    (sly--guess-inferior-lisp-program)
+                                    (sly--guess-inferior-lisp-program nil)
                                     'sly-inferior-lisp-program-history))
              (let ((coding-system
                     (if (eq 16 (prefix-numeric-value current-prefix-arg))
@@ -1040,18 +1057,8 @@ The rules for selecting the arguments are rather complicated:
                (list :program program :program-args program-args
                      :coding-system coding-system)))))))
 
-(defun sly-lisp-options (&optional name)
-  (let ((table sly-lisp-implementations))
-    (cl-assert (or (not name) table))
-    (cond (table (sly-lookup-lisp-implementation sly-lisp-implementations
-                                                   (or name sly-default-lisp
-                                                       (car (car table)))))
-          (t (cl-destructuring-bind (program &rest args)
-                 (split-string
-                  (sly--guess-inferior-lisp-program))
-               (list :program program :program-args args))))))
 
-(defun sly-lookup-lisp-implementation (table name)
+(defun sly--lookup-lisp-implementation (table name)
   (let ((arguments (cl-rest (assoc name table))))
     (unless arguments
       (error "Could not find lisp implementation with the name '%S'" name))
@@ -1084,7 +1091,9 @@ The rules for selecting the arguments are rather complicated:
            (sly-error "No *inferior lisp* buffer")))
     buffer))
 
-(defun sly--guess-inferior-lisp-program ()
+(defun sly--guess-inferior-lisp-program (&optional interactive)
+  "Compute pathname to a seemingly valid lisp implementation.
+If ERRORP, error if such a thing cannot be found"
   (if (and inferior-lisp-program
            (executable-find (car
                              (split-string inferior-lisp-program "[\t\n ]"))))
@@ -1092,14 +1101,18 @@ The rules for selecting the arguments are rather complicated:
     (let ((guessed (cl-some #'executable-find
                             '("lisp" "sbcl" "clisp" "cmucl"
                               "acl" "alisp"))))
-      (if (and guessed
-               (sly-y-or-n-p
-                "Can't find `inferior-lisp-program' (set to `%s'). Use `%s' instead? "
-                inferior-lisp-program guessed))
-          guessed
-        (sly-error
-         (substitute-command-keys
-          "Can't find a suitable Lisp. Use \\[sly-info] to read about `Multiple Lisps'"))))))
+      (cond ((and guessed
+                  (or (not interactive)
+                      (sly-y-or-n-p
+                       "Can't find `inferior-lisp-program' (set to `%s'). Use `%s' instead? "
+                       inferior-lisp-program guessed)))
+             guessed)
+            (interactive
+             (sly-error
+              (substitute-command-keys
+               "Can't find a suitable Lisp. Use \\[sly-info] to read about `Multiple Lisps'")))
+            (t
+             nil)))))
 
 (cl-defun sly-start (&key (program
                            (sly-error "must supply :program"))
