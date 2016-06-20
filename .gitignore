@@ -5,6 +5,7 @@ ChangeLog
 *.lx64fsl
 *.dx64fsl
 *.elc
+*.cls
 *~
 \#*\#
 .\#*
