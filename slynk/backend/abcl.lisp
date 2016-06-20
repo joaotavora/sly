@@ -446,8 +446,6 @@
 (defvar *buffer-string*)
 (defvar *compile-filename*)
 
-(in-package :slynk-backend)
-
 (defvar *abcl-signaled-conditions*)
 
 (defun handle-compiler-warning (condition)
