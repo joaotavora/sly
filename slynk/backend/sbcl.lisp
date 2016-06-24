@@ -745,8 +745,9 @@ QUALITIES is an alist with (quality . value)"
                  (with-compilation-unit
                      (:source-plist (list :emacs-buffer buffer
                                           :emacs-filename filename
-                                          :emacs-string string
-                                          :emacs-position position)
+                                          :emacs-package (package-name *package*)
+                                          :emacs-position position
+                                          :emacs-string string)
                       :source-namestring filename
                       :allow-other-keys t)
                    (compile-file *buffer-tmpfile* :external-format :utf-8)))))
@@ -1242,7 +1243,11 @@ stack."
 
 (defun code-location-source-location (code-location)
   (let* ((dsource (sb-di:code-location-debug-source code-location))
-         (plist (sb-c::debug-source-plist dsource)))
+         (plist (sb-c::debug-source-plist dsource))
+         (package (getf plist :emacs-package))
+         (*package* (or (and package
+                             (find-package package))
+                        *package*)))
     (if (getf plist :emacs-buffer)
         (emacs-buffer-source-location code-location plist)
         #+#.(slynk-backend:with-symbol 'debug-source-from 'sb-di)
