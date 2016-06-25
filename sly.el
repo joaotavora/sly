@@ -979,9 +979,11 @@ Here's an example:
  ((cmucl (\"/opt/cmucl/bin/lisp\" \"-quiet\") :init sly-init-command)
   (acl (\"acl7\") :coding-system emacs-mule))")
 
-(defvar sly-default-lisp nil
-  "*The name of the default Lisp implementation.
-See `sly-lisp-implementations'")
+(defcustom sly-default-lisp nil
+  "A symbol naming the preferred Lisp implementation.
+See `sly-lisp-implementations'"
+  :type 'function
+  :group 'sly-mode)
 
 ;; dummy definitions for the compiler
 (defvar sly-net-processes)
@@ -1014,14 +1016,16 @@ prefix argument controls the precise behaviour:
   (interactive (list nil nil t))
   (let ((inferior-lisp-program (or command inferior-lisp-program))
         (sly-net-coding-system (or coding-system sly-net-coding-system)))
-    (sly-start* (cond ((and command (symbolp command))
-                       (sly--lookup-lisp-implementation
-                        sly-lisp-implementations
-                        command))
-                      (interactive
+    (sly-start* (cond (interactive
                        (sly--read-interactive-args))
                       (t
-                       `(:program ,inferior-lisp-program))))))
+                       (if sly-lisp-implementations
+                           (sly--lookup-lisp-implementation
+                            sly-lisp-implementations
+                            (or (and (symbolp command) command)
+                                sly-default-lisp
+                                (car (car sly-lisp-implementations))))
+                         `(:program ,inferior-lisp-program)))))))
 
 (defvar sly-inferior-lisp-program-history '()
   "History list of command strings.  Used by M-x sly.")
@@ -1029,36 +1033,35 @@ prefix argument controls the precise behaviour:
 (defun sly--read-interactive-args ()
   "Return the list of args which should be passed to `sly-start'.
 Helper for M-x sly"
-  (let ((table sly-lisp-implementations))
-    (cond ((not current-prefix-arg)
-           (cond (sly-lisp-implementations
-                  (sly--lookup-lisp-implementation sly-lisp-implementations
-                                                   (or sly-default-lisp
-                                                       (car (car table)))))
-                 (t (cl-destructuring-bind (program &rest args)
-                        (split-string-and-unquote
-                         (sly--guess-inferior-lisp-program t))
-                      (list :program program :program-args args)))))
-          ((eq current-prefix-arg '-)
-           (let ((key (sly-completing-read
-                       "Lisp name: " (mapcar (lambda (x)
-                                               (list (symbol-name (car x))))
-                                             table)
-                       nil t)))
-             (sly--lookup-lisp-implementation table (intern key))))
-          (t
-           (cl-destructuring-bind (program &rest program-args)
-               (split-string-and-unquote
-                (read-shell-command "[sly] Run lisp: "
-                                    (sly--guess-inferior-lisp-program nil)
-                                    'sly-inferior-lisp-program-history))
-             (let ((coding-system
-                    (if (eq 16 (prefix-numeric-value current-prefix-arg))
-                        (read-coding-system "[sly] Set sly-coding-system: "
-                                            sly-net-coding-system)
-                      sly-net-coding-system)))
-               (list :program program :program-args program-args
-                     :coding-system coding-system)))))))
+  (cond ((not current-prefix-arg)
+         (cond (sly-lisp-implementations
+                (sly--lookup-lisp-implementation sly-lisp-implementations
+                                                 (or sly-default-lisp
+                                                     (car (car sly-lisp-implementations)))))
+               (t (cl-destructuring-bind (program &rest args)
+                      (split-string-and-unquote
+                       (sly--guess-inferior-lisp-program t))
+                    (list :program program :program-args args)))))
+        ((eq current-prefix-arg '-)
+         (let ((key (sly-completing-read
+                     "Lisp name: " (mapcar (lambda (x)
+                                             (list (symbol-name (car x))))
+                                           table)
+                     nil t)))
+           (sly--lookup-lisp-implementation table (intern key))))
+        (t
+         (cl-destructuring-bind (program &rest program-args)
+             (split-string-and-unquote
+              (read-shell-command "[sly] Run lisp: "
+                                  (sly--guess-inferior-lisp-program nil)
+                                  'sly-inferior-lisp-program-history))
+           (let ((coding-system
+                  (if (eq 16 (prefix-numeric-value current-prefix-arg))
+                      (read-coding-system "[sly] Set sly-coding-system: "
+                                          sly-net-coding-system)
+                    sly-net-coding-system)))
+             (list :program program :program-args program-args
+                   :coding-system coding-system))))))
 
 
 (defun sly--lookup-lisp-implementation (table name)
