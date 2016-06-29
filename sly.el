@@ -1046,9 +1046,9 @@ Helper for M-x sly"
          (let ((key (sly-completing-read
                      "Lisp name: " (mapcar (lambda (x)
                                              (list (symbol-name (car x))))
-                                           table)
+                                           sly-lisp-implementations)
                      nil t)))
-           (sly--lookup-lisp-implementation table (intern key))))
+           (sly--lookup-lisp-implementation sly-lisp-implementations (intern key))))
         (t
          (cl-destructuring-bind (program &rest program-args)
              (split-string-and-unquote
