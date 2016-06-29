@@ -1075,7 +1075,7 @@ Helper for M-x sly"
       (cl-list* :name name :program prog :program-args args keys))))
 
 (defun sly-inferior-lisp-buffer (sly-process-or-connection &optional pop-to-buffer)
-  "Return PROCESS's buffer, with POP-TO-BUFFER, pop to it."
+  "Return PROCESS's buffer. With POP-TO-BUFFER, pop to it."
   (interactive (list (sly-process) t))
   (let ((buffer (cond ((and sly-process-or-connection
                             (process-get sly-process-or-connection
@@ -1155,7 +1155,7 @@ DIRECTORY change to this directory before starting the process.
     (let ((proc (sly-maybe-start-lisp program program-args env
                                       directory buffer)))
       (sly-inferior-connect proc args)
-      (sly-inferior-lisp-buffer proc 'pop-to-buffer))))
+      (sly-inferior-lisp-buffer proc))))
 
 (defun sly-start* (options)
   (apply #'sly-start options))
