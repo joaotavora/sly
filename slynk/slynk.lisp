@@ -34,11 +34,8 @@
            #:*fasl-pathname-function*
            #:*log-events*
            #:*log-output*
-           #:*use-dedicated-output-stream*
-           #:*dedicated-output-stream-port*
            #:*configure-emacs-indentation*
            #:*readtable-alist*
-           #:*globally-redirect-io*
            #:*global-debugger*
            #:*sly-db-quit-restart*
            #:*backtrace-printer-bindings*
@@ -188,12 +185,8 @@ Backend code should treat the connection structure as opaque.")
 ;;;; Connections
 ;;;
 ;;; Connection structures represent the network connections between
-;;; Emacs and Lisp. Each has a socket stream, a set of user I/O
-;;; streams that redirect to Emacs, and optionally a second socket
-;;; used solely to pipe user-output to Emacs (an optimization).  This
-;;; is also the place where we keep everything that needs to be
-;;; freed/closed/killed when we disconnect.
-
+;;; Emacs and Lisp. 
+;;;
 (defstruct (connection
              (:constructor %make-connection)
              (:conc-name connection-)
