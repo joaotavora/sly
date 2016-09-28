@@ -81,6 +81,10 @@ emptied. See also `sly-mrepl-hook'")
 This variables behaves like `comint-preoutput-filter-functions',
 for output printed to the REPL (not for evaluation results)")
 
+(defcustom sly-mrepl-history-file-name (expand-file-name "~/.sly-mrepl-history")
+  "The file used to store MREPL's input history across sessions."
+  :group 'sly)
+
 (defvar sly-mrepl-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET")     'sly-mrepl-return)
@@ -145,7 +149,7 @@ for output printed to the REPL (not for evaluation results)")
                 (comint-output-filter-functions nil)
                 (comint-input-filter-functions nil)
                 (comint-history-isearch dwim)
-                (comint-input-ring-file-name "~/.sly-mrepl-history")
+                (comint-input-ring-file-name ,sly-mrepl-history-file-name)
                 (comint-input-ignoredups t)
                 (comint-prompt-read-only t)
                 (indent-line-function lisp-indent-line)
