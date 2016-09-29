@@ -145,7 +145,6 @@ for output printed to the REPL (not for evaluation results)")
                 (comint-output-filter-functions nil)
                 (comint-input-filter-functions nil)
                 (comint-history-isearch dwim)
-                (comint-input-ring-file-name "~/.sly-mrepl-history")
                 (comint-input-ignoredups t)
                 (comint-prompt-read-only t)
                 (indent-line-function lisp-indent-line)
@@ -570,8 +569,14 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
 (defun sly-mrepl--busy-p ()
   (>= sly-mrepl--output-mark (sly-mrepl--mark)))
 
+(defcustom sly-mrepl-history-file-name (expand-file-name "~/.sly-mrepl-history")
+  "File used to store SLY REPL's input history across sessions."
+  :type 'file
+  :group 'sly)
+
 (defun sly-mrepl--read-input-ring ()
-  (let ((comint-input-ring-separator sly-mrepl--history-separator))
+  (let ((comint-input-ring-separator sly-mrepl--history-separator)
+        (comint-input-ring-file-name sly-mrepl-history-file-name))
     (comint-read-input-ring)))
 
 (defcustom sly-mrepl-prevent-duplicate-history 'move
@@ -584,17 +589,19 @@ If the non-nil value is `move', the previously occuring entry is
 discarded, i.e. moved to a more recent spot. Any other non-nil
 value laves the previous entry untouched and it is the more
 recent entry that is discarded."
+  :type 'symbol
   :group 'sly)
 
 (defun sly-mrepl--merge-and-save-history ()
   (let*
       ;; To merge the file's history with the current buffer's
-      ;; history, start by deep-copying `comint-input-ring' to a
+      ;; history, sntart by deep-copying `comint-input-ring' to a
       ;; separate variable.
       ;; 
       ((current-ring (copy-tree comint-input-ring 'vectors-too))
        (index (ring-length current-ring))
-       (comint-input-ring-separator sly-mrepl--history-separator))
+       (comint-input-ring-separator sly-mrepl--history-separator)
+       (comint-input-ring-file-name sly-mrepl-history-file-name))
     ;; this sets `comint-input-ring' from the file
     ;;
     (sly-mrepl--read-input-ring)
