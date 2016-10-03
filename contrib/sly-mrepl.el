@@ -1249,12 +1249,12 @@ a list of result buttons thus highlighted"
                                                entry-idx)
                                 (format "Matched history entry %s%s: "
                                              entry-idx
-                                             (if (rest buttons)
+                                             (if (cl-rest buttons)
                                                  (format " (%s values)" (length buttons))
                                                ""))))
                       (hint (propertize
                              (truncate-string-to-width
-                              (replace-regexp-in-string "\n" " " (button-label (first buttons)))
+                              (replace-regexp-in-string "\n" " " (button-label (cl-first buttons)))
                               (- (window-width (minibuffer-window))
                                  (length prefix) 10)
                               nil
