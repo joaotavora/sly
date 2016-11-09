@@ -1318,13 +1318,10 @@ stack."
                          `(:snippet ,snippet)))))))
 
 (defun code-location-debug-source-name (code-location)
-  (namestring (truename (#+#.(slynk-backend:with-symbol
-                              'debug-source-name 'sb-di)
-                             sb-c::debug-source-name
-                             #-#.(slynk-backend:with-symbol
-                                  'debug-source-name 'sb-di)
-                             sb-c::debug-source-namestring
-                         (sb-di::code-location-debug-source code-location)))))
+  (namestring (truename (#.(slynk-backend:choose-symbol
+                            'sb-c 'debug-source-name
+                            'sb-c 'debug-source-namestring)
+                           (sb-di::code-location-debug-source code-location)))))
 
 (defun code-location-debug-source-created (code-location)
   (sb-c::debug-source-created
@@ -1591,7 +1588,10 @@ stack."
     (:debug-info (sb-kernel:%code-debug-info o)))
    `("Constants:" (:newline))
    (loop for i from sb-vm:code-constants-offset
-         below (sb-kernel:get-header-data o)
+         below
+         (#.(slynk-backend:choose-symbol 'sb-kernel 'code-header-words
+                                         'sb-kernel 'get-header-data)
+            o)
          append (label-value-line i (sb-kernel:code-header-ref o i)))
    `("Code:" (:newline)
              , (with-output-to-string (s)

@@ -50,6 +50,7 @@
            label-value-line
            label-value-line*
            with-symbol
+           choose-symbol
            boolean-to-feature-expression
            ;; package helper for backend
            import-to-slynk-mop
@@ -261,6 +262,13 @@ form suitable for testing with #+."
   (boolean-to-feature-expression
    (and (find-package package)
         (find-symbol (string name) package))))
+
+(defun choose-symbol (package name alt-package alt-name)
+  "If symbol package:name exists return that symbol, otherwise alt-package:alt-name.
+  Suitable for use with #."
+  (or (and (find-package package)
+           (find-symbol (string name) package))
+      (find-symbol (string alt-name) alt-package)))
 
 
 ;;;; UFT8
