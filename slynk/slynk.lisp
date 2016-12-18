@@ -2014,9 +2014,9 @@ same as that variable.")
                  when display collect it
                    until skip)))
     (if extra-presentations
-        (format nil "~D (~{~a~^, ~})"
+        (format nil "~A (~{~a~^, ~})"
                 number extra-presentations)
-        (format nil "~D" number))))
+        (format nil "~A" number))))
 
 (defun echo-for-emacs (values)
   "Format VALUES in a way suitable to be echoed in the SLY client"
