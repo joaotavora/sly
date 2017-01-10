@@ -16,6 +16,7 @@
 (defvar sly-scratch-mode-map
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map lisp-mode-map)
+    (define-key map "\C-j" 'sly-eval-print-last-expression)
     map))
 
 (defun sly-scratch ()
@@ -40,10 +41,5 @@
 	(use-local-map sly-scratch-mode-map)
 	(sly-mode t)
 	(current-buffer))))
-
-(defvar sly-scratch-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-j" 'sly-eval-print-last-expression)
-    map))
 
 (provide 'sly-scratch)
