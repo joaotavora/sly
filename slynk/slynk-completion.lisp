@@ -233,4 +233,8 @@ Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
                     (slynk::symbol-classification-string symbol)))
             nil))))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (import 'flex-completions :slynk)
+  (export 'flex-completions :slynk))
+
 (provide :slynk-completion)
