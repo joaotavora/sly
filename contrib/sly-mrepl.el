@@ -909,7 +909,8 @@ handle to distinguish the new buffer from the existing."
     (let* ((local (sly-make-channel sly-listener-channel-methods))
            (buffer (pop-to-buffer name)))
       (with-current-buffer buffer
-        (sly-mrepl-mode)
+        (unless (eq major-mode 'sly-mrepl-mode)
+          (sly-mrepl-mode))
         (when (and (not existing)
                    (eq sly-mrepl-pop-sylvester t))
           (sly-mrepl--insert-note
