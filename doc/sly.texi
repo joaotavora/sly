@@ -848,7 +848,7 @@ keys in Bash.
 @section REPL output control
 
 @itemize
-@item @code{SLYNK-MREPL:*GLOBALLY-REDIRECT-IO*}
+@item @code{SLYNK:*GLOBALLY-REDIRECT-IO*}
 
 When true this causes the standard streams (@code{*standard-output*},
 etc) to be globally redirected to the @REPL{} in Emacs. When
@@ -858,7 +858,7 @@ to Emacs using dynamic bindings while handling requests. Note that
 Emacs, because it can interact badly with the Lisp's native @REPL{} by
 having it try to read from the Emacs one.
 
-@item @code{SLYNK-MREPL:*USE-DEDICATED-OUTPUT-STREAM*}
+@item @code{SLYNK:*USE-DEDICATED-OUTPUT-STREAM*}
 
 This variable controls whether to use a more efficient mechanism for
 sending printed output from Lisp to Emacs.
@@ -1920,11 +1920,11 @@ have one port open we must tell Slynk's REPL contrib (see @REPL{}) to
 not use an extra connection for output, which it will do by default.
 
 @example
-(setf slynk-mrepl:*use-dedicated-output-stream* nil)
+(setf slynk:*use-dedicated-output-stream* nil)
 @end example
 
 @footnote{Alternatively, a separate tunnel for the port set in
-@code{slynk-mrepl:*dedicated-stream-port*} can also be used if a dedicated output
+@code{slynk:*dedicated-output-stream-port*} can also be used if a dedicated output
 is essential.}
 
 @node Setting up Emacs

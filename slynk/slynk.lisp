@@ -46,6 +46,12 @@
            #:*require-module*
            #:*eval-for-emacs-wrappers*
            #:*debugger-extra-options*
+           ;; These are exceptions: they are defined later in
+           ;; slynk-mrepl.lisp
+           ;;
+           #:*use-dedicated-output-stream*
+           #:*dedicated-output-stream-port*
+           #:*dedicated-output-stream-buffering*
            ;; This is SETFable.
            #:debug-on-slynk-error
            ;; These are re-exported directly from the backend:

@@ -4,6 +4,10 @@
 
 (defpackage :slynk-mrepl
   (:use :cl :slynk-api)
+  (:import-from :slynk
+                #:*use-dedicated-output-stream*
+                #:*dedicated-output-stream-port*
+                #:*dedicated-output-stream-buffering*)
   (:export #:create-mrepl
            #:globally-save-object
            #:eval-for-mrepl
@@ -12,10 +16,7 @@
            #:inspect-entry
            #:guess-and-set-package
            #:copy-to-repl
-           #:describe-entry
-           #:*use-dedicated-output-stream*
-           #:*dedicated-output-stream-port*
-           #:*dedicated-output-stream-buffering*))
+           #:describe-entry))
 (in-package :slynk-mrepl)
 
 
