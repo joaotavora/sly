@@ -1180,7 +1180,7 @@ the @code{*sly-xref} buffer.
 @kbditem{C-c C-c, sly-recompile-xref}
 Recompile definition at point.
 
-@kbditem{C-c C-c, sly-recompile-all-xrefs}
+@kbditem{C-c C-k, sly-recompile-all-xrefs}
 Recompile all definitions.
 
 @end table
