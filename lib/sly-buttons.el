@@ -153,10 +153,17 @@
 (defun sly-button--overlays-in (beg end &optional filter)
   "Return overlays overlapping positions BEG and END"
   (cl-remove-if-not #'(lambda (button)
-                        (and (button-type-subtype-p (button-type button) 'sly-button)
-                             (or (not filter)
-                                 (funcall filter button))))
-                    (overlays-in beg end)))
+                        (and
+			 ;; Workaround fragility in Emacs' buttons:
+			 ;; `button-type-subtype-p' errors when
+			 ;; `button' is not actually a button.  A
+			 ;; straightforward predicate for this doesn't
+			 ;; seem to exist yet.
+			 (ignore-errors
+			   (button-type-subtype-p (button-type button) 'sly-button))
+			 (or (not filter)
+			     (funcall filter button))))
+		    (overlays-in beg end)))
 
 (defun sly-button--overlays-between (beg end &optional filter)
   "Return overlays contained entirely between BEG and END"
