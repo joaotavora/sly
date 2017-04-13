@@ -63,7 +63,8 @@
   (if (version< emacs-version "24.3")
       (error "Sly requires at least Emacs 24.3")))
 
-(require 'hyperspec "lib/hyperspec")
+(or (require 'hyperspec nil t)
+    (require 'hyperspec "lib/hyperspec"))
 (require 'thingatpt)
 (require 'comint)
 (require 'pp)
