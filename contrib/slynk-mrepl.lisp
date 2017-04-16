@@ -1,6 +1,6 @@
 ;;; slynk-mrepl.lisp
 ;;
-;; Licence: public domain
+;; License: public domain
 
 (defpackage :slynk-mrepl
   (:use :cl :slynk-api)
