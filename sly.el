@@ -7062,6 +7062,15 @@ The returned bounds are either nil or non-empty."
         (buffer-substring-no-properties (car bounds)
                                         (cdr bounds)))))
 
+(defun sly-prompt-end ()
+  "Return the point where the prompt ends."
+  (save-excursion
+    (goto-char (point-max))
+    (while (not (eq 'sly-mrepl-prompt-face
+                    (get-text-property (point) 'face)))
+      (backward-char 1))
+    (point)))
+
 (defun sly-bounds-of-sexp-at-point (&optional interactive)
   "Return the bounds sexp near point as a pair (or nil).
 With non-nil INTERACTIVE, error if can't find such a thing."
@@ -7072,7 +7081,9 @@ With non-nil INTERACTIVE, error if can't find such a thing."
            (save-restriction
              (narrow-to-region (point) (point-max))
              (bounds-of-thing-at-point 'sexp)))
-      (bounds-of-thing-at-point 'sexp)
+      (save-restriction
+        (narrow-to-region (sly-prompt-end) (point-max))
+        (bounds-of-thing-at-point 'sexp))
       (and (save-excursion
              (and (ignore-errors
                     (backward-sexp 1)
