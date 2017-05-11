@@ -1041,6 +1041,7 @@
 
 ;;;; Locks
 
+#+threads
 (defimplementation make-lock (&key name)
   (mp:make-lock :name name :recursive t))
 
