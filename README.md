@@ -62,7 +62,7 @@ appropriate file names:
 ```
 
 If you wish to byte-compile SLY yourself (not needed generally) you can do `make
-compile contrib-compile` in the dir where you cloned SLY.
+compile compile-contrib` in the dir where you cloned SLY.
 
 Running the server standalone
 -----------------------------
