@@ -1449,6 +1449,14 @@ first line of the file."
 
 ;;; Interface
 (defvar sly--net-connect-counter 0)
+
+(defun sly-send-secret (proc)
+  (sly--when-let (secret (sly-secret))
+    (let* ((payload (encode-coding-string secret 'utf-8-unix))
+	   (string (concat (sly-net-encode-length (length payload))
+			   payload)))
+      (process-send-string proc string))))
+
 (defun sly-net-connect (host port)
   "Establish a connection with a CL."
   (let* ((inhibit-quit nil)
@@ -1464,8 +1472,7 @@ first line of the file."
     (set-process-query-on-exit-flag proc (not sly-kill-without-query-p))
     (when (fboundp 'set-process-coding-system)
       (set-process-coding-system proc 'binary 'binary))
-    (sly--when-let (secret (sly-secret))
-      (sly-net-send secret proc))
+    (sly-send-secret proc)
     proc))
 
 (defun sly-make-net-buffer (name)

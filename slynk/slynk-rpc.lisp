@@ -12,6 +12,7 @@
   (:use :cl)
   (:export 
    #:read-message
+   #:read-packet
    #:slynk-reader-error
    #:slynk-reader-error.packet
    #:slynk-reader-error.cause
