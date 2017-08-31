@@ -875,6 +875,19 @@ Assumes all insertions are made at point."
 (defvar sly-buffer-package)
 (defvar sly-buffer-connection)
 
+(defun sly--maybe-reuse-maybe-popup-window (buffer alist)
+  "SLY-specific function friendly to `display-buffer'."
+  (let ((reuse (display-buffer-reuse-window buffer alist)))
+    (cond ((windowp reuse)
+           (if (window-parameter reuse 'sly--xref-transient)
+               (set-window-parameter reuse 'sly--xref-transient nil)))
+          (t
+           (let ((new (display-buffer-pop-up-window buffer alist)))
+             (when (windowp new)
+               (set-window-parameter new 'sly--xref-transient t))
+             new)))))
+
+
 ;; Interface
 (cl-defmacro sly-with-popup-buffer ((name &key package connection select
                                           same-window-p
@@ -926,7 +939,7 @@ macroexpansion time.
            (unless (eq ,select-sym :hidden)
              (funcall (if ,select-sym 'pop-to-buffer 'display-buffer)
                       (current-buffer)
-                      (cons 'display-buffer-reuse-window
+                      (cons 'sly--maybe-reuse-maybe-popup-window
                             (if ,(cond (same-window-p same-window-p)
                                        (mode same-window-if-same-mode-form))
                                 '((inhibit-same-window . nil))
@@ -3442,8 +3455,10 @@ Several kinds of locations are supported:
       (delete-current (let ((original (selected-window))
                             (inhibit-redisplay t))
                         (pop-to-buffer (current-buffer) t)
-                        (unless (eq original (selected-window))
-                          (delete-window original))))
+                        (when (not (eq original (selected-window)))
+                          (if (window-parameter original 'sly--xref-transient)
+                              (delete-window original)
+                            (quit-window nil original)))))
       (frame     (let ((pop-up-frames t)) (pop-to-buffer (current-buffer) t))))
     (sly--highlight-sexp)
     (goto-char saved-point)))
