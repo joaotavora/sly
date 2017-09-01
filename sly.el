@@ -3452,20 +3452,13 @@ Several kinds of locations are supported:
     (cl-ecase method
       ((nil)     (switch-to-buffer (current-buffer)))
       (window    (pop-to-buffer (current-buffer) t))
-      (delete-current (let ((original (selected-window))
-                            (inhibit-redisplay t))
-                        (pop-to-buffer (current-buffer) t)
-                        (when (not (eq original (selected-window)))
-                          (if (window-parameter original 'sly--xref-transient)
-                              (delete-window original)
-                            ;; for some reason `save-selected-window'
-                            ;; is not exactly what we need here. See
-                            ;; github issue #112.
-                            ;;
-                            (let ((saved (selected-window)))
-                              (quit-window nil original)
-                              (when (window-live-p saved)
-                                (select-window saved)))))))
+      (delete-current (let ((inhibit-redisplay t))
+                        (if (window-parameter (selected-window) 'sly--xref-transient)
+                            (progn
+                              (save-excursion
+                                (delete-window (selected-window)))
+                              (switch-to-buffer (current-buffer)))
+                          (switch-to-buffer (current-buffer)))))
       (frame     (let ((pop-up-frames t)) (pop-to-buffer (current-buffer) t))))
     (sly--highlight-sexp)
     (goto-char saved-point)))
