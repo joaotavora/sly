@@ -3458,7 +3458,14 @@ Several kinds of locations are supported:
                         (when (not (eq original (selected-window)))
                           (if (window-parameter original 'sly--xref-transient)
                               (delete-window original)
-                            (quit-window nil original)))))
+                            ;; for some reason `save-selected-window'
+                            ;; is not exactly what we need here. See
+                            ;; github issue #112.
+                            ;;
+                            (let ((saved (selected-window)))
+                              (quit-window nil original)
+                              (when (window-live-p saved)
+                                (select-window saved)))))))
       (frame     (let ((pop-up-frames t)) (pop-to-buffer (current-buffer) t))))
     (sly--highlight-sexp)
     (goto-char saved-point)))
