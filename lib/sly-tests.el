@@ -1415,7 +1415,8 @@ Reconnect afterwards."
   '(())
   (let* ((cell (cons nil nil))
          (hook (sly-curry (lambda (cell &rest _) (setcar cell t)) cell))
-         (filename (make-temp-file "sly-recompile-all-xrefs" nil ".lisp")))
+         (filename (make-temp-file "sly-recompile-all-xrefs" nil ".lisp"))
+         (xref-buffer))
     (add-hook 'sly-compilation-finished-hook hook)
     (unwind-protect
         (with-temp-file filename
@@ -1434,7 +1435,7 @@ Reconnect afterwards."
           (setcar cell nil)
           (sly-xref :calls ".fn1."
                     (lambda (&rest args)
-                      (apply #'sly-xref--show-results args)
+                      (setq xref-buffer (apply #'sly-xref--show-results args))
                       (setcar cell t)))
           (sly-wait-condition "Xrefs computed and displayed"
                               (lambda () (car cell))
@@ -1445,7 +1446,7 @@ Reconnect afterwards."
                              '("nil" "nil")))
           ;; Recompile now
           ;; 
-          (with-current-buffer sly-xref-last-buffer
+          (with-current-buffer xref-buffer
             (sly-recompile-all-xrefs)
             (sly-wait-condition "Compilation finished"
                                 (lambda () (car cell))
@@ -1454,8 +1455,8 @@ Reconnect afterwards."
                                    (sly-test--eval-now "(.fn3.)"))
                              '("T" "T"))))
       (remove-hook 'sly-compilation-finished-hook hook)
-      (when sly-xref-last-buffer
-        (kill-buffer sly-xref-last-buffer)))))
+      (when xref-buffer
+        (kill-buffer xref-buffer)))))
 
 
 ;;; window management after M-.
