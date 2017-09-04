@@ -860,18 +860,6 @@ Assumes all insertions are made at point."
 (defvar sly-buffer-package)
 (defvar sly-buffer-connection)
 
-(defun sly--maybe-reuse-maybe-popup-window (buffer alist)
-  "SLY-specific function friendly to `display-buffer'."
-  (let ((reuse (display-buffer-reuse-window buffer alist)))
-    (cond ((windowp reuse)
-           (if (window-parameter reuse 'sly--xref-transient)
-               (set-window-parameter reuse 'sly--xref-transient nil)))
-          (t
-           (let ((new (display-buffer-pop-up-window buffer alist)))
-             (when (windowp new)
-               (set-window-parameter new 'sly--xref-transient t))
-             new)))))
-
 
 ;; Interface
 (cl-defmacro sly-with-popup-buffer ((name &key package connection select
@@ -896,17 +884,17 @@ macroexpansion time.
 "
   (declare (indent 1)
            (debug (sexp &rest form)))
-  (let ((package-sym (cl-gensym "package-"))
-        (connection-sym (cl-gensym "connection-"))
-        (select-sym (cl-gensym "select"))
-        (same-window-if-same-mode-form
-         `(eq major-mode ,mode)))
+  (let* ((package-sym (cl-gensym "package-"))
+         (connection-sym (cl-gensym "connection-"))
+         (select-sym (cl-gensym "select"))
+         (major-mode-sym (cl-gensym "select")))
     `(let ((,package-sym ,(if (eq package t)
                               `(sly-current-package)
                             package))
            (,connection-sym ,(if (eq connection t)
                                  `(sly-current-connection)
                                connection))
+           (,major-mode-sym major-mode)
            (,select-sym ,select)
            (view-read-only nil))
        (with-current-buffer (get-buffer-create ,name)
@@ -922,13 +910,15 @@ macroexpansion time.
            (set-syntax-table lisp-mode-syntax-table)
            ,@body
            (unless (eq ,select-sym :hidden)
-             (funcall (if ,select-sym 'pop-to-buffer 'display-buffer)
-                      (current-buffer)
-                      (cons 'sly--maybe-reuse-maybe-popup-window
+             (let ((window (display-buffer
+                            (current-buffer)
                             (if ,(cond (same-window-p same-window-p)
-                                       (mode same-window-if-same-mode-form))
-                                '((inhibit-same-window . nil))
-                              '((inhibit-same-window . t)))))
+                                       (mode `(eq ,major-mode-sym ,mode)))
+                                nil
+                              t))))
+               (when ,select-sym
+                 (if window
+                     (select-window window))))
              (if (eq ,select-sym :raise) (raise-frame)))
            (current-buffer))))))
 
@@ -3432,29 +3422,80 @@ Several kinds of locations are supported:
           (goto-char pos)
           (recenter (if (= (current-column) 0) 1)))))))
 
+(make-variable-buffer-local
+ (defvar sly-xref--popup-method nil
+   "How to behave when a reference is selected in an xref buffer.
+If one of symbols `window' or `frame' just `pop-to-buffer'
+accordingly. If nil, just switch to current buffer. If a
+cons (WINDOW . METHOD) consider WINDOW the \"original window\"
+and reconsider METHOD like above: If it is nil try to use WINDOW
+exclusively for showing the location, otherwise prevent that
+window from being reused when popping to a new window or frame."))
+
 (defun sly--pop-to-source-location (source-location &optional method)
-  (sly-move-to-source-location source-location)
-  (let ((saved-point (point)))
-    (cl-ecase method
-      ((nil)     (switch-to-buffer (current-buffer)))
-      (window    (pop-to-buffer (current-buffer) t))
-      (delete-current (let ((original (selected-window))
-                            (inhibit-redisplay t))
-                        (pop-to-buffer (current-buffer) t)
-                        (when (not (eq original (selected-window)))
-                          (if (window-parameter original 'sly--xref-transient)
-                              (delete-window original)
-                            ;; for some reason `save-selected-window'
-                            ;; is not exactly what we need here. See
-                            ;; github issue #121.
-                            ;;
-                            (let ((saved (selected-window)))
-                              (quit-window nil original)
-                              (when (window-live-p saved)
-                                (select-window saved)))))))
-      (frame     (let ((pop-up-frames t)) (pop-to-buffer (current-buffer) t))))
-    (sly--highlight-sexp)
-    (goto-char saved-point)))
+  "Pop to SOURCE-LOCATION using METHOD.
+If called from an xref buffer, method will be `sly-xref' and
+thus also honour `sly-xref--popup-method'."
+  (let (target-point
+        target-buffer
+        (xref-window (selected-window)))
+    (cl-labels
+        ((pop-it
+          ()
+          (cond ((eq method 'window)
+                 (pop-to-buffer target-buffer t))
+                ((eq method 'frame)
+                 (let ((pop-up-frames t))
+                   (pop-to-buffer target-buffer t)))
+                ((consp method)
+                 (let* ((window (car method))
+                        (sym (cdr method)))
+                   (setq method sym)
+                   (cond ((not (window-live-p window))
+                          ;; the original window has been deleted: all
+                          ;; bets are off!
+                          ;;
+                          (pop-it))
+                         (sym
+                          ;; shield window from reuse, but restoring
+                          ;; any dedicatedness
+                          ;;
+                          (let ((dedicatedness (window-dedicated-p window)))
+                            (unwind-protect
+                                (progn
+                                  (set-window-dedicated-p window 'soft)
+                                  (pop-it))
+                              (set-window-dedicated-p window dedicatedness))))
+                         (t
+                          ;; make efforts to reuse the window, respecting
+                          ;; any `display-buffer' overrides
+                          ;;
+                          (pop-to-buffer
+                           target-buffer
+                           `(,(lambda (buffer _alist)
+                                (when (window-live-p window)
+                                  (set-window-buffer window buffer)
+                                  window))))))))
+                (t
+                 (switch-to-buffer target-buffer)))))
+      ;; "scout move" to destination, to record location
+      (save-excursion
+        (sly-move-to-source-location source-location)
+        (setq target-point (point)
+              target-buffer (current-buffer)))
+      ;; see if we're being called from an *xref*, read
+      ;; `sly-xref--popup-method' and set METHOD to that, then
+      ;; `pop-it'
+      ;;
+      (when (eq method 'sly-xref)
+        (setq method sly-xref--popup-method)
+        (quit-window nil xref-window))
+      ;; now pop the target
+      ;;
+      (pop-it)
+      ;; go to the final char position
+      ;;
+      (goto-char target-point))))
 
 (defun sly-location-offset (location)
   "Return the position, as character number, of LOCATION."
@@ -3675,10 +3716,10 @@ For insertion in the `compilation-mode' buffer"
 
 
 
-(defun sly-edit-definition (&optional name where)
+(defun sly-edit-definition (&optional name method)
   "Lookup the definition of the name at point.
 If there's no name at point, or a prefix argument is given, then
-the function name is prompted. WHERE can be nil, or one of
+the function name is prompted. METHOD can be nil, or one of
 `window' or `frame' to specify if the new definition should be
 popped, respectively, in the current window, a new window, or a
 new frame."
@@ -3695,13 +3736,16 @@ new frame."
         (sly-analyze-xrefs xrefs)
       (cond (1loc
              (sly-push-definition-stack)
-             (sly--pop-to-source-location (sly-xref.location (car xrefs)) where))
+             (sly--pop-to-source-location
+              (sly-xref.location (car xrefs)) method))
             ((sly-length= xrefs 1)      ; ((:error "..."))
              (error "%s" xrefs))
             (t
              (sly-push-definition-stack)
              (sly-xref--show-results file-alist 'definition name
-                                     (sly-current-package)))))))
+                                     (sly-current-package)
+                                     (cons (selected-window)
+                                           method)))))))
 
 (defvar sly-edit-uses-xrefs
   '(:calls :macroexpands :binds :references :sets :specializes))
@@ -3723,7 +3767,7 @@ new frame."
          (sly--pop-to-source-location loc)))
       (t
        (sly-push-definition-stack)
-       (sly-xref--show-results xrefs type symbol package))))))
+       (sly-xref--show-results xrefs type symbol package 'window))))))
 
 (defun sly-analyze-xrefs (xrefs)
   "Find common filenames in XREFS.
@@ -4457,7 +4501,7 @@ The most important commands:
   'sly-button-show-source #'(lambda (location)
                               (sly-xref--show-location location))
   'sly-button-goto-source #'(lambda (location)
-                              (sly--pop-to-source-location location 'delete-current)))
+                              (sly--pop-to-source-location location 'sly-xref)))
 
 (defun sly-xref-button (label location)
   (make-text-button label nil
@@ -4499,18 +4543,18 @@ source-location."
     (:error (sly-message "%s" (cadr loc)))
     ((nil))))
 
-(defvar sly-xref-last-buffer nil
-  "The most recent XREF results buffer.
-This is used by `sly-goto-next-xref'")
-
-(defun sly-xref--show-results (xrefs _type symbol package &optional _where)
-  "Show the results of an XREF query."
-  (if (null xrefs)
-      (sly-message "No references found for %s." symbol)
-    (sly-with-xref-buffer (_type _symbol package)
-      (sly-insert-xrefs xrefs)
-      (setq sly-xref-last-buffer (current-buffer))
-      (goto-char (point-min)))))
+(defun sly-xref--show-results (xrefs _type symbol package &optional method)
+  "Maybe show a buffer listing the cross references XREFS.
+METHOD is used to set `sly-xref--popup-method', which see."
+  (cond ((null xrefs)
+         (sly-message "No references found for %s." symbol)
+         nil)
+        (t
+         (sly-with-xref-buffer (_type _symbol package)
+           (sly-insert-xrefs xrefs)
+           (setq sly-xref--popup-method method)
+           (goto-char (point-min))
+           (current-buffer)))))
 
 
 ;;;;; XREF commands
@@ -4631,7 +4675,7 @@ This is used by `sly-goto-next-xref'")
 (defun sly-xref-goto ()
   "Goto the cross-referenced location at point."
   (interactive)
-  (sly--pop-to-source-location (sly-xref-location-at-point) 'delete-current))
+  (sly--pop-to-source-location (sly-xref-location-at-point) 'sly-xref))
 
 (defun sly-xref-show ()
   "Display the xref at point in the other window."
