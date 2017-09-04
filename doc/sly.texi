@@ -997,11 +997,15 @@ List callees of a function.
 In the resulting @acronym{XREF} buffer, these commands are available:
 
 @table @kbd
-@kbditem{RET, sly-show-xref}
+@kbditem{Space, sly-show-xref}
 Show definition at point in the other window. Do not leave Xref buffer.
 
-@kbditem{Space, sly-goto-xref}
-Show definition at point in the other window and close Xref buffer.
+@kbditem{RET, sly-goto-xref}
+Show definition at point in the other window and switch to that
+window. To more precisely control the choice of window and what
+happens to the Xref buffer after switching, the customization
+variable, @pxref{sly-xref-popup-method} can be used. Read the
+associated documentation when customizing the variable.
 
 @kbditem{C-c C-c, sly-recompile-xref}
 Recompile definition at point.

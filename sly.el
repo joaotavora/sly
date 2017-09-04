@@ -3447,29 +3447,78 @@ Several kinds of locations are supported:
           (goto-char pos)
           (recenter (if (= (current-column) 0) 1)))))))
 
-(defun sly--pop-to-source-location (source-location &optional method)
+(defcustom sly-xref-popup-method 'quit-and-find-in-other-window
+  "How to pop to a target location from the *sly-xref* buffer.
+If `quit-and-find-in-other-window' quits the *xref* buffer and
+asks Emacs to find some suitable window for the target buffer.
+`quit-and-find-in-original-window' behaves the same but tries to
+find the window where M-. (`sly-edit-definition') was originally
+issued in.  The other two allowed values are
+`keep-and-find-in-other-window' and
+`keep-and-find-in-original-window' which act like their \"quit\"
+counterparts but keep the *xref* buffer displayed."
+  :type '(choice (const quit-and-find-in-other-window)
+                 (const quit-and-find-in-original-window)
+                 (const keep-and-find-in-other-window)
+                 (const keep-and-find-in-original-window))
+  :group 'sly-mode)
+
+(defvar sly--xref-last-M-.-stamp nil
+  "Internal variable read by `sly--window-from-xref'")
+
+(defun sly--window-from-xref (buffer _alist)
+  "Find a window for BUFFER selected from an *xref* buffer"
+  (when (memq sly-xref-popup-method
+              '(keep-and-find-in-original-window
+                quit-and-find-in-original-window))
+    (cl-loop for window in (window-list-1)
+             for probe = (window-parameter window 'sly--xref-M-.-stamp)
+             when (and probe
+                       (eq probe
+                           sly--xref-last-M-.-stamp))
+             do (set-window-buffer window buffer) and return window)))
+
+(defun sly--pop-to-source-location (source-location
+                                    &optional method)
   (sly-move-to-source-location source-location)
   (let ((saved-point (point)))
     (cl-ecase method
       ((nil)     (switch-to-buffer (current-buffer)))
       (window    (pop-to-buffer (current-buffer) t))
-      (delete-current (let ((original (selected-window))
-                            (inhibit-redisplay t))
-                        (pop-to-buffer (current-buffer) t)
-                        (when (not (eq original (selected-window)))
-                          (if (window-parameter original 'sly--xref-transient)
-                              (delete-window original)
-                            ;; for some reason `save-selected-window'
-                            ;; is not exactly what we need here. See
-                            ;; github issue #121.
-                            ;;
-                            (let ((saved (selected-window)))
-                              (quit-window nil original)
-                              (when (window-live-p saved)
-                                (select-window saved)))))))
-      (frame     (let ((pop-up-frames t)) (pop-to-buffer (current-buffer) t))))
-    (sly--highlight-sexp)
-    (goto-char saved-point)))
+      (frame     (let ((pop-up-frames t)) (pop-to-buffer (current-buffer) t)))
+      (xref (let ((original (selected-window))
+                  (inhibit-redisplay t))
+              (pop-to-buffer
+               (current-buffer) `(sly--window-from-xref
+                                  . ((allow-no-window . t))))
+              (when (not (eq original (selected-window)))
+                (cond ((eq original (selected-window))
+                       ;; for some reason (perhaps the user singled
+                       ;; out the *xref* in the meantime), the
+                       ;; previous `pop-to-buffer' selected the *xref*
+                       ;; window itself for displaying the buffer, so don't
+                       ;; touch it.)
+                       ;;
+                       )
+                      ((window-parameter original 'sly--xref-transient)
+                       ;; This window was created (not reused)
+                       ;; specifically for this *xref*, so just delete
+                       ;; it.
+                       ;;
+                       (delete-window original))
+                      ((memq sly-xref-popup-method
+                             '(quit-and-find-in-original-window
+                               quit-and-find-in-other-window))
+                       ;; Quit the previous xref window.  for some
+                       ;; reason `save-selected-window' is not exactly
+                       ;; what we need here. See github issue #121.
+                       ;;
+                       (let ((saved (selected-window)))
+                         (quit-window nil original)
+                         (when (window-live-p saved)
+                           (select-window saved)))))))))
+      (sly--highlight-sexp)
+      (goto-char saved-point)))
 
 (defun sly-location-offset (location)
   "Return the position, as character number, of LOCATION."
@@ -3702,6 +3751,9 @@ function name is prompted."
   (interactive (list (or (and (not current-prefix-arg)
                               (sly-symbol-at-point))
                          (sly-read-symbol-name "Edit Definition of: "))))
+  (let ((stamp (cl-gensym)))
+    (set-window-parameter (selected-window) 'sly--xref-M-.-stamp stamp)
+    (setq sly--xref-last-M-.-stamp stamp))
   ;; The hooks might search for a name in a different manner, so don't
   ;; ask the user if it's missing before the hooks are run
   (or (run-hook-with-args-until-success 'sly-edit-definition-hooks
@@ -4509,8 +4561,12 @@ TODO"
   "sly-xref-mode: Major mode for cross-referencing.
 \\<sly-xref-mode-map>\
 The most important commands:
-\\[sly-xref-show]	- Display referenced source and keep xref window.
-\\[sly-xref-goto]	- Jump to referenced source and dismiss xref window.
+
+\\[sly-xref-show] - Display referenced source and keep point in
+xref window.
+
+\\[sly-xref-goto] - Jump to referenced source and dismiss xref
+window according to `sly-xref-popup-method'.
 
 \\{sly-xref-mode-map}"
   (setq font-lock-defaults nil)
@@ -4547,7 +4603,7 @@ The most important commands:
   'sly-button-show-source #'(lambda (location)
                               (sly-xref--show-location location))
   'sly-button-goto-source #'(lambda (location)
-                              (sly--pop-to-source-location location 'delete-current)))
+                              (sly--pop-to-source-location location 'xref)))
 
 (defun sly-xref-button (label location)
   (make-text-button label nil
@@ -4726,7 +4782,7 @@ This is used by `sly-goto-next-xref'")
 (defun sly-xref-goto ()
   "Goto the cross-referenced location at point."
   (interactive)
-  (sly--pop-to-source-location (sly-xref-location-at-point) 'delete-current))
+  (sly--pop-to-source-location (sly-xref-location-at-point) 'xref))
 
 (defun sly-xref-show ()
   "Display the xref at point in the other window."
