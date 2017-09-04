@@ -3447,7 +3447,7 @@ Several kinds of locations are supported:
           (goto-char pos)
           (recenter (if (= (current-column) 0) 1)))))))
 
-(defcustom sly-xref-popup-method 'quit-and-find-in-other-window
+(defcustom sly-xref-popup-method 'quit-and-find-in-original-window
   "How to pop to a target location from the *sly-xref* buffer.
 If `quit-and-find-in-other-window' quits the *xref* buffer and
 asks Emacs to find some suitable window for the target buffer.
