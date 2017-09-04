@@ -357,22 +357,6 @@ See also `sly-net-valid-coding-systems'."
   :prefix "sly-"
   :group 'sly)
 
-(defcustom sly-find-definitions-function 'sly-find-definitions-rpc
-  "Function to find definitions for a name.
-The function is called with the definition name, a string, as its
-argument."
-  :type 'function
-  :group 'sly-mode
-  :options '(sly-find-definitions-rpc
-             sly-etags-definitions
-             (lambda (name)
-               (append (sly-find-definitions-rpc name)
-                       (sly-etags-definitions name)))
-             (lambda (name)
-               (or (sly-find-definitions-rpc name)
-                   (and tags-table-list
-                        (sly-etags-definitions name))))))
-
 ;;;;; sly-mode-faces
 
 (defgroup sly-mode-faces nil
@@ -3660,7 +3644,6 @@ For insertion in the `compilation-mode' buffer"
 
 (defun sly-push-definition-stack ()
   "Add point to find-tag-marker-ring."
-  (require 'etags)
   (ring-insert find-tag-marker-ring (point-marker)))
 
 (defun sly-pop-find-definition-stack ()
@@ -3689,40 +3672,35 @@ For insertion in the `compilation-mode' buffer"
   `(:location (:file ,file-name) (:position ,position)
               ,(when hints `(:hints ,hints))))
 
-;;; The hooks are tried in order until one succeeds, otherwise the
-;;; default implementation involving `sly-find-definitions-function'
-;;; is used. The hooks are called with the same arguments as
-;;; `sly-edit-definition'.
-(defvar sly-edit-definition-hooks)
+
 
 (defun sly-edit-definition (&optional name where)
   "Lookup the definition of the name at point.
-If there's no name at point, or a prefix argument is given, then the
-function name is prompted."
+If there's no name at point, or a prefix argument is given, then
+the function name is prompted. WHERE can be nil, or one of
+`window' or `frame' to specify if the new definition should be
+popped, respectively, in the current window, a new window, or a
+new frame."
   (interactive (list (or (and (not current-prefix-arg)
                               (sly-symbol-at-point))
                          (sly-read-symbol-name "Edit Definition of: "))))
   ;; The hooks might search for a name in a different manner, so don't
   ;; ask the user if it's missing before the hooks are run
-  (or (run-hook-with-args-until-success 'sly-edit-definition-hooks
-                                        name where)
-      (sly-edit-definition-cont (sly-find-definitions name)
-                                  name where)))
-
-(defun sly-edit-definition-cont (xrefs name where)
-  (cl-destructuring-bind (1loc file-alist) (sly-analyze-xrefs xrefs)
-    (cond ((null xrefs)
-           (error "No known definition for: %s (in %s)"
-                  name (sly-current-package)))
-          (1loc
-           (sly-push-definition-stack)
-           (sly--pop-to-source-location (sly-xref.location (car xrefs)) where))
-          ((sly-length= xrefs 1)      ; ((:error "..."))
-           (error "%s" (cadr (sly-xref.location (car xrefs)))))
-          (t
-           (sly-push-definition-stack)
-           (sly-xref--show-results file-alist 'definition name
-                             (sly-current-package))))))
+  (let ((xrefs (sly-eval `(slynk:find-definitions-for-emacs ,name))))
+    (unless xrefs
+      (error "No known definition for: %s (in %s)"
+                    name (sly-current-package)))
+    (cl-destructuring-bind (1loc file-alist)
+        (sly-analyze-xrefs xrefs)
+      (cond (1loc
+             (sly-push-definition-stack)
+             (sly--pop-to-source-location (sly-xref.location (car xrefs)) where))
+            ((sly-length= xrefs 1)      ; ((:error "..."))
+             (error "%s" xrefs))
+            (t
+             (sly-push-definition-stack)
+             (sly-xref--show-results file-alist 'definition name
+                                     (sly-current-package)))))))
 
 (defvar sly-edit-uses-xrefs
   '(:calls :macroexpands :binds :references :sets :specializes))
@@ -3737,8 +3715,6 @@ function name is prompted."
    symbol
    (lambda (xrefs type symbol package)
      (cond
-      ((null xrefs)
-       (sly-message "No xref information found for %s." symbol))
       ((and (sly-length= xrefs 1)          ; one group
             (sly-length= (cdar  xrefs) 1)) ; one ref in group
        (cl-destructuring-bind (_ (_ loc)) (cl-first xrefs)
@@ -3746,7 +3722,7 @@ function name is prompted."
          (sly--pop-to-source-location loc)))
       (t
        (sly-push-definition-stack)
-       (sly-xref--show-buffer xrefs type symbol package))))))
+       (sly-xref--show-results xrefs type symbol package))))))
 
 (defun sly-analyze-xrefs (xrefs)
   "Find common filenames in XREFS.
@@ -3775,39 +3751,6 @@ FILE-ALIST is an alist of the form ((FILENAME . (XREF ...)) ...)."
         (t
          "(No location)")))
 
-(defun sly-postprocess-xref (original-xref)
-  "Process (for normalization purposes) an Xref comming directly
-from SLYNK before the rest of SLY sees it. In particular,
-convert ETAGS based xrefs to actual file+position based
-locations."
-  (if (not (sly-xref-has-location-p original-xref))
-      (list original-xref)
-    (let ((loc (sly-xref.location original-xref)))
-      (sly-dcase (sly-location.buffer loc)
-        ((:etags-file tags-file)
-         (sly-dcase (sly-location.position loc)
-           ((:tag &rest tags)
-            (visit-tags-table tags-file)
-            (mapcar (lambda (xref)
-                      (let ((old-dspec (sly-xref.dspec original-xref))
-                            (new-dspec (sly-xref.dspec xref)))
-                        (setf (sly-xref.dspec xref)
-                              (format "%s: %s" old-dspec new-dspec))
-                        xref))
-                    (cl-mapcan #'sly-etags-definitions tags)))))
-        (t
-         (list original-xref))))))
-
-(defun sly-postprocess-xrefs (xrefs)
-  (cl-mapcan #'sly-postprocess-xref xrefs))
-
-(defun sly-find-definitions (name)
-  "Find definitions for NAME."
-  (sly-postprocess-xrefs (funcall sly-find-definitions-function name)))
-
-(defun sly-find-definitions-rpc (name)
-  (sly-eval `(slynk:find-definitions-for-emacs ,name)))
-
 (defun sly-edit-definition-other-window (name)
   "Like `sly-edit-definition' but switch to the other window."
   (interactive (list (sly-read-symbol-name "Symbol: ")))
@@ -3818,41 +3761,7 @@ locations."
   (interactive (list (sly-read-symbol-name "Symbol: ")))
   (sly-edit-definition name 'frame))
 
-(defun sly-edit-definition-with-etags (name)
-  (interactive (list (sly-read-symbol-name "Symbol: ")))
-  (let ((xrefs (sly-etags-definitions name)))
-    (cond (xrefs
-           (sly-message "Using tag file...")
-           (sly-edit-definition-cont xrefs name nil))
-          (t
-           (error "No known definition for: %s" name)))))
 
-(defun sly-etags-to-locations (name)
-  "Search for definitions matching `name' in the currently active
-tags table. Return a possibly empty list of sly-locations."
-  (let ((locs '()))
-    (save-excursion
-      (let ((first-time t))
-        (while (visit-tags-table-buffer (not first-time))
-          (setq first-time nil)
-          (goto-char (point-min))
-          (while (search-forward name nil t)
-            (beginning-of-line)
-            (cl-destructuring-bind (hint line &rest pos) (etags-snarf-tag)
-              (unless (eq hint t) ; hint==t if we are in a filename line
-                (push `(:location (:file ,(expand-file-name (file-of-tag)))
-                                  (:line ,line)
-                                  (:snippet ,hint))
-                      locs))))))
-      (nreverse locs))))
-
-(defun sly-etags-definitions (name)
-  "Search definitions matching NAME in the tags file.
-The result is a (possibly empty) list of definitions."
-  (mapcar (lambda (loc)
-            (make-sly-xref :dspec (cl-second (sly-location.hints loc))
-                             :location loc))
-          (sly-etags-to-locations name)))
 
 ;;;;; first-change-hook
 
@@ -4593,17 +4502,14 @@ source-location."
   "The most recent XREF results buffer.
 This is used by `sly-goto-next-xref'")
 
-(defun sly-xref--show-buffer (xrefs _type _symbol package)
-  (sly-with-xref-buffer (_type _symbol package)
-    (sly-insert-xrefs xrefs)
-    (setq sly-xref-last-buffer (current-buffer))
-    (goto-char (point-min))))
-
-(defun sly-xref--show-results (xrefs type symbol package)
+(defun sly-xref--show-results (xrefs _type symbol package &optional _where)
   "Show the results of an XREF query."
   (if (null xrefs)
       (sly-message "No references found for %s." symbol)
-    (sly-xref--show-buffer xrefs type symbol package)))
+    (sly-with-xref-buffer (_type _symbol package)
+      (sly-insert-xrefs xrefs)
+      (setq sly-xref-last-buffer (current-buffer))
+      (goto-char (point-min)))))
 
 
 ;;;;; XREF commands
@@ -4653,15 +4559,13 @@ This is used by `sly-goto-next-xref'")
   (interactive (list (sly-read-symbol-name "List callees: ")))
   (sly-xref :callees symbol-name))
 
-;; FIXME: whats the call (sly-postprocess-xrefs result) good for?
 (defun sly-xref (type symbol &optional continuation)
   "Make an XREF request to Lisp."
   (sly-eval-async
       `(slynk:xref ',type ',symbol)
     (sly-rcurry (lambda (result type symbol package cont)
                   (and (sly-xref-implemented-p type result)
-                       (let* ((_xrefs (sly-postprocess-xrefs result))
-                              (file-alist (cadr (sly-analyze-xrefs result))))
+                       (let* ((file-alist (cadr (sly-analyze-xrefs result))))
                          (funcall (or cont 'sly-xref--show-results)
                                   file-alist type symbol package))))
                 type
