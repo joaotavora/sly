@@ -1470,13 +1470,17 @@ Reconnect afterwards."
   (declare (indent 2))
   (let ((temp-frame-sym (cl-gensym "temp-frame-")))
     `(progn
-       (when noninteractive
-         (sly-skip-test "Doesn't make sense for batch sessions"))
        (sly-check-top-level)
        (let ((,temp-frame-sym nil))
          (unwind-protect
              (progn
-               (setq ,temp-frame-sym (make-frame))
+               (setq ,temp-frame-sym (if noninteractive
+                                         (selected-frame)
+                                       (make-frame)))
+               ;; too large a frame will exhibit slightly different
+               ;; window-popping behaviour
+               (set-frame-width ,temp-frame-sym 100)
+               (set-frame-height ,temp-frame-sym 40)
                (with-selected-frame ,temp-frame-sym
                  (with-temp-buffer
                    (delete-other-windows)
@@ -1493,7 +1497,8 @@ Reconnect afterwards."
                        (forward-line 1)
                        (sly-xref-goto))
                      ,@body))))
-           (delete-frame ,temp-frame-sym t))))))
+           (unless noninteractive
+             (delete-frame ,temp-frame-sym t)))))))
 
 (def-sly-test find-definition-same-window (window-splits total-windows)
   "Test `sly-edit-definition' windows"

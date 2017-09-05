@@ -3454,12 +3454,12 @@ thus also honour `sly-xref--popup-method'."
                    (cond ((not (window-live-p window))
                           ;; the original window has been deleted: all
                           ;; bets are off!
-                          ;; 
+                          ;;
                           (pop-it))
                          (sym
                           ;; shield window from reuse, but restoring
                           ;; any dedicatedness
-                          ;; 
+                          ;;
                           (let ((dedicatedness (window-dedicated-p window)))
                             (unwind-protect
                                 (progn
@@ -3469,7 +3469,7 @@ thus also honour `sly-xref--popup-method'."
                          (t
                           ;; make efforts to reuse the window, respecting
                           ;; any `display-buffer' overrides
-                          ;; 
+                          ;;
                           (pop-to-buffer
                            target-buffer
                            `(,(lambda (buffer _alist)
