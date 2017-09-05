@@ -1,4 +1,4 @@
-;;; sly-tests.el --- Automated tests for sly.el
+;;; sly-tests.el --- Automated tests for sly.el -*-lexical-binding:t-*-
 ;;
 ;;;; License
 ;;     Copyright (C) 2003  Eric Marsden, Luke Gorrie, Helmut Eller
@@ -112,7 +112,7 @@ Also don't error if `ert.el' is missing."
                     :tags ',tags
                     ,@args)))
 
-  (defun sly-test-ert-test-for (name input i doc body fails-for style fname)
+  (defun sly-test-ert-test-for (name input i doc _body fails-for style fname)
     `(define-sly-ert-test
        ,(intern (format "%s-%d" name i)) ()
        ,(format "For input %s, %s" (truncate-string-to-width
@@ -195,21 +195,29 @@ conditions (assertions)."
   (and (not (sly-db-get-default-buffer))
        (null (sly-rex-continuations))))
 
-(defun sly-wait-condition (name predicate timeout)
+(defun sly-wait-condition (name predicate timeout &optional cleanup)
   (let ((end (time-add (current-time) (seconds-to-time timeout))))
     (while (not (funcall predicate))
       (let ((now (current-time)))
         (sly-message "waiting for condition: %s [%s.%06d]" name
                      (format-time-string "%H:%M:%S" now) (third now)))
       (cond ((time-less-p end (current-time))
-             (error "Timeout waiting for condition: %S" name))
+             (unwind-protect
+                 (error "Timeout waiting for condition: %S" name)
+               (funcall cleanup)))
             (t
              ;; XXX if a process-filter enters a recursive-edit, we
              ;; hang forever
              (accept-process-output nil 0.1))))))
 
 (defun sly-sync-to-top-level (timeout)
-  (sly-wait-condition "top-level" #'sly-at-top-level-p timeout))
+  (sly-wait-condition "top-level" #'sly-at-top-level-p timeout
+                      (lambda ()
+                        (let ((sly-db-buffer
+                               (sly-db-get-default-buffer)))
+                          (when (bufferp sly-db-buffer)
+                            (with-current-buffer sly-db-buffer
+                              (sly-db-quit)))))))
 
 ;; XXX: unused function
 (defun sly-check-sly-db-level (expected)
@@ -426,16 +434,19 @@ after quitting Sly's temp buffer."
       ((+ wh 2) (+ wh 500) (+ wh 2)))
   (when noninteractive
     (sly-skip-test "Can't test sly-recenter in batch mode"))
-  (with-current-buffer (generate-new-buffer "yoyo")
+  (with-temp-buffer
     (cl-loop for i from 1 upto 1000
              do (insert (format "%09d\n" i)))
-    (let* ((win (display-buffer (current-buffer)))
-	   (wh (window-text-height win)))
-      (with-selected-window win
-        (goto-char (sly-test--pos-at-line (eval pos-line)))
-        (sly-recenter (sly-test--pos-at-line (eval target)))
-        (redisplay)
-        (should (= (eval expected-window-start) (line-number-at-pos (window-start))))))))
+    (let* ((win (display-buffer (current-buffer))))
+      (cl-flet ((eval-with-wh (form)
+                              (eval `(let ((wh ,(window-text-height win)))
+                                       ,form))))
+        (with-selected-window win
+          (goto-char (sly-test--pos-at-line (eval-with-wh pos-line)))
+          (sly-recenter (sly-test--pos-at-line (eval-with-wh target)))
+          (redisplay)
+          (should (= (eval-with-wh expected-window-start)
+                     (line-number-at-pos (window-start)))))))))
 
 (def-sly-test find-definition
     (name buffer-package snippet)
@@ -579,12 +590,12 @@ confronted with nasty #.-fu."
              do (ert-fail (format "Expected to find %s in the first %s completions for %s, but it came in %s"
                                   completion before-or-at prefix (1+ pos))))))
 
-(def-sly-test read-from-minibuffer
+(def-sly-test basic-completion
   (input-keys expected-result)
   "Test `sly-read-from-minibuffer' with INPUT-KEYS as events."
-  '(("( r e v e TAB SPC ' ( 1 SPC 2 SPC 3 ) ) RET"
+  '(("( r e v e TAB TAB SPC ' ( 1 SPC 2 SPC 3 ) ) RET"
      "(reverse '(1 2 3))")
-    ("( c l : c o n TAB s t a n t l TAB SPC 4 2 ) RET"
+    ("( c l : c o n TAB s t a n t l TAB TAB SPC 4 2 ) RET"
      "(cl:constantly 42)"))
   (when noninteractive
     (sly-skip-test "Can't use unread-command-events in batch mode"))
@@ -866,20 +877,18 @@ Confirm that SUBFORM is correctly located."
     "Test interactive eval and continuing from the debugger."
     '(())
   (sly-check-top-level)
-  (lexical-let ((done nil))
-    (let ((sly-db-hook (lambda () (sly-db-continue) (setq done t))))
-      (sly-interactive-eval
-       "(progn\
+  (let ((sly-db-hook (lambda ()
+                       (sly-db-continue))))
+    (sly-interactive-eval
+     "(progn\
  (cerror \"foo\" \"restart\")\
  (cerror \"bar\" \"restart\")\
  (+ 1 2))")
-      (while (not done) (accept-process-output))
-      (sly-sync-to-top-level 5)
-      (sly-check-top-level)
-      (unless noninteractive
-        (let ((message (current-message)))
-          (sly-check "Minibuffer contains: \"3\""
-            (equal "=> 3 (2 bits, #x3, #o3, #b11)" message)))))))
+    (sly-sync-to-top-level 5)
+    (current-message))
+  (unless noninteractive
+    (should (equal "=> 3 (2 bits, #x3, #o3, #b11)"
+                   (current-message)))))
 
 (def-sly-test report-condition-with-circular-list
     (format-control format-argument)
@@ -1191,7 +1200,7 @@ CONTINUES  ... how often the continue restart should be invoked"
 (def-sly-test flow-control
     (n delay interrupts)
     "Let Lisp produce output faster than Emacs can consume it."
-    `((400 0.03 3))
+    `((300 0.03 3))
   (when noninteractive
     (sly-skip-test "test is currently unstable"))
   (sly-check "No debugger" (not (sly-db-get-default-buffer)))
@@ -1205,7 +1214,7 @@ CONTINUES  ... how often the continue restart should be invoked"
       (sly-db-continue))
     (sly-wait-condition "No debugger" (lambda () (sly-sly-db-level= nil)) 3)
     (sly-check "Debugger closed" (sly-sly-db-level= nil)))
-  (sly-sync-to-top-level 8))
+  (sly-sync-to-top-level 10))
 
 (def-sly-test sbcl-world-lock
     (n delay)

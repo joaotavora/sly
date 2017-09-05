@@ -1107,6 +1107,7 @@ If ERRORP, error if such a thing cannot be found"
                               "acl" "alisp"))))
       (cond ((and guessed
                   (or (not interactive)
+                      noninteractive
                       (sly-y-or-n-p
                        "Can't find `inferior-lisp-program' (set to `%s'). Use `%s' instead? "
                        inferior-lisp-program guessed)))
