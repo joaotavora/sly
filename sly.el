@@ -3413,89 +3413,85 @@ Several kinds of locations are supported:
                       (line-end-position)
                       :timeout timeout))
 
-(defun sly--display-source-location (source-location &optional noerror)
-  (save-excursion
-    (when (sly-move-to-source-location source-location noerror)
-      (sly--highlight-sexp)
-      (let ((pos (point)))
-        (with-selected-window (display-buffer (current-buffer) t)
-          (goto-char pos)
-          (recenter (if (= (current-column) 0) 1)))))))
-
 (make-variable-buffer-local
  (defvar sly-xref--popup-method nil
-   "How to behave when a reference is selected in an xref buffer.
-If one of symbols `window' or `frame' just `pop-to-buffer'
-accordingly. If nil, just switch to current buffer. If a
-cons (WINDOW . METHOD) consider WINDOW the \"original window\"
-and reconsider METHOD like above: If it is nil try to use WINDOW
-exclusively for showing the location, otherwise prevent that
-window from being reused when popping to a new window or frame."))
+   "Helper for `sly--display-source-location'"))
+
+(cl-defun sly--display-source-location (source-location
+                                        &optional noerror (method 'window))
+  "Display SOURCE-LOCATION in a window according to METHOD.
+Highlight the resulting sexp. Return the window or raise an
+error, unless NOERROR is nil, in which case return nil.  METHOD
+specifies how to behave when a reference is selected in an xref
+buffer.  If one of symbols `window' or `frame' just
+`display-buffer' accordingly. If nil, just switch to buffer in
+current window. If a cons (WINDOW . METHOD) consider WINDOW the
+\"starting window\" and reconsider METHOD like above: If it is
+nil try to use WINDOW exclusively for showing the location,
+otherwise prevent that window from being reused when popping to a
+new window or frame."
+  (cl-labels
+      ((pop-it
+        (target-buffer method)
+        (cond ((eq method 'window)
+               (display-buffer target-buffer t))
+              ((eq method 'frame)
+               (let ((pop-up-frames t))
+                 (display-buffer target-buffer t)))
+              ((consp method)
+               (let* ((window (car method))
+                      (sub-method (cdr method)))
+                 (cond ((not (window-live-p window))
+                        ;; the original window has been deleted: all
+                        ;; bets are off!
+                        ;;
+                        (pop-it target-buffer sub-method))
+                       (sub-method
+                        ;; shield window from reuse, but restoring
+                        ;; any dedicatedness
+                        ;;
+                        (let ((dedicatedness (window-dedicated-p window)))
+                          (unwind-protect
+                              (progn
+                                (set-window-dedicated-p window 'soft)
+                                (pop-it target-buffer sub-method))
+                            (set-window-dedicated-p window dedicatedness))))
+                       (t
+                        ;; make efforts to reuse the window, respecting
+                        ;; any `display-buffer' overrides
+                        ;;
+                        (display-buffer
+                         target-buffer
+                         `(,(lambda (buffer _alist)
+                              (when (window-live-p window)
+                                (set-window-buffer window buffer)
+                                window))))))))
+              (t
+               (switch-to-buffer target-buffer)
+               (selected-window)))))
+    (when (eq method 'sly-xref)
+      (setq method sly-xref--popup-method))
+    (when (sly-move-to-source-location source-location noerror)
+      (let ((pos (point)))
+        (with-selected-window (pop-it (current-buffer) method)
+          (goto-char pos)
+          (recenter (if (= (current-column) 0) 1))
+          (sly--highlight-sexp)
+          (selected-window))))))
 
 (defun sly--pop-to-source-location (source-location &optional method)
   "Pop to SOURCE-LOCATION using METHOD.
 If called from an xref buffer, method will be `sly-xref' and
 thus also honour `sly-xref--popup-method'."
-  (let (target-point
-        target-buffer
-        (xref-window (selected-window)))
-    (cl-labels
-        ((pop-it
-          ()
-          (cond ((eq method 'window)
-                 (pop-to-buffer target-buffer t))
-                ((eq method 'frame)
-                 (let ((pop-up-frames t))
-                   (pop-to-buffer target-buffer t)))
-                ((consp method)
-                 (let* ((window (car method))
-                        (sym (cdr method)))
-                   (setq method sym)
-                   (cond ((not (window-live-p window))
-                          ;; the original window has been deleted: all
-                          ;; bets are off!
-                          ;;
-                          (pop-it))
-                         (sym
-                          ;; shield window from reuse, but restoring
-                          ;; any dedicatedness
-                          ;;
-                          (let ((dedicatedness (window-dedicated-p window)))
-                            (unwind-protect
-                                (progn
-                                  (set-window-dedicated-p window 'soft)
-                                  (pop-it))
-                              (set-window-dedicated-p window dedicatedness))))
-                         (t
-                          ;; make efforts to reuse the window, respecting
-                          ;; any `display-buffer' overrides
-                          ;;
-                          (pop-to-buffer
-                           target-buffer
-                           `(,(lambda (buffer _alist)
-                                (when (window-live-p window)
-                                  (set-window-buffer window buffer)
-                                  window))))))))
-                (t
-                 (switch-to-buffer target-buffer)))))
-      ;; "scout move" to destination, to record location
-      (save-excursion
-        (sly-move-to-source-location source-location)
-        (setq target-point (point)
-              target-buffer (current-buffer)))
-      ;; see if we're being called from an *xref*, read
-      ;; `sly-xref--popup-method' and set METHOD to that, then
-      ;; `pop-it'
-      ;;
-      (when (eq method 'sly-xref)
-        (setq method sly-xref--popup-method)
+  (let* ((xref-window (selected-window))
+         (xref-buffer (window-buffer xref-window)))
+    (when (eq method 'sly-xref)
         (quit-window nil xref-window))
-      ;; now pop the target
+    (with-current-buffer xref-buffer
+      ;; now pop to target
       ;;
-      (pop-it)
-      ;; go to the final char position
-      ;;
-      (goto-char target-point))))
+      (select-window
+       (sly--display-source-location source-location nil method)))))
 
 (defun sly-location-offset (location)
   "Return the position, as character number, of LOCATION."
