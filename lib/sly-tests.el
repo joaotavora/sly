@@ -149,7 +149,8 @@ DOC is a docstring.
 INPUTS is a list of argument lists, each tested separately.
 BODY is the test case. The body can use `sly-check' to test
 conditions (assertions)."
-  (declare (debug (&define name sexp sexp sexp &rest def-form)))
+  (declare (debug (&define name sexp sexp sexp &rest def-form))
+           (indent 2))
   (if (not (featurep 'ert))
       (warn "No ert.el found: not defining test %s"
             name)
@@ -1455,6 +1456,83 @@ Reconnect afterwards."
       (remove-hook 'sly-compilation-finished-hook hook)
       (when sly-xref-last-buffer
         (kill-buffer sly-xref-last-buffer)))))
+
+
+;;; window management after M-.
+;;;
+(cl-defmacro sly-test--with-find-definition-window-checker (fn
+                                                            (window-splits
+                                                             total-windows
+                                                             starting-buffer-sym
+                                                             starting-window-sym)
+                                                            &rest body)
+  (declare (indent 2))
+  (let ((temp-frame-sym (cl-gensym "temp-frame-")))
+    `(progn
+       (when noninteractive
+         (sly-skip-test "Doesn't make sense for batch sessions"))
+       (sly-check-top-level)
+       (let ((,temp-frame-sym nil))
+         (unwind-protect
+             (progn
+               (setq ,temp-frame-sym (make-frame))
+               (with-selected-frame ,temp-frame-sym
+                 (with-temp-buffer
+                   (delete-other-windows)
+                   (switch-to-buffer (current-buffer))
+                   (let ((,starting-window-sym (selected-window))
+                         (,starting-buffer-sym (current-buffer)))
+                     (dotimes (_i ,window-splits)
+                       (split-window))
+                     (funcall ,fn "cl:print-object")
+                     (should (= ,total-windows (length (window-list ,temp-frame-sym))))
+                     (with-current-buffer
+                         (window-buffer (selected-window))
+                       (should (eq major-mode 'sly-xref-mode))
+                       (forward-line 1)
+                       (sly-xref-goto))
+                     ,@body))))
+           (delete-frame ,temp-frame-sym t))))))
+
+(def-sly-test find-definition-same-window (window-splits total-windows)
+  "Test `sly-edit-definition' windows"
+  '((0 2)
+    (1 2)
+    (2 3))
+  (sly-test--with-find-definition-window-checker
+      'sly-edit-definition
+      (window-splits
+       total-windows
+       temp-buffer
+       original-window)
+    (with-current-buffer
+        (window-buffer (selected-window))
+      (should-not (eq temp-buffer (current-buffer)))
+      (should (eq (selected-window) original-window)))
+    (should (= (if (zerop window-splits)
+                   1
+                 total-windows)
+               (length (window-list (selected-frame)))))))
+
+(def-sly-test find-definition-other-window (window-splits total-windows)
+  "Test `sly-edit-definition-other-window' windows"
+  '((0 2)
+    (1 2)
+    (2 3))
+  (sly-test--with-find-definition-window-checker
+      'sly-edit-definition-other-window
+      (window-splits
+       total-windows
+       temp-buffer
+       original-window)
+    (with-current-buffer
+        (window-buffer (selected-window))
+      (should (window-live-p original-window))
+      (should (eq temp-buffer (window-buffer original-window)))
+      (should-not (eq (selected-window) original-window)))
+    (should (= total-windows
+               (length (window-list (selected-frame)))))))
+
 
 
 (provide 'sly-tests)
