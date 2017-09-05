@@ -3491,7 +3491,8 @@ thus also honour `sly-xref--popup-method'."
       ;; now pop to target
       ;;
       (select-window
-       (sly--display-source-location source-location nil method)))))
+       (sly--display-source-location source-location nil method)))
+    (set-buffer (window-buffer (selected-window)))))
 
 (defun sly-location-offset (location)
   "Return the position, as character number, of LOCATION."
