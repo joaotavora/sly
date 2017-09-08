@@ -26,18 +26,18 @@
 
 ;;; Commentary:
 ;;
-;;        _____    __   __  __        
+;;        _____    __   __  __
 ;;       / ___/   / /   \ \/ /               |\      _,,,---,,_
 ;;       \__ \   / /     \  /                /,`.-'`'    -.  ;-;;,_
 ;;      ___/ /  / /___   / /                |,4-  ) )-,_..;\ (  `'-'
 ;;     /____/  /_____/  /_/                '---''(_/--'  `-'\_)
-;; 
+;;
 ;;
 ;; SLY is Sylvester the Cat's Common Lisp IDE.
-;;  
+;;
 ;; SLY is a direct fork of SLIME, and contains the following
 ;; improvements over it:
-;;  
+;;
 ;; * Completely redesigned REPL based on Emacs's own full-featured
 ;;   `comint.el`
 ;; * Live code annotations via a new `sly-stickers` contrib
@@ -47,11 +47,11 @@
 ;; * Regexp-capable M-x sly-apropos
 ;; * Contribs are first class SLY citizens and enabled by default
 ;; * Use ASDF to loads contribs on demand.
-;;  
+;;
 ;; SLY tracks SLIME's bugfixes and all its familar features (debugger,
 ;; inspector, xref, etc...) are still available, but with better
 ;; integration.
-;; 
+;;
 ;; See the NEWS.md file (should be sitting alongside this file) for a
 ;; complete list of features.
 
@@ -74,7 +74,7 @@
 (require 'etags)
 (require 'apropos)
 (require 'bytecomp) ;; for `byte-compile-current-file' and
-                    ;; `sly-byte-compile-hotspots'.
+;; `sly-byte-compile-hotspots'.
 
 (require 'sly-common     "lib/sly-common")
 (require 'sly-messages   "lib/sly-messages")
@@ -95,7 +95,7 @@ Emacs Lisp package.")
 
 ;; Determine `sly-path' at load time, regardless of filename (.el or
 ;; .elc) being loaded.
-;; 
+;;
 (setq sly-path
       (if load-file-name
           (file-name-directory load-file-name)
@@ -110,7 +110,7 @@ Emacs Lisp package.")
   "A list of contrib packages to load with SLY.")
 ;;;###autoload
 (define-obsolete-variable-alias 'sly-setup-contribs
-'sly-contribs "2.3.2")
+  'sly-contribs "2.3.2")
 
 (defun sly-setup (&optional contribs)
   "Have SLY load and use extension modules CONTRIBS.
@@ -137,7 +137,7 @@ To ensure that a particular contrib is loaded, use
 `sly-enable-contrib' instead."
   ;; FIXME: The contract should be like some hypothetical
   ;; `sly-refresh-contribs'
-  ;; 
+  ;;
   (interactive)
   (when contribs
     (setq sly-contribs contribs))
@@ -163,7 +163,7 @@ in `sly-contribs.'")
      (error (sly-error "There's an error in %s: %s"
                        ,contrib
                        e))))
-      
+
 (defun sly--setup-contribs ()
   "Load and initialize contribs."
   ;; active    != enabled
@@ -175,14 +175,14 @@ in `sly-contribs.'")
   (mapc #'require sly-contribs)
   (let* ((all-active-contribs
           ;; these are the contribs the user chose to activate
-          ;; 
+          ;;
           (mapcar #'sly-contrib--find-contrib
                   (cl-reduce #'append (mapcar #'sly-contrib--all-dependencies
                                               sly-contribs))))
          (defined-but-forgotten-contribs
            ;; "forgotten contribs" are the ones the chose not to
            ;; activate but whose definitions we have seen
-           ;; 
+           ;;
            (cl-remove-if #'(lambda (contrib)
                              (memq contrib all-active-contribs))
                          (sly-contrib--all-contribs))))
@@ -222,7 +222,7 @@ If FILE is passed use that instead to discover the version."
 (setq sly-protocol-version
       ;; Compile the version string into the generated .elc file, but
       ;; don't actualy affect `sly-protocol-version' until load-time.
-      ;; 
+      ;;
       (eval-when-compile (sly-version nil byte-compile-current-file)))
 
 
@@ -293,7 +293,7 @@ set to an absolute filename."
   :group 'sly-lisp)
 
 (define-obsolete-variable-alias 'sly-backend
-'sly-slynk-loader-backend "3.0")
+  'sly-slynk-loader-backend "3.0")
 
 (defcustom sly-connected-hook nil
   "List of functions to call when SLY connects to Lisp."
@@ -771,8 +771,8 @@ Minimize point motion if possible."
     (when (or (> height-diff window-height)
               (not (pos-visible-in-window-p target)))
       (recenter (if (< target (point))
-                  (min (- window-height 2) height-diff)
-                (max 0 (- window-height height-diff 1)))))))
+                    (min (- window-height 2) height-diff)
+                  (max 0 (- window-height height-diff 1)))))))
 
 ;; Interface
 (defun sly-set-truncate-lines ()
@@ -1072,7 +1072,7 @@ Helper for M-x sly"
                       (sly-process-or-connection
                        ;; call ourselves recursively with a
                        ;; sly-started process
-                       ;; 
+                       ;;
                        (sly-inferior-lisp-buffer (sly-process sly-process-or-connection)
                                                  pop-to-buffer )))))
     (cond ((and buffer
@@ -1714,7 +1714,7 @@ Signal an error if there's no connection."
           (t conn))))
 
 (define-obsolete-variable-alias 'sly-auto-connect
-'sly-auto-start "2.5")
+  'sly-auto-start "2.5")
 (defcustom sly-auto-start 'never
   "Controls auto connection when information from lisp process is needed.
 This doesn't mean it will connect right after SLY is loaded."
@@ -1894,7 +1894,7 @@ This is automatically synchronized from Lisp.")
         (rename-buffer (sly-buffer-name :events :connection connection))))
     ;; Rename the inferior lisp buffer if there is one (i.e. when
     ;; started via `M-x sly')
-    ;; 
+    ;;
     (let ((inferior-lisp-buffer (sly-inferior-lisp-buffer (sly-process connection))))
       (when inferior-lisp-buffer
         (with-current-buffer inferior-lisp-buffer
@@ -1912,7 +1912,7 @@ This is automatically synchronized from Lisp.")
 
 (defun sly-generate-connection-name (lisp-name)
   (when (file-exists-p lisp-name)
-      (setq lisp-name (file-name-nondirectory lisp-name)))
+    (setq lisp-name (file-name-nondirectory lisp-name)))
   (cl-loop for i from 1
            for name = lisp-name then (format "%s<%d>" lisp-name i)
            while (cl-find name sly-net-processes
@@ -1924,8 +1924,8 @@ This is automatically synchronized from Lisp.")
     (when sly-net-processes
       (sly-select-connection (car sly-net-processes))
       (sly-message "Default connection closed; default is now #%S (%S)"
-               (sly-connection-number)
-               (sly-connection-name)))))
+                   (sly-connection-number)
+                   (sly-connection-name)))))
 
 (add-hook 'sly-net-process-close-hooks 'sly-connection-close-hook)
 
@@ -1989,27 +1989,27 @@ means don't wrap around when last connection is reached."
                (c)
                (format "%s %s" (sly-connection-name c) (process-contact c))))
     (cond ((not sly-net-processes)
-             (sly-error "No connections to cycle"))
+           (sly-error "No connections to cycle"))
           ((null (cdr sly-net-processes))
            (sly-message "Only one connection: %s" (connection-full-name (car sly-net-processes))))
-            (t
-             (let* ((dest (append (member (sly-current-connection)
+          (t
+           (let* ((dest (append (member (sly-current-connection)
                                         sly-net-processes)
                                 (unless dont-wrap sly-net-processes)))
                   (len (length sly-net-processes))
-                    (target (nth (mod arg len) 
-                                 dest)))
-               (unless target
-                 (sly-error "No more connections"))
-               (sly-select-connection target)
-               (if (and sly-buffer-connection
-                        (not (eq sly-buffer-connection target)))
-                   (sly-message "switched to: %s but buffer remains in: %s"
-                                (connection-full-name target)
-                                (connection-full-name sly-buffer-connection))
-                 (sly-message "switched to: %s (%s/%s)" (connection-full-name target)
+                  (target (nth (mod arg len)
+                               dest)))
+             (unless target
+               (sly-error "No more connections"))
+             (sly-select-connection target)
+             (if (and sly-buffer-connection
+                      (not (eq sly-buffer-connection target)))
+                 (sly-message "switched to: %s but buffer remains in: %s"
+                              (connection-full-name target)
+                              (connection-full-name sly-buffer-connection))
+               (sly-message "switched to: %s (%s/%s)" (connection-full-name target)
                             (1+ (cl-position target sly-net-processes))
-                              len))
+                            len))
              (sly--refresh-mode-line))))))
 
 (defun sly-prev-connection (arg &optional dont-wrap)
@@ -2447,8 +2447,8 @@ Debugged requests are ignored."
   "Channel serial number counter.")
 
 (cl-defstruct (sly-channel (:conc-name sly-channel.)
-                             (:constructor
-                              sly-make-channel% (operations name id plist)))
+                           (:constructor
+                            sly-make-channel% (operations name id plist)))
   operations name id plist)
 
 (defun sly-make-channel (operations &optional name)
@@ -2588,10 +2588,10 @@ Also rearrange windows."
          (args (sly-inferior-lisp-args proc))
          (buffer (buffer-name (process-buffer proc)))
          (new-proc (sly-start-lisp (plist-get args :program)
-                                     (plist-get args :program-args)
-                                     (plist-get args :env)
-                                     nil
-                                     buffer)))
+                                   (plist-get args :program-args)
+                                   (plist-get args :env)
+                                   nil
+                                   buffer)))
     (sly-net-close process "Restarting inferior lisp process")
     (sly-inferior-connect new-proc args)))
 
@@ -3207,17 +3207,17 @@ if you encounter such a warning, it's a strong indication that
 you should check twice before modifying.")
 
 (defun sly-maybe-warn-for-different-source-root (target-filename
-                                                   buffer-filename)
+                                                 buffer-filename)
   (let ((guessed-target (sly-file-name-merge-source-root target-filename
-                                                           buffer-filename)))
+                                                         buffer-filename)))
     (when (and guessed-target
                (not (equal guessed-target target-filename))
                (file-exists-p guessed-target))
       (sly-message "Attention: This is `%s'."
-                     (concat (sly-highlight-differences-in-dirname
-                              (file-name-directory target-filename)
-                              (file-name-directory guessed-target))
-                             (file-name-nondirectory target-filename))))))
+                   (concat (sly-highlight-differences-in-dirname
+                            (file-name-directory target-filename)
+                            (file-name-directory guessed-target))
+                           (file-name-nondirectory target-filename))))))
 
 (defun sly-check-location-filename-sanity (filename)
   (when sly-warn-when-possibly-tricked-by-M-.
@@ -3410,8 +3410,8 @@ Several kinds of locations are supported:
 
 (defun sly--highlight-line (&optional timeout)
   (sly-flash-region (+ (line-beginning-position) (current-indentation))
-                      (line-end-position)
-                      :timeout timeout))
+                    (line-end-position)
+                    :timeout timeout))
 
 (make-variable-buffer-local
  (defvar sly-xref--popup-method nil
@@ -3486,7 +3486,7 @@ thus also honour `sly-xref--popup-method'."
   (let* ((xref-window (selected-window))
          (xref-buffer (window-buffer xref-window)))
     (when (eq method 'sly-xref)
-        (quit-window nil xref-window))
+      (quit-window nil xref-window))
     (with-current-buffer xref-buffer
       ;; now pop to target
       ;;
@@ -3694,8 +3694,8 @@ For insertion in the `compilation-mode' buffer"
   dspec location)
 
 (cl-defstruct (sly-location (:conc-name sly-location.) (:type list)
-                              (:constructor nil)
-                              (:copier nil))
+                            (:constructor nil)
+                            (:copier nil))
   tag buffer position hints)
 
 (defun sly-location-p (o) (and (consp o) (eq (car o) :location)))
@@ -3728,7 +3728,7 @@ new frame."
   (let ((xrefs (sly-eval `(slynk:find-definitions-for-emacs ,name))))
     (unless xrefs
       (error "No known definition for: %s (in %s)"
-                    name (sly-current-package)))
+             name (sly-current-package)))
     (cl-destructuring-bind (1loc file-alist)
         (sly-analyze-xrefs xrefs)
       (cond (1loc
@@ -3950,7 +3950,7 @@ inserted in the current buffer."
 
 (defun sly-display-eval-result (value)
   ;; Use `message', not `sly-message'
-  (with-temp-buffer 
+  (with-temp-buffer
     (insert value)
     (goto-char (point-min))
     (end-of-line 1)
@@ -3997,7 +3997,7 @@ inserted in the current buffer."
 (defun sly-eval-describe (form)
   "Evaluate FORM in Lisp and display the result in a new buffer."
   (sly-eval-async form (sly-rcurry #'sly-show-description
-                                       (sly-current-package))))
+                                   (sly-current-package))))
 
 (defvar sly-description-autofocus nil
   "If non-nil select description windows on display.")
@@ -4085,10 +4085,10 @@ in Lisp when committed with \\[sly-edit-value-commit]."
                                    (sly-sexp-at-point))))
   (sly-eval-async `(slynk:value-for-editing ,form-string)
     (let ((form-string form-string)
-                  (package (sly-current-package)))
+          (package (sly-current-package)))
       (lambda (result)
         (sly-edit-value-callback form-string result
-                                   package)))))
+                                 package)))))
 
 (make-variable-buffer-local
  (defvar sly-edit-form-string nil
@@ -4124,7 +4124,7 @@ in Lisp when committed with \\[sly-edit-value-commit]."
     (let ((value (buffer-substring-no-properties (point-min) (point-max))))
       (let ((buffer (current-buffer)))
         (sly-eval-async `(slynk:commit-edited-value ,sly-edit-form-string
-                                                      ,value)
+                                                    ,value)
           (lambda (_)
             (with-current-buffer buffer
               (quit-window t))))))))
@@ -4159,16 +4159,16 @@ in Lisp when committed with \\[sly-edit-value-commit]."
   "Unintern the symbol given with SYMBOL-NAME PACKAGE."
   (interactive (list (sly-read-symbol-name "Unintern symbol: " t)
                      (sly-read-package-name "from package: "
-                                              (sly-current-package))))
+                                            (sly-current-package))))
   (sly-eval-async `(slynk:unintern-symbol ,symbol-name ,package)
     (lambda (result) (sly-message "%s" result))))
 
 (defun sly-delete-package (package-name)
   "Delete the package with name PACKAGE-NAME."
   (interactive (list (sly-read-package-name "Delete package: "
-                                              (sly-current-package))))
+                                            (sly-current-package))))
   (sly-eval-async `(cl:delete-package
-                      (slynk::guess-package ,package-name))))
+                    (slynk::guess-package ,package-name))))
 
 (defun sly-load-file (filename)
   "Load the Lisp file FILENAME."
@@ -4189,7 +4189,7 @@ The functions are called with the new (absolute) directory.")
 Return whatever slynk:set-default-directory returns."
   (let ((dir (expand-file-name directory)))
     (prog1 (sly-eval `(slynk:set-default-directory
-                         ,(sly-to-lisp-filename dir)))
+                       ,(sly-to-lisp-filename dir)))
       (sly-with-connection-buffer nil (cd-absolute dir))
       (run-hook-with-args 'sly-change-directory-hooks dir))))
 
@@ -4262,7 +4262,7 @@ Return whatever slynk:set-default-directory returns."
           (if only-external-p " (external symbols only)" "")))
 
 (defun sly-apropos (string &optional only-external-p package
-                             case-sensitive-p)
+                           case-sensitive-p)
   "Show all bound symbols whose names match STRING. With prefix
 arg, you're interactively asked for parameters of the search.
 With M-- (negative) prefix arg, prompt for package only. "
@@ -4275,10 +4275,10 @@ With M-- (negative) prefix arg, prompt for package only. "
                 nil))
          (current-prefix-arg
           (list (sly-read-from-minibuffer "Apropos: ")
-               (sly-y-or-n-p "External symbols only? ")
-               (sly-read-package-name "Package (blank for all): "
-                                      nil 'allow-blank)
-               (sly-y-or-n-p "Case-sensitive? ")))
+                (sly-y-or-n-p "External symbols only? ")
+                (sly-read-package-name "Package (blank for all): "
+                                       nil 'allow-blank)
+                (sly-y-or-n-p "Case-sensitive? ")))
          (t
           (list (sly-read-from-minibuffer "Apropos external symbols: ") t nil nil))))
   (sly-eval-async
@@ -4364,7 +4364,7 @@ TODO"
                          0
                        (length (sly--package-designator-prefix designator))))
              (ov (make-overlay (+ start offset (cl-first bounds))
-                              (+ start offset (cl-second bounds)))))
+                               (+ start offset (cl-second bounds)))))
         (overlay-put ov 'face 'highlight)))))
 
 (defun sly-print-apropos (plists package-designator-searched-p)
@@ -4453,7 +4453,7 @@ TODO"
 
     (define-key map (kbd "q")     'quit-window)
     (set-keymap-parent map button-buffer-map)
-    
+
     map))
 
 (define-derived-mode sly-xref-mode lisp-mode "Xref"
@@ -4520,7 +4520,7 @@ source-location."
                     (insert
                      " "
                      (sly-xref-button (sly-one-line-ify label) location)
-                    "\n")
+                     "\n")
                     (add-text-properties start (point) (list 'sly-location location))))
   ;; Remove the final newline to prevent accidental window-scrolling
   (backward-delete-char 1))
@@ -4708,7 +4708,7 @@ If PROP-VALUE-FN is non-nil use it to extract PROP's value."
       (sly-recompile-locations
        (list location)
        (sly-rcurry #'sly-xref-recompilation-cont
-                     (list dspec) (current-buffer))))))
+                   (list dspec) (current-buffer))))))
 
 (defun sly-recompile-all-xrefs (&optional raw-prefix-arg)
   (interactive "P")
@@ -4721,7 +4721,7 @@ If PROP-VALUE-FN is non-nil use it to extract PROP's value."
       (sly-recompile-locations
        locations
        (sly-rcurry #'sly-xref-recompilation-cont
-                     dspecs (current-buffer))))))
+                   dspecs (current-buffer))))))
 
 (defun sly-xref-recompilation-cont (results dspecs buffer)
   ;; Extreme long-windedness to insert status of recompilation;
@@ -4814,7 +4814,7 @@ This variable specifies both what was expanded and how.")
   (interactive)
   (sly-eval-async sly-eval-macroexpand-expression
     (sly-rcurry #'sly-initialize-macroexpansion-buffer
-                  (current-buffer))))
+                (current-buffer))))
 
 (defun sly-initialize-macroexpansion-buffer (expansion &optional buffer)
   (pop-to-buffer (or buffer (sly-create-macroexpansion-buffer)))
@@ -5142,8 +5142,8 @@ PREDICATE is executed in the buffer to test."
   "Return a list of all sly-db buffers (belonging to CONNECTION.)"
   (if connection
       (sly-filter-buffers (lambda ()
-                              (and (eq sly-buffer-connection connection)
-                                   (eq major-mode 'sly-db-mode))))
+                            (and (eq sly-buffer-connection connection)
+                                 (eq major-mode 'sly-db-mode))))
     (sly-filter-buffers (lambda () (eq major-mode 'sly-db-mode)))))
 
 (defun sly-db-find-buffer (thread &optional connection)
@@ -5193,7 +5193,7 @@ The chosen buffer the default connection's it if exists."
 
 (defun sly-db-confirm-buffer-kill ()
   (when (or (not (process-live-p sly-buffer-connection))
-         (sly-y-or-n-p "Really kill sly-db buffer and throw to toplevel?"))
+            (sly-y-or-n-p "Really kill sly-db buffer and throw to toplevel?"))
     (ignore-errors (sly-db-quit))
     t))
 
@@ -5442,8 +5442,8 @@ If MORE is non-nil, more frames are on the Lisp stack."
 (defun sly-db--guess-frame-function (frame)
   (ignore-errors
     (car (car (read-from-string
-                 (replace-regexp-in-string "#" ""
-                                           (cadr frame)))))))
+               (replace-regexp-in-string "#" ""
+                                         (cadr frame)))))))
 
 (defun sly-db-frame-button (label frame face &rest props)
   (apply #'make-text-button label nil :type 'sly-db-frame
@@ -5475,9 +5475,9 @@ If MORE is non-nil, more frames are on the Lisp stack."
      (propertize (format " %2d: " number)
                  'face 'sly-db-frame-label-face)
      (sly-db-frame-button label frame-spec
-                        (if (sly-db-frame-restartable-p frame-spec)
-                            'sly-db-restartable-frame-line-face
-                          'sly-db-frame-line-face))
+                          (if (sly-db-frame-restartable-p frame-spec)
+                              'sly-db-restartable-frame-line-face
+                            'sly-db-frame-line-face))
      "\n")
     (add-text-properties
      origin (point)
@@ -5528,7 +5528,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
       (delete-region (point) (point-max))
       (save-excursion
         (sly-db-insert-frames (sly-eval `(slynk:backtrace ,(1+ last) nil))
-                            nil)))))
+                              nil)))))
 
 
 ;;;;;; SLY-DB show source
@@ -5609,8 +5609,8 @@ The details include local variable bindings and CATCH-tags."
                                               (format "#%d" id))))
                              " = "
                              (sly-db-local-variable-button value
-                                                         frame-number
-                                                         i))))
+                                                           frame-number
+                                                           i))))
           (when catches
             (insert "\n" indent1 (sly-db-in-face section "Catch-tags:"))
             (dolist (tag catches)
@@ -5685,8 +5685,8 @@ The details include local variable bindings and CATCH-tags."
   (interactive (list
                 (sly-db-frame-number-at-point)
                 (sly-read-from-minibuffer
-                      "Inspect in frame (evaluated): "
-                      (sly-sexp-at-point))))
+                 "Inspect in frame (evaluated): "
+                 (sly-sexp-at-point))))
   (sly-eval-for-inspector `(slynk:inspect-in-frame ,string ,frame-number)))
 
 (defun sly-db-inspect-condition ()
@@ -5783,10 +5783,10 @@ Interactively get the number from a button at point."
 (defun sly-db-invoke-restart-by-name (restart-name)
   (interactive (list (let ((completion-ignore-case t))
                        (sly-completing-read "Restart: " sly-db-restarts nil t
-                                        ""
-                                        'sly-db-invoke-restart-by-name))))
+                                            ""
+                                            'sly-db-invoke-restart-by-name))))
   (sly-db-invoke-restart (cl-position restart-name sly-db-restarts
-                                    :test 'string= :key 'first)))
+                                      :test 'string= :key 'first)))
 
 (defun sly-db-break-with-default-debugger (&optional dont-unwind)
   "Enter default debugger."
@@ -5838,7 +5838,7 @@ Return the net process, or nil."
          (candidates (mapcar (lambda (p) (cons (funcall to-string p) p))
                              sly-net-processes)))
     (cdr (assoc (sly-completing-read prompt candidates
-                                 nil t (funcall to-string initial-value))
+                                     nil t (funcall to-string initial-value))
                 candidates))))
 
 (defun sly-db-step (frame-number)
@@ -6055,7 +6055,7 @@ was called originally."
 (defun sly-thread-kill ()
   (interactive)
   (sly-eval `(cl:mapc 'slynk:kill-nth-thread
-                        ',(sly-get-properties 'thread-index)))
+                      ',(sly-get-properties 'thread-index)))
   (call-interactively 'sly-update-threads-buffer))
 
 (defun sly-get-region-properties (prop start end)
@@ -6069,8 +6069,8 @@ was called originally."
 (defun sly-get-properties (prop)
   (if (use-region-p)
       (sly-get-region-properties prop
-                                   (region-beginning)
-                                   (region-end))
+                                 (region-beginning)
+                                 (region-end))
     (let ((value (get-text-property (point) prop)))
       (when value
         (list value)))))
@@ -6252,7 +6252,7 @@ was called originally."
     (define-key map "n" 'sly-inspector-next)
     (define-key map [mouse-6] 'sly-inspector-pop)
     (define-key map [mouse-7] 'sly-inspector-next)
-    
+
     (define-key map " " 'sly-inspector-next)
     (define-key map "D" 'sly-inspector-describe-inspectee)
     (define-key map "e" 'sly-inspector-eval)
@@ -6553,12 +6553,12 @@ is setup, unless the user already set one explicitly."
              (all-modules (cl-first result))
              (loaded-now (cl-second result)))
         ;; check if everything went OK
-        ;; 
+        ;;
         (cl-loop for n in needed
                  unless (cl-find (cl-first n) loaded-now :test #'string=)
-                 
+
                  ;; string= compares symbols and strings nicely
-                 ;; 
+                 ;;
                  do (when (y-or-n-p (format
                                      "\
 Watch out! SLY failed to load SLYNK module %s for contrib %s!\n
@@ -6624,7 +6624,7 @@ if/when you fix the error" (cl-third n))))
            ;; should probably loop all connections. Anyway, we try
            ;; ensure this can only happen from an interactive
            ;; `sly-setup' call.
-           ;; 
+           ;;
            (when (and (eq this-command 'sly-setup)
                       (sly-connected-p))
              (sly-contrib--load-slynk-dependencies))
@@ -6653,16 +6653,16 @@ if/when you fix the error" (cl-third n))))
 (defun sly-contrib--all-dependencies (contrib)
   "Contrib names recursively needed by CONTRIB, including self."
   (sly--contrib-safe contrib
-      (cons contrib
-            (cl-mapcan #'sly-contrib--all-dependencies
-                       (sly-contrib--sly-dependencies
-                        (sly-contrib--find-contrib contrib))))))
+    (cons contrib
+          (cl-mapcan #'sly-contrib--all-dependencies
+                     (sly-contrib--sly-dependencies
+                      (sly-contrib--find-contrib contrib))))))
 
 (defun sly-contrib--find-contrib (designator)
   (if (sly-contrib-p designator)
       designator
-      (or (get 'sly-contribs designator)
-          (error "Unknown contrib: %S" designator))))
+    (or (get 'sly-contribs designator)
+        (error "Unknown contrib: %S" designator))))
 
 (defun sly-contrib--read-contrib-name ()
   (let ((names (cl-loop for c in (sly-contrib--all-contribs) collect
@@ -6929,8 +6929,8 @@ and skips comments."
 (defun sly-forward-cruft ()
   "Move forward over whitespace, comments, reader conditionals."
   (while (sly-point-moves-p (skip-chars-forward " \t\n")
-                              (forward-comment (buffer-size))
-                              (inline (sly-forward-reader-conditional)))))
+                            (forward-comment (buffer-size))
+                            (inline (sly-forward-reader-conditional)))))
 
 (defun sly-keywordify (symbol)
   "Make a keyword out of the symbol SYMBOL."
@@ -7063,8 +7063,8 @@ as nil.  With non-nil STRINGP, only look for strings"
                             (char-syntax ?\"))))
           (if (and interactive
                    interactive)
-                (user-error "No string at point")
-              (throw 'return nil)))
+              (user-error "No string at point")
+            (throw 'return nil)))
         (when interactive
           (sly-flash-region (car bounds) (cdr bounds)))
         (buffer-substring-no-properties (car bounds)
