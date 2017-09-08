@@ -223,7 +223,8 @@ If FILE is passed use that instead to discover the version."
       ;; Compile the version string into the generated .elc file, but
       ;; don't actualy affect `sly-protocol-version' until load-time.
       ;;
-      (eval-when-compile (sly-version nil byte-compile-current-file)))
+      (eval-when-compile (sly-version nil (or load-file-name
+                                              byte-compile-current-file))))
 
 
 ;;;; Customize groups
