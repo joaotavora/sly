@@ -472,21 +472,25 @@ PROPERTIES specifies any default face properties."
                            (define-key map "d" 'sly-db-pop-to-debugger-maybe)
                            (define-key map "e" 'sly-pop-to-events-buffer)
                            (define-key map "i" 'sly-inferior-lisp-buffer)
+                           (define-key map "l" 'sly-switch-to-most-recent)
                            map)
   "A keymap for frequently used SLY shortcuts.
-By default, access to this keymap is done via \"C-c C-s\", which
-is installed in `sly-mode-map'. Users or extensions can plug in
+Access to this keymap can be installed in in
+`sly-mode-map', using something like 
+
+   (global-set-key (kbd \"C-z\") sly-selector-map)
+
+This will bind C-z to this prefix map, one keystroke away from
+the available shortcuts:
+
+\\{sly-selector-map}
+As usual, users or extensions can plug in
 any command into it using
 
-   (define-key sly-selector-map (kbd \"k\") 'sly-command)
+  (define-key sly-selector-map (kbd \"k\") 'sly-command)
 
 Where \"k\" is the key to bind and \"sly-command\" is any
-interactive command.\".
-
-Users might also want to make `sly-selector-map' globally bound
-to some other key.
-
-   (global-set-key (kbd \"C-z\") sly-selector-map")
+interactive command.\".")
 
 (defvar sly-prefix-map
   (let ((map (make-sparse-keymap)))
@@ -509,9 +513,10 @@ to some other key.
     (define-key map (kbd "C-d")  sly-doc-map)
     ;; Include XREF WHO-FOO keys...
     (define-key map (kbd "C-w")  sly-who-map)
-    ;; `sly-selector-map' bound to "C-c C-s" by default
+    ;; `sly-selector-map' used to be bound to "C-c C-s" by default,
+    ;; but sly-stickers has a better binding for that.
     ;;
-    (define-key map (kbd "C-s") sly-selector-map)
+    ;; (define-key map (kbd "C-s") sly-selector-map)
     map))
 
 (defvar sly-mode-map
@@ -2565,6 +2570,23 @@ Debugged requests are ignored."
   "Pop to the SLY events buffer for PROCESS"
   (interactive (list (sly-current-connection)))
   (pop-to-buffer (sly--events-buffer process)))
+
+(defun sly-switch-to-most-recent (mode)
+  "Switch to most recent buffer in MODE, a major-mode symbol.
+With prefix argument, prompt for MODE"
+  (interactive
+   (list (if prefix-arg
+             (intern (sly-completing-read
+                      "Switch to most recent buffer in what mode? "
+                      (mapcar #'symbol-name '(lisp-mode
+                                              emacs-lisp-mode))
+                      nil t))
+           'lisp-mode)))
+  (cl-loop for buffer in (buffer-list)
+           when (and (with-current-buffer buffer (eq major-mode mode))
+                     (not (eq buffer (current-buffer)))
+                     (not (string-match "^ " (buffer-name buffer))))
+           do (pop-to-buffer buffer) and return buffer))
 
 (defun sly-forget-pending-events (process)
   "Forget any outgoing events for the PROCESS"
