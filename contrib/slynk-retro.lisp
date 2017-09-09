@@ -18,11 +18,25 @@
                              (package-nicknames package))
                             :test #'string-equal))))
 
+(defun load-swankrcs-maybe ()
+  (find-if (lambda (homedir-file)
+             (load (merge-pathnames (user-homedir-pathname)
+                                    homedir-file)
+                   :if-does-not-exist nil))
+           (list (make-pathname :name ".swank" :type "lisp")
+                 (make-pathname :name ".swankrc"))))
+
 (setq slynk-rpc:*translating-swank-to-slynk* nil)
 (push #'ensure-slynk-package-nicknames
       slynk-api:*slynk-require-hook*)
 
 (ensure-slynk-package-nicknames)
+;;; Take this chance to load ~/.swank.lisp and ~/.swankrc if no
+;;; ~/.slynk.lisp or ~/.slynkrc have already been loaded.
+;;;
+(unless slynk-api:*loaded-user-init-file*
+  (setq slynk-api:*loaded-user-init-file*
+        (load-swankrcs-maybe)))
 
 (provide :slynk-retro)
 

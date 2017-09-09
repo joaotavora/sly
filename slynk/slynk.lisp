@@ -4205,6 +4205,7 @@ Collisions are caused because package information is ignored."
                #:with-sly-interrupts
                #:with-buffer-syntax
                #:with-retry-restart
+               #:*loaded-user-init-file*
                #:load-user-init-file
                #:make-thread-bindings-aware-lambda
                ;;
@@ -4242,22 +4243,22 @@ Collisions are caused because package information is ignored."
 
 
 ;;;; INIT, as called from the slynk-loader.lisp and ASDF's loaders
-;;;; 
+;;;;
+(defvar *loaded-user-init-file* nil
+  "User init file actually loaded from user's home, if any.")
 (defun load-user-init-file ()
   "Load the user init file, return NIL if it does not exist."
-  (some (lambda (homedir-file)
+  (find (lambda (homedir-file)
           (load (merge-pathnames (user-homedir-pathname)
                                  homedir-file)
                 :if-does-not-exist nil))
         (list (make-pathname :name ".slynk" :type "lisp")
-              (make-pathname :name ".slynkrc")
-              (make-pathname :name ".swank" :type "lisp")
-              (make-pathname :name ".swankrc"))))
+              (make-pathname :name ".slynkrc"))))
 
 (defun init ()
   (unless (member :slynk *features*)
     (pushnew :slynk *features*))
-  (load-user-init-file)
+  (setq *loaded-user-init-file* (load-user-init-file))
   (run-hook *after-init-hook*))
 
 ;; Local Variables:
