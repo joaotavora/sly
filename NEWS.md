@@ -48,7 +48,7 @@ buttons.
 
 The "replay" interface, `M-x sly-stickers-replay` has been cleaned up.
 
-### Three new independant SLY contribs
+### Three new independent SLY contribs
 
 In https://github.com/joaotavora/sly-named-readtables there is an
 external contrib that adds support for Tobias C Rittweiler's
@@ -70,7 +70,7 @@ contribs.
 ### Apropos
 
 Argument list information is present in apropos output like
-this. A sugestion of Javier Olaechea (github #53)
+this. A suggestion of Javier Olaechea (github #53)
 
 ```
 ...
@@ -441,7 +441,7 @@ results is too big to fit in the echo area.
 SLY's mode-line string is placed at the right side of the mode-line.
 
 SLY intrudes less than SLIME in the Emacs name-space, and uses more
-standard idoms. Macros like `with-struct` and `sly-define-keys` have
+standard idioms. Macros like `with-struct` and `sly-define-keys` have
 been removed.
 
 Buffer names have been consolidated: every buffer name related to SLY

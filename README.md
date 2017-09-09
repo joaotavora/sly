@@ -13,7 +13,7 @@
 SLY is Sylvester the Cat's Common Lisp IDE for Emacs. See it in action in
 [this screencast][7].
 
-SLY is a fork of [SLIME][1], and contains the following improvements over
+SLY is a fork of [SLIME][1] and contains the following improvements upon
 it:
 
 * Completely redesigned REPL based on Emacs's own full-featured `comint.el`
@@ -49,8 +49,8 @@ disable it for the Emacs session.
 
 <!-- TODO put a screeshot here, maybe -->
 
-Install from Git
-----------------
+Install from Github
+-------------------
 
 Clone this repository, add this to your `~/.emacs` file and fill in the
 appropriate file names:
