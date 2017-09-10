@@ -1247,7 +1247,7 @@ a list of result buttons thus highlighted"
                     value-idx)
                (overlay-put overlay 'face 'sly-action-face)
                (let* ((prefix (if (numberp value-idx)
-                                  (format "Matched history value %s of entry%s: "
+                                  (format "Matched history value %s of entry %s: "
                                                value-idx
                                                entry-idx)
                                 (format "Matched history entry %s%s: "
@@ -1265,7 +1265,7 @@ a list of result buttons thus highlighted"
                               "...")
                              'face
                              'sly-action-face)))
-                 (sly-message (format "%s%s" prefix hint))))
+                 (sly-message "%s" (format "%s%s" prefix hint))))
               (buttons
                (sly-message "Ambiguous backreference `%s', %s values possible"
                             m0 (length buttons))
