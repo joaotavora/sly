@@ -35,10 +35,9 @@ compile-test: $(TEST_ELCFILES)
 
 # Automated tests
 #
-SELECTOR=t
-
 check: check-core check-fancy
 
+check-core: SELECTOR=t
 check-core: compile
 	$(EMACS) -Q --batch $(LOAD_PATH)				\
 		--eval "(require 'sly-tests \"lib/sly-tests\")"	\
@@ -46,7 +45,7 @@ check-core: compile
 		--eval '(sly-batch-test (quote $(SELECTOR)))'
 
 check-%: CONTRIB_NAME=$(patsubst check-%,sly-%,$@)
-check-%: CONTRIB_SELECTOR=(tag contrib)
+check-%: SELECTOR=(tag contrib)
 check-%: compile contrib/sly-%.elc test/sly-%-tests.elc
 	$(EMACS) -Q --batch $(LOAD_PATH) -L test			\
 		--eval "(require (quote sly))"				\
@@ -56,9 +55,9 @@ check-%: compile contrib/sly-%.elc test/sly-%-tests.elc
 			    (format					\
 			       \"%s-tests\" (quote $(CONTRIB_NAME)))))" \
 		--eval "(setq inferior-lisp-program \"$(LISP)\")"	\
-		--eval '(sly-batch-test (quote (tag contrib)))'	
+		--eval '(sly-batch-test (quote $(SELECTOR)))'
 
-
+check-fancy: SELECTOR=(tag contrib)
 check-fancy: compile compile-contrib
 	$(EMACS) -Q --batch  $(LOAD_PATH) -L test			\
 		--eval "(require (quote sly))"				\
@@ -70,7 +69,7 @@ check-fancy: compile compile-contrib
 			      (sly-contrib--all-dependencies		\
 				(quote sly-fancy)))"			\
 		--eval '(setq inferior-lisp-program "$(LISP)")'		\
-		--eval '(sly-batch-test (quote (tag contrib)))'	
+		--eval '(sly-batch-test (quote $(SELECTOR)))'	
 
 
 # Cleanup
