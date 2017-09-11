@@ -712,6 +712,7 @@
 ;;; Test: indent-68
 ;;
 ;; lisp-loop-indent-subclauses: nil
+;; sly-indentation--test-function: indent-region
 
 (progn
   (loop

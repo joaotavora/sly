@@ -60,7 +60,9 @@
                    for n-expected = (count-leading expected)
                    for n-observed = (count-leading observed)
                    unless (= n-expected n-observed)
-                   do (ert-fail
+                   do (message "Starting with this mess:\n%s" mess)
+                   (message "\nGot this result:\n%s" (buffer-string))
+                   (ert-fail
                        (format
                         "Expected line `%s' to have %d leading spaces. Got %d"
                         expected n-expected n-observed)))
