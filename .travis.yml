@@ -1,25 +1,28 @@
 language: emacs-lisp
+sudo: false
 cache:
   - directories:
       # Cache stable Emacs binaries (saves 1min per job)
       - "$HOME/emacs/"
+      - "$HOME/.roswell/"
 
 env:
-  - "CHECK_TARGET=check-core  LISP=sbcl  EMACS_VERSION=25.2"
-  # - "CHECK_TARGET=check-core  LISP=cmucl EMACS_VERSION=25.2"
-  - "CHECK_TARGET=check-core  LISP=ccl   EMACS_VERSION=25.2"
-  - "CHECK_TARGET=check-fancy LISP=sbcl  EMACS_VERSION=25.2"
-  # - "CHECK_TARGET=check-fancy LISP=cmucl EMACS_VERSION=25.2"
-  - "CHECK_TARGET=check-fancy LISP=ccl   EMACS_VERSION=25.2"
-  - "CHECK_TARGET=check-mrepl LISP=sbcl EMACS_VERSION=25.2"
-  - "CHECK_TARGET=check-indentation LISP=sbcl EMACS_VERSION=25.2"
+  - "TARGET=check-core        ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=25.2"
+  - "TARGET=check-core        ROSWELL_LISP=ccl-bin         EMACS_VERSION=25.2"
+  - "TARGET=check-fancy       ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=25.2"
+  - "TARGET=check-fancy       ROSWELL_LISP=ccl-bin         EMACS_VERSION=25.2"
+  - "TARGET=check-mrepl       ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=25.2"
+  - "TARGET=check-indentation ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=25.2"
 
 before_install:
   - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
   - make -f emacs-travis.mk install_emacs
-
-install:
-  - curl https://raw.githubusercontent.com/luismbo/cl-travis/master/install.sh | bash
+  - export ROSWELL_INSTALL_DIR=~/.roswell && mkdir -p $ROSWELL_INSTALL_DIR
+  - export PATH=$ROSWELL_INSTALL_DIR/bin:$PATH
+  - export LISP=$ROSWELL_LISP
+  - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
 
 script:
-  - make LISP=$LISP EMACS=$HOME/emacs/$EMACS_VERSION/src/emacs $CHECK_TARGET
+  - $ROSWELL_INSTALL_DIR/bin/ros use $ROSWELL_LISP
+  - (echo -ne "#!/bin/sh\n$ROSWELL_INSTALL_DIR/bin/ros run \$@" | tee roswell-run) && chmod +x roswell-run
+  - make LISP=$PWD/roswell-run EMACS=$HOME/emacs/$EMACS_VERSION/src/emacs $TARGET
