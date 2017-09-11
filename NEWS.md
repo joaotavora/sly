@@ -1,4 +1,4 @@
-Upcoming SLY 1.0.0-beta-3 (Somewhere 2016)
+Upcoming SLY 1.0.0-beta-3 (Somewhere 2017)
 -----------------------------------------
 
 ### Redesigned completion mechanism
@@ -31,6 +31,21 @@ for documentation and example.
 If the SLYNK-side of a contrib fails to load for whatever
 reason, a CONTINUE restart is provided. On the SLY side, the user
 can choose to disable that contrib temporarily.
+
+### On par with SLIME 2.19 and 2.20
+
+Where applicable, SLY tracks bugfixes and improvements contributed to
+SLIME:
+
+- More secure handling of ~/.sly-secret files
+
+- Compatiblity with the latest SBCL and older SBCL.
+
+- ECL backend now supports threads
+
+- Function `create-server` now accepts optional `interface` argument.
+
+- In SBCL, slynk can be bound to IPv6 interface and can work on IPv6-only machines.
 
 SLY 1.0.0-beta-2 (March 2016)
 -----------------------------

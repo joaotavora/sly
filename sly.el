@@ -223,7 +223,8 @@ If FILE is passed use that instead to discover the version."
       ;; Compile the version string into the generated .elc file, but
       ;; don't actualy affect `sly-protocol-version' until load-time.
       ;;
-      (eval-when-compile (sly-version nil byte-compile-current-file)))
+      (eval-when-compile (sly-version nil (or load-file-name
+                                              byte-compile-current-file))))
 
 
 ;;;; Customize groups
@@ -1403,6 +1404,7 @@ The default condition handler for timer functions (see
     "May the source be with you!"
     "Take this REPL, brother, and may it serve you well."
     "Lemonodor-fame is but a hack away!"
+    "Are we consing yet?"
     ,(format "%s, this could be the start of a beautiful program."
              (sly-user-first-name)))
   "Scientifically-proven optimal words of hackerish encouragement.")
@@ -1447,6 +1449,14 @@ first line of the file."
 
 ;;; Interface
 (defvar sly--net-connect-counter 0)
+
+(defun sly-send-secret (proc)
+  (sly--when-let (secret (sly-secret))
+    (let* ((payload (encode-coding-string secret 'utf-8-unix))
+	   (string (concat (sly-net-encode-length (length payload))
+			   payload)))
+      (process-send-string proc string))))
+
 (defun sly-net-connect (host port)
   "Establish a connection with a CL."
   (let* ((inhibit-quit nil)
@@ -1462,8 +1472,7 @@ first line of the file."
     (set-process-query-on-exit-flag proc (not sly-kill-without-query-p))
     (when (fboundp 'set-process-coding-system)
       (set-process-coding-system proc 'binary 'binary))
-    (sly--when-let (secret (sly-secret))
-      (sly-net-send secret proc))
+    (sly-send-secret proc)
     proc))
 
 (defun sly-make-net-buffer (name)

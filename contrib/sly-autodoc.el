@@ -102,7 +102,8 @@
       (let ((highlight (match-string 1)))
         ;; Can't use (replace-match highlight) here -- broken in Emacs 21
         (delete-region (match-beginning 0) (match-end 0))
-	(sly-insert-propertized '(face highlight) highlight)))
+	(sly-insert-propertized '(face eldoc-highlight-function-argument)
+                                highlight)))
     (buffer-substring (point-min) (point-max))))
 
 
