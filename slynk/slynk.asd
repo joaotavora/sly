@@ -90,7 +90,7 @@
   :components ((:file "../contrib/slynk-package-fu")))
 
 (defsystem :slynk-mrepl
-  :depends-on (:slynk)
+  :depends-on (:slynk :slynk-util)
   :components ((:file "../contrib/slynk-mrepl")))
 
 (defsystem :slynk-trace-dialog
