@@ -987,7 +987,7 @@ For example, the function `case' has an indent property
               (goto-char indent-point)
               (back-to-indentation)
               (let ((p (point)))
-                (goto-char sly-cl-indent--containing-sexp)
+                (goto-char containing-form-start)
                 (down-list)
                 (let ((one (current-column)))
                   (skip-chars-forward " \t")

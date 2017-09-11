@@ -634,6 +634,7 @@
 ;;; Test: indent-60
 ;;
 ;; lisp-loop-indent-subclauses: t
+;; sly-indentation--test-function: indent-region
 
 (loop
   ;; comment at toplevel of the loop
@@ -831,7 +832,6 @@
 ;;; Test: indent-77
 ;;
 ;; lisp-align-keywords-in-calls: t
-;; sly-indentation--test-function: 'indent-region
 
 (foo *foo*
      :bar t
@@ -895,16 +895,16 @@
 ;;; Test: indent-84
 
 (and ;; Foo
- (something)
- ;; Quux
- (more))
+     (something)
+     ;; Quux
+     (more))
 
 ;;; Test: indent-85
 
-(and ;; Foo
- (something)
- ;; Quux
- (more))
+(and      ;; Foo
+     (something)
+     ;; Quux
+     (more))
 
 ;;; Test: indent-86
 
