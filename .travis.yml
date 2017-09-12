@@ -27,5 +27,4 @@ before_install:
 
 script:
   - $ROSWELL_INSTALL_DIR/bin/ros use $ROSWELL_LISP
-  - (echo -ne "#!/bin/sh\n$ROSWELL_INSTALL_DIR/bin/ros run \$@" | tee roswell-run) && chmod +x roswell-run
-  - make LISP=$PWD/roswell-run EMACS=$HOME/emacs/$EMACS_VERSION/src/emacs $TARGET
+  - make LISP="ros run" EMACS=$HOME/emacs/$EMACS_VERSION/src/emacs $TARGET

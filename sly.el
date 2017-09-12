@@ -958,7 +958,10 @@ macroexpansion time.
 ;; We no longer load inf-lisp, but we use this variable for backward
 ;; compatibility.
 (defvar inferior-lisp-program "lisp"
-  "*Program name for invoking an inferior Lisp with for Inferior Lisp mode.")
+  "Program name for starting a Lisp subprocess to Emacs.
+Can be a string naming a program, a whitespace-separated string
+of \"EXECUTABLE ARG1 ARG2\" or a list (EXECUTABLE ARGS...) where
+EXECUTABLE and ARGS are strings.")
 
 (defvar sly-lisp-implementations nil
   "*A list of known Lisp implementations.
@@ -987,10 +990,12 @@ See `sly-lisp-implementations'"
 (defun sly (&optional command coding-system interactive)
   "Start a Lisp implementation and connect to it.
 
-COMMAND specifies the Lisp implementation to start. It is either
-a pathname to a lisp implementation, as `inferior-lisp-program',
-or a symbol indexing `sly-lisp-implementations'. CODING-SYSTEM is
-a symbol overriding `sly-net-coding-system'.
+COMMAND designates a the Lisp implementation to start as an
+\"inferior\" process to the Emacs process. It is either a
+pathname string pathname to a lisp executable, a list (EXECUTABLE
+ARGS...), or a symbol indexing
+`sly-lisp-implementations'. CODING-SYSTEM is a symbol overriding
+`sly-net-coding-system'.
 
 Interactively, both COMMAND and CODING-SYSTEM are nil and the
 prefix argument controls the precise behaviour:
@@ -1008,18 +1013,23 @@ prefix argument controls the precise behaviour:
   for a symbol indexing one of the entries in
   `sly-lisp-implementations'"
   (interactive (list nil nil t))
-  (let ((inferior-lisp-program (or command inferior-lisp-program))
+  (let ((command (or command inferior-lisp-program))
         (sly-net-coding-system (or coding-system sly-net-coding-system)))
-    (sly-start* (cond (interactive
-                       (sly--read-interactive-args))
-                      (t
-                       (if sly-lisp-implementations
-                           (sly--lookup-lisp-implementation
-                            sly-lisp-implementations
-                            (or (and (symbolp command) command)
-                                sly-default-lisp
-                                (car (car sly-lisp-implementations))))
-                         `(:program ,inferior-lisp-program)))))))
+    (apply #'sly-start
+           (cond (interactive
+                  (sly--read-interactive-args))
+                 (t
+                  (if sly-lisp-implementations
+                      (sly--lookup-lisp-implementation
+                       sly-lisp-implementations
+                       (or (and (symbolp command) command)
+                           sly-default-lisp
+                           (car (car sly-lisp-implementations))))
+                    (let ((command-and-args (if (listp command)
+						command
+                                              (split-string command))))
+                      `(:program ,(car command-and-args)
+                               :program-args ,(cdr command-and-args)))))))))
 
 (defvar sly-inferior-lisp-program-history '()
   "History list of command strings.  Used by M-x sly.")
@@ -1094,26 +1104,30 @@ Helper for M-x sly"
 (defun sly--guess-inferior-lisp-program (&optional interactive)
   "Compute pathname to a seemingly valid lisp implementation.
 If ERRORP, error if such a thing cannot be found"
-  (if (and inferior-lisp-program
-           (executable-find (car
-                             (split-string inferior-lisp-program "[\t\n ]"))))
-      inferior-lisp-program
-    (let ((guessed (cl-some #'executable-find
-                            '("lisp" "sbcl" "clisp" "cmucl"
-                              "acl" "alisp"))))
-      (cond ((and guessed
-                  (or (not interactive)
-                      noninteractive
-                      (sly-y-or-n-p
-                       "Can't find `inferior-lisp-program' (set to `%s'). Use `%s' instead? "
-                       inferior-lisp-program guessed)))
-             guessed)
-            (interactive
-             (sly-error
-              (substitute-command-keys
-               "Can't find a suitable Lisp. Use \\[sly-info] to read about `Multiple Lisps'")))
-            (t
-             nil)))))
+  (let ((inferior-lisp-program-and-args
+         (and inferior-lisp-program
+              (if (listp inferior-lisp-program)
+                  inferior-lisp-program
+                (split-string-and-unquote inferior-lisp-program)))))
+    (if (and inferior-lisp-program-and-args
+             (executable-find (car inferior-lisp-program-and-args)))
+        (combine-and-quote-strings inferior-lisp-program-and-args)
+      (let ((guessed (cl-some #'executable-find
+                              '("lisp" "sbcl" "clisp" "cmucl"
+                                "acl" "alisp"))))
+        (cond ((and guessed
+                    (or (not interactive)
+                        noninteractive
+                        (sly-y-or-n-p
+                         "Can't find `inferior-lisp-program' (set to `%s'). Use `%s' instead? "
+                         inferior-lisp-program guessed)))
+               guessed)
+              (interactive
+               (sly-error
+                (substitute-command-keys
+                 "Can't find a suitable Lisp. Use \\[sly-info] to read about `Multiple Lisps'")))
+              (t
+               nil))))))
 
 (cl-defun sly-start (&key (program
                            (sly-error "must supply :program"))
@@ -1151,9 +1165,6 @@ DIRECTORY change to this directory before starting the process.
                                       directory buffer)))
       (sly-inferior-connect proc args)
       (sly-inferior-lisp-buffer proc))))
-
-(defun sly-start* (options)
-  (apply #'sly-start options))
 
 ;;;###autoload
 (defun sly-connect (host port &optional _coding-system interactive-p)
