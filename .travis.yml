@@ -26,5 +26,4 @@ before_install:
   - curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
 
 script:
-  - $ROSWELL_INSTALL_DIR/bin/ros use $ROSWELL_LISP
-  - make LISP="ros run" EMACS=$HOME/emacs/$EMACS_VERSION/src/emacs $TARGET
+  - make LISP="ros run -L $ROSWELL_LISP" EMACS=$HOME/emacs/$EMACS_VERSION/src/emacs $TARGET
