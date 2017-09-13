@@ -20,7 +20,8 @@
 @settitle @value{TITLE}, version @value{SLYVER}
 
 @copying
-Written by Luke Gorrie and others.
+Written for SLIME Luke Gorrie and others, rewritten by João
+Távora for SLY.
 
 This file has been placed in the public domain.
 @end copying
@@ -28,6 +29,7 @@ This file has been placed in the public domain.
 @c For screenshots use
 
 @c (make-frame '((height . 32) (width . 90) (font . "Andale Mono 13")))
+@c (make-frame '((height . 32) (width . 90) (font . "DejaVu Sans Mono 10")))
 @c M-x load-theme RET base16-bright-light RET
 
 @c preferably on Mac OSX, then Cmd-Shift-4 SPC and click the window
@@ -36,7 +38,6 @@ This file has been placed in the public domain.
 @titlepage
 @title @value{TITLE}
 @sp 10
-@center
 @example
           _____    __   __  __        
          / ___/   / /   \ \/ /               |\      _,,,---,,_
@@ -56,6 +57,10 @@ This file has been placed in the public domain.
 
 @macro SLY
 @acronym{SLY}
+@end macro
+
+@macro SLIME
+@acronym{SLIME}
 @end macro
 
 @macro SLY-DB
@@ -127,7 +132,8 @@ This file has been placed in the public domain.
 @menu
 * Introduction::
 * Getting started::
-* SLY mode::
+* A SLY tutorial for SLIME users::
+* SLY-assisted editing::
 * REPL::
 * Horizontal Functionality::
 * Inspector::
@@ -147,38 +153,44 @@ This file has been placed in the public domain.
 @SLY{} is Sylvester the Cat's Common Lisp IDE. It extends Emacs with
 support for interactive programming in Common Lisp.
 
-The features are centered around @code{sly-mode}, an Emacs minor-mode
-that complements the standard @code{lisp-mode}. While
+The features are centered around an Emacs minor-mode called
+@code{sly-mode}. It complements the standard major-mode
+@code{lisp-mode}. While
 @code{lisp-mode} supports editing Lisp source files, @code{sly-mode}
 adds support for interacting with a running Common Lisp process for
 compilation, debugging, documentation lookup, and so on.
 
-@SLY{} also attempts to follow the example of Emacs's own native Elisp
+@SLY{} attempts to follow the example of Emacs's own native Elisp
 environment. Many of the keybindings and interface concepts used to
 interact with Emacs's Elisp machine are reused in @SLY{} to interact
-with the underlying Common Lisp processes.
+with the underlying Common Lisp processes, and request from these
+processes that they compile files, code snippets and introspection
+information about objects in the Lisp run-time.
 
-Internally, @SLY{}'s user-interface, which written in Emacs Lisp, is
-connected via a socket to a server program written in Common Lisp, and
-makes request to it using an @acronym{RPC}-like protocol. The Lisp
-server is primarily written in portable Common Lisp. Some needed
-non-standard functionality provided differently by each Lisp
-implementation (SBCL, CMUCL, Allegro, etc...) is specified by a
-well-defined interface. Each Lisp implementation provides a separate
-implementation, making @SLY{} readily portable.
+Internally, @SLY{}'s user-interface, which is written in Emacs Lisp,
+is connected via sockets to one or more instances of a server program
+called ``Slynk'' that is running in the Lisp processes.
+
+Emacs makes requests to this server using an @acronym{RPC}-like
+protocol. The Lisp-side server is primarily written in portable Common
+Lisp but some needed non-standard functionality is provided
+differently by each Lisp implementation (SBCL, CMUCL, Allegro, etc...)
+using a well-defined interface. Each Lisp implementation provides a
+separate implementation, making @SLY{} readily portable.
 
 @SLY{} is a direct fork of @acronym{SLIME}, the Superior Lisp
 Interaction Mode for Emacs, itself based on previous modes such
 as @acronym{SLIM} and @acronym{ILISP}. If you already know
 @acronym{SLIME}, @SLY{}'s closeness to is immediately
 apparent. However, where @acronym{SLIME} has traditionally focused on
-the stability of its core functionality, @SLY{} strives to bring to
-the table, by default, a richer feature set brought together by a
-consistent user interface.
+the stability of its core functionality, @SLY{} aims for a richer
+feature set brought together by a consistent user interface.
 
 To understand the differences between the two projects read
 @SLY{}'s @uref{https://github.com/joaotavora/sly/blob/master/NEWS.md,,NEWS.md}
-file.
+file. For a hand-on approach to these differences you might want to
+jump to the section called
+@ref{A SLY tutorial for SLIME users}
 
 @node Getting started
 @chapter Getting started
@@ -188,9 +200,9 @@ This chapter tells you how to get @SLY{} up and running.
 @menu
 * Platforms::
 * Downloading::
-* Installation::
+* Basic setup::
 * Running::
-* Basic customization::
+* Basic customization ::
 * Multiple Lisps::
 * Loading Slynk faster::
 @end menu
@@ -200,7 +212,7 @@ This chapter tells you how to get @SLY{} up and running.
 
 @SLY{} supports a wide range of operating systems and Lisp
 implementations. @SLY{} runs on Unix systems, Mac OSX, and Microsoft
-Windows. GNU Emacs versions 24.3 and above are supported. @emph{XEmacs
+Windows. GNU Emacs versions 24.4 and above are supported. @emph{XEmacs
 or Emacs 23 are notably not supported}.
 
 The supported Lisp implementations, roughly ordered from the
@@ -239,95 +251,126 @@ commands (like ``restart frame'').
 @node Downloading
 @section Downloading SLY
 
-You can choose between using a released version of @SLY{} or accessing
-our @Git{} repository directly. You can releases from
-@url{https://github.com/joaotavora/sly/releases}. Alternatively
-download the very latest @SLY{}:
+By far the easiest method for getting @SLY{} up and running is using
+Emacs’ package system configured to the popular MELPA repository. This
+snippet of code should already be in your configuration:
+
+@example
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/"))
+(package-initialize)
+@end example
+
+You should now be able to issue the command @kbd{M-x package-install},
+choose @kbd{sly} and have it be downloaded and installed
+automatically. If you don’t find it in the list, ensure you
+run @kbd{M-x package-refresh-contents} first.
+
+In other situations, such as when developing @SLY{} itself, you can
+access the @Git{} repository directly:
 
 @example
 git clone https://github.com/joaotavora/sly.git
-@end example
-
-You might substitute @code{https} for @code{http} if you're having
-problems with that protocol. To find out what's new since the version
-you're currently running, you can use @code{git log}
-
-@example
-git fetch origin
-git log HEAD..origin/master
 @end example
 
 If you want to hack on @SLY{}, use Github's @emph{fork} functionality
 and submit a @emph{pull request}. Be sure to first read the
 @uref{https://github.com/joaotavora/sly/blob/master/CONTRIBUTING.md,,CONTRIBUTING.md} file first.
 
-@node Installation
-@section Installation
+@node Basic setup
+@section Basic setup
 
-With a Lisp implementation that can be started from the command-line,
-installation just requires a few lines in your @file{.emacs}:
+If you installed @SLY{} from MELPA, it is quite possible that you
+don’t need any more configuration, provided that @SLY{} can find a
+suitable Lisp executable in your @code{PATH} environment variable.
+
+Otherwise, you need to tell it where a Lisp program can be found, so
+customize the variable @code{inferior-lisp-program} (@pxref{Defcustom
+variables}) or add a line like this one to your Emacs initialization
+file (@file{$HOME/.emacs} or @file{$HOME/.emacs.d/init.el})
+
+@example
+(setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
+@end example
+
+After evaluating this, you should be able to execute @kbd{M-x sly} and
+be greeted with a @REPL{}.
+
+If you cloned from the @Git{} repository, you’ll have to add a couple
+of more lines to your init file configuration:
 
 @example
 (add-to-list 'load-path "~/dir/to/cloned/sly")
 (require 'sly-autoloads)
-(setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
 @end example
-
-After evaluating these three expressions, you should be able to
-execute @kbd{M-x sly} and be greeted with a @REPL{}.
 
 @node Running
 @section Running SLY
 
-@SLY{} can either ask Emacs starts it's own Lisp subprocesss or
-connect to a running process on an arbitrary host and port
-combination.
+@SLY{} can either ask Emacs to start its own Lisp subprocesss or
+connect to a running process on a local or remote machine.
 
-The first alternative is more common and is started via @kbd{M-x sly}:
-the ``inferior'' Lisp process thus started is told to load the
-Lisp-side server known as ``Slynk''. A socket connection is then
-established between Emacs and Lisp. Finally a @REPL{} buffer is
-created where you can enter Lisp expressions for evaluation.
+The first alternative is more common for local development and is
+started via @kbd{M-x sly}. The ``inferior'' Lisp process thus started
+is told to load the Lisp-side server known as ``Slynk'' and then a
+socket connection is established between Emacs and Lisp. Finally
+a @REPL{} buffer is created where you can enter Lisp expressions for
+evaluation.
 
 The second alternative uses @kbd{M-x sly-connect}. This assumes that
 that a Slynk server is running on some local or remote host, and
 listening on a given port. @kbd{M-x sly-connect} prompts the user for
 these values, and and upon connection the @REPL{} is established.
 
-@node Basic customization
+@node Basic customization 
 @section Basic customization
 
-To customize a particular binding in one of @SLY{}'s keymaps, you
-can add one of the following to your init file:
+A big part of Emacs, and Emacs’s extensions, are its near-infinite
+customization possibilities. @SLY{} is no exception, because it runs
+on both Emacs and the Lisp process, there are layers of Emacs-side
+customization and Lisp-side customization. But don’t be put off by
+this! @SLY{} tries hard to provide sensible defaults that don’t
+``hide'' any fanciness beneath layers of complicated code, so that
+even a setup with no customization at all exposes @SLY{}’s most
+important functionality.
+
+Emacs-side customization is usually done via Emacs-lisp code snippets
+added to the user’s init file, usually @file{$HOME/.emacs} or
+@file{$HOME/.emacs.d/init.el}. 90% of Emacs-lisp customization happens
+in either ``keymaps'' or ``hooks''. @xref{Keymaps and keybindings} and
+@ref{Hooks}. Still on the Emacs side, there is also a separate
+interface, appropriately called @code{customize} (or sometimes just
+@code{custom}), that uses a nicer UI with mouse-clickable buttons to
+set some special variables. See @xref{Defcustom variables}.
+
+Lisp-side customization is done exclusively via Common Lisp code
+snippets added to the user’s @file{$HOME/.slynkrc}
+file. See @xref{Lisp-side customization}.
+
+As a preview, take this simple example of a frequently customized part of
+@SLY{}: its keyboard shortcuts, known as ``keybindings''. In the
+following snippet @kbd{M-h} is added to @code{sly-prefix-map} thus
+yielding @kbd{C-c M-h} as a shortcut to
+the @code{sly-documentation-lookup} command.
 
 @example
 (eval-after-load 'sly
   `(define-key sly-prefix-map (kbd "M-h") 'sly-documentation-lookup))
 @end example
 
-@SLY{} comes bundled with many extensions (called ``contribs'' for
-historical reasons) which you can customize just like @SLY{}'s
-code. To make @kbd{C-c C-c} clear the last REPL prompt's output, for
-example, use
-
-@example
-(eval-after-load 'sly-mrepl
-   `(define-key sly-mrepl-mode-map (kbd "C-c C-k")
-                'sly-mrepl-clear-recent-output))
-@end example
-
-To learn about each extension's functionality and its keymap, see
-@pxref{Extensions}.
-
 @node Multiple Lisps
 @section Multiple Lisps
 
 By default, the command @kbd{M-x sly} starts the program specified
-with @code{inferior-lisp-program}.  If you invoke @kbd{M-x sly} with
-a prefix argument, Emacs prompts for the program which should be
-started instead.  If you need that frequently or if the command
-involves long filenames it's more convenient to set the
-@code{sly-lisp-implementations} variable in your @file{.emacs}.  For
+with @code{inferior-lisp-program}, a variable that you can customize
+(@pxref{Defcustom variables}).  However, if you invoke @kbd{M-x sly}
+with a @emph{prefix argument}, meaning you type @kbd{C-u M-x sly} then
+Emacs prompts for the program which should be started instead.
+
+If you need to do this frequently or if the command involves long
+filenames it's more convenient to set
+the @code{sly-lisp-implementations} variable in your init file,
+usually @file{.emacs} or @file{~/.emacs.d/init.el}.  For
 example here we define two programs:
 
 @lisp
@@ -336,10 +379,10 @@ example here we define two programs:
         (sbcl ("/opt/sbcl/bin/sbcl") :coding-system utf-8-unix)))
 @end lisp
 
-This variable holds a list of programs and if you invoke @SLY{} with
-a negative prefix argument, @kbd{M-- M-x sly}, you can select a
-program from that list. When called without a prefix, either the name
-specified in @code{sly-default-lisp}, or the first item of the list will be used.
+Now, if you invoke @SLY{} with a @emph{negative} prefix argument,
+@kbd{M-- M-x sly}, you can select a program from that list. When
+called without a prefix, either the name specified in
+@code{sly-default-lisp}, or the first item of the list will be used.
 The elements of the list should look like
 
 @lisp
@@ -424,18 +467,206 @@ Then add this to your @file{.emacs}:
                       (format "(slynk:start-server %S)\n" port-file)))))
 @end lisp
 
-@noindent
+@node A SLY tutorial for SLIME users
+@chapter A SLY tutorial for SLIME users
 
-@node SLY mode
-@chapter Editing Lisp Code
+The chances are that if you’re into Common Lisp, you already know
+@SLIME{}, the project that originated @SLY{}. Itself originating in
+older Emacs extensions @acronym{SLIM} and @acronym{ILISP}, @SLIME{}
+has been around for at least a decade longer than @SLY{}, so it seems
+like a reasonable to provide a quick, hand-on overview of the
+improvements of @SLY{} over @SLIME{}.
+
+When you start @SLY{} with @kbd{M-x sly} (@pxref{Basic setup}) you are
+presented with a buffer called @code{*sly-mrepl for
+<lisp-implementation-name>*}. The @REPL{} is a common starting point
+of Lisp hacking sessions, and has been completely redesigned in
+@SLY{}’s
+@code{sly-mrepl} extension. You can, for instance, spawn multiple REPL
+instances with @code{M-x sly-mrepl-new}, return objects and function
+calls into it (@kbd{M-RET} and @kbd{C-M-RET}), and use more a powerful
+reverse incremental history search (@kbd{C-r}). Anyway, this should be
+the scene after starting @SLY{}.
+
+@*@image{images/tutorial-1,350pt}@*
+
+To showcase some of @SLY{}’s new features, let’s pretend we want to
+hack an existing project loaded through Quicklisp. Let’s say we want
+to hack on Quicklisp itself, because we’re intrigued by the way it
+internally finds and loads systems. A good point to start is
+SLY’s @emph{apropos} functionality to search for symbols based on word
+fragments that we suspect are related to the code we want to hack
+on. In the REPL, or in any Lisp buffer we type @kbd{C-c C-d C-z} and
+then type @code{quick.*sys}. Then we hit return (abreviated
+@code{RET}or @kbd{C-M}).
+
+That’s right, we’ve entered a @emph{regular-expression} in the prompt,
+which is something that regular Lisp @emph{apropos} search doesn’t
+normally allow. @SLY{} does, but it needs access to a regular
+expression library, so by now you may or may have results in
+a @code{*sly-apropos*} buffer!  If you don’t, @SLY{} hints at loading
+the very popular @code{cl-ppcre} system. So type @code{(ql:quickload
+cl-ppcre) RET} in the REPL, wait a moment, and try the @kbd{C-c C-d
+C-z} search again. If everything goes to plan, @SLY{} should now have
+presented all of Lisp’s symbols that match the @code{quick.*sys}
+regular expression.
+
+@*@image{images/tutorial-2,350pt}@*
+
+In the @code{apropos} buffer, let’s examine the
+symbol @code{QUICKLISP-CLIENT::FIND-SYSTEM-IN-INDEX} by right-clicking
+it with the mouse. We’ll be presented with a context menu with options
+for describing the symbol, inspecting it, or navigating to its source
+definition. In general, the Lisp-side objects that SLY presents ---
+symbols, CLOS objects, function calls, etc... --- are clickable
+buttons, following a relatively uniform interface. For now let’s
+navigate to the source definition of the symbol by choosing ``Go to
+source'' from the menu. We could also have just pressed @kbd{M-.} on
+the symbol, of course.
+
+In the Lisp source buffer that we landed on, probably named
+@file{local-projects.lisp}, let’s @emph{trace} the newly found the
+@code{FIND-SYSTEM-IN-INDEX}. However, instead of using the regular
+@code{CL:TRACE}, we’ll use @SLY{}’s ``Trace Dialog'' functionality. So
+let’s first type @kbd{C-c C-t} on the function’s name (or enter that
+in the minibuffer prompt). Afterwards, we can now open the trace
+dialog in a new window by typing @kbd{C-c T} (that’s a capital
+@code{T}), and we should already see our traced function under
+``Traced specs''. Thirdly, for good measure, let’s type @kbd{C-c C-t}
+to also trace the function @code{QL:QUICKLOAD}.
+
+Now let’s return to the REPL by switching to the @code{*sly-mrepl ...}
+buffer in another window (use
+Emacs’s @code{switch-to-buffer-other-window} if you’re at a loss for
+ways to do this). In the REPL, let’s load @code{cl-ppcre} again. But
+no need type @code{(ql:quickload cl-ppcre) RET} again, because this
+@REPL{} features backward i-search, remember? Just typing @code{C-r
+pcre RET RET} should repeat the desired command.
+
+Now we switch back to the Trace Dialog, and press @kbd{G} (again,
+capital @code{G}). We should now see call graph of our two traced
+functions.
+
+@*@image{images/tutorial-3,350pt}@*
+
+One of the entries probably reads something like:
+@example
+14 `--- quicklisp-client::find-system-in-index
+          > "cl-ppcre"
+          > #P"/home/capitaomorte/quicklisp/local-projects/system-index.txt"
+          < NIL
+@end example
+
+We can later learn more about the @ref{SLY Trace Dialog}, but for now
+let’s again pretend we’re very intrigued by this, because we expected
+this function to return something other than @code{NIL}, and we want
+to surgically re-run that function with those very same arguments. For
+this, let’s right-click the function with the mouse and select ``Copy
+call to REPL''. As an alternative we can press @kbd{C-M-RET} on
+it. Here we are automatically transported to the REPL again, where the
+desired function call has already been typed out for us at the command
+prompt, awaiting confirmation @kbd{RET}. The call may look strange,
+though:
+
+@example
+; The actual arguments passed to trace 14
+"cl-ppcre"
+#P"/home/capitaomorte/quicklisp/local-projects/system-index.txt"
+CL-USER> (quicklisp-client::find-system-in-index #v4:0 #v4:1)
+@end example
+
+@*@image{images/tutorial-4,350pt}@*
+
+Here’s what’s going on: To copy the call to the REPL, @SLY{} first
+copied over its actual arguments, and then wrote the function using
+special @emph{backreferences} to those arguments in the correct
+place. These are the @code{#v4:0} and @code{#v4:1} bits seen at the
+command prompt. Let’s go ahead and put the cursor on them, to see how
+they highlight the corresponding object (later, you can also try
+typing ``#v'' at the REPL to see what happens). Finally,
+typing @kbd{RET} should run the function call.
+
+To finish up the tutorial, let’s say we are still intrigued by how
+that function works internally. Navigate to its definition
+using @kbd{M-.} again (or just open the @file{local-projects.lisp}
+buffer that you probably still have open). The function’s code might
+look like this:
+
+@example
+(defun find-system-in-index (system index-file)
+  "If any system pathname in INDEX-FILE has a pathname-name matching
+SYSTEM, return its full pathname."
+  (with-open-file (stream index-file)
+    (loop for namestring = (read-line stream nil)
+          while namestring
+          when (string= system (pathname-name namestring))
+          return (or (probe-file (merge-pathnames namestring index-file))
+                     ;; If the indexed .asd file doesn't exist anymore
+                     ;; then regenerate the index and restart the search.
+                     (find-system-in-index system
+                       (make-system-index
+                         (directory-namestring
+                           index-file)))))))
+@end example
+
+Before trying out the function again, let’s place some ``stickers'' on
+it and recompile. Stickers are a form of non-intrusive instrumentation
+that does the work of @code{print} or @code{(format t ...)})
+statements that developers normally add to code. You can read more in
+section @ref{SLY Stickers} but for now think of them as colorful
+labels to place on s-exp’s. Let’s place a three or four here. On the
+first line of the loop, place your cursor on the first letter of
+the @code{stream} symbol and press @kbd{C-c C-s C-s}. Now to the same
+for @code{(read-line...)}, @code{(pathname-name...)}  and
+@code{(string=...)} (if you want, you can place stickers
+for every evaluated expression in @code{FIND-SYSTEM-IN-INDEX}).  Now
+let’s recompile the definition with @kbd{C-c C-c}. The minibuffer
+should note something about stickers being ``armed'' and our buffer
+should now look something like this:
+
+@*@image{images/tutorial-5,350pt}@*
+
+Now we return to the @SLY{} REPL, but this time let’s use @kbd{C-c ~}
+(that’s @kbd{C-c} followed by ``tilde'') to do so. This syncs the
+REPL’s local package and local directory to the Lisp file that we
+we’re visiting, which is generally convenient when hacking on a
+system. Now, to re-run the instrumented function, perhaps using
+the @kbd{C-r find RET RET} we’ve just learned to search the
+history. (Actually, before we do this, we should
+probably @emph{actually have} some Quicklisp systems in the
+directory @file{$HOME/quicklisp/local-projects/} since that makes the
+results more interesting, so why don’t you switch to a shell git-clone
+a couple there now. TODO: This is a point of improvement in this
+tutorial.)
+
+We can now use the @kbd{C-c C-s C-r} to @emph{replay}, or walk you
+through the sticker recordings of this last function call. A separate
+navigation window pops up where we can see the values that each
+sticker @code{eval}’ed to each time. We can navigate recordings
+with @kbd{n} and @kbd{p}, as well as do the usual things like
+inspecting and return objects to the REPL. If you need help, toggle
+help by typing @kbd{h}. When we’re done in this window, we
+press @kbd{q} to quit.
+
+@*@image{images/tutorial-6,350pt}@*
+
+Finally, we’re finished debugging @code{FIND-SYSTEM-IN-INDEX}. Even
+though stickers don’t get saved to the file in any way, we decide
+we’re not interested in them anymore. So let’s open the ``SLY'' menu
+in the menu bar, find the ``Delete stickers from top-level form''
+option under the ``Stickers'' submenu, and click it. Alternatively,
+we could have typed @kbd{C-u C-c C-s C-s}..
+
+@node SLY-assisted editing
+@chapter SLY-assisted editing
 
 @SLY{}'s commands when editing a Lisp file are provided via
 @code{sly-editing-mode}, a minor-mode used in conjunction with Emacs's
 @code{lisp-mode}.
 
-This chapter generally describes the actions to working in Lisp source
-buffers, though a lot of other functionality in SLY naturally also
-applies there (@pxref{Horizontal Functionality}).
+This chapter generally describes the actions specific to working in
+Lisp source buffers. Naturally, more of @SLY{}’s other functionality
+in SLY also applies to these buffers (@pxref{Horizontal Functionality}).
 
 @menu
 * Evaluation::
@@ -642,7 +873,7 @@ Select the next completion.
 @kbditem{C-p, sly-previous-completion}
 Select the previous completion.
 
-@kbditem{tab, RET, sly-choose-completion}
+@kbditempair{tab, RET, sly-choose-completion, sly-choose-completion}
 Choose the currently selected completion and enter it at point.
 @end table
 
@@ -891,7 +1122,6 @@ TODO: introduce this chapter
 * Multiple connections::
 * Disassembly::
 * Recovery::
-* Other::
 * User-interface conventions::
 @end menu
 
@@ -1182,16 +1412,6 @@ changes the current directory of the REPL buffer.
 
 @cmditem{sly-pwd}
 Print the current directory of the Lisp process.
-
-@end table
-
-@node Other
-@section Shadowed Commands
-
-@table @kbd
-
-@kbditempair{C-c C-a, C-c C-v, sly-nop, sly-nop}
-This key-binding is shadowed from inf-lisp.
 
 @end table
 
@@ -1571,12 +1791,129 @@ Attach debugger (e.g. gdb) to the current lisp process.
 @chapter Customization
 
 @menu
-* Emacs-side customization::
-* Lisp-side::
+* Emacs-side::
+* Lisp-side customization::
 @end menu
 
-@node Emacs-side customization
+@node Emacs-side
 @section Emacs-side
+
+@menu
+* Keymaps and keybindings::
+* Defcustom variables::
+* Hooks::
+@end menu
+
+@node Keymaps and keybindings
+@subsection Keybindings
+
+Emacs’s keybindings ``live'' in keymap variables. To customize a
+particular binding and keep it from trampling on other important keys
+you should do it in one of @SLY{}'s keymaps. The following
+non-exhaustive list of @SLY{}-related keymaps is just a reference: the
+manual will go over each associated functionality in detail.
+
+@table @code
+
+@item sly-doc-map
+
+Keymap for documentation commands (@pxref{Documentation}) in
+@SLY{}-related buffers, accessible by the @kbd{C-c C-d} prefix.
+
+@item sly-who-map
+
+Keymap for cross-referencing (``who-calls'') commands
+(@pxref{Cross-reference}) in @SLY{}-related buffers, accessible by
+the @kbd{C-c C-w} prefix.
+
+@item sly-selector-map
+
+A keymap for @SLY{}-related functionality that should be available in
+globally in all Emacs buffers (not just @SLY{}-related buffers).
+
+@item sly-mode-map
+
+A keymap for functionality available in all @SLY{}-related buffers.
+
+@item sly-editing-mode-map
+
+A keymap for @SLY{} functionality available in Lisp source files.
+
+@item sly-popup-buffer-mode-map
+
+A keymap for functionality available in the temporary ``popup''
+buffers that @SLY{} displays (@pxref{Temporary buffers})
+
+@item sly-apropos-mode-map
+
+A keymap for functionality available in the temporary @SLY{}
+``apropos'' buffers (@pxref{Documentation}).
+
+@item sly-xref-mode-map
+
+A keymap for functionality available in the temporary @code{xref}
+buffers used by cross-referencing commands (@pxref{Cross-reference}).
+
+@item sly-macroexpansion-minor-mode-map
+
+A keymap for functionality available in the temporary buffers used for
+macroexpansion presentation (@pxref{Macro-expansion}).
+
+@item sly-db-mode-map
+
+A keymap for functionality available in the debugger buffers used to
+debug errors in the Lisp process (@pxref{Debugger}).
+
+@item sly-thread-control-mode-map
+
+A keymap for functionality available in the @SLY{} buffers dedicated
+to controlling Lisp threads (@pxref{Multithreading}).
+
+@item sly-connection-list-mode-map
+
+A keymap for functionality available in the @SLY{} buffers dedicated
+to managing multiple Lisp connections (@pxref{Multiple connections}).
+
+@item sly-inspector-mode-map
+
+A keymap for functionality available in the @SLY{} buffers dedicated
+to inspecting Lisp objects (@pxref{Inspector}).
+
+@item sly-repl-mode-map
+
+A keymap for functionality available in @SLY{}’s REPL buffers
+(@pxref{REPL}).
+
+@item sly-trace-dialog-mode-map
+
+A keymap for functionality available in @SLY{}’s ``Trace Dialog''
+buffers (@pxref{SLY Trace Dialog}).
+
+@end table
+
+For example, you can add one of the following to your init file:
+
+@example
+(eval-after-load 'sly
+  `(define-key sly-prefix-map (kbd "M-h") 'sly-documentation-lookup))
+@end example
+
+@SLY{} comes bundled with many extensions (called ``contribs'' for
+historical reasons) which you can customize just like @SLY{}'s
+code. To make @kbd{C-c C-c} clear the last REPL prompt's output, for
+example, use
+
+@example
+(eval-after-load 'sly-mrepl
+   `(define-key sly-mrepl-mode-map (kbd "C-c C-k")
+                'sly-mrepl-clear-recent-output))
+@end example
+
+To learn about each extension's functionality and its keymap, see
+@pxref{Extensions}.
+
+@node Defcustom variables
+@subsection Defcustom variables
 
 The Emacs part of @SLY{} can be configured with the Emacs
 @code{customize} system, just use @kbd{M-x customize-group sly
@@ -1626,10 +1963,6 @@ for different Lisps, see @ref{Multiple Lisps}.)
 
 @end table
 
-@menu
-* Hooks::
-@end menu
-
 @node Hooks
 @subsection Hooks
 
@@ -1654,7 +1987,7 @@ conditions debugged with @SLY-DB{} be recorded in the @REPL{} buffer.
 
 @end table
 
-@node Lisp-side
+@node Lisp-side customization
 @section Lisp-side (Slynk)
 
 The Lisp server side of @SLY{} (known as ``Slynk'') offers several
@@ -2015,7 +2348,7 @@ to T in your @file{~/.slynk.lisp} file.
 To make @SLY{} connect to your lisp whenever you open a lisp file
 just add this to your @file{.emacs}:
 
-@example
+@example 
 (add-hook 'sly-mode-hook
           (lambda ()
             (unless (sly-connected-p)
@@ -2138,17 +2471,16 @@ inside a macro definition.
 
 The @SLY{} Trace Dialog, in package @code{sly-trace-dialog}, is a
 tracing facility, similar to Common Lisp's @code{trace}, but
-interactive rather than purely textual. It is an Emacs 24-only
-contrib.
+interactive rather than purely textual. 
 
 You use it just like you would regular @code{trace}: after tracing a
 function, calling it causes interesting information about that
 particular call to be reported.
 
 However, instead of printing the trace results to the
-the @code{*trace-output*} stream (usually the REPL), the @SLY{}
-Trace Dialog collects and stores them in your lisp environment until,
-on user's request, they are fetched into Emacs and displayed in a
+the @code{*trace-output*} stream (usually the REPL), the @SLY{} Trace
+Dialog collects and stores them in your Lisp environment until, on
+user's request, they are fetched into Emacs and displayed in a
 dialog-like interactive view.
 
 After starting up @SLY{}, @SLY{}'s Trace Dialog installs
@@ -2156,7 +2488,7 @@ a @emph{Trace} menu in the menu-bar of any @code{sly-mode} buffer and
 adds two new commands, with respective key-bindings:
 
 @table @kbd
-@kbditem{C-c M-t, sly-trace-dialog-toggle-trace}
+@kbditem{C-c C-t, sly-trace-dialog-toggle-trace}
 If point is on a symbol name, toggle tracing of its function
 definition. If point is not on a symbol, prompt user for a function.
 
