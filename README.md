@@ -10,8 +10,9 @@
 
 ```
 
-SLY is Sylvester the Cat's Common Lisp IDE for Emacs. See it in action in
-[this screencast][7].
+SLY is Sylvester the Cat's Common Lisp IDE for Emacs. Read
+[a short illustrated tutorial][tutorial] or see it in action in
+[this (older) screencast][7].
 
 SLY is a fork of [SLIME][1] and contains the following improvements upon
 it:
@@ -128,6 +129,7 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [12]: https://github.com/joaotavora/sly-macrostep
 [13]: https://github.com/joaotavora/sly-quicklisp
 [documentation]: http://joaotavora.github.io/sly
+[tutorial]: http://joaotavora.github.io/sly/#A-SLY-tutorial-for-SLIME-users
 
 <!-- Local Variables: -->
 <!-- fill-column: 80 -->
