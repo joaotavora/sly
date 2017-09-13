@@ -957,11 +957,13 @@ macroexpansion time.
 
 ;; We no longer load inf-lisp, but we use this variable for backward
 ;; compatibility.
-(defvar inferior-lisp-program "lisp"
+(defcustom inferior-lisp-program "lisp"
   "Program name for starting a Lisp subprocess to Emacs.
 Can be a string naming a program, a whitespace-separated string
 of \"EXECUTABLE ARG1 ARG2\" or a list (EXECUTABLE ARGS...) where
-EXECUTABLE and ARGS are strings.")
+EXECUTABLE and ARGS are strings."
+  :type 'string
+  :group 'sly-lisp)
 
 (defvar sly-lisp-implementations nil
   "*A list of known Lisp implementations.
