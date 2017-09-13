@@ -4473,13 +4473,14 @@ TODO"
               (ignore-errors
                 (Info-build-node-completions))))))
 
+;;;###autoload
 (defun sly-info (file &optional node)
-  "Open SLY manual"
+  "Read SLY manual"
   (interactive
    (let ((file (sly-info--file)))
      (list file
-           (sly-completing-read "Manual node? (`*' or `Top' to read the whole manual): "
-                                (sly-info--node-names file)
+           (sly-completing-read "Manual node? (`Top' to read the whole manual): "
+                                (remove '("*") (sly-info--node-names file))
                                 nil t))))
   (info (if node (format "(%s)%s" file node) file)))
 

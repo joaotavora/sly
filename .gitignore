@@ -15,7 +15,6 @@ ChangeLog
 #
 doc/*.html
 doc/html
-doc/contributors.texi
 doc/*.info
 doc/*.pdf
 doc/*.ps

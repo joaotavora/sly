@@ -1,0 +1,27 @@
+@multitable @columnfractions 0.333333 0.333333 0.333333
+
+@item Helmut Eller @tab Luke Gorrie @tab João Távora
+@item Tobias C. Rittweiler @tab Stas Boukarev @tab Marco Baringer
+@item Matthias Koeppe @tab Joao Tavora @tab Nikodemus Siivola
+@item Alan Ruttenberg @tab Attila Lendvai @tab Dan Barlow
+@item Andras Simon @tab Luís Oliveira @tab Martin Simmons
+@item Geo Carncross @tab Christophe Rhodes @tab Peter Seibel
+@item Mark Evenson @tab Juho Snellman @tab Douglas Crosher
+@item Wolfgang Jenkner @tab Edi Weitz @tab James Bielman
+@item Javier Olaechea @tab Daniel Kochmanski @tab Luís Oliveira
+@item Terje Norderhaug @tab Vladimir Sedach @tab Juan Jose Garcia Ripoll
+@item Nathan Trapuzzano @tab  @tab Brian Downing
+@item Mark @tab Jeffrey Cunningham @tab Espen Wiborg
+@item Jan Moringen @tab Samuel Freilich @tab Raymond Toy
+@item Phil Hargett @tab Paulo Madeira @tab Luís Borges de Oliveira
+@item Jonas Bernoulli @tab Ivan Shvedunov @tab Gábor Melis
+@item Francois-Rene Rideau @tab Christophe Junke @tab Bozhidar Batsov
+@item Bart Botta @tab Alexander Artemenko @tab Tianxiang Xiong
+@item Syohei YOSHIDA @tab Paul M. Rodriguez @tab Olof-Joachim Frahm
+@item  @tab Mike Clarke @tab Michał Herda
+@item Mark H. David @tab Mario Lang @tab Luis Oliveira
+@item Leo Liu @tab Jon Oddie @tab Graham Dobbins
+@item Douglas Katzman @tab  @tab Deokhwan Kim
+@item Denis Budyak @tab Chunyang Xu @tab 
+@item Angelo Rossi @tab Andrew Kirkpatrick
+@end multitable
