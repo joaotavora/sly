@@ -1,6 +1,5 @@
 (require 'sly)
 (require 'sly-parse "lib/sly-parse")
-(require 'sly-autodoc)
 (require 'font-lock)
 (require 'cl-lib)
 
@@ -192,22 +191,6 @@ position, or nil."
             #'(lambda ()
                 (add-hook 'font-lock-extend-region-functions
                           'sly-extend-region-for-font-lock t t))))
-
-(cl-defun sly-initialize-lisp-buffer-for-test-suite
-    (&key (font-lock-magic t) (autodoc t))
-  (let ((hook lisp-mode-hook))
-    (unwind-protect
-        (progn
-          (set (make-local-variable 'sly-highlight-suppressed-forms)
-               font-lock-magic)
-          (setq lisp-mode-hook nil)
-          (lisp-mode)
-          (sly-mode 1)
-          (when (boundp 'sly-autodoc-mode)
-            (if autodoc
-                (sly-autodoc-mode 1)
-              (sly-autodoc-mode -1))))
-      (setq lisp-mode-hook hook))))
 
 
 ;;; Compile hotspots

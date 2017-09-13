@@ -1,5 +1,22 @@
 (require 'sly-fontifying-fu)
 (require 'sly-tests "lib/sly-tests")
+(require 'sly-autodoc)
+
+(cl-defun sly-initialize-lisp-buffer-for-test-suite
+    (&key (font-lock-magic t) (autodoc t))
+  (let ((hook lisp-mode-hook))
+    (unwind-protect
+        (progn
+          (set (make-local-variable 'sly-highlight-suppressed-forms)
+               font-lock-magic)
+          (setq lisp-mode-hook nil)
+          (lisp-mode)
+          (sly-mode 1)
+          (when (boundp 'sly-autodoc-mode)
+            (if autodoc
+                (sly-autodoc-mode 1)
+              (sly-autodoc-mode -1))))
+      (setq lisp-mode-hook hook))))
 
 (def-sly-test font-lock-magic (buffer-content)
     "Some testing for the font-lock-magic. *YES* should be

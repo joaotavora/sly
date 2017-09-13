@@ -1,6 +1,6 @@
 (require 'sly)
-(require 'sly-cl-indent)
 (require 'cl-lib)
+(require 'sly-cl-indent "lib/sly-cl-indent")
 
 (define-sly-contrib sly-indentation
   "Contrib interfacing `sly-cl-indent' and SLY."

@@ -172,7 +172,9 @@ in `sly-contribs.'")
   ;;   v            v
   ;; forgotten != disabled
   (add-to-list 'load-path (expand-file-name "contrib" sly-path))
-  (mapc #'require sly-contribs)
+  (mapc (lambda (c)
+	  (sly--contrib-safe c (require c)))
+	sly-contribs)
   (let* ((all-active-contribs
           ;; these are the contribs the user chose to activate
           ;;
@@ -6645,6 +6647,11 @@ if/when you fix the error" (cl-third n))))
          (defvar ,(contrib-sym name))
          (setq ,(path-sym name) (and load-file-name
                                      (file-name-directory load-file-name)))
+         (eval-when-compile
+           (when byte-compile-current-file; protect against eager macro expansion
+             (add-to-list 'load-path
+                          (file-name-as-directory
+                           (file-name-directory byte-compile-current-file)))))
          (setq ,(contrib-sym name)
                (put 'sly-contribs ',name
                     (make-sly-contrib
