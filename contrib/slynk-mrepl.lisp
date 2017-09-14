@@ -99,12 +99,14 @@ Set this to NIL to turn this feature off.")
            (let ((table (copy-readtable nil)))
              (set-macro-character #\: (lambda (&rest args) nil) nil table)
              table))
-         (entry-idx (progn
-                      (when (eq #\: (peek-char nil stream nil nil))
-                        (error 'reader-error :stream stream
-                               :format-control "~a found in unexpected place in ~a"
-                               :format-arguments `(#\: backreference-reader)))
-                      (read-preserving-whitespace stream)))
+         (entry-idx
+           (progn
+             (when (eq #\: (peek-char nil stream nil nil))
+               (error 'reader-error
+                      :stream stream
+                      :format-control "~a found in unexpected place in ~a"
+                      :format-arguments `(#\: backreference-reader)))
+             (read-preserving-whitespace stream)))
          (value-idx (progn
                       (and (eq #\: (peek-char nil stream nil nil))
                            (read-char stream)
@@ -129,7 +131,7 @@ Set this to NIL to turn this feature off.")
                        table)))
     (loop for (input expected-spec following) in expectations
           collect
-          (handler-case 
+          (handler-case
               (progn
                 (with-input-from-string (s input)
                   (let* ((observed (read s))
@@ -141,8 +143,6 @@ Set this to NIL to turn this feature off.")
                              `(mrepl-get-object-from-history ,@expected-spec)))
                          (observed-second (and following
                                                (read s))))
-                    
-                    
                     (unless (equal observed expected)
                       (error "oops, ~a was supposed to have returned ~a, but returned ~a"
                              input expected observed))
@@ -155,7 +155,7 @@ Set this to NIL to turn this feature off.")
                 (error "oops, ~a wasn't supposed to error with ~a" input e)))))))
 
 (defun make-results (objects)
-  (loop for value in objects 
+  (loop for value in objects
         collect (list (present-for-emacs value #'slynk-pprint)
                       (1- (length *history*)))))
 
@@ -282,9 +282,10 @@ Set this to NIL to turn this feature off.")
 (define-channel-method :inspect-object ((r mrepl) entry-idx value-idx)
   (with-listener-bindings r
     (send-to-remote-channel
-       (mrepl-remote-id r)
-       `(:inspect-object
-         ,(slynk::inspect-object (mrepl-get-object-from-history entry-idx value-idx))))))
+     (mrepl-remote-id r)
+     `(:inspect-object
+       ,(slynk::inspect-object
+         (mrepl-get-object-from-history entry-idx value-idx))))))
 
 (define-channel-method :process ((c mrepl) string)
   (ecase (mrepl-mode c)
@@ -324,11 +325,12 @@ Set this to NIL to turn this feature off.")
         (format *standard-output* "~&; SLY ~a (~a)~%"
                 *slynk-wire-protocol-version*
                 mrepl)
-        (cond ((and target
-                    (not (eq mrepl target)))
-               (format *standard-output* "~&; Global redirection setup elsewhere~%"))
-              ((not target)
-               (format *standard-output* "~&; Global redirection not setup~%"))))
+        (cond
+          ((and target
+                (not (eq mrepl target)))
+           (format *standard-output* "~&; Global redirection setup elsewhere~%"))
+          ((not target)
+           (format *standard-output* "~&; Global redirection not setup~%"))))
       (flush-listener-streams mrepl)
       (send-prompt mrepl)
       (list (channel-id mrepl) (channel-thread-id mrepl)))))

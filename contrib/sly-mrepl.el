@@ -44,7 +44,7 @@
    (define-key sly-mode-map (kbd "C-c C-z") 'sly-mrepl)
    (define-key sly-selector-map (kbd "~")  'sly-mrepl-sync)
    (define-key sly-selector-map (kbd "r") 'sly-mrepl)
-   
+
    ;; Insinuate ourselves in hooks
    ;;
    (add-hook 'sly-connected-hook 'sly-mrepl-on-connection)
@@ -57,7 +57,7 @@
                (sly-mrepl 'interactive)))))
   (:on-unload
    ;; FIXME: This `:on-unload' is grossly incomplete
-   ;; 
+   ;;
    (remove-hook 'sly-connected-hook 'sly-mrepl-on-connection)
    (remove-hook 'sly-net-process-close-hooks 'sly-mrepl--teardown-repls)))
 
@@ -153,7 +153,8 @@ for output printed to the REPL (not for evaluation results)")
                 (sly-mrepl--output-mark ,(point-marker))
                 (sly-mrepl--last-prompt-overlay ,(make-overlay 0 0 nil nil))
                 (sly-find-buffer-package-function sly-mrepl-guess-package)
-                (sly-autodoc-inhibit-autodoc sly-mrepl-inside-string-or-comment-p)
+                (sly-autodoc-inhibit-autodoc
+                 sly-mrepl-inside-string-or-comment-p)
                 (mode-line-process nil)
                 (parse-sexp-ignore-comments t)
                 (syntax-propertize-function sly-mrepl--syntax-propertize)
@@ -165,7 +166,8 @@ for output printed to the REPL (not for evaluation results)")
                 (lisp-indent-function common-lisp-indent-function)
                 (open-paren-in-column-0-is-defun-start nil)
                 (buffer-file-coding-system utf-8-unix)
-                ;;; Paredit workaround (see https://github.com/joaotavora/sly/issues/110)
+                ;; Paredit workaround (see
+                ;; https://github.com/joaotavora/sly/issues/110)
                 (paredit-override-check-parens-function (lambda (_c) t))
                 (comment-start ";"))
            do (set (make-local-variable var) value))
@@ -227,7 +229,8 @@ for output printed to the REPL (not for evaluation results)")
   (with-current-buffer (sly-channel-get self 'buffer)
     (sly-mrepl--insert-prompt package prompt error-level condition)))
 
-(sly-define-channel-method listener :open-dedicated-output-stream (port _coding-system)
+(sly-define-channel-method listener :open-dedicated-output-stream
+                           (port _coding-system)
   (with-current-buffer (sly-channel-get self 'buffer)
     ;; HACK: no coding system
     (set (make-local-variable 'sly-mrepl--dedicated-stream)
@@ -257,8 +260,8 @@ for output printed to the REPL (not for evaluation results)")
   'sly-button-pretty-print
   #'(lambda (entry-idx value-idx)
       (sly-eval-describe `(slynk-mrepl:pprint-entry ,sly-mrepl--remote-channel
-                                                      ,entry-idx
-                                                      ,value-idx)))
+                                                    ,entry-idx
+                                                    ,value-idx)))
   'sly-mrepl-copy-part-to-repl 'sly-mrepl--copy-part-to-repl)
 
 
@@ -274,7 +277,8 @@ for output printed to the REPL (not for evaluation results)")
            do (with-current-buffer buffer
                 (when (and (eq major-mode 'sly-mrepl-mode)
                            (eq sly-buffer-connection process))
-                  (sly-mrepl--teardown (process-get process 'sly-net-close-reason))))))
+                  (sly-mrepl--teardown (process-get process
+                                                    'sly-net-close-reason))))))
 
 (defun sly-mrepl--process () (get-buffer-process (current-buffer))) ;stupid
 
@@ -348,7 +352,7 @@ In that case, moving a sexp backward does nothing."
                (start (marker-position sly-mrepl--output-mark))
                (face (or face
                          'sly-mrepl-output-face)))
-           
+
            (save-excursion
              (goto-char sly-mrepl--output-mark)
              (cond ((and (not (bobp))
@@ -458,11 +462,13 @@ In that case, moving a sexp backward does nothing."
   (buffer-enable-undo))
 
 (defun sly-mrepl--copy-part-to-repl (entry-idx value-idx)
-  (sly-mrepl--copy-objects-to-repl `(,entry-idx ,value-idx)
-                                   (format "Returning value %s of history entry %s"
-                                           value-idx entry-idx)))
+  (sly-mrepl--copy-objects-to-repl
+   `(,entry-idx ,value-idx)
+   (format "Returning value %s of history entry %s"
+           value-idx entry-idx)))
 
-(cl-defun sly-mrepl--eval-for-repl (slyfun-and-args &key insert-p before-prompt after-prompt)
+(cl-defun sly-mrepl--eval-for-repl
+    (slyfun-and-args &key insert-p before-prompt after-prompt)
   "Evaluate SLYFUN-AND-ARGS in Slynk, then call callbacks.
 
 SLYFUN-AND-ARGS is (SLYFUN . ARGS) and is called in
@@ -530,7 +536,8 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
                for idx from 0
                do
                (sly-mrepl--ensure-newline)
-               (sly-mrepl--insert (sly-mrepl--make-result-button result idx))))))
+               (sly-mrepl--insert
+                (sly-mrepl--make-result-button result idx))))))
 
 (defun sly-mrepl--catch-up ()
   (when (> (sly-mrepl--mark) sly-mrepl--output-mark)
@@ -555,13 +562,14 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
                          (let ((sly-buffer-connection nil)
                                (sly-dispatching-connection nil))
                            (sly-connection))))
-         (repls (cl-remove-if-not (lambda (x)
-                                    (with-current-buffer x
-                                      (and (eq major-mode 'sly-mrepl-mode)
-                                           (eq sly-buffer-connection connection)
-                                           (or (not thread)
-                                               (eq thread sly-current-thread)))))
-                                  (buffer-list)))
+         (repls (cl-remove-if-not
+                 (lambda (x)
+                   (with-current-buffer x
+                     (and (eq major-mode 'sly-mrepl-mode)
+                          (eq sly-buffer-connection connection)
+                          (or (not thread)
+                              (eq thread sly-current-thread)))))
+                 (buffer-list)))
          (sorted (cl-sort repls #'< :key (sly-compose #'length #'buffer-name))))
     (car sorted)))
 
@@ -600,7 +608,7 @@ recent entry that is discarded."
       ;; To merge the file's history with the current buffer's
       ;; history, sntart by deep-copying `comint-input-ring' to a
       ;; separate variable.
-      ;; 
+      ;;
       ((current-ring (copy-tree comint-input-ring 'vectors-too))
        (index (ring-length current-ring))
        (comint-input-ring-separator sly-mrepl--history-separator)
@@ -612,7 +620,7 @@ recent entry that is discarded."
     ;; re-add entries to `comint-input-ring', which is now synched
     ;; with the file and will be written to disk. Respect
     ;; `sly-mrepl-prevent-duplicate-history'.
-    ;; 
+    ;;
     (cl-loop for i from (1- index) downto 0
              for item = (ring-ref current-ring i)
              for existing-index = (ring-member comint-input-ring item)
@@ -678,11 +686,12 @@ recent entry that is discarded."
                        (process-get sly-buffer-connection
                                     'sly--net-connect-counter)
                        (sly-channel.id channel)))
-         (stream (open-network-stream name
-                                      (generate-new-buffer
-                                       (format " *%s*" name))
-                                      (car (process-contact sly-buffer-connection))
-                                      port))
+         (stream (open-network-stream
+                  name
+                  (generate-new-buffer
+                   (format " *%s*" name))
+                  (car (process-contact sly-buffer-connection))
+                  port))
          (emacs-coding-system (car (cl-find coding-system
                                             sly-net-valid-coding-systems
                                             :key #'cl-third))))
@@ -695,7 +704,8 @@ recent entry that is discarded."
     (run-hook-with-args 'sly-mrepl--dedicated-stream-hooks stream)
     stream))
 
-(cl-defun sly-mrepl--save-and-copy-for-repl (slyfun-and-args &key repl before after)
+(cl-defun sly-mrepl--save-and-copy-for-repl
+    (slyfun-and-args &key repl before after)
   "Evaluate SLYFUN-AND-ARGS in Slynk and prepare to copy to REPL.
 BEFORE is a string inserted as a note, or a nullary function
 which is run just before the object is copied to the
@@ -706,22 +716,24 @@ can also be a string in which case it is inserted via
 `sly-insert-note' followed by the saved values' presentations.
 REPL is the REPL buffer to return the objects to."
   (sly-eval-async
-   `(slynk-mrepl:globally-save-object ',(car slyfun-and-args)
-                                      ,@(cdr slyfun-and-args))
-   #'(lambda (_ignored)
-       (sly-mrepl--with-repl (or repl (sly-mrepl--find-create (sly-connection)))
-         (sly-mrepl--copy-objects-to-repl nil before after)))))
+      `(slynk-mrepl:globally-save-object ',(car slyfun-and-args)
+                                         ,@(cdr slyfun-and-args))
+    #'(lambda (_ignored)
+        (sly-mrepl--with-repl (or repl
+                                  (sly-mrepl--find-create (sly-connection)))
+          (sly-mrepl--copy-objects-to-repl nil before after)))))
 
 (defun sly-mrepl--insert-call (spec results)
   (when (<= (point) (sly-mrepl--mark))
     (goto-char (point-max)))
-  (insert (format "%s"
-                  `(,spec
-                    ,@(cl-loop for o in results
-                               for i from 0
-                               collect (make-symbol (format "#v%d:%d"
-                                                            (cadr o)
-                                                            i)))))))
+  (insert (format
+           "%s"
+           `(,spec
+             ,@(cl-loop for o in results
+                        for i from 0
+                        collect (make-symbol (format "#v%d:%d"
+                                                     (cadr o)
+                                                     i)))))))
 
 (defun sly-mrepl--assert-mrepl ()
   (unless (eq major-mode 'sly-mrepl-mode)
@@ -746,7 +758,8 @@ history entry navigated to."
         (and sly-mrepl-eli-like-history-navigation
              (let* ((offset (- (point) (sly-mrepl--mark)))
                     (existing (and (> offset 0)
-                                   (buffer-substring (sly-mrepl--mark) (point-max)))))
+                                   (buffer-substring (sly-mrepl--mark)
+                                                     (point-max)))))
                (when existing
                  (cons (substring existing 0 offset)
                        (substring existing offset)))))))
@@ -858,7 +871,7 @@ enclosed macro or function."
         (unless (memq last-command
                       '(sly-mrepl-previous-input-or-button
                         sly-mrepl-next-input-or-button))
-            (sly-mrepl--set-eli-input))
+          (sly-mrepl--set-eli-input))
         (comint-previous-input n)
         (sly-mrepl--keep-eli-input-maybe))
     (sly-button-backward n)))
@@ -877,10 +890,13 @@ enclosed macro or function."
     buffer))
 
 (defun sly-mrepl-on-connection ()
-  (let* ((inferior-buffer (and (sly-process) (process-buffer (sly-process))))
-         (inferior-window (and inferior-buffer (get-buffer-window inferior-buffer t))))
-    (let ((sly-mrepl-pop-sylvester (or (eq sly-mrepl-pop-sylvester 'on-connection)
-                                       sly-mrepl-pop-sylvester)))
+  (let* ((inferior-buffer
+          (and (sly-process) (process-buffer (sly-process))))
+         (inferior-window
+          (and inferior-buffer (get-buffer-window inferior-buffer t))))
+    (let ((sly-mrepl-pop-sylvester
+           (or (eq sly-mrepl-pop-sylvester 'on-connection)
+               sly-mrepl-pop-sylvester)))
       (sly-mrepl 'pop-to-buffer))
     (when inferior-window
       (bury-buffer inferior-buffer)
@@ -926,8 +942,9 @@ handle to distinguish the new buffer from the existing."
                        (current-buffer)
                        nil)
         (set-process-query-on-exit-flag (sly-mrepl--process) nil)
-        (setq header-line-format (format "Waiting for REPL creation ack for channel %d..."
-                                         (sly-channel.id local)))
+        (setq header-line-format
+              (format "Waiting for REPL creation ack for channel %d..."
+                      (sly-channel.id local)))
         (sly-channel-put local 'buffer (current-buffer))
         (add-hook 'kill-buffer-hook 'sly-mrepl--teardown nil 'local)
         (set (make-local-variable 'sly-mrepl--local-channel) local))
@@ -981,7 +998,8 @@ handle to distinguish the new buffer from the existing."
       (sly-message "Guessed package \"%s\"" package))
     package))
 
-(define-obsolete-function-alias 'sly-mrepl-sync-package-and-default-directory 'sly-mrepl-sync
+(define-obsolete-function-alias
+  'sly-mrepl-sync-package-and-default-directory 'sly-mrepl-sync
   "1.0.0-alpha-3")
 
 (defun sly-mrepl-sync (&optional package directory expression)
@@ -1008,7 +1026,8 @@ prefix argument is given."
          (cl-destructuring-bind (package-2 directory-2) results
            (sly-mrepl--insert-note
             (cond ((and package directory)
-                   (format "Synched package to %s and directory to %s" package-2 directory-2))
+                   (format "Synched package to %s and directory to %s"
+                           package-2 directory-2))
                   (directory
                    (format "Synched directory to %s" directory-2))
                   (package
@@ -1038,9 +1057,11 @@ Doesn't clear input history."
   (sly-mrepl--assert-mrepl)
   (cl-loop for search-start =
            (set-marker (make-marker)
-                       (1+ (overlay-start sly-mrepl--last-prompt-overlay))) then pos
-           for pos = (set-marker search-start
-                                 (previous-single-property-change search-start 'field))
+                       (1+ (overlay-start sly-mrepl--last-prompt-overlay)))
+           then pos
+           for pos = (set-marker
+                      search-start
+                      (previous-single-property-change search-start 'field))
            while (and (marker-position pos)
                       ;; FIXME: fragile (1- pos), use narrowing
                       (not (get-text-property (1- pos) 'sly-mrepl--prompt))
@@ -1151,7 +1172,8 @@ When setting this variable outside of the Customize interface,
 
 (defun sly-mrepl-set-directory ()
   (interactive)
-  (let ((directory (read-directory-name "New directory: " default-directory nil t)))
+  (let ((directory (read-directory-name "New directory: "
+                                        default-directory nil t)))
     (sly-mrepl--save-and-copy-for-repl
      `(slynk:set-default-directory ,directory)
      :before (format "Setting directory to %s" directory))
@@ -1160,9 +1182,9 @@ When setting this variable outside of the Customize interface,
 (defun sly-mrepl-shortcut ()
   (interactive)
   (let* ((string (sly-completing-read "Command: "
-                                     (mapcar #'car sly-mrepl-shortcut-alist)
-                                     nil
-                                     'require-match))
+                                      (mapcar #'car sly-mrepl-shortcut-alist)
+                                      nil
+                                      'require-match))
          (command (and string
                        (cdr (assoc string sly-mrepl-shortcut-alist)))))
     (call-interactively command)))
@@ -1226,53 +1248,57 @@ a list of result buttons thus highlighted"
          (m1 (and m0 (match-string 1)))
          (m2 (and m1 (match-string 2)))
          (m3 (and m2 (match-string 3)))
-         (entry-idx (and m1 (string-to-number m1))) 
+         (entry-idx (and m1 (string-to-number m1)))
          (value-idx (and match
                          (or (and m3 (string-to-number m3))
                              (and (not m2)
                                   'all)))))
     (when match
       (let ((buttons (sly-mrepl-highlight-results entry-idx value-idx))
-            (overlay (or sly-mrepl--backreference-overlay
-                         (set (make-local-variable 'sly-mrepl--backreference-overlay)
-                              (make-overlay 0 0))))
+            (overlay
+             (or sly-mrepl--backreference-overlay
+                 (set (make-local-variable 'sly-mrepl--backreference-overlay)
+                      (make-overlay 0 0))))
             (message-log-max nil))
         (move-overlay sly-mrepl--backreference-overlay
                       (match-beginning 0) (match-end 0))
-        (cond ((null buttons)
-               (overlay-put overlay 'face 'font-lock-warning-face)
-               (sly-message "No history references for backreference `%s'" m0))
-              ((and buttons
-                    entry-idx
-                    value-idx)
-               (overlay-put overlay 'face 'sly-action-face)
-               (let* ((prefix (if (numberp value-idx)
-                                  (format "Matched history value %s of entry %s: "
-                                               value-idx
-                                               entry-idx)
-                                (format "Matched history entry %s%s: "
-                                             entry-idx
-                                             (if (cl-rest buttons)
-                                                 (format " (%s values)" (length buttons))
-                                               ""))))
-                      (hint (propertize
-                             (truncate-string-to-width
-                              (replace-regexp-in-string "\n" " " (button-label (cl-first buttons)))
-                              (- (window-width (minibuffer-window))
-                                 (length prefix) 10)
-                              nil
-                              nil
-                              "...")
-                             'face
-                             'sly-action-face)))
-                 (sly-message "%s" (format "%s%s" prefix hint))))
-              (buttons
-               (sly-message "Ambiguous backreference `%s', %s values possible"
-                            m0 (length buttons))
-               (overlay-put overlay 'face 'font-lock-warning-face))
-              (t
-               (overlay-put overlay 'face 'font-lock-warning-face)
-               (sly-message "Invalid backreference `%s'" m0)))))))
+        (cond
+         ((null buttons)
+          (overlay-put overlay 'face 'font-lock-warning-face)
+          (sly-message "No history references for backreference `%s'" m0))
+         ((and buttons
+               entry-idx
+               value-idx)
+          (overlay-put overlay 'face 'sly-action-face)
+          (let* ((prefix (if (numberp value-idx)
+                             (format "Matched history value %s of entry %s: "
+                                     value-idx
+                                     entry-idx)
+                           (format "Matched history entry %s%s: "
+                                   entry-idx
+                                   (if (cl-rest buttons)
+                                       (format " (%s values)" (length buttons))
+                                     ""))))
+                 (hint (propertize
+                        (truncate-string-to-width
+                         (replace-regexp-in-string "\n" " "
+                                                   (button-label
+                                                    (cl-first buttons)))
+                         (- (window-width (minibuffer-window))
+                            (length prefix) 10)
+                         nil
+                         nil
+                         "...")
+                        'face
+                        'sly-action-face)))
+            (sly-message "%s" (format "%s%s" prefix hint))))
+         (buttons
+          (sly-message "Ambiguous backreference `%s', %s values possible"
+                       m0 (length buttons))
+          (overlay-put overlay 'face 'font-lock-warning-face))
+         (t
+          (overlay-put overlay 'face 'font-lock-warning-face)
+          (sly-message "Invalid backreference `%s'" m0)))))))
 
 
 ;;;; Menu
@@ -1316,7 +1342,8 @@ a list of result buttons thus highlighted"
     (overlay-put overlay
                  'face `(:background ,color))
     (overlay-put overlay
-                 'after-string (propertize "F" 'face `(:background ,marker-color)))
+                 'after-string (propertize "F" 'face
+                                           `(:background ,marker-color)))
     (push overlay sly-mrepl--debug-overlays)))
 
 (defun sly-mrepl--turn-on-debug ()

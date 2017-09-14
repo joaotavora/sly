@@ -173,8 +173,8 @@ in `sly-contribs.'")
   ;; forgotten != disabled
   (add-to-list 'load-path (expand-file-name "contrib" sly-path))
   (mapc (lambda (c)
-	  (sly--contrib-safe c (require c)))
-	sly-contribs)
+          (sly--contrib-safe c (require c)))
+        sly-contribs)
   (let* ((all-active-contribs
           ;; these are the contribs the user chose to activate
           ;;
@@ -479,7 +479,7 @@ PROPERTIES specifies any default face properties."
                            map)
   "A keymap for frequently used SLY shortcuts.
 Access to this keymap can be installed in in
-`sly-mode-map', using something like 
+`sly-mode-map', using something like
 
    (global-set-key (kbd \"C-z\") sly-selector-map)
 
@@ -728,13 +728,13 @@ The list of patterns is searched for a HEAD `eq' to the car of
 VALUE. If one is found, the BODY is executed with ARGS bound to the
 corresponding values in the CDR of VALUE."
   (let ((operator (cl-gensym "op-"))
-	(operands (cl-gensym "rand-"))
-	(tmp (cl-gensym "tmp-")))
+        (operands (cl-gensym "rand-"))
+        (tmp (cl-gensym "tmp-")))
     `(let* ((,tmp ,value)
-	    (,operator (car ,tmp))
-	    (,operands (cdr ,tmp)))
+            (,operator (car ,tmp))
+            (,operands (cdr ,tmp)))
        (cl-case ,operator
-	 ,@(mapcar (lambda (clause)
+         ,@(mapcar (lambda (clause)
                      (if (eq (car clause) t)
                          `(t ,@(cdr clause))
                        (cl-destructuring-bind ((op &rest rands) &rest body)
@@ -743,10 +743,10 @@ corresponding values in the CDR of VALUE."
                                  . ,(or body
                                         '((ignore)) ; suppress some warnings
                                         ))))))
-		   patterns)
-	 ,@(if (eq (caar (last patterns)) t)
-	       '()
-	     `((t (sly-error "Elisp sly-dcase failed: %S" ,tmp))))))))
+                   patterns)
+         ,@(if (eq (caar (last patterns)) t)
+               '()
+             `((t (sly-error "Elisp sly-dcase failed: %S" ,tmp))))))))
 
 ;;;;; Very-commonly-used functions
 
@@ -811,7 +811,7 @@ positions before and after executing BODY."
   (let ((start (cl-gensym)))
     `(let ((,start (point)))
        (prog1 (progn ,@body)
-	 (add-text-properties ,start (point) ,props)))))
+         (add-text-properties ,start (point) ,props)))))
 
 (defun sly-add-face (face string)
   (declare (indent 1))
@@ -1030,10 +1030,10 @@ prefix argument controls the precise behaviour:
                            sly-default-lisp
                            (car (car sly-lisp-implementations))))
                     (let ((command-and-args (if (listp command)
-						command
+                                                command
                                               (split-string command))))
                       `(:program ,(car command-and-args)
-                               :program-args ,(cdr command-and-args)))))))))
+                                 :program-args ,(cdr command-and-args)))))))))
 
 (defvar sly-inferior-lisp-program-history '()
   "History list of command strings.  Used by M-x sly.")
@@ -1457,9 +1457,9 @@ Return nil if the file doesn't exist or is empty; otherwise the
 first line of the file."
   (condition-case _err
       (with-temp-buffer
-	(insert-file-contents "~/.sly-secret")
-	(goto-char (point-min))
-	(buffer-substring (point-min) (line-end-position)))
+        (insert-file-contents "~/.sly-secret")
+        (goto-char (point-min))
+        (buffer-substring (point-min) (line-end-position)))
     (file-error nil)))
 
 ;;; Interface
@@ -1468,8 +1468,8 @@ first line of the file."
 (defun sly-send-secret (proc)
   (sly--when-let (secret (sly-secret))
     (let* ((payload (encode-coding-string secret 'utf-8-unix))
-	   (string (concat (sly-net-encode-length (length payload))
-			   payload)))
+           (string (concat (sly-net-encode-length (length payload))
+                           payload)))
       (process-send-string proc string))))
 
 (defun sly-net-connect (host port)
@@ -2244,7 +2244,7 @@ or nil if nothing suitable can be found.")
   (when (null package) (setq package (sly-current-package)))
   (let* ((tag (cl-gensym (format "sly-result-%d-"
                                  (1+ (sly-continuation-counter)))))
-	 (sly-stack-eval-tags (cons tag sly-stack-eval-tags)))
+         (sly-stack-eval-tags (cons tag sly-stack-eval-tags)))
     (apply
      #'funcall
      (catch tag
@@ -2562,8 +2562,8 @@ Debugged requests are ignored."
 (defun sly-pprint-event (event buffer)
   "Pretty print EVENT in BUFFER with limited depth and width."
   (let ((print-length 20)
-	(print-level 6)
-	(pp-escape-newlines t))
+        (print-level 6)
+        (pp-escape-newlines t))
     (pp event buffer)))
 
 (defun sly--events-buffer (process)
@@ -3387,7 +3387,7 @@ you should check twice before modifying.")
                          qualifiers specializers)))
     (or (and (re-search-forward regexp  nil t)
              (goto-char (match-beginning 0)))
-        ;;	(sly-goto-location-position `(:function-name ,name))
+        ;;      (sly-goto-location-position `(:function-name ,name))
         )))
 
 (defun sly-search-call-site (fname)
@@ -3451,7 +3451,7 @@ Several kinds of locations are supported:
 (defun sly--highlight-sexp (&optional start end)
   "Highlight the first sexp after point."
   (let ((start (or start (point)))
-	(end (or end (save-excursion (ignore-errors (forward-sexp)) (point)))))
+        (end (or end (save-excursion (ignore-errors (forward-sexp)) (point)))))
     (sly-flash-region start end)))
 
 (defun sly--highlight-line (&optional timeout)
@@ -4219,8 +4219,8 @@ in Lisp when committed with \\[sly-edit-value-commit]."
 (defun sly-load-file (filename)
   "Load the Lisp file FILENAME."
   (interactive (list
-		(read-file-name "[sly] Load file: " nil nil
-				nil (if (buffer-file-name)
+                (read-file-name "[sly] Load file: " nil nil
+                                nil (if (buffer-file-name)
                                         (file-name-nondirectory
                                          (buffer-file-name))))))
   (let ((lisp-filename (sly-to-lisp-filename (expand-file-name filename))))
@@ -4507,8 +4507,8 @@ TODO"
   "sly-xref-mode: Major mode for cross-referencing.
 \\<sly-xref-mode-map>\
 The most important commands:
-\\[sly-xref-show]	- Display referenced source and keep xref window.
-\\[sly-xref-goto]	- Jump to referenced source and dismiss xref window.
+\\[sly-xref-show]       - Display referenced source and keep xref window.
+\\[sly-xref-goto]       - Jump to referenced source and dismiss xref window.
 
 \\{sly-xref-mode-map}"
   (setq font-lock-defaults nil)
@@ -5068,7 +5068,7 @@ string to expand.
   "Return STRING propertised with face sly-db-NAME-face."
   (declare (indent 1))
   (let ((facename (intern (format "sly-db-%s-face" (symbol-name name))))
-	(var (cl-gensym "string")))
+        (var (cl-gensym "string")))
     `(let ((,var ,string))
        (sly-add-face ',facename ,var)
        ,var)))
@@ -5868,7 +5868,8 @@ truly screwed up."
       (dolist (cmd commands)
         ;; First wait until gdb was initialized, then wait until current
         ;; command was processed.
-        (while (not (looking-back comint-prompt-regexp (line-beginning-position) nil))
+        (while (not (looking-back comint-prompt-regexp (line-beginning-position)
+                                  nil))
           (sit-for 0.01))
         ;; We do not use `gud-call' because we want the initial commands
         ;; to be displayed by the user so he knows what he's got.
@@ -6240,7 +6241,8 @@ was called originally."
                                   (inspector-name sly--this-inspector-name)
                                   opener)
   (if (cl-some #'listp slyfun-and-args)
-      (sly-warning "`sly-eval-for-inspector' not meant to be passed a generic form"))
+      (sly-warning
+       "`sly-eval-for-inspector' not meant to be passed a generic form"))
   (let ((pos (and (eq major-mode 'sly-inspector-mode)
                   (sly-inspector-position))))
     (sly-eval-async `(slynk:eval-for-inspector
@@ -6251,10 +6253,11 @@ was called originally."
       (or opener
           (lambda (results)
             (let ((opener (lambda ()
-                            (sly--open-inspector results
-                                                 :point (and restore-point pos)
-                                                 :inspector-name inspector-name
-                                                 :switch (not save-selected-window)))))
+                            (sly--open-inspector
+                             results
+                             :point (and restore-point pos)
+                             :inspector-name inspector-name
+                             :switch (not save-selected-window)))))
               (cond (results
                      (funcall opener))
                     (t
@@ -6350,7 +6353,8 @@ was called originally."
 (defmacro sly-inspector-fontify (face string)
   `(sly-add-face ',(intern (format "sly-inspector-%s-face" face)) ,string))
 
-(cl-defun sly--open-inspector (inspected-parts &key point kill-hook inspector-name (switch t))
+(cl-defun sly--open-inspector (inspected-parts
+                               &key point kill-hook inspector-name (switch t))
   "Display INSPECTED-PARTS in a new inspector window.
 Optionally set point to POINT. If KILL-HOOK is provided, it is
 added to local KILL-BUFFER hooks for the inspector
@@ -6362,9 +6366,10 @@ buffer should be switched to (defaults to t)"
                                            :suffix inspector-name)
                           :mode 'sly-inspector-mode
                           :select switch
-                          :same-window-p (and (eq major-mode 'sly-inspector-mode)
-                                              (or (null inspector-name)
-                                                  (eq sly--this-inspector-name inspector-name)))
+                          :same-window-p
+                          (and (eq major-mode 'sly-inspector-mode)
+                               (or (null inspector-name)
+                                   (eq sly--this-inspector-name inspector-name)))
                           :connection t)
     (when kill-hook
       (add-hook 'kill-buffer-hook kill-hook t t))
@@ -6434,12 +6439,14 @@ position of point in the current buffer."
 (defun sly-inspector-pop ()
   "Reinspect the previous object."
   (interactive)
-  (sly-eval-for-inspector `(slynk:inspector-pop) :error-message "No previous object"))
+  (sly-eval-for-inspector `(slynk:inspector-pop)
+                          :error-message "No previous object"))
 
 (defun sly-inspector-next ()
   "Inspect the next object in the history."
   (interactive)
-  (sly-eval-for-inspector `(slynk:inspector-next) :error-message "No next object"))
+  (sly-eval-for-inspector `(slynk:inspector-next)
+                          :error-message "No next object"))
 
 (defun sly-inspector-quit ()
   "Quit the inspector and kill the buffer."
@@ -6595,8 +6602,9 @@ is setup, unless the user already set one explicitly."
       (sly-eval `(slynk:slynk-add-load-paths ',(cl-remove-duplicates
                                                 (mapcar #'cl-second needed)
                                                 :test #'string=)))
-      (let* ((result (sly-eval `(slynk:slynk-require
-                                 ',(mapcar #'symbol-name (mapcar #'cl-first needed)))))
+      (let* ((result (sly-eval
+                      `(slynk:slynk-require
+                        ',(mapcar #'symbol-name (mapcar #'cl-first needed)))))
              (all-modules (cl-first result))
              (loaded-now (cl-second result)))
         ;; check if everything went OK
@@ -6856,9 +6864,9 @@ keys."
   (let ((alist '()))
     (dolist (e list)
       (let* ((k (funcall key e))
-	     (probe (cl-assoc k alist :test test)))
-	(if probe
-	    (push e (cdr probe))
+             (probe (cl-assoc k alist :test test)))
+        (if probe
+            (push e (cdr probe))
           (push (cons k (list e)) alist))))
     ;; Put them back in order.
     (cl-loop for (key . value) in (reverse alist)
@@ -6912,7 +6920,7 @@ keys."
 (defun sly-cl-symbol-name (symbol)
   (let ((n (if (stringp symbol) symbol (symbol-name symbol))))
     (if (string-match ":\\([^:]*\\)$" n)
-	(let ((symbol-part (match-string 1 n)))
+        (let ((symbol-part (match-string 1 n)))
           (if (string-match "^|\\(.*\\)|$" symbol-part)
               (match-string 1 symbol-part)
             symbol-part))
@@ -6921,7 +6929,7 @@ keys."
 (defun sly-cl-symbol-package (symbol &optional default)
   (let ((n (if (stringp symbol) symbol (symbol-name symbol))))
     (if (string-match "^\\([^:]*\\):" n)
-	(match-string 1 n)
+        (match-string 1 n)
       default)))
 
 (defun sly-qualify-cl-symbol-name (symbol-or-name)
