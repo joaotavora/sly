@@ -926,7 +926,7 @@ macroexpansion time.
                               t))))
                (when ,select-sym
                  (if window
-                     (select-window window))))
+                     (select-window window t))))
              (if (eq ,select-sym :raise) (raise-frame)))
            (current-buffer))))))
 

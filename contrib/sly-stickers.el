@@ -640,13 +640,10 @@ the reason why the sticker couldn't be found"
            (let ((buffer (overlay-buffer sticker)))
              (when buffer
                (with-current-buffer buffer
-                 (let ((window (display-buffer buffer
-                                               '(display-buffer-use-some-window
-                                                 .
-                                                 ((inhibit-same-window . t))))))
+                 (let* ((window (display-buffer buffer t)))
                    (when window
                      (with-selected-window window
-                       (push-mark)
+                       (push-mark nil t)
                        (goto-char (overlay-start sticker))
                        (sly-recenter (point))
                        (sly-button-flash sticker
@@ -735,7 +732,7 @@ veryfying `sly-stickers--recording-void-p' is created."
            "Pop to current sticker")
       (def "V" 'sly-stickers-replay-toggle-pop-to-stickers
            "Toggle popping to stickers")
-      (def "q" 'bury-buffer
+      (def "q" 'quit-window
            "Quit")
       (def "x" 'sly-stickers-replay-toggle-ignore-sticker
            "Toggle ignoring a sticker")
@@ -818,7 +815,7 @@ buffer"
                 (paragraph)
                 (if sly-stickers--replay-expanded-help
                     (substitute-command-keys "\\{sly-stickers--replay-mode-map}")
-                  "(n)ext)/(p)revious/(i)gnore/h(elp)/(q)uit")))
+                  "n => next, p => previous, x => ignore, h => help, q => quit")))
        (describe-number-of-recordings
         (new-total)
         (let* ((old-total (cl-getf (sly-stickers--replay-data) :old-total))
@@ -867,9 +864,13 @@ buffer"
   (let* ((buffer-name (sly-buffer-name :stickers-replay
                                        :connection (sly-current-connection)))
          (existing-buffer (get-buffer buffer-name)))
-    (sly-with-popup-buffer (buffer-name
-                            :mode 'sly-stickers--replay-mode
-                            :select t)
+    (let ((split-width-threshold nil)
+          (split-height-threshold 0))
+      (sly-with-popup-buffer (buffer-name
+                              :mode 'sly-stickers--replay-mode
+                              :select t)
+        (setq existing-buffer standard-output)))
+    (with-current-buffer existing-buffer
       (setf (cl-getf (sly-stickers--replay-data) :replay-key)
             (cl-gensym "stickers-replay-"))
       (let ((old-total (cl-getf (sly-stickers--replay-data) :total))
@@ -883,12 +884,13 @@ buffer"
                 "Looks like there are %s new recordings since last replay.\n
 Forget about old ones before continuing?" (- new-total old-total)))
           (sly-stickers-forget old-total)))
+
       (sly-stickers-replay-refresh 0
                                    (if existing-buffer nil t)
                                    t)
-      (setq existing-buffer standard-output))
-    (with-current-buffer existing-buffer
-      (sly-stickers--replay-postch))))
+      (set-window-dedicated-p nil 'soft)
+      (with-current-buffer existing-buffer
+        (sly-stickers--replay-postch)))))
 
 (defun sly-stickers-replay-refresh (n command &optional interactive)
   "Refresh the current sticker replay session.
@@ -927,10 +929,15 @@ Non-interactively, set the `:recording' slot of
     (cond ((car result)
            (cl-destructuring-bind (total index &rest sticker-description)
                result
-             (let ((rec (sly-stickers--make-recording sticker-description)))
+             (let ((rec (sly-stickers--make-recording sticker-description))
+                   (old-index (cl-getf (sly-stickers--replay-data) :index)))
                (setf (cl-getf (sly-stickers--replay-data) :index) index
                      (cl-getf (sly-stickers--replay-data) :total) total
                      (cl-getf (sly-stickers--replay-data) :recording) rec)
+               (if old-index
+                   (if (plusp n)
+                       (if (> old-index index) (sly-message "Rolled over to start"))
+                     (if (< old-index index) (sly-message "Rolled over to end"))))
                ;; Assert that the recording isn't void
                ;;
                (when (sly-stickers--recording-void-p rec)
