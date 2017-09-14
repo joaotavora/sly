@@ -3139,6 +3139,7 @@ CL-PPCRE must be loaded. This option has no effect if the
 MAKE-APROPOS-MATCHER interface has been implemented.")
 
 (defun apropos-symbols (pattern external-only case-sensitive package)
+  "Search for symbols matching PATTERN."
   (let* ((packages (or package (remove (find-package :keyword)
                                        (list-all-packages))))
          (symbol-name-fn

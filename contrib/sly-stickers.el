@@ -684,7 +684,8 @@ veryfying `sly-stickers--recording-void-p' is created."
                       :sticker-total sticker-total
                       :sly-connection (sly-current-connection))))
       (when recording-description
-        (cl-destructuring-bind (recording-id value-descriptions
+        (cl-destructuring-bind (recording-id _recording-ctime
+                                             value-descriptions
                                              exited-non-locally-p)
             recording-description
           (setf
@@ -743,7 +744,7 @@ veryfying `sly-stickers--recording-void-p' is created."
       (def "R" 'sly-stickers-replay-reset-ignore-list
            "Reset ignore list")
       (def "F" 'sly-stickers-forget
-           "Forget about sticker recordingsn")
+           "Forget about sticker recordings")
       (def "g" 'sly-stickers-replay-refresh
            "Refresh current recording")
       map)))
@@ -771,22 +772,10 @@ veryfying `sly-stickers--recording-void-p' is created."
        (not sly-stickers--replay-expanded-help))
   (sly-stickers--replay-refresh-1))
 
-(sly-def-connection-var sly-stickers--replay-ignored-stickers
-    (cons t '())
-  "Information about ignored stickers in a sticker replay session.
-Structure is (IGNORE-ZOMBIES-P . STICKER-ID-LIST)")
-
-(sly-def-connection-var sly-stickers--replay-total nil
-  "Total number of stickers in a sticker replay session")
-
-(sly-def-connection-var sly-stickers--replay-recording nil
-  "Last inspected sticker recording in a sticker replay session")
+(sly-def-connection-var sly-stickers--replay-data nil
+  "Data structure for information related to recordings")
 
 (defvar sly-stickers--replay-key nil
-  "A symbol identifying a particular replaying session in the
-  Slynk server.")
-
-(defvar sly-stickers--replay-old-total nil
   "A symbol identifying a particular replaying session in the
   Slynk server.")
 
@@ -803,8 +792,10 @@ buffer"
       ((paragraph () (if sly-stickers--replay-expanded-help "\n\n" "\n"))
        (describe-ignored-stickers
         ()
-        (let ((ignored-ids (cdr (sly-stickers--replay-ignored-stickers)))
-              (ignore-zombies-p (car (sly-stickers--replay-ignored-stickers))))
+        (let ((ignored-ids (cl-getf (sly-stickers--replay-data)
+                                    :ignored-ids))
+              (ignore-zombies-p (cl-getf (sly-stickers--replay-data)
+                                         :ignore-zombies-p)))
           (if (or ignored-ids ignore-zombies-p)
               (format "%s%s%s"
                       (paragraph)
@@ -812,11 +803,11 @@ buffer"
                           "Skipping recordings of deleted stickers. " "")
                       (if ignored-ids
                           (format "Skipping recordings of sticker%s %s."
-                                  (if (cadr ignored-ids) "s" "")
+                                  (if (rest ignored-ids) "s" "")
                                   (concat (mapconcat #'pp-to-string
                                                      (butlast ignored-ids)
                                                      ", ")
-                                          (and (cadr ignored-ids) " and ")
+                                          (and (rest ignored-ids) " and ")
                                           (pp-to-string
                                            (car (last ignored-ids)))))
                         ""))
@@ -830,7 +821,7 @@ buffer"
                   "(n)ext)/(p)revious/(i)gnore/h(elp)/(q)uit")))
        (describe-number-of-recordings
         (new-total)
-        (let* ((old-total sly-stickers--replay-old-total)
+        (let* ((old-total (cl-getf (sly-stickers--replay-data) :old-total))
                (diff (and old-total (- new-total old-total))))
           (format "%s total recordings%s"
                   new-total
@@ -842,27 +833,27 @@ buffer"
                         (t
                          "")))))
        (describe-playhead
-        ()
-        (let ((new-total (sly-stickers--replay-total)))
+        (recording)
+        (let ((new-total (cl-getf (sly-stickers--replay-data) :total))
+              (index (cl-getf (sly-stickers--replay-data) :index)))
           (cond
            ((and new-total
-                 (sly-stickers--replay-recording))
+                 recording)
             (format "Playhead at recording %s of %s"
-                    (ignore-errors (1+ (sly-stickers--recording-id
-                                        (sly-stickers--replay-recording))))
+                    (ignore-errors (1+ index))
                     (describe-number-of-recordings new-total)))
            (new-total
             (format "Playhead detached (ignoring too many stickers?) on %s"
                     (describe-number-of-recordings new-total)))
-           ((sly-stickers--replay-recording)
+           (recording
             (substitute-command-keys
              "Playhead confused (perhaps hit \\[sly-stickers-replay-refresh])"))
            (t
             (format
              "No recordings! Perhaps you need to run some sticker-aware code first"))))))
     (sly-refreshing ()
-      (insert (describe-playhead) (paragraph))
-      (let ((rec (sly-stickers--replay-recording)))
+      (let ((rec (cl-getf (sly-stickers--replay-data) :recording)))
+        (insert (describe-playhead rec) (paragraph))
         (when rec
           (insert (sly-stickers--pretty-describe-recording
                    rec
@@ -879,10 +870,19 @@ buffer"
     (sly-with-popup-buffer (buffer-name
                             :mode 'sly-stickers--replay-mode
                             :select t)
-      (set (make-local-variable 'sly-stickers--replay-key)
-           (cl-gensym "stickers-replay-"))
-      (set (make-local-variable 'sly-stickers--replay-old-total)
-           (sly-stickers--replay-total))
+      (setf (cl-getf (sly-stickers--replay-data) :replay-key)
+            (cl-gensym "stickers-replay-"))
+      (let ((old-total (cl-getf (sly-stickers--replay-data) :total))
+            (new-total (sly-eval '(slynk-stickers:total-recordings))))
+        (setf (cl-getf (sly-stickers--replay-data) :old-total) old-total)
+        (when (and
+               old-total
+               (plusp old-total)
+               (> new-total old-total)
+               (sly-y-or-n-p
+                "Looks like there are %s new recordings since last replay.\n
+Forget about old ones before continuing?" (- new-total old-total)))
+          (sly-stickers-forget old-total)))
       (sly-stickers-replay-refresh 0
                                    (if existing-buffer nil t)
                                    t)
@@ -910,13 +910,14 @@ playhead should stay put and the buffer should be refreshed.
 Non-interactively signal an error if no recording was fetched and
 INTERACTIVE is the symbol `sly-error'.
 
-Non-interactively, set `sly-stickers--replay-recording' to nil if
-no recording was fetched."
+Non-interactively, set the `:recording' slot of
+`sly-stickers--replay-data' to nil if no recording was fetched."
   (interactive (list 0 nil t))
   (let ((result (sly-eval
                  `(slynk-stickers:search-for-recording
-                   ',sly-stickers--replay-key
-                   ',(sly-stickers--replay-ignored-stickers)
+                   ',(cl-getf (sly-stickers--replay-data) :replay-key)
+                   ',(cl-getf (sly-stickers--replay-data) :ignored-ids)
+                   ',(cl-getf (sly-stickers--replay-data) :ignore-zombies-p)
                    ',(sly-stickers--zombies)
                    ,n
                    ',command))))
@@ -924,31 +925,30 @@ no recording was fetched."
     ;;
     (sly-stickers--reset-zombies)
     (cond ((car result)
-           (cl-destructuring-bind (total &rest sticker-description)
+           (cl-destructuring-bind (total index &rest sticker-description)
                result
-             (setf (sly-stickers--replay-recording)
-                   (sly-stickers--make-recording sticker-description))
-             (setf (sly-stickers--replay-total) total)
-             ;; Assert that the recording isn't void
-             ;;
-             (when (sly-stickers--recording-void-p
-                    (sly-stickers--replay-recording))
-               (sly-error "Attempt to visit a void recording described by %s"
-                          sticker-description))
-             (when sly-stickers--replay-pop-to-stickers
-               (sly-stickers--find-and-flash
-                (sly-stickers--recording-sticker-id
-                 (sly-stickers--replay-recording))))))
+             (let ((rec (sly-stickers--make-recording sticker-description)))
+               (setf (cl-getf (sly-stickers--replay-data) :index) index
+                     (cl-getf (sly-stickers--replay-data) :total) total
+                     (cl-getf (sly-stickers--replay-data) :recording) rec)
+               ;; Assert that the recording isn't void
+               ;;
+               (when (sly-stickers--recording-void-p rec)
+                 (sly-error "Attempt to visit a void recording described by %s"
+                            sticker-description))
+               (when sly-stickers--replay-pop-to-stickers
+                 (sly-stickers--find-and-flash
+                  (sly-stickers--recording-sticker-id rec))))))
           (interactive
            (when (eq interactive 'sly-error)
              (sly-error "%s for %s reported an error: %s"
                         'slynk-stickers:search-for-recording
                         n
                         (cadr result)))
-           (setf (sly-stickers--replay-recording) nil)))
+           (setf (cl-getf (sly-stickers--replay-data) :recording) nil)))
     (if interactive
         (sly-stickers--replay-refresh-1)
-      (sly-stickers--replay-recording))))
+      (cl-getf (sly-stickers--replay-data) :recording ))))
 
 (defun sly-stickers-replay-next (n)
   "Navigate to Nth next sticker recording, skipping ignored stickers"
@@ -964,7 +964,7 @@ no recording was fetched."
   (if current-prefix-arg
       (read-number (format "[sly] %s " prompt))
     (sly-stickers--recording-sticker-id
-     (sly-stickers--replay-recording))))
+     (cl-getf (sly-stickers--replay-data) :recording))))
 
 (defun sly-stickers-replay-next-for-sticker (n sticker-id)
   "Navigate to Nth next sticker recording for STICKER-ID"
@@ -1006,14 +1006,16 @@ no recording was fetched."
   (interactive (list
                 (sly-stickers-replay--current-sticker-interactive
                  "Toggle ignoring which sticker id?")))
-  (let* ((ignored (sly-stickers--replay-ignored-stickers))
-         (ignored-p (memq sticker-id (cdr ignored))))
+  (let* ((ignored (cl-getf (sly-stickers--replay-data) :ignored-ids))
+         (ignored-p (memq sticker-id ignored)))
     (cond (ignored-p
-           (setcdr ignored (delq sticker-id (cdr ignored)))
+           (setf (cl-getf (sly-stickers--replay-data) :ignored-ids)
+                 (delq sticker-id (cdr ignored)))
            (sly-message "No longer ignoring sticker %s" sticker-id))
           (t
-           (setcdr ignored (delete-dups ; stupid but safe
-                            (cons sticker-id (cdr ignored))))
+           (setf (cl-getf (sly-stickers--replay-data) :ignored-ids)
+                 (delete-dups ; stupid but safe
+                  (cons sticker-id ignored)))
            (sly-message "Now ignoring sticker %s" sticker-id)))
     (sly-stickers-replay-refresh (if ignored-p ; was ignored, now isn't
                                      0
@@ -1024,11 +1026,13 @@ no recording was fetched."
 (defun sly-stickers-replay-toggle-ignore-zombies ()
   "Toggle ignoring recordings of zombie stickers."
   (interactive)
-  (setcar (sly-stickers--replay-ignored-stickers)
-          (not (car (sly-stickers--replay-ignored-stickers))))
-  (if (car (sly-stickers--replay-ignored-stickers))
-      (sly-message "Now ignoring zombie stickers")
-    (sly-message "No longer ignoring zombie stickers"))
+  (let ((switch
+         (setf
+          (cl-getf (sly-stickers--replay-data) :ignore-zombies-p)
+          (not (cl-getf (sly-stickers--replay-data) :ignore-zombies-p)))))
+    (if switch
+        (sly-message "Now ignoring zombie stickers")
+      (sly-message "No longer ignoring zombie stickers")))
   (sly-stickers-replay-refresh 0 nil t))
 
 (defun sly-stickers-replay-pop-to-current-sticker (sticker-id)
@@ -1051,7 +1055,7 @@ no recording was fetched."
 (defun sly-stickers-replay-reset-ignore-list ()
   "Reset the sticker ignore specs"
   (interactive)
-  (setf (sly-stickers--replay-ignored-stickers) (cons t '()))
+  (setf (cl-getf (sly-stickers--replay-data) :ignored-ids) nil)
   (sly-stickers-replay-refresh 0 nil t))
 
 (defun sly-stickers-fetch ()
@@ -1082,16 +1086,22 @@ See also `sly-stickers-replay'."
           (sly-message message)))
     "CL_USER"))
 
-(defun sly-stickers-forget ()
-  "Forget about sticker recordings in the Slynk side."
-  (interactive)
-  (when (yes-or-no-p "[sly] Really forget about sticker recordings?")
-    (sly-eval `(slynk-stickers:forget ',(sly-stickers--zombies)))
+(defun sly-stickers-forget (&optional howmany interactive)
+  "Forget about sticker recordings in the Slynk side.
+If HOWMANY is non-nil it must be a number stating how many
+recordings to forget about. In this cases Because 0 is an index,
+in the `nth' sense, the HOWMANYth recording survives."
+  (interactive (list (and (numberp current-prefix-arg)
+                          current-prefix-arg)
+                     t))
+  (when (or (not interactive)
+            (sly-y-or-n-p "Really forget about sticker recordings?"))
+    (sly-eval `(slynk-stickers:forget ',(sly-stickers--zombies) ,howmany))
     (sly-stickers--reset-zombies)
-    (setf (sly-stickers--replay-recording) nil
-          (sly-stickers--replay-ignored-stickers) nil
-          (sly-stickers--replay-total) nil)
-    (sly-message "Forgot all about sticker recordings.")
+    (setf (cl-getf (sly-stickers--replay-data) :rec) nil
+          (cl-getf (sly-stickers--replay-data) :old-total) nil)
+    (when interactive
+      (sly-message "Forgot all about sticker recordings."))
     (when (eq major-mode 'sly-stickers--replay-mode)
       (sly-stickers-replay-refresh 0 t t))))
 

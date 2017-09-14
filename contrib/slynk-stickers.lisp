@@ -9,13 +9,16 @@
            #:inspect-sticker-recording
            #:fetch
            #:forget
+           #:total-recordings
            #:find-recording-or-lose
            #:search-for-recording
            #:toggle-break-on-stickers))
 (in-package :slynk-stickers)
 
+(defvar *next-recording-id* 0)
+
 (defclass recording ()
-  ((index :reader index-of)
+  ((id :initform (incf *next-recording-id*) :accessor id-of)
    (ctime :initform (common-lisp:get-universal-time) :accessor ctime-of)
    (sticker :initform (error "required") :initarg :sticker :accessor sticker-of)
    (values :initform (error "required") :initarg :values :accessor values-of)
@@ -23,7 +26,6 @@
 
 (defmethod initialize-instance :after ((x recording) &key sticker)
   (push x (recordings-of sticker))
-  (setf (slot-value x 'index) (fill-pointer *recordings*))
   (vector-push-extend x *recordings*))
 
 (defun recording-description-string (recording
@@ -224,30 +226,39 @@ their ignore-spec is reset nonetheless."
 (defun search-for-recording-1 (from &key
                                       ignore-p
                                       increment)
+  "Return two values: a RECORDING and its position in *RECORDINGS*.
+Start searching from position FROM, an index in *RECORDINGS* which is
+successibely increased by INCREMENT before using that to index
+*RECORDINGS*."
   (loop for starting-position in `(,from ,(if (plusp increment)
                                               -1
                                               (length *recordings*)))
         ;; this funky scheme has something to do with rollover
         ;; semantics probably
-        ;; 
+        ;;
         for inc in `(,increment ,(if (plusp increment) 1 -1))
-          thereis (loop for candidate-id = (incf starting-position
-                                                 inc)
-                        while (< -1 candidate-id (length *recordings*))
-                        for recording = (aref *recordings* candidate-id)
-                        for sid = (id-of (sticker-of recording))
-                        unless (funcall ignore-p sid)
-                          return recording)))
+        for (rec idx) = (loop for cand-idx = (incf starting-position
+                                                   inc)
+                              while (< -1 cand-idx (length *recordings*))
+                              for recording = (aref *recordings* cand-idx)
+                              for sid = (id-of (sticker-of recording))
+                              unless (funcall ignore-p sid)
+                                return (list recording cand-idx))
+        when rec
+          return (values rec idx)))
 
 (defun describe-recording-for-emacs (recording)
-  "Describe RECORDING as (ID VALUE-DESCRIPTIONS EXITED-NON-LOCALLY-P)
-ID is a number. VALUE-DESCRIPTIONS is a list of
+  "Describe RECORDING as (ID CTIME VALUE-DESCRIPTIONS EXITED-NON-LOCALLY-P).
+ID is a number. CTIME is the creation time, given by
+CL:GET-UNIVERSAL-TIME VALUE-DESCRIPTIONS is a list of
 strings. EXITED-NON-LOCALLY-P is an integer."
-  (list (index-of recording)
-        (and (listp (values-of recording))
-             (loop for value in (values-of recording)
-                   collect (slynk-api:present-for-emacs value)))
-        (exited-non-locally-p recording)))
+  (list
+   (id-of recording)
+   (ctime-of recording)
+   (and (listp (values-of recording))
+        (loop for value in (values-of recording)
+              collect (slynk-api:present-for-emacs value)))
+   (exited-non-locally-p recording)))
 
 (defun describe-sticker-for-emacs (sticker &optional recording)
   "Describe STICKER and either its latest recording or RECORDING.
@@ -261,11 +272,14 @@ RECORDING-DESCRIPTION is as given by DESCRIBE-RECORDING-FOR-EMACS."
            (and recording
                 (describe-recording-for-emacs recording)))))
 
-(defslyfun search-for-recording (key ignore-spec dead-stickers index
+(defslyfun total-recordings ()
+  "Tell how many recordings in *RECORDINGS*" (length *recordings*))
+
+(defslyfun search-for-recording (key ignored-ids ignore-zombies-p dead-stickers index
                                      &optional command)
   "Visit the next recording for the visitor KEY.
-IGNORE-SPEC is a list (EXCLUDE-DEAD MORE...): ignore stickers whose ID
-is in MORE and ignore dead stickers if EXCLUDE-DEAD.
+IGNORED-IDS is a list of sticker IDs to ignore.  IGNORE-ZOMBIES-P is
+non-nil if recordings for dead stickers should also be ignored.
 
 Kill any stickers in DEAD-STICKERS.
 
@@ -276,38 +290,43 @@ IGNORE-SPEC. If it is a number, search for the INDEXth recording
 of sticker with that ID. Otherwise, jump directly to the INDEXth
 recording.
 
-If a recording can be found return a list (TOTAL-RECORDINGS
-. STICKER-DESCRIPTION).  STICKER-DESCRIPTION is as given by
-DESCRIBE-STICKER-FOR-EMACS.
+If a recording can be found return a list (LAST-RECORDING-ID
+ABSOLUTE-INDEX . STICKER-DESCRIPTION).  ABSOLUTE-INDEX is the position
+of recording in the global *RECORDINGS* array. STICKER-DESCRIPTION is
+as given by DESCRIBE-STICKER-FOR-EMACS.
 
 Otherwise returns a list (NIL ERROR-DESCRIPTION)"
   (kill-stickers dead-stickers)
   (unless (and *visitor*
                (eq key (car *visitor*)))
     (setf *visitor* (cons key -1)))
-  (let ((recording
-          (cond
-            ((and command
-                  (not (numberp command)))
-             (and (plusp (length *recordings*))
-                  (aref *recordings* (mod index
-                                          (length *recordings*)))))
-            (t
-             (search-for-recording-1
-              (cdr *visitor*)
-              :increment index
-              :ignore-p
-              (if (numberp command)
-                  (lambda (sid)
-                    (not (= sid command)))
-                  (lambda (sid)
-                    (or (member sid (cdr ignore-spec))
-                        (and
-                         (car ignore-spec)
-                         (not (gethash sid *stickers*)))))))))))
+  (multiple-value-bind (recording absolute-index)
+      (cond
+        ((zerop (length *recordings*))
+         nil)
+        ((and command
+              (not (numberp command)))
+         (let ((absolute-index (mod index
+                                    (length *recordings*))))
+           (values (aref *recordings* absolute-index)
+                   absolute-index)))
+        (t
+         (search-for-recording-1
+          (cdr *visitor*)
+          :increment index
+          :ignore-p
+          (if (numberp command)
+              (lambda (sid)
+                (not (= sid command)))
+              (lambda (sid)
+                (or (member sid ignored-ids)
+                    (and
+                     ignore-zombies-p
+                     (not (gethash sid *stickers*)))))))))
     (cond (recording
-           (setf (cdr *visitor*)  (index-of recording))
+           (setf (cdr *visitor*) absolute-index)
            (list* (length *recordings*)
+                  absolute-index
                   (describe-sticker-for-emacs (sticker-of recording) recording)))
           (t
            (list nil "No recording matches that criteria")))))
@@ -319,17 +338,31 @@ As always, take the opportunity to kill DEAD-STICKERS"
   (loop for sticker being the hash-values of *stickers*
         collect (describe-sticker-for-emacs sticker)))
 
-(defslyfun forget (dead-stickers)
-  "Forget all sticker recordings."
+(defslyfun forget (dead-stickers &optional howmany)
+  "Forget HOWMANY sticker recordings.
+Return number of remaining recordings"
   (kill-stickers dead-stickers)
   (maphash (lambda (id sticker)
              (declare (ignore id))
              (setf (recordings-of sticker) nil))
            *stickers*)
-  (setf (fill-pointer *recordings*) 0))
+  (cond ((null howmany)
+         (setf *recordings* (make-array 0 :fill-pointer 0 :adjustable t)))
+        (t
+         (check-type howmany number)
+         (let ((remaining (- (length *recordings*)
+                             howmany)))
+           (assert (not (minusp remaining)))
+           (setf *recordings*
+                 (make-array remaining
+                             :adjustable t
+                             :fill-pointer t
+                             :initial-contents (subseq *recordings*
+                                                       howmany))))))
+  (length *recordings*))
 
 (defslyfun find-recording-or-lose (recording-id vindex)
-  (let ((recording (aref *recordings* recording-id)))
+  (let ((recording (find recording-id *recordings* :key #'id-of)))
     (if vindex
         (elt (values-of recording) vindex)
         (values-list (values-of recording)))))
