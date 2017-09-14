@@ -109,7 +109,7 @@ program.")
 
 
 ;;;; Helpers
-;;;; 
+;;;;
 (defun describe-trace-for-emacs (trace)
   `(,(id-of trace)
     ,(and (parent-of trace) (id-of (parent-of trace)))
@@ -152,8 +152,8 @@ program.")
                      (setq *unfinished-traces*
                            (remove trace *unfinished-traces*))))
          (new (loop for i
-                      from (length recently-finished)
-                        below *traces-per-report*
+                    from (length recently-finished)
+                      below *traces-per-report*
                     while (< *visitor-idx* (length *traces*))
                     for trace = (aref *traces* *visitor-idx*)
                     collect trace
@@ -164,7 +164,7 @@ program.")
      (mapcar #'describe-trace-for-emacs
              (append recently-finished new))
      (- (length *traces*) *visitor-idx*)
-    key)))
+     key)))
 
 (defslyfun report-specs ()
   (sort (copy-list *traced-specs*)
@@ -215,11 +215,11 @@ program.")
   (let ((function nil))
     (flet ((before-hook (args)
              (setf (current-trace) (make-instance 'trace-entry
-                                     :spec      spec
-                                     :function  (or function
-                                                    spec)
-                                     :args      args
-                                     :parent    (current-trace))))
+                                                  :spec      spec
+                                                  :function  (or function
+                                                                 spec)
+                                                  :args      args
+                                                  :parent    (current-trace))))
            (after-hook (retlist)
              (let ((trace (current-trace)))
                (when trace
@@ -240,7 +240,8 @@ program.")
       (format nil "~a is now traced for trace dialog" spec))))
 
 (defslyfun dialog-untrace (spec)
-  (with-simple-restart (continue "Never mind, i really want this trace to go away")
+  (with-simple-restart
+      (continue "Never mind, i really want this trace to go away")
     (slynk-backend:unwrap spec 'trace-dialog))
   (setq *traced-specs* (remove spec *traced-specs* :test #'equal))
   (format nil "~a is now untraced for trace dialog" spec))
@@ -264,7 +265,7 @@ program.")
 
 
 ;;;; Hook onto emacs
-;;;; 
+;;;;
 (setq slynk:*after-toggle-trace-hook*
       #'(lambda (spec traced-p)
           (when *dialog-trace-follows-trace*
@@ -284,11 +285,12 @@ program.")
 
 
 ;;;; Instrumentation
-;;;; 
+;;;;
 (defmacro instrument (x &optional (id (gensym "EXPLICIT-INSTRUMENT-")) )
   (let ((values-sym (gensym)))
     `(let ((,values-sym (multiple-value-list ,x)))
-       (trace-format (format nil "~a: ~a" ',id "~a => ~{~a~^, ~}") ',x ,values-sym)
+       (trace-format (format nil "~a: ~a" ',id "~a => ~{~a~^, ~}") ',x
+                     ,values-sym)
        (values-list ,values-sym))))
 
 (provide :slynk-trace-dialog)

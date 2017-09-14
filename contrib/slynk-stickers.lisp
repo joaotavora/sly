@@ -26,11 +26,13 @@
   (setf (slot-value x 'index) (fill-pointer *recordings*))
   (vector-push-extend x *recordings*))
 
-(defun recording-description-string (recording &optional stream print-first-value)
+(defun recording-description-string (recording
+                                     &optional stream print-first-value)
   (let ((values (values-of recording))
         (condition (condition-of recording)))
     (cond (condition
-           (format stream "exited non-locally with: ~a" (present-for-emacs condition)))
+           (format stream "exited non-locally with: ~a"
+                   (present-for-emacs condition)))
           ((eq values 'exited-non-locally)
            (format stream "exited non-locally"))
           ((listp values)
@@ -111,7 +113,8 @@ their ignore-spec is reset nonetheless."
                           (make-instance 'sticker :id id)))
            (list probe t))
           (original-string
-           (list (compile-string-for-emacs original-string buffer position filename policy)
+           (list (compile-string-for-emacs
+                  original-string buffer position filename policy)
                  nil)))))
 
 (defslyfun kill-stickers (ids)
@@ -149,8 +152,9 @@ their ignore-spec is reset nonetheless."
 
 (defun invoke-debugger-for-sticker (sticker condition)
   (restart-case
-      (let ((*debugger-extra-options* (append (debugger-extra-options-of condition)
-                                              *debugger-extra-options*)))
+      (let ((*debugger-extra-options*
+              (append (debugger-extra-options-of condition)
+                      *debugger-extra-options*)))
         (invoke-debugger condition))
     (continue () :report "OK, continue")
     (ignore-this-sticker ()
@@ -195,7 +199,8 @@ their ignore-spec is reset nonetheless."
                                :values (if (eq mark retval)
                                            'exited-non-locally
                                            retval)
-                               :condition (and (eq mark retval) last-condition)))
+                               :condition (and (eq mark retval)
+                                               last-condition)))
           ;; ...and then maybe break after.
           (when (and *break-on-stickers*
                      (not (member :after (ignore-spec-of sticker))))
@@ -206,7 +211,8 @@ their ignore-spec is reset nonetheless."
                              :recording recording
                              :debugger-extra-options
                              `((:slynk-after-sticker
-                                ,(describe-sticker-for-emacs sticker recording)))))))))))
+                                ,(describe-sticker-for-emacs
+                                  sticker recording)))))))))))
 
 (defmacro record (id &rest body)
   `(call-with-sticker-recording ,id (lambda () ,@body)))
@@ -279,24 +285,26 @@ Otherwise returns a list (NIL ERROR-DESCRIPTION)"
   (unless (and *visitor*
                (eq key (car *visitor*)))
     (setf *visitor* (cons key -1)))
-  (let ((recording (cond
-                     ((and command
-                           (not (numberp command)))
-                      (and (plusp (length *recordings*))
-                           (aref *recordings* (mod index
-                                                   (length *recordings*)))))
-                     (t
-                      (search-for-recording-1 (cdr *visitor*)
-                                              :increment index
-                                              :ignore-p
-                                              (if (numberp command)
-                                                  (lambda (sid)
-                                                    (not (= sid command)))
-                                                  (lambda (sid)
-                                                    (or (member sid (cdr ignore-spec))
-                                                        (and
-                                                         (car ignore-spec)
-                                                         (not (gethash sid *stickers*)))))))))))
+  (let ((recording
+          (cond
+            ((and command
+                  (not (numberp command)))
+             (and (plusp (length *recordings*))
+                  (aref *recordings* (mod index
+                                          (length *recordings*)))))
+            (t
+             (search-for-recording-1
+              (cdr *visitor*)
+              :increment index
+              :ignore-p
+              (if (numberp command)
+                  (lambda (sid)
+                    (not (= sid command)))
+                  (lambda (sid)
+                    (or (member sid (cdr ignore-spec))
+                        (and
+                         (car ignore-spec)
+                         (not (gethash sid *stickers*)))))))))))
     (cond (recording
            (setf (cdr *visitor*)  (index-of recording))
            (list* (length *recordings*)

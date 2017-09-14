@@ -112,15 +112,17 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
          (dialog-live `(and ,in-dialog
                             (memq sly-buffer-connection sly-net-processes))))
     `("SLY-Trace"
-      [ "Refresh traces and progress" sly-trace-dialog-fetch-status ,dialog-live]
+      [ "Refresh traces and progress" sly-trace-dialog-fetch-status
+        ,dialog-live]
       [ "Fetch next batch" sly-trace-dialog-fetch-traces ,dialog-live]
-      [ "Clear all fetched traces" sly-trace-dialog-clear-fetched-traces ,dialog-live]
+      [ "Clear all fetched traces" sly-trace-dialog-clear-fetched-traces
+        ,dialog-live]
       [ "Toggle details" sly-trace-dialog-hide-details-mode ,in-dialog]
       [ "Toggle autofollow" sly-trace-dialog-autofollow-mode ,in-dialog])))
 
 (define-minor-mode sly-trace-dialog-hide-details-mode
   "Hide details in `sly-trace-dialog-mode'"
-  nil " Brief"    
+  nil " Brief"
   :group 'sly-trace-dialog
   (unless (derived-mode-p 'sly-trace-dialog-mode)
     (error "Not a SLY Trace Dialog buffer"))
@@ -340,16 +342,19 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 ;;;
 
 (define-button-type 'sly-trace-dialog-part :supertype 'sly-part
-  'sly-button-inspect #'(lambda (trace-id part-id type)
-                          (sly-eval-for-inspector
-                           `(slynk-trace-dialog:inspect-trace-part ,trace-id ,part-id ,type)
-                           :inspector-name (sly-maybe-read-inspector-name)))
-  'sly-button-pretty-print #'(lambda (trace-id part-id type)
-                               (sly-eval-describe
-                                `(slynk-trace-dialog:pprint-trace-part ,trace-id ,part-id ,type)))
-  'sly-button-describe #'(lambda (trace-id part-id type)
-                           (sly-eval-describe
-                            `(slynk-trace-dialog:describe-trace-part ,trace-id ,part-id ,type))))
+  'sly-button-inspect
+  #'(lambda (trace-id part-id type)
+      (sly-eval-for-inspector
+       `(slynk-trace-dialog:inspect-trace-part ,trace-id ,part-id ,type)
+       :inspector-name (sly-maybe-read-inspector-name)))
+  'sly-button-pretty-print
+  #'(lambda (trace-id part-id type)
+      (sly-eval-describe
+       `(slynk-trace-dialog:pprint-trace-part ,trace-id ,part-id ,type)))
+  'sly-button-describe
+  #'(lambda (trace-id part-id type)
+      (sly-eval-describe
+       `(slynk-trace-dialog:describe-trace-part ,trace-id ,part-id ,type))))
 
 (defun sly-trace-dialog-part-button (part-id part-text trace-id type)
   (make-text-button part-text nil
@@ -363,27 +368,30 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 
 (define-button-type 'sly-trace-dialog-spec :supertype 'sly-part
   'action 'sly-button-show-source
-  'sly-button-inspect #'(lambda (trace-id _spec)
-                          (sly-eval-for-inspector `(slynk-trace-dialog:inspect-trace ,trace-id)
-                                                  :inspector-name "trace-entries"))
-  'sly-button-show-source #'(lambda (trace-id _spec)
-                              (sly-eval-async
-                                  `(slynk-trace-dialog:trace-location ,trace-id)
-                                #'(lambda (location)
-                                    (sly--display-source-location location 'noerror))))
-  'point-entered #'(lambda (before after)
-                     (let ((button (sly-button-at after nil 'no-error)))
-                       (when (and (not (sly-button-at before nil 'no-error))
-                                  button
-                                  sly-trace-dialog-autofollow-mode)
-                         ;; we can't quite `push-button' here, because
-                         ;; of the need for `save-selected-window'
-                         ;; 
-                         (let ((id (button-get button 'trace-id)))
-                           (sly-eval-for-inspector
-                            `(slynk-trace-dialog:inspect-trace ,id)
-                            :inspector-name "trace-entries"
-                            :save-selected-window t))))))
+  'sly-button-inspect
+  #'(lambda (trace-id _spec)
+      (sly-eval-for-inspector `(slynk-trace-dialog:inspect-trace ,trace-id)
+                              :inspector-name "trace-entries"))
+  'sly-button-show-source
+  #'(lambda (trace-id _spec)
+      (sly-eval-async
+          `(slynk-trace-dialog:trace-location ,trace-id)
+        #'(lambda (location)
+            (sly--display-source-location location 'noerror))))
+  'point-entered
+  #'(lambda (before after)
+      (let ((button (sly-button-at after nil 'no-error)))
+        (when (and (not (sly-button-at before nil 'no-error))
+                   button
+                   sly-trace-dialog-autofollow-mode)
+          ;; we can't quite `push-button' here, because
+          ;; of the need for `save-selected-window'
+          ;;
+          (let ((id (button-get button 'trace-id)))
+            (sly-eval-for-inspector
+             `(slynk-trace-dialog:inspect-trace ,id)
+             :inspector-name "trace-entries"
+             :save-selected-window t))))))
 
 (defun sly-trace-dialog-spec-button (label trace &rest props)
   (let ((id (sly-trace-dialog--trace-id trace)))
@@ -439,8 +447,9 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
          (indent-summary (sly-trace-dialog--make-indent
                           (sly-trace-dialog--trace-depth trace)
                           "   "))
-         (id-string (sly-trace-dialog-spec-button
-                     (format "%4s" id) trace 'skip t 'action 'sly-button-inspect))
+         (id-string
+          (sly-trace-dialog-spec-button
+           (format "%4s" id) trace 'skip t 'action 'sly-button-inspect))
          (spec-button (sly-trace-dialog-spec-button
                        (format "%s" (sly-trace-dialog--trace-spec trace))
                        trace))
@@ -724,8 +733,9 @@ and fetch a first batch of traces."
   (interactive "P")
   (with-current-buffer
       ;; FIXME: refactor with `sly-with-popup-buffer'
-      (pop-to-buffer (sly-trace-dialog--ensure-buffer)
-                     `(display-buffer-reuse-window . ((inhibit-same-window . t))))
+      (pop-to-buffer
+       (sly-trace-dialog--ensure-buffer)
+       `(display-buffer-reuse-window . ((inhibit-same-window . t))))
     (sly-trace-dialog-fetch-status)
     (when (or clear-and-fetch
               (null sly-trace-dialog--fetch-key))
