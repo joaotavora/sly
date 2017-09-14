@@ -381,7 +381,8 @@ render the underlying text unreadable."
             (if sticker
                 (format "Sticker %s on line %s of %s"
                         (sly-stickers--sticker-id sticker)
-                        (line-number-at-pos (overlay-start sticker))
+                        (with-current-buffer (overlay-buffer sticker)
+                          (line-number-at-pos (overlay-start sticker)))
                         (overlay-buffer sticker))
               (format "Deleted or unknown sticker %s"
                       recording-sticker-id))
