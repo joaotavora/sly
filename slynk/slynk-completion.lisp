@@ -184,7 +184,7 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
          (do-symbols (s package)
            (collect-if-matches #'collect pattern (symbol-name s) s)))))
 
-(defun qualified-matching (pattern package)
+(defun qualified-matching (pattern home-package)
   "Find package-qualified symbols flex-matching PATTERN.
 Return, as two values, a set of matches for external symbols,
 package-qualified using one colon, and another one for internal
@@ -195,44 +195,51 @@ order, i.e. they are not sorted (except for the fact that
 qualifications with shorter package nicknames are tried first).
 
 Matches are produced by COLLECT-IF-MATCHES (which see)."
-  (declare (ignore package))
-  (and (not (char= (aref pattern 0) #\:))
+  (and
+   (not (char= (aref pattern 0) #\:))
+   (let ((package-local-nicknames
+           (slynk-backend:package-local-nicknames home-package))
+         (sorted-nicknames-by-package (make-hash-table)))
+     (flet ((sorted-nicknames (package)
+              (or (gethash package sorted-nicknames-by-package)
+                  (setf (gethash package sorted-nicknames-by-package)
+                        (sort (append
+                               (loop for (short . full) in
+                                     package-local-nicknames
+                                     when (eq (find-package full)
+                                              package)
+                                       collect short)
+                               (copy-list (package-nicknames package))
+                               (list (package-name package)))
+                              #'<
+                              :key #'length)))))
        (collecting (collect-external collect-internal)
          (do-all-symbols (s)
            (slynk-backend:when-let (symbol-package (symbol-package s))
-             (let* ((nicknames (package-nicknames symbol-package))
-                    (sorted-nicknames (sort (cons (package-name symbol-package)
-                                                  (copy-list nicknames))
-                                            #'<
-                                            :key #'length)))
-               (when (and (not (excluded-from-searches-p s))
-                          ;; keyword symbols are handled explicitly by
-                          ;; `keyword-matching', so don't repeat them here.
-                          ;;
-                          (and (not (eq (find-package :keyword)
-                                        symbol-package))))
-                 (loop ;; TODO: add package-local nicknames: `package' might
-                       ;; know `symbol-package' under more nicknames. They
-                       ;; should be added and perhaps also sorted according to
-                       ;; length.
-                       ;;
-                       for nickname in sorted-nicknames
-                       for external-p = (slynk::symbol-external-p s)
-                       do
-                          (cond (external-p
-                                 (collect-if-matches #'collect-external
-                                                     pattern
-                                                     (format nil "~a:~a"
-                                                             nickname
-                                                             (symbol-name s))
-                                                     s))
-                                (t
-                                 (collect-if-matches #'collect-internal
-                                                     pattern
-                                                     (format nil "~a::~a"
-                                                             nickname
-                                                             (symbol-name s))
-                                                     s)))))))))))
+             (when (and (not (excluded-from-searches-p s))
+                        ;; keyword symbols are handled explicitly by
+                        ;; `keyword-matching', so don't repeat them here.
+                        ;;
+                        (and (not (eq (find-package :keyword)
+                                      symbol-package))))
+               (loop
+                 for nickname in (sorted-nicknames symbol-package)
+                 for external-p = (slynk::symbol-external-p s)
+                 do
+                    (cond (external-p
+                           (collect-if-matches #'collect-external
+                                               pattern
+                                               (format nil "~a:~a"
+                                                       nickname
+                                                       (symbol-name s))
+                                               s))
+                          (t
+                           (collect-if-matches #'collect-internal
+                                               pattern
+                                               (format nil "~a::~a"
+                                                       nickname
+                                                       (symbol-name s))
+                                               s))))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
