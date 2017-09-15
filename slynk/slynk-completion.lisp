@@ -120,7 +120,21 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                    indexes
                    :initial-value nil)))
 
-(defun flex-matches (pattern string)
+(defun flex-score (pattern string symbol indexes)
+  "Score the match of PATTERN on STRING.
+INDEXES as calculated by FLEX-MATCHES"
+  ;; FIXME: hideously poor scoring
+  (declare (ignore pattern symbol))
+  (float
+   (/ 1
+      (* (length string)
+         (max 1
+              (reduce #'+
+                      (loop for (a b) on indexes
+                            while b
+                            collect (- b a 1))))))))
+
+(defun flex-matches (pattern string symbol)
   "Return non-NIL if PATTERN flex-matches STRING.
 In case of a match, return two values:
 
@@ -137,20 +151,13 @@ A floating-point score. Higher scores for better matches."
                        collect pos)))
     (values indexes
             (and indexes
-                 (float
-                  (/ 1
-                     (* (length string)
-                        (max 1
-                             (reduce #'+
-                                     (loop for (a b) on indexes
-                                           while b
-                                           collect (- b a 1)))))))))))
+                 (flex-score pattern string symbol indexes)))))
 
 (defun collect-if-matches (collector pattern string symbol)
   "Make and collect a match with COLLECTOR if PATTERN matches STRING.
 A match is a list (STRING SYMBOL INDEXES SCORE)."
   (multiple-value-bind (indexes score)
-      (flex-matches pattern string)
+      (flex-matches pattern string symbol)
     (when indexes
       (funcall collector
                (list string

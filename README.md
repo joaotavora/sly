@@ -11,7 +11,7 @@
 ```
 
 SLY is Sylvester the Cat's Common Lisp IDE for Emacs. Read
-[a short illustrated tutorial][tutorial] or see it in action in
+[a short illustrated guide][tutorial] or see it in action in
 [this (older) screencast][7].
 
 SLY is a fork of [SLIME][1] and contains the following improvements upon
@@ -100,12 +100,13 @@ system. I brought in the old bug reports from the Launchpad tracker, fixed
 long-standing problems and submitted many changes, particularly to the 
 under-curated but popular "contrib" section.
 
-Now, the changes that SLY brings to the table are too deep at the Elisp and
-Lisp level to be accepted to SLIME, given its current focus on stability (for
-the record, I find this perfectly reasonable). The new features such as multiple
-inspectors cannot be realized well using only the existing "contrib" system. 
-Finally, SLY frees itself from the shackles of Emacs 23 and supports Emacs 24.3+ only,
-allowing for much cleaner code and liberal use of lexical binding.
+Now, the changes that SLY brings to the table are too deep at the Elisp and Lisp
+level to be accepted to SLIME, given its current focus on stability (for the
+record, I find this perfectly reasonable). The new features, such as stickers or
+multiple inspectors, cannot be realized well using only the existing "contrib"
+system.  Finally, SLY frees itself from the shackles of Emacs 23 and supports
+Emacs 24.3+ only, allowing for much cleaner code and liberal use of lexical
+binding.
 
 The list of technical reasons is bigger than this though, and you can read up on
 them in the [CONTRIBUTING.md][9] file.
@@ -129,7 +130,7 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [12]: https://github.com/joaotavora/sly-macrostep
 [13]: https://github.com/joaotavora/sly-quicklisp
 [documentation]: http://joaotavora.github.io/sly
-[tutorial]: http://joaotavora.github.io/sly/#A-SLY-tutorial-for-SLIME-users
+[tutorial]: http://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users
 
 <!-- Local Variables: -->
 <!-- fill-column: 80 -->
