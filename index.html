@@ -5,7 +5,7 @@ Távora for SLY.
 
 This file has been placed in the public domain.
  -->
-<!-- Created on September 13, 2017 by texi2html 1.82
+<!-- Created on September 15, 2017 by texi2html 1.82
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -80,7 +80,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 <h1 class="settitle">SLY</h1>
 
 <p><acronym>SLY</acronym> is a Common Lisp IDE for Emacs. This is the manual for version
-1.0.0-beta-2. (Last updated September 13, 2017)
+1.0.0-beta-2. (Last updated September 15, 2017)
 </p>
 <p>Written for SLIME Luke Gorrie and others, rewritten by João
 Távora for SLY.
@@ -92,7 +92,7 @@ Távora for SLY.
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Getting-started">2. Getting started</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="#A-SLY-tutorial-for-SLIME-users">3. A SLY tutorial for SLIME users</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#A-SLY-tour-for-SLIME-users">3. A SLY tour for SLIME users</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top"><a href="#SLY_002dassisted-editing">4. SLY-assisted editing</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -118,7 +118,150 @@ Távora for SLY.
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Variable-Index">Variable and Concept Index</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-</table>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment"> &mdash; The Detailed Node Listing &mdash;
+
+Getting started
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Platforms">2.1 Supported Platforms</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Downloading">2.2 Downloading SLY</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Basic-setup">2.3 Basic setup</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Running">2.4 Running SLY</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Basic-customization">2.5 Basic customization</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Multiple-Lisps">2.6 Multiple Lisps</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Loading-Slynk-faster">2.7 Loading Slynk faster</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+SLY-assisted editing
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Evaluation">4.1 Evalutating code</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Compilation">4.2 Compiling functions and files</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Autodoc">4.3 Autodoc</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Completion">4.4 Auto-completion</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Semantic-indentation">4.5 Semantic indentation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Reader-conditionals">4.6 Reader conditional fontification</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Macro_002dexpansion">4.7 Macro-expansion commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+REPL: the &ldquo;top level&rdquo;
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#REPL-commands">5.1 REPL commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Input-Navigation">5.2 Input navigation</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#REPL-output-control">5.3 REPL output control</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Horizontal Functionality
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Finding-definitions">6.1 Navigating code</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Interactive-objects">6.2 Interactive objects</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Documentation">6.3 Documentation commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Multiple-connections">6.4 Multiple connections</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Disassembly">6.5 Disassembly commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Recovery">6.6 Abort/Recovery commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#User_002dinterface-conventions">6.7 User-interface conventions</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Jump to source with <code>M-.</code>
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Cross_002dreference">6.1.2 Cross-reference (<acronym>XREF</acronym>)</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+User-interface conventions
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Temporary-buffers">6.7.1 Temporary buffers</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Multithreading">6.7.2 Multithreading</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Key-bindings">6.7.3 Key bindings</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+The Debugger
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Examining-frames">8.1 Examining frames</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Restarts">8.2 Invoking restarts</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Frame-Navigation">8.3 Navigating between frames</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Stepping">8.4 Stepping</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Miscellaneous">8.5 Miscellaneous Commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Customization
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Emacs_002dside">9.1 Emacs-side</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Lisp_002dside-customization">9.2 Lisp-side (Slynk)</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Emacs-side
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Keymaps-and-keybindings">9.1.1 Keybindings</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Defcustom-variables">9.1.2 Defcustom variables</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Hooks">9.1.3 Hooks</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Lisp-side (Slynk)
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Communication-style">9.2.1 Communication style</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Other-configurables">9.2.2 Other configurables</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Tips and Tricks
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Connecting-to-a-remote-Lisp">10.1 Connecting to a remote Lisp</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Global-IO-Redirection">10.2 Globally redirecting all IO to the REPL</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Auto_002dSLY">10.3 Connecting to SLY automatically</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Connecting to a remote Lisp
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#Setting-up-the-Lisp-image">10.1.1 Setting up the Lisp image</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Setting-up-Emacs">10.1.2 Setting up Emacs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Setting-up-pathname-translations">10.1.3 Setting up pathname translations</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+Extensions
+
+</pre></th></tr><tr><td align="left" valign="top"><a href="#SLY-Stickers">11.1 SLY Stickers</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#SLY-Trace-Dialog">11.2 SLY Trace Dialog</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#TRAMP-Support">11.3 TRAMP</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Scratch-Buffer">11.4 Scratch Buffer</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><td align="left" valign="top"><a href="#Loading-Contribs">11.5 Loading Contrib Packages</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
+<tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
+</pre></th></tr></table>
 
 <hr size="1">
 <a name="Introduction"></a>
@@ -179,9 +322,9 @@ feature set brought together by a consistent user interface.
 </p>
 <p>To understand the differences between the two projects read
 <acronym>SLY</acronym>&rsquo;s <a href="https://github.com/joaotavora/sly/blob/master/NEWS.md">NEWS.md</a>
-file. For a hands-on approach to these differences you might want to
+file. For a hand-on approach to these differences you might want to
 jump to the section called
-<a href="#A-SLY-tutorial-for-SLIME-users">A SLY tutorial for SLIME users</a>
+<a href="#A-SLY-tour-for-SLIME-users">A SLY tour for SLIME users</a>
 </p>
 <hr size="6">
 <a name="Getting-started"></a>
@@ -191,7 +334,7 @@ jump to the section called
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Introduction" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -231,7 +374,7 @@ jump to the section called
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -290,7 +433,7 @@ commands (like &ldquo;restart frame&rdquo;).
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -335,7 +478,7 @@ and submit a <em>pull request</em>. Be sure to first read the
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -377,7 +520,7 @@ of more lines to your init file configuration:
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -413,7 +556,7 @@ these values, and and upon connection the <acronym>REPL</acronym> is established
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -466,7 +609,7 @@ the <code>sly-documentation-lookup</code> command.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -546,11 +689,11 @@ the connection is established. (See also <a href="#sly_002dconnected_002dhook">s
 <a name="Loading-Slynk-faster"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Multiple-Lisps" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Getting-started" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -603,7 +746,7 @@ want to update <acronym>SLY</acronym> or <acronym>SBCL</acronym>.  The steps to 
 </pre></td></tr></table>
 
 <hr size="6">
-<a name="A-SLY-tutorial-for-SLIME-users"></a>
+<a name="A-SLY-tour-for-SLIME-users"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Loading-Slynk-faster" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#SLY_002dassisted-editing" title="Next section in reading order"> &gt; </a>]</td>
@@ -620,15 +763,17 @@ want to update <acronym>SLY</acronym> or <acronym>SBCL</acronym>.  The steps to 
 <td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<a name="A-SLY-tutorial-for-SLIME-users-1"></a>
-<h1 class="chapter">3. A SLY tutorial for SLIME users</h1>
+<a name="A-SLY-tour-for-SLIME-users-1"></a>
+<h1 class="chapter">3. A SLY tour for SLIME users</h1>
 
 <p>The chances are that if you’re into Common Lisp, you already know
-<acronym>SLIME</acronym>, the project that originated <acronym>SLY</acronym>. Itself originating in
-older Emacs extensions <acronym>SLIM</acronym> and <acronym>ILISP</acronym>, <acronym>SLIME</acronym>
-has been around for at least a decade longer than <acronym>SLY</acronym>, so it seems
-like a reasonable to provide a quick, hands-on overview of the
-improvements of <acronym>SLY</acronym> over <acronym>SLIME</acronym>.
+about <acronym>SLIME</acronym>, the project that originated <acronym>SLY</acronym>. Itself originating
+in older Emacs extensions <acronym>SLIM</acronym> and <acronym>ILISP</acronym>, <acronym>SLIME</acronym>
+has been around for at least a decade longer than <acronym>SLY</acronym> and is quite
+an amazing IDE. It seems reasonable to assume that most Lispers have
+some experience with it, and perhaps it is an even more reasonable
+idea to provide, in the form of a quick tutorial, a hands-on overview
+of some of the improvements of <acronym>SLY</acronym> over <acronym>SLIME</acronym>.
 </p>
 <p>When you start <acronym>SLY</acronym> with <kbd>M-x sly</kbd> (see section <a href="#Basic-setup">Basic setup</a>) you are
 presented with a buffer called <code>*sly-mrepl for
@@ -636,94 +781,102 @@ presented with a buffer called <code>*sly-mrepl for
 of Lisp hacking sessions, and has been completely redesigned in
 <acronym>SLY</acronym>’s
 <code>sly-mrepl</code> extension. You can, for instance, spawn multiple REPL
-instances with <code>M-x sly-mrepl-new</code>, return objects and function
-calls into it (<kbd>M-RET</kbd> and <kbd>C-M-RET</kbd>), and use more a powerful
-reverse incremental history search (<kbd>C-r</kbd>). Anyway, this should be
-the scene after starting <acronym>SLY</acronym>.
+instances with <code>M-x sly-mrepl-new</code>, copy objects from most places
+directly into it (<kbd>M-RET</kbd> and <kbd>C-M-RET</kbd>), and use a much more
+powerful incremental history search engine(<kbd>C-r</kbd>). The REPL should
+always greet you after starting <acronym>SLY</acronym>.
 </p>
 <br><img src="images/tutorial-1.png" alt="images/tutorial-1"><br>
 
 <p>To showcase some of <acronym>SLY</acronym>’s new features, let’s pretend we want to
-hack an existing project loaded through Quicklisp. Let’s say we want
-to hack on Quicklisp itself, because we’re intrigued by the way it
-internally finds and loads systems. A good point to start is
-SLY’s <em>apropos</em> functionality to search for symbols based on word
-fragments that we suspect are related to the code we want to hack
-on. In the REPL, or in any Lisp buffer we type <kbd>C-c C-d C-z</kbd> and
-then type <code>quick.*sys</code>. Then we hit return (abreviated
-<code>RET</code>or <kbd>C-M</kbd>).
+hack an existing Lisp project. Let’s say we want to hack on <acronym>SLY</acronym>
+itself, or rather its Lisp server Slynk, because we’re intrigued by
+the way its &ldquo;flex&rdquo;-style completion works. Flex completion is a way
+of <kbd>TAB</kbd>-completing names based on very short snippets
+(see section <a href="#Completion">Auto-completion</a>), so that <code>m-v-b</code> guesses that we probably
+meant <code>multiple-value-bind</code>, and <code>domat</code> guesses to
+<code>cl-ppcre:do-matches</code>.
+</p>
+<p>A good point to start is SLY’s <em>apropos</em> functionality. This also
+allows us to search for symbols that we suspect are related to the
+code we want to hack on. In the REPL, or in any Lisp buffer, we
+type <kbd>C-c C-d C-z</kbd> and then type <code>sly.*flex</code>. Then we hit
+return (abreviated <code>RET</code>or <kbd>C-M</kbd>).
 </p>
 <p>That’s right, we’ve entered a <em>regular-expression</em> in the prompt,
 which is something that regular Lisp <em>apropos</em> search doesn’t
 normally allow. <acronym>SLY</acronym> does, but it needs access to a regular
 expression library, so by now you may or may have results in
 a <code>*sly-apropos*</code> buffer!  If you don’t, <acronym>SLY</acronym> hints at loading
-the very popular <code>cl-ppcre</code> system. So type <code>(ql:quickload
-cl-ppcre) RET</code> in the REPL, wait a moment, and try the <kbd>C-c C-d
-C-z</kbd> search again. If everything goes to plan, <acronym>SLY</acronym> should now have
-presented all of Lisp’s symbols that match the <code>quick.*sys</code>
-regular expression.
+the very popular <code>cl-ppcre</code> system. So assuming you have
+Quicklisp (you <em>do</em> know about Quicklisp, right?)
+type <code>(ql:quickload cl-ppcre) RET</code> in the REPL, wait a moment,
+and try the <kbd>C-c C-d C-z</kbd> search again. If everything goes to
+plan, <acronym>SLY</acronym> should now have presented all of Lisp’s symbols that
+match the <code>sly.*flex</code> regular expression.
 </p>
 <br><img src="images/tutorial-2.png" alt="images/tutorial-2"><br>
 
 <p>In the <code>apropos</code> buffer, let’s examine the
-symbol <code>QUICKLISP-CLIENT::FIND-SYSTEM-IN-INDEX</code> by right-clicking
-it with the mouse. We’ll be presented with a context menu with options
+symbol <code>SLY-COMPLETIONS:FLEX-COMPLETIONS</code> by right-clicking it
+with the mouse. We’ll be presented with a context menu with options
 for describing the symbol, inspecting it, or navigating to its source
 definition. In general, the Lisp-side objects that SLY presents &mdash;
-symbols, CLOS objects, function calls, etc... &mdash; are clickable
-buttons, following a relatively uniform interface. For now let’s
-navigate to the source definition of the symbol by choosing &ldquo;Go to
-source&rdquo; from the menu. We could also have just pressed <kbd>M-.</kbd> on
-the symbol, of course.
+symbols, CLOS objects, function calls, etc... &mdash; are right-clickable
+buttons with a context menu, all following a relatively uniform
+interface. For now, let’s navigate to the source definition of the
+symbol by choosing &ldquo;Go to source&rdquo; from the menu. We could also have
+just pressed <kbd>M-.</kbd> on the symbol, of course.
 </p>
 <p>In the Lisp source buffer that we landed on, probably named
-&lsquo;<tt>local-projects.lisp</tt>&rsquo;, let’s <em>trace</em> the newly found the
-<code>FIND-SYSTEM-IN-INDEX</code>. However, instead of using the regular
-<code>CL:TRACE</code>, we’ll use <acronym>SLY</acronym>’s &ldquo;Trace Dialog&rdquo; functionality. So
-let’s first type <kbd>C-c C-t</kbd> on the function’s name (or enter that
-in the minibuffer prompt). Afterwards, we can now open the trace
-dialog in a new window by typing <kbd>C-c T</kbd> (that’s a capital
-<code>T</code>), and we should already see our traced function under
-&ldquo;Traced specs&rdquo;. Thirdly, for good measure, let’s type <kbd>C-c C-t</kbd>
-to also trace the function <code>QL:QUICKLOAD</code>.
+&lsquo;<tt>sly-completion.lisp</tt>&rsquo;, let’s <em>trace</em> the newly found
+function <code>SLY-COMPLETIONS:FLEX-COMPLETIONS</code>. However, instead of
+using the regular <code>CL:TRACE</code>, we’ll use <acronym>SLY</acronym>’s &ldquo;Trace Dialog&rdquo;
+functionality. So let’s first type <kbd>C-c C-t</kbd> on the function’s
+name (or enter that in the minibuffer prompt). Afterwards, we can now
+open the trace dialog in a new window by typing <kbd>C-c T</kbd> (that’s a
+capital <code>T</code>), and we should already see our traced function under
+&ldquo;Traced specs&rdquo;. Thirdly, for good measure, let’s also trace the
+nearby function <code>SLY-COMPLETIONS::FLEX-SCORE</code> by also
+typing <kbd>C-c C-t</kbd> on its name, or just entering it in the
+minibuffer prompt.
 </p>
-<p>Now let’s return to the REPL by switching to the <code>*sly-mrepl ...</code>
-buffer in another window (use
-Emacs’s <code>switch-to-buffer-other-window</code> if you’re at a loss for
-ways to do this). In the REPL, let’s load <code>cl-ppcre</code> again. But
-no need type <code>(ql:quickload cl-ppcre) RET</code> again, because this
-<acronym>REPL</acronym> features backward i-search, remember? Just typing <code>C-r
-pcre RET RET</code> should repeat the desired command.
+<p>Now let’s return to the REPL by switching to the REPL
+buffer <code>*sly-mrepl ...</code> buffer. In the REPL, let’s try to
+complete something by typing just <code>desbind</code> and then typing
+<kbd>TAB</kbd>. We should see a window popup including the desired
+completion <code>destructuring-bind</code> (it should be the top match). We
+could select that completion with <kbd>RET</kbd> or <kbd>TAB</kbd>, or select
+some other one or type <kbd>C-g</kbd> to dismiss the completion window: it
+doesn’t matter much since we just wanted to test the completion system
+itself, not write any actual <code>destructuring-bind</code> expression.
 </p>
-<p>Now we switch back to the Trace Dialog, and press <kbd>G</kbd> (again,
-capital <code>G</code>). We should now see call graph of our two traced
-functions.
+<p>Remember the traced functions? Let’s switch back to the Trace Dialog
+with <kbd>C-c T</kbd> again and press <kbd>G</kbd> there (again, capital
+<code>G</code>). We should now see call graph of many calls to our two
+traced functions.
 </p>
 <br><img src="images/tutorial-3.png" alt="images/tutorial-3"><br>
 
-<p>One of the entries probably reads something like:
-</p><table><tr><td>&nbsp;</td><td><pre class="example">14 `--- quicklisp-client::find-system-in-index
-          &gt; &quot;cl-ppcre&quot;
-          &gt; #P&quot;/home/capitaomorte/quicklisp/local-projects/system-index.txt&quot;
-          &lt; NIL
-</pre></td></tr></table>
-
 <p>We can later learn more about the <a href="#SLY-Trace-Dialog">SLY Trace Dialog</a>, but for now
 let’s again pretend we’re very intrigued by this, because we expected
-this function to return something other than <code>NIL</code>, and we want
-to surgically re-run that function with those very same arguments. For
-this, let’s right-click the function with the mouse and select &ldquo;Copy
-call to REPL&rdquo;. As an alternative we can press <kbd>C-M-RET</kbd> on
-it. Here we are automatically transported to the REPL again, where the
-desired function call has already been typed out for us at the command
-prompt, awaiting confirmation <kbd>RET</kbd>. The call may look strange,
-though:
+the function <code>FLEX-SCORE</code> to return a wildly different score for
+<code>COMMON-LISP:DESTRUCTURING-BIND</code>. We want to surgically re-run
+that function with those very same arguments. To do this, let’s find
+the function call in the Trace Dialog window, right-click it with the
+mouse and select &ldquo;Copy call to REPL&rdquo;. As an alternative we can
+press <kbd>C-M-RET</kbd> on it. When we do this we are automatically
+transported to the REPL again, where the desired function call has
+already been typed out for us at the command prompt, awaiting
+confirmation <kbd>RET</kbd>. The call may look strange, though:
 </p>
-<table><tr><td>&nbsp;</td><td><pre class="example">; The actual arguments passed to trace 14
-&quot;cl-ppcre&quot;
-#P&quot;/home/capitaomorte/quicklisp/local-projects/system-index.txt&quot;
-CL-USER&gt; (quicklisp-client::find-system-in-index #v4:0 #v4:1)
+<table><tr><td>&nbsp;</td><td><pre class="example">; The actual arguments passed to trace 15
+&quot;desbind&quot;
+&quot;COMMON-LISP:DESTRUCTURING-BIND&quot;
+(12 13 14 26 27 28 29)
+SLYNK-COMPLETION&gt; (slynk-completion::flex-score #v1:0 #v1:1 #v1:2)
+0.003030303 (0.30303028%)
+SLYNK-COMPLETION&gt; 
 </pre></td></tr></table>
 
 <br><img src="images/tutorial-4.png" alt="images/tutorial-4"><br>
@@ -743,36 +896,37 @@ using <kbd>M-.</kbd> again (or just open the &lsquo;<tt>local-projects.lisp</tt>
 buffer that you probably still have open). The function’s code might
 look like this:
 </p>
-<table><tr><td>&nbsp;</td><td><pre class="example">(defun find-system-in-index (system index-file)
-  &quot;If any system pathname in INDEX-FILE has a pathname-name matching
-SYSTEM, return its full pathname.&quot;
-  (with-open-file (stream index-file)
-    (loop for namestring = (read-line stream nil)
-          while namestring
-          when (string= system (pathname-name namestring))
-          return (or (probe-file (merge-pathnames namestring index-file))
-                     ;; If the indexed .asd file doesn't exist anymore
-                     ;; then regenerate the index and restart the search.
-                     (find-system-in-index system
-                       (make-system-index
-                         (directory-namestring
-                           index-file)))))))
+<table><tr><td>&nbsp;</td><td><pre class="example">(defun flex-score (pattern string indexes)
+  &quot;Score the match of PATTERN on STRING.
+INDEXES as calculated by FLEX-MATCHES&quot;
+  ;; FIXME: hideously naive scoring
+  (declare (ignore pattern))
+  (float
+   (/ 1
+      (* (length string)
+         (max 1
+              (reduce #'+
+                      (loop for (a b) on indexes
+                            while b
+                            collect (- b a 1))))))))
 </pre></td></tr></table>
 
 <p>Before trying out the function again, let’s place some &ldquo;stickers&rdquo; on
 it and recompile. Stickers are a form of non-intrusive instrumentation
 that does the work of <code>print</code> or <code>(format t ...)</code>)
 statements that developers normally add to code. You can read more in
-section <a href="#SLY-Stickers">SLY Stickers</a> but for now think of them as colorful
-labels to place on s-exp’s. Let’s place a three or four here. On the
-first line of the loop, place your cursor on the first letter of
-the <code>stream</code> symbol and press <kbd>C-c C-s C-s</kbd>. Now to the same
-for <code>(read-line...)</code>, <code>(pathname-name...)</code>  and
-<code>(string=...)</code> (if you want, you can place stickers
-for every evaluated expression in <code>FIND-SYSTEM-IN-INDEX</code>).  Now
-let’s recompile the definition with <kbd>C-c C-c</kbd>. The minibuffer
-should note something about stickers being &ldquo;armed&rdquo; and our buffer
-should now look something like this:
+section <a href="#SLY-Stickers">SLY Stickers</a> of this manual, but for now think of them
+as colorful labels to place on s-exp’s. Let’s place a bunch here. On
+the last line, place your cursor on the first open parenthesis of that
+line (the opening parenthesis of the expression <code>(- b a 1)</code>) and
+press <kbd>C-c C-s C-s</kbd>. Now do the same for the symbol <code>indexes</code>
+a couple of lines above. Again, the same for the expressions
+<code>(loop...)</code>, <code>(reduce...)</code>, <code>(max...)</code>,
+<code>(length...)</code>, <code>(*...)</code>, <code>(/... )</code> and
+<code>(float...)</code> (You could have done this in any order, by the way).
+Now let’s recompile the definition with <kbd>C-c C-c</kbd>. The minibuffer
+should note something about stickers being &ldquo;armed&rdquo; and our function
+should now look like a rainbow in blue.
 </p>
 <br><img src="images/tutorial-5.png" alt="images/tutorial-5"><br>
 
@@ -780,40 +934,42 @@ should now look something like this:
 (that’s <kbd>C-c</kbd> followed by &ldquo;tilde&rdquo;) to do so. This syncs the
 REPL’s local package and local directory to the Lisp file that we
 we’re visiting, which is generally convenient when hacking on a
-system. Now, to re-run the instrumented function, perhaps using
-the <kbd>C-r find RET RET</kbd> we’ve just learned to search the
-history. (Actually, before we do this, we should
-probably <em>actually have</em> some Quicklisp systems in the
-directory &lsquo;<tt>$HOME/quicklisp/local-projects/</tt>&rsquo; since that makes the
-results more interesting, so why don’t you switch to a shell git-clone
-a couple there now. TODO: This is a point of improvement in this
-tutorial.)
+system. Now, to re-run newly the instrumented function, by calling it
+with the same arguments. But no need to type all that again, because
+this REPL supports reverse i-search, remember? So just type in
+something like <kbd>C-r sco</kbd> to search history backwards and arrive at
+the function call copied to the REPL from the Trace Dialog
+earlier. Type <kbd>RET</kbd> once to confirm that call, and <kbd>RET</kbd> again
+to evaluate it. Because those <code>#v...</code> backreferences are still
+trained specifically on those very same function arguments, you can be
+sure that the function call is equivalent.
 </p>
 <p>We can now use the <kbd>C-c C-s C-r</kbd> to <em>replay</em>, or walk you
 through the sticker recordings of this last function call. A separate
-navigation window pops up where we can see the values that each
-sticker <code>eval</code>’ed to each time. We can navigate recordings
-with <kbd>n</kbd> and <kbd>p</kbd>, as well as do the usual things like
-inspecting and return objects to the REPL. If you need help, toggle
-help by typing <kbd>h</kbd>. When we’re done in this window, we
-press <kbd>q</kbd> to quit.
+navigation window called <code>*sly-stickers-replay*</code> pops up where we
+can see the values that each sticker <code>eval</code>’ed to each time. We
+can navigate recordings with <kbd>n</kbd> and <kbd>p</kbd>, as well as do the
+usual things like inspecting and return objects to the REPL. If you
+need help, toggle help by typing <kbd>h</kbd>. There are lots of options
+here for navigating stickers, ignoring some stickers, etc. When we’re
+done in this window, we press <kbd>q</kbd> to quit.
 </p>
 <br><img src="images/tutorial-6.png" alt="images/tutorial-6"><br>
 
-<p>Finally, we’re finished debugging <code>FIND-SYSTEM-IN-INDEX</code>. Even
-though stickers don’t get saved to the file in any way, we decide
-we’re not interested in them anymore. So let’s open the &ldquo;SLY&rdquo; menu
-in the menu bar, find the &ldquo;Delete stickers from top-level form&rdquo;
-option under the &ldquo;Stickers&rdquo; submenu, and click it. Alternatively,
-we could have typed <kbd>C-u C-c C-s C-s</kbd>..
+<p>Finally, we declare that we’re finished debugging
+<code>FLEX-MATCHES</code>. Even though stickers don’t get saved to the file
+in any way, we decide we’re not interested in them anymore. So let’s
+open the &ldquo;SLY&rdquo; menu in the menu bar, find the &ldquo;Delete stickers from
+top-level form&rdquo; option under the &ldquo;Stickers&rdquo; submenu, and click
+it. Alternatively, we could have typed <kbd>C-u C-c C-s C-s</kbd>.
 </p>
 <hr size="6">
 <a name="SLY_002dassisted-editing"></a>
 <table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Previous section in reading order"> &lt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Evaluation" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#A-SLY-tutorial-for-SLIME-users" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#A-SLY-tour-for-SLIME-users" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -4513,8 +4669,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-_003e-1"><code>&gt;</code></a></td><td valign="top"><a href="#Frame-Navigation">8.3 Navigating between frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-A">A</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-A"><code>A</code></a></td><td valign="top"><a href="#Miscellaneous">8.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-a"><code>a</code></a></td><td valign="top"><a href="#Restarts">8.2 Invoking restarts</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-A"><code>A</code></a></td><td valign="top"><a href="#Miscellaneous">8.5 Miscellaneous Commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-B">B</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-B"><code>B</code></a></td><td valign="top"><a href="#Miscellaneous">8.5 Miscellaneous Commands</a></td></tr>
@@ -4594,8 +4750,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-e-1"><code>e</code></a></td><td valign="top"><a href="#Examining-frames">8.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-G">G</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.7 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">11.2 SLY Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.7 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-1"><code>g</code></a></td><td valign="top"><a href="#Multiple-connections">6.4 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-2"><code>g</code></a></td><td valign="top"><a href="#Inspector">7. The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#SLY-Trace-Dialog">11.2 SLY Trace Dialog</a></td></tr>
@@ -4652,8 +4808,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-T">T</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-t"><code>t</code></a></td><td valign="top"><a href="#Examining-frames">8.1 Examining frames</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">4.4 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB"><code>TAB</code></a></td><td valign="top"><a href="#REPL-commands">5.1 REPL commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">4.4 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB-1"><code>TAB</code></a></td><td valign="top"><a href="#Inspector">7. The Inspector</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-V">V</a></th><td></td><td></td></tr>
@@ -5058,7 +5214,7 @@ using that port number instead
     <li><a name="toc-Multiple-Lisps-1" href="#Multiple-Lisps">2.6 Multiple Lisps</a></li>
     <li><a name="toc-Loading-Slynk-faster-1" href="#Loading-Slynk-faster">2.7 Loading Slynk faster</a></li>
   </ul></li>
-  <li><a name="toc-A-SLY-tutorial-for-SLIME-users-1" href="#A-SLY-tutorial-for-SLIME-users">3. A SLY tutorial for SLIME users</a></li>
+  <li><a name="toc-A-SLY-tour-for-SLIME-users-1" href="#A-SLY-tour-for-SLIME-users">3. A SLY tour for SLIME users</a></li>
   <li><a name="toc-SLY_002dassisted-editing-1" href="#SLY_002dassisted-editing">4. SLY-assisted editing</a>
   <ul class="toc">
     <li><a name="toc-Evalutating-code" href="#Evaluation">4.1 Evalutating code</a></li>
@@ -5162,7 +5318,7 @@ using that port number instead
 </tr></table>
 <h1>About This Document</h1>
 <p>
-  This document was generated by <em>Joao Tavora</em> on <em>September 13, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao Tavora</em> on <em>September 15, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -5264,7 +5420,7 @@ using that port number instead
 <hr size="1">
 <p>
  <font size="-1">
-  This document was generated by <em>Joao Tavora</em> on <em>September 13, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao Tavora</em> on <em>September 15, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
  </font>
  <br>
 
