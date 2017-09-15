@@ -947,6 +947,11 @@ Non-interactively, set the `:recording' slot of
                  (sly-stickers--find-and-flash
                   (sly-stickers--recording-sticker-id rec))))))
           (interactive
+           ;; If we were called interactively and got an error, it's
+           ;; probably because there aren't any recordings, so reset
+           ;; data
+           ;;
+           (setf (sly-stickers--replay-data) nil)
            (when (eq interactive 'sly-error)
              (sly-error "%s for %s reported an error: %s"
                         'slynk-stickers:search-for-recording
