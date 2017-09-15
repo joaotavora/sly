@@ -79,19 +79,7 @@ Returns a list of completions with package qualifiers if needed."
 
 
 ;;; Fancy "flex" completion
-;;; 
-(defun score-completion (indexes short full)
-  (declare (ignore short))
-  (float
-   (/ 1
-      (* (length full)
-         (max 1
-              (reduce #'+
-                      (loop for (a b) on indexes
-                            while b
-                            collect (- b a 1))))))))
-
-
+;;;
 (defmacro collecting ((&rest collectors) &body body) ; lifted from uiop
   "COLLECTORS should be a list of names for collections.  A collector
 defines a function that, when applied to an argument inside BODY, will
@@ -111,55 +99,102 @@ Returns two values: \(A B C\) and \(1 2 3\)."
          (values ,@(mapcar #'(lambda (v) `(reverse ,v)) vars))))))
 
 (defun to-chunks (string indexes)
+  "Return chunks of STRING in as specified by INDEXES."
+  ;; (to-chunks "farfalhini" '(1 2 3 4))           => ((1 "arfa"))
+  ;; (to-chunks "farfalhini" '(1 3 4))             => ((1 "a") (3 "fa"))
+  ;; (to-chunks "farfalhini" '(1 2 3 4 5 7 8 9))   => ((1 "arfal") (7 "ini"))
+  ;; (to-chunks "farfalhini" '(1 2 3 4 5 6 7 8 9)) => ((1 "arfalhini"))
   (reverse (reduce (lambda (chunk-list number)
-                     (if (and chunk-list
-                              (= (1+ (first (first chunk-list)))
-                                 number))
-                         (progn (setf (second (first chunk-list))
-                                      (format nil "~a~c" (second (first chunk-list))
-                                              (aref string number)))
-                                chunk-list)
-                         (cons (list number (format nil "~c" (aref string number)))
-                               chunk-list)))
+                     (let ((latest-chunk (car chunk-list)))
+                       (if (and latest-chunk
+                                (= (+
+                                    (length (second latest-chunk))
+                                    (first latest-chunk))
+                                   number))
+                           (progn (setf (second latest-chunk)
+                                        (format nil "~a~c" (second latest-chunk)
+                                                (aref string number)))
+                                  chunk-list)
+                           (cons (list number (format nil "~c" (aref string number)))
+                                 chunk-list))))
                    indexes
                    :initial-value nil)))
 
 (defun flex-matches (pattern string)
-  (let ((indexes (loop for char across pattern
-        for from = 0 then (1+ pos)
-        for pos = (position char string :start from :test #'char-equal)
-        unless pos
-          return nil
-        collect pos)))
-    indexes))
+  "Return non-NIL if PATTERN flex-matches STRING.
+In case of a match, return two values:
 
-(defun collect-maybe (collector pattern string symbol)
-  (let ((indexes (flex-matches pattern string)))
+A list of non-negative integers which are the indexes of the
+characters in PATTERN as found consecutively in STRING. This list
+measures in length the number of characters in PATTERN.
+
+A floating-point score. Higher scores for better matches."
+  (let ((indexes (loop for char across pattern
+                       for from = 0 then (1+ pos)
+                       for pos = (position char string :start from :test #'char-equal)
+                       unless pos
+                         return nil
+                       collect pos)))
+    (values indexes
+            (and indexes
+                 (float
+                  (/ 1
+                     (* (length string)
+                        (max 1
+                             (reduce #'+
+                                     (loop for (a b) on indexes
+                                           while b
+                                           collect (- b a 1)))))))))))
+
+(defun collect-if-matches (collector pattern string symbol)
+  "Make and collect a match with COLLECTOR if PATTERN matches STRING.
+A match is a list (STRING SYMBOL INDEXES SCORE)."
+  (multiple-value-bind (indexes score)
+      (flex-matches pattern string)
     (when indexes
       (funcall collector
                (list string
                      symbol
                      indexes
-                     (score-completion indexes
-                                       pattern
-                                       string))))))
+                     score)))))
 
-(defun sort-by-score (what)
-  (sort what #'> :key #'fourth))
+(defun sort-by-score (matches)
+  "Sort MATCHES by SCORE, highest score first.
+
+Matches are produced by COLLECT-IF-MATCHES (which see)."
+  (sort matches #'> :key #'fourth))
 
 (defun keywords-matching (pattern)
+  "Find keyword symbols flex-matching PATTERN.
+Return an unsorted list of matches.
+
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
          (do-symbols (s (find-package :keyword))
-           (collect-maybe #'collect pattern (format nil ":~a" (symbol-name s)) s)))))
+           (collect-if-matches #'collect pattern (format nil ":~a" (symbol-name s)) s)))))
 
 (defun accessible-matching (pattern package)
+  "Find symbols flex-matching PATTERN accessible without package-qualification.
+Return an unsorted list of matches.
+
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (and (not (find #\: pattern))
        (collecting (collect)
          (do-symbols (s package)
-           (collect-maybe #'collect pattern (symbol-name s) s)))))
+           (collect-if-matches #'collect pattern (symbol-name s) s)))))
 
 (defun qualified-matching (pattern package)
+  "Find package-qualified symbols flex-matching PATTERN.
+Return, as two values, a set of matches for external symbols,
+package-qualified using one colon, and another one for internal
+symbols, package-qualified using two colons.
+
+The matches in the two sets are not guaranteed to be in their final
+order, i.e. they are not sorted (except for the fact that
+qualifications with shorter package nicknames are tried first).
+
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (declare (ignore package))
   (and (not (char= (aref pattern 0) #\:))
        (collecting (collect-external collect-internal)
@@ -173,7 +208,7 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                (when (and (not (excluded-from-searches-p s))
                           ;; keyword symbols are handled explicitly by
                           ;; `keyword-matching', so don't repeat them here.
-                          ;; 
+                          ;;
                           (and (not (eq (find-package :keyword)
                                         symbol-package))))
                  (loop ;; TODO: add package-local nicknames: `package' might
@@ -185,52 +220,51 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                        for external-p = (slynk::symbol-external-p s)
                        do
                           (cond (external-p
-                                 (collect-maybe #'collect-external
-                                                pattern
-                                                (format nil "~a:~a"
-                                                        nickname
-                                                        (symbol-name s))
-                                                s))
+                                 (collect-if-matches #'collect-external
+                                                     pattern
+                                                     (format nil "~a:~a"
+                                                             nickname
+                                                             (symbol-name s))
+                                                     s))
                                 (t
-                                 (collect-maybe #'collect-internal
-                                                pattern
-                                                (format nil "~a::~a"
-                                                        nickname
-                                                        (symbol-name s))
-                                                s)))))))))))
+                                 (collect-if-matches #'collect-internal
+                                                     pattern
+                                                     (format nil "~a::~a"
+                                                             nickname
+                                                             (symbol-name s))
+                                                     s)))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
-  "Return \"flex\"completions for PATTERN.
-Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
-\(STRING SCORE CHUNKS CLASSIFICATION-STRING)."
+  "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
+  Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
+  \(STRING SCORE CHUNKS CLASSIFICATION-STRING)."
   (when (plusp (length pattern))
-    (let ((convert (if (every #'common-lisp:upper-case-p pattern)
-                       #'string-upcase
-                       #'string-downcase)))
-      (list (loop 
-              with package = (guess-buffer-package package-name)
-              for (string symbol indexes score)
-                in
-                (remove-duplicates
-                 (loop with (external internal)
-                         = (multiple-value-list (qualified-matching pattern package))
-                       for e in (append (sort-by-score
-                                         (keywords-matching pattern))
-                                        (sort-by-score
-                                         (append (accessible-matching pattern package)
-                                                 external))
-                                        (sort-by-score
-                                         internal))
-                       for i upto limit
-                       collect e)
-                 :from-end t
-                 :test #'string=
-                 :key #'first)
-              collect
-              (list (funcall convert string)
-                    score
-                    (to-chunks string indexes)
-                    (slynk::symbol-classification-string symbol)))
-            nil))))
+    (list (loop
+            with package = (guess-buffer-package package-name)
+            for (string symbol indexes score)
+              in
+              (remove-duplicates
+               (loop with (external internal)
+                       = (multiple-value-list (qualified-matching pattern package))
+                     for e in (append (sort-by-score
+                                       (keywords-matching pattern))
+                                      (sort-by-score
+                                       (append (accessible-matching pattern package)
+                                               external))
+                                      (sort-by-score
+                                       internal))
+                     for i upto limit
+                     collect e)
+               :from-end t
+               :test #'string=
+               :key #'first)
+            collect
+            (list (if (every #'common-lisp:upper-case-p pattern)
+                      (string-upcase string)
+                      (string-downcase string))
+                  score
+                  (to-chunks string indexes)
+                  (slynk::symbol-classification-string symbol)))
+          nil)))
 
 (provide :slynk-completion)
