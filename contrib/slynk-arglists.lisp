@@ -441,7 +441,7 @@ Return three values: keyword, argument name, default arg."
            (intern (etypecase arg
                      (symbol (symbol-name arg))
                      (arglist-dummy (arglist-dummy.string-representation arg)))
-                   keyword-package)))
+                   +keyword-package+)))
     (cond ((or (symbolp arg) (arglist-dummy-p arg))
            (make-keyword-arg (intern-as-keyword arg) arg nil))
           ((and (consp arg)
@@ -467,7 +467,7 @@ Return three values: keyword, argument name, default arg."
                  (keyword-arg.default-arg arg))
            (list keyword/name))))
     ((eql (intern (symbol-name (keyword-arg.arg-name arg))
-                  keyword-package)
+                  +keyword-package+)
           (keyword-arg.keyword arg))
      (if (keyword-arg.default-arg arg)
          (list (keyword-arg.arg-name arg)
@@ -719,7 +719,7 @@ reference packages."
 		(t (string<= (package-name p1) (package-name p2))))))))
 
 (defun sort-extra-keywords (kwds)
-  (stable-sort kwds (make-package-comparator (list keyword-package *package*))
+  (stable-sort kwds (make-package-comparator (list +keyword-package+ *package*))
                :key (compose #'symbol-package #'keyword-arg.keyword)))
 
 (defun keywords-of-operator (operator)

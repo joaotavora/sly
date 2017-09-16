@@ -9,6 +9,12 @@
    #:flex-completions
    #:simple-completions))
 
+;; for testing package-local nicknames
+#+sbcl
+(defpackage :slynk-completion-local-nicknames-test
+  (:use #:cl)
+  (:local-nicknames (#:api #:slynk-api)))
+
 (in-package :slynk-completion)
 
 
@@ -26,7 +32,7 @@
 (defun all-simple-completions (prefix package)
   (multiple-value-bind (name pname intern) (tokenize-symbol prefix)
     (let* ((extern (and pname (not intern)))
-	   (pkg (cond ((equal pname "") keyword-package)
+	   (pkg (cond ((equal pname "") +keyword-package+)
                       ((not pname) (guess-buffer-package package))
                       (t (guess-package pname))))
 	   (test (lambda (sym) (prefix-match-p name (symbol-name sym))))
@@ -205,48 +211,44 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
   (and
    (not (char= (aref pattern 0) #\:))
    (let ((package-local-nicknames
-           (slynk-backend:package-local-nicknames home-package))
-         (sorted-nicknames-by-package (make-hash-table)))
-     (flet ((sorted-nicknames (package)
-              (or (gethash package sorted-nicknames-by-package)
-                  (setf (gethash package sorted-nicknames-by-package)
-                        (sort (append
-                               (loop for (short . full) in
-                                     package-local-nicknames
-                                     when (eq (find-package full)
-                                              package)
-                                       collect short)
-                               (copy-list (package-nicknames package))
-                               (list (package-name package)))
-                              #'<
-                              :key #'length)))))
-       (collecting (collect-external collect-internal)
-         (do-all-symbols (s)
-           (slynk-backend:when-let (symbol-package (symbol-package s))
-             (when (and (not (excluded-from-searches-p s))
-                        ;; keyword symbols are handled explicitly by
-                        ;; `keyword-matching', so don't repeat them here.
-                        ;;
-                        (and (not (eq (find-package :keyword)
-                                      symbol-package))))
-               (loop
-                 for nickname in (sorted-nicknames symbol-package)
-                 for external-p = (slynk::symbol-external-p s)
-                 do
-                    (cond (external-p
-                           (collect-if-matches #'collect-external
-                                               pattern
-                                               (format nil "~a:~a"
-                                                       nickname
-                                                       (symbol-name s))
-                                               s))
-                          (t
-                           (collect-if-matches #'collect-internal
-                                               pattern
-                                               (format nil "~a::~a"
-                                                       nickname
-                                                       (symbol-name s))
-                                               s))))))))))))
+           (slynk-backend:package-local-nicknames home-package)))
+     (collecting (collect-external collect-internal)
+       (loop
+         with use-list = (package-use-list home-package)
+         for package in (list-all-packages)
+         for sorted-nicknames = (and (not (member package
+                                                  (list home-package
+                                                        +keyword-package+)))
+                                     (sort (append
+                                            (loop for (short . full) in
+                                                  package-local-nicknames
+                                                  when (eq (find-package full)
+                                                           package)
+                                                    collect short)
+                                            (copy-list (package-nicknames package))
+                                            (list (package-name package)))
+                                           #'<
+                                           :key #'length))
+         when sorted-nicknames
+           do (do-symbols (s package)
+                (let ((status (nth-value 1 (find-symbol (symbol-name s) package))))
+                  (cond ((and (eq status :external)
+                              (not (member (symbol-package s) use-list)))
+                         (loop for nickname in sorted-nicknames
+                               do (collect-if-matches #'collect-external
+                                                      pattern
+                                                      (format nil "~a:~a"
+                                                              nickname
+                                                              (symbol-name s))
+                                                      s)))
+                        ((eq status :internal)
+                         (loop for nickname in sorted-nicknames
+                               do (collect-if-matches #'collect-internal
+                                                      pattern
+                                                      (format nil "~a::~a"
+                                                              nickname
+                                                              (symbol-name s))
+                                                      s)))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.

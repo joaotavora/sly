@@ -82,7 +82,7 @@
 (defconstant cl-package (find-package :cl)
   "The COMMON-LISP package.")
 
-(defconstant keyword-package (find-package :keyword)
+(defconstant +keyword-package+ (find-package :keyword)
   "The KEYWORD package.")
 
 (defconstant default-server-port 4005
@@ -1872,7 +1872,7 @@ Return the symbol and a flag indicating whether the symbols was found."
   (multiple-value-bind (sname pname internalp)
       (tokenize-symbol-thoroughly string)
     (when sname
-     (let ((package (cond ((string= pname "") keyword-package)
+     (let ((package (cond ((string= pname "") +keyword-package+)
                           (pname              (find-package pname))
                           (t                  package))))
        (if package
@@ -4234,7 +4234,7 @@ Collisions are caused because package information is ignored."
                ;; packages
                ;;
                #:cl-package
-               #:keyword-package
+               #:+keyword-package+
                #:guess-package
                #:guess-buffer-package
                ;; symbols
