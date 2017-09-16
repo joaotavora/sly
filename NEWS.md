@@ -1,19 +1,66 @@
 Upcoming SLY 1.0.0-beta-3 (Somewhere 2017)
 -----------------------------------------
 
+### Completely rewritten manual
+
+Manual has been reviewed from top to bottom and should be a much nicer
+read. *still needs quite some proofreading*
+
+A new chapter called "A SLY tour for SLIME users" figures prominently
+in the top-level.
+
+Presently no major omissions (*except maybe for multiple inspectors*).
+Reorganized nodes into a new structure not so focused on core vs
+contribs. Deleted stale sections. REPL section heavily rewritten to
+explain output types and backreferences.
+
+### Improved `sly-stickers` contrib
+
+The UI for SLY Stickers, particularly for M-x sly-stickers-replay has
+been cleanup up. Upon entering the replay mode, SLY may ask user if
+she wants to delete the previous recordings, a commonly forgotten and
+useful pre-step (an idea by Javier Olaechea, github #91), Also, window
+management is less random.
+
+### The .swankrc and .swank.lisp are not loaded by default
+
+A problem encountered by Zach Beane.
+
+### Window management with M-. has been fixed
+
+When finding the definition of a generic function with M-., an *xref*
+buffer pops up in a (possibly reused) window, showing code
+locations. When selecting one of those locations, make sure to honor
+the original intent of M-. of switching buffers in the original
+window. Quit the *xref* window should fully restore the previous
+window configuration. Thanks to Michael Fiano for insisting on what is
+indubitably the correct behavior (github #123).
+
+### Travis CI infrastructure has been revamped
+
+Depends on `roswell` and `emacs-travis` instead of `cl-travis` and
+`apt`, respectively. Thus no longer needs travis sudo and uses
+directory caching, resulting in much faster builds.
+
 ### Redesigned completion mechanism
 
 The `sly-fuzzy` and `sly-c-p-c` contribs are gone, but the choice
 between "simple" and "flex/fuzzy/scatter" completion remains in place
-(see the `sly-complete-symbol-function`). Fuzzy completion also been
-redesigned and enhanced to include the package designators in the
-string to search so you can search other package's symbols even when
-outside a package.
+(see the `sly-complete-symbol-function`).
 
+Fuzzy completion also been redesigned and enhanced to include the
+package designators in the string to search so you can search other
+package's symbols even when outside a package.
+
+Package-local nicknames are understood if the implementation accepts
+them.
+
+```
 CL-USER> (quiloa)         ->  (ql:quickload)
-CL-USER> (scan)         ->    (ppcre:scan)
+CL-USER> (scan)           ->    (ppcre:scan)
 CL-USER> (setf locadirs)  ->  (setf ql:*local-project-directories*)
 CL-USER> (mvbind)         ->  (multiple-value-bind)
+```
 
 The UI was also redesigned and is now invoked via built-in
 `completion-at-point` mechanism for a more consistent UI with the rest
@@ -28,7 +75,7 @@ for documentation and example.
 
 ### Loading contribs is a more robust process
 
-If the SLYNK-side of a contrib fails to load for whatever
+If the Slynk-side of a contrib fails to load for whatever
 reason, a CONTINUE restart is provided. On the SLY side, the user
 can choose to disable that contrib temporarily.
 
