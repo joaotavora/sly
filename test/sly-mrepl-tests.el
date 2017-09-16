@@ -37,15 +37,16 @@
 
 (defmacro sly-mrepl-tests--with-basic-repl-setup (&rest body)
   (declare (debug (&rest form)))
-  `(with-current-buffer (sly-mrepl-new (sly-current-connection)
-                                       "test-only-repl")
-     (unwind-protect
-         (progn
-           (sly-mrepl-tests--assert-prompt)
-           (sly-mrepl-tests--assert-dedicated-stream)
-           ,@body)
-       (unless sly-mrepl-tests--debug
-         (kill-buffer (current-buffer))))))
+  `(let ((sly-buffer-package "COMMON-LISP-USER"))
+     (with-current-buffer (sly-mrepl-new (sly-current-connection)
+                                         "test-only-repl")
+       (unwind-protect
+           (progn
+             (sly-mrepl-tests--assert-prompt)
+             (sly-mrepl-tests--assert-dedicated-stream)
+             ,@body)
+         (unless sly-mrepl-tests--debug
+           (kill-buffer (current-buffer)))))))
 
 (defun sly-mrepl-tests--current-input-string ()
   (buffer-substring-no-properties (sly-mrepl--mark) (point-max)))
@@ -74,21 +75,22 @@
 
   (define-sly-ert-test repl-completion-choose-candidates ()
     (sly-mrepl-tests--with-basic-repl-setup
-     (insert "'(mvbind)")
-     (backward-char 1)
-     (ert-simulate-command '(completion-at-point))
-     (should (get-buffer-window "*sly-completions*"))
-     (ert-simulate-command '(sly-choose-completion))
-     (should (string= "'(multiple-value-bind)"
-                      (sly-mrepl-tests--current-input-string)))
-     (backward-sexp) (kill-sexp) (insert "mvbind")
-     (ert-simulate-command '(completion-at-point))
-     (ert-simulate-command '(sly-next-completion 1))
-     (ert-simulate-command '(sly-choose-completion))
-     ;; FIXME this part is very brittle since I don't know if I
-     ;; shouldn't be filtering this duplicate
-     ;; 
-     (should (string= "'(cl:multiple-value-bind)"
-                      (sly-mrepl-tests--current-input-string))))))
+     (let ((symbol-snippet "multiple-value-t"))
+       (insert "'()")
+       (backward-char 1)
+       (insert symbol-snippet)
+       (ert-simulate-command '(completion-at-point))
+       (should (get-buffer-window "*sly-completions*"))
+       (ert-simulate-command '(sly-choose-completion))
+       (should (string= "'(multiple-value-setq)"
+                        (sly-mrepl-tests--current-input-string)))
+       (backward-sexp)
+       (kill-sexp)
+       (insert symbol-snippet)
+       (ert-simulate-command '(completion-at-point))
+       (ert-simulate-command '(sly-next-completion 1))
+       (ert-simulate-command '(sly-choose-completion))
+       (should (string= "'(multiple-value-list)"
+                        (sly-mrepl-tests--current-input-string)))))))
 
 (provide 'sly-mrepl-tests)
