@@ -788,8 +788,7 @@ of Lisp hacking sessions, and has been completely redesigned in
 <code>sly-mrepl</code> extension. You can, for instance, spawn multiple REPL
 instances with <code>M-x sly-mrepl-new</code>, copy objects from most places
 directly into it (<kbd>M-RET</kbd> and <kbd>M-S-RET</kbd>), and use a much more
-powerful incremental history search engine(<kbd>C-r</kbd>). The REPL should
-always greet you after starting <acronym>SLY</acronym>.
+powerful incremental history search engine(<kbd>C-r</kbd>). 
 </p>
 <br><img src="images/tutorial-1.png" alt="images/tutorial-1"><br>
 
@@ -898,7 +897,7 @@ typing <kbd>RET</kbd> should run the function call.
 </p>
 <p>To finish up the tutorial, let’s say we are still intrigued by how
 that function works internally. Navigate to its definition
-using <kbd>M-.</kbd> again (or just open the &lsquo;<tt>local-projects.lisp</tt>&rsquo;
+using <kbd>M-.</kbd> again (or just open the &lsquo;<tt>sly-completion.lisp</tt>&rsquo;
 buffer that you probably still have open). The function’s code might
 look like this:
 </p>
@@ -4891,15 +4890,15 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-_003e-1"><code>&gt;</code></a></td><td valign="top"><a href="#Frame-Navigation">6.3.3 Navigating between frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-A">A</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-A"><code>A</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-a"><code>a</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-A"><code>A</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-B">B</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-B"><code>B</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-C">C</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C"><code>C</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-c"><code>c</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C"><code>C</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003a"><code>C-c :</code></a></td><td valign="top"><a href="#Evaluation">4.1 Evaluating code</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003c"><code>C-c &lt;</code></a></td><td valign="top"><a href="#Cross_002dreference">5.1.2 Cross-reference (<acronym>XREF</acronym>)</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003e"><code>C-c &gt;</code></a></td><td valign="top"><a href="#Cross_002dreference">5.1.2 Cross-reference (<acronym>XREF</acronym>)</a></td></tr>
@@ -4963,8 +4962,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002d_005f"><code>C-_</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.7 Macro-expansion commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-D">D</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-D"><code>D</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-d"><code>d</code></a></td><td valign="top"><a href="#Multiple-connections">5.4 Multiple connections</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-D"><code>D</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-d-1"><code>d</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-d-2"><code>d</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
@@ -4973,8 +4972,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-e-1"><code>e</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-G">G</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.7 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.7 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-1"><code>g</code></a></td><td valign="top"><a href="#Multiple-connections">5.4 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-2"><code>g</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
@@ -5030,8 +5029,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-T">T</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-t"><code>t</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">4.4 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB"><code>TAB</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">4.4 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB-1"><code>TAB</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-V">V</a></th><td></td><td></td></tr>
