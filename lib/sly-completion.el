@@ -138,7 +138,7 @@ COMPLETIONS is a list of propertized strings."
 COMPLETIONS is a list of propertized strings."
   (cl-loop with (completions _) =
            (sly--completion-request-completions pattern 'slynk-completion:flex-completions)
-           for (completion _score chunks classification) in completions
+           for (completion score chunks classification) in completions
            do
            (cl-loop for (pos substring) in chunks
                     do (put-text-property pos (+ pos
@@ -149,8 +149,11 @@ COMPLETIONS is a list of propertized strings."
            (put-text-property 0
                               (length completion)
                               'sly--annotation
-                              classification
+                              (format "%s %5.2f%%"
+                                      classification
+                                      (* score 100))
                               completion)
+
            collect completion into formatted
            finally return (list formatted nil)))
 

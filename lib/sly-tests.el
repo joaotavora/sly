@@ -580,16 +580,19 @@ confronted with nasty #.-fu."
     '(("m-v-b" (("multiple-value-bind" 1)))
       ("mvbind" (("multiple-value-bind" 1)))
       ("mvcall" (("multiple-value-call" 1)))
-      ("mvlist" (("multiple-value-list" 10)))
+      ("mvlist" (("multiple-value-list" 3)))
       ("echonumberlist" (("slynk:*echo-number-alist*" 1))))
-  (let ((completions (car (sly-flex-completions prefix))))
+  (let* ((sly-buffer-package "COMMON-LISP")
+         (completions (car (sly-flex-completions prefix))))
     (cl-loop for (completion before-or-at) in expectations
              for pos = (cl-position completion completions :test #'string=)
              unless pos
              do (ert-fail (format "Didn't find %s in the completions for %s" completion prefix))
              unless (< pos before-or-at)
-             do (ert-fail (format "Expected to find %s in the first %s completions for %s, but it came in %s"
-                                  completion before-or-at prefix (1+ pos))))))
+             do (ert-fail (format "Expected to find %s in the first %s completions for %s, but it came in %s
+=> %s"
+                                  completion before-or-at prefix (1+ pos)
+                                  (cl-subseq completions 0 (1+ pos)))))))
 
 (def-sly-test basic-completion
   (input-keys expected-result)

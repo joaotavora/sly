@@ -126,19 +126,22 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                    indexes
                    :initial-value nil)))
 
-(defun flex-score (pattern string symbol indexes)
-  "Score the match of PATTERN on STRING.
-INDEXES as calculated by FLEX-MATCHES"
-  ;; FIXME: hideously poor scoring
-  (declare (ignore pattern symbol))
+(defun flex-score (string indexes &key pattern symbol)
+  "Score the match of STRING as given by INDEXES.
+INDEXES as calculated by FLEX-MATCHES."
+  ;; TODO: better scoring algorithm? PATTERN and SYMBOL are given as
+  ;; hints for more avanced scoring in the future, but perhaps they
+  ;; shouldn't...
+  (declare (ignore symbol pattern))
   (float
-   (/ 1
+   (/ (length indexes)
       (* (length string)
-         (max 1
-              (reduce #'+
-                      (loop for (a b) on indexes
-                            while b
-                            collect (- b a 1))))))))
+         (+ 1
+            (reduce #'+
+                    (loop for (a b) on (cons 0
+                                             indexes)
+                          while b
+                          collect (expt (- b a 1) 2))))))))
 
 (defun flex-matches (pattern string symbol)
   "Return non-NIL if PATTERN flex-matches STRING.
@@ -157,7 +160,7 @@ A floating-point score. Higher scores for better matches."
                        collect pos)))
     (values indexes
             (and indexes
-                 (flex-score pattern string symbol indexes)))))
+                 (flex-score string indexes :pattern pattern :symbol symbol)))))
 
 (defun collect-if-matches (collector pattern string symbol)
   "Make and collect a match with COLLECTOR if PATTERN matches STRING.
