@@ -136,12 +136,10 @@ INDEXES as calculated by FLEX-MATCHES."
   (float
    (/ (length indexes)
       (* (length string)
-         (+ 1
-            (reduce #'+
-                    (loop for (a b) on (cons 0
-                                             indexes)
-                          while b
-                          collect (expt (- b a 1) 2))))))))
+         (1+ (read-sequence #'+
+                      (loop for (a b) on indexes
+                            while b
+                            collect (expt (- b a 1) 2))))))))
 
 (defun flex-matches (pattern string symbol)
   "Return non-NIL if PATTERN flex-matches STRING.

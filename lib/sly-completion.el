@@ -294,10 +294,9 @@ Intended to go into `completion-at-point-functions'"
       (setq this-command 'completion-at-point) ; even if we started with `minibuffer-complete'!
       (setq sly--completion-transient-data
             `(,(if (markerp beg) beg (copy-marker beg))
-              ,(copy-marker end t)
+              ,(copy-marker end nil)
               ,function
               ,pred))
-      (sly--completion-transient-mode 1)
       (setq sly--completion-transient-completions all)
       (cond ((eq try t)
              ;; A unique completions
@@ -306,12 +305,12 @@ Intended to go into `completion-at-point-functions'"
                                        (current-buffer)
                                        (list (cl-first sly--completion-transient-data)
                                              (cl-second sly--completion-transient-data)))
-             (sly-temp-message 0 2 "Sole completion")
-             (sly--completion-hide-completions))
+             (sly-temp-message 0 2 "Sole completion"))
             ;; Incomplete
             ((stringp try)
              (sly--completion-pop-up-completions-buffer pattern all)
-             (sly-temp-message 0 2 "Not unique"))
+             (sly-temp-message 0 2 "Not unique")
+             (sly--completion-transient-mode 1))
             (t
              (sly-temp-message 0 2 "No completions for %s" pattern)))))
    (t
@@ -332,6 +331,7 @@ Intended to go into `completion-at-point-functions'"
     (define-key map "\t"     'sly-next-completion)
     (define-key map [backtab]     'sly-prev-completion)
     (define-key map (kbd "q") 'quit-window)
+    (define-key map (kbd "C-g") 'quit-window)
     (define-key map (kbd "z") 'kill-this-buffer)
     (define-key map [remap previous-line] 'sly-prev-completion)
     (define-key map [remap next-line] 'sly-next-completion)
@@ -438,7 +438,7 @@ Intended to go into `completion-at-point-functions'"
   (let* ((buffer (get-buffer (sly-buffer-name :completions)))
          (win (and buffer
                    (get-buffer-window buffer 0))))
-    (when win (with-selected-window win (bury-buffer)))))
+    (when win (with-selected-window win (quit-window t)))))
 
 (defvar sly--completion-reference-buffer nil
   "Like `completion-reference-buffer', which see")
