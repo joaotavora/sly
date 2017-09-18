@@ -277,7 +277,7 @@ Intended to go into `completion-at-point-functions'"
 ;;; TODO: Most of the stuff emulates `completion--in-region' and its
 ;;; callees in Emacs's minibuffer.el
 ;;; 
-(defvar sly--completion-transient-data nil)  ; lifted from `completion-in-region--data' 
+(defvar sly--completion-transient-data nil)  ; similar to `completion-in-region--data'
 
 (defvar sly--completion-transient-completions nil) ; not used
 
@@ -292,25 +292,25 @@ Intended to go into `completion-at-point-functions'"
            (try
             (try-completion pattern function pred)))
       (setq this-command 'completion-at-point) ; even if we started with `minibuffer-complete'!
-      (setq sly--completion-transient-data
-            `(,(if (markerp beg) beg (copy-marker beg))
-              ,(copy-marker end nil)
-              ,function
-              ,pred))
       (setq sly--completion-transient-completions all)
       (cond ((eq try t)
-             ;; A unique completions
+             ;; A unique completion
              ;;
              (choose-completion-string (cl-first all)
                                        (current-buffer)
-                                       (list (cl-first sly--completion-transient-data)
-                                             (cl-second sly--completion-transient-data)))
+                                       (list beg end))
              (sly-temp-message 0 2 "Sole completion"))
             ;; Incomplete
             ((stringp try)
-             (sly--completion-pop-up-completions-buffer pattern all)
-             (sly-temp-message 0 2 "Not unique")
-             (sly--completion-transient-mode 1))
+             (let ((pattern-overlay (make-overlay beg end nil nil nil)))
+               (setq sly--completion-transient-data
+                     `(,pattern-overlay
+                       ,function
+                       ,pred))
+               (overlay-put pattern-overlay 'face 'highlight)
+               (sly--completion-pop-up-completions-buffer pattern all)
+               (sly-temp-message 0 2 "Not unique")
+               (sly--completion-transient-mode 1)))
             (t
              (sly-temp-message 0 2 "No completions for %s" pattern)))))
    (t
@@ -330,9 +330,9 @@ Intended to go into `completion-at-point-functions'"
     (define-key map [mouse-2] 'sly-choose-completion)
     (define-key map "\t"     'sly-next-completion)
     (define-key map [backtab]     'sly-prev-completion)
-    (define-key map (kbd "q") 'quit-window)
-    (define-key map (kbd "C-g") 'quit-window)
-    (define-key map (kbd "z") 'kill-this-buffer)
+    (define-key map (kbd "q") 'sly-completion-hide-completions)
+    (define-key map (kbd "C-g") 'sly-completion-hide-completions)
+    (define-key map (kbd "z") 'sly-completion-hide-completions)
     (define-key map [remap previous-line] 'sly-prev-completion)
     (define-key map [remap next-line] 'sly-next-completion)
     (define-key map [left] 'sly-prev-completion)
@@ -349,20 +349,21 @@ Intended to go into `completion-at-point-functions'"
   "Determine whether to pop down the *sly completions* buffer."
   (unless (or unread-command-events ; Don't pop down the completions in the middle of
                                         ; mouse-drag-region/mouse-set-point.
-              
-              (and sly--completion-transient-data
-                   (and
-                    ;; check if we're in the same buffer
-                    ;; 
-                    (eq (marker-buffer (nth 0 sly--completion-transient-data))
-                        (current-buffer))
-                    ;; check if point is somewhere acceptably related
-                    ;; to the region data that originated the completion
-                    ;; 
-                    (<= (cl-first sly--completion-transient-data)
-                        (point))
-                    (<= (point)
-                        (cl-second sly--completion-transient-data)))))
+              (let ((pattern-ov
+                     (and sly--completion-transient-data
+                          (car
+                           sly--completion-transient-data))))
+                (and pattern-ov
+                     ;; check if we're in the same buffer
+                     ;;
+                     (eq (overlay-buffer pattern-ov)
+                         (current-buffer))
+                     ;; check if point is somewhere acceptably related
+                     ;; to the region data that originated the completion
+                     ;;
+                     (<= (overlay-start pattern-ov)
+                         (point)
+                         (overlay-end pattern-ov)))))
     (sly--completion-transient-mode -1)))
 
 (defvar sly--completion-transient-mode-map
@@ -387,8 +388,7 @@ Intended to go into `completion-at-point-functions'"
 (defun sly--completion-turn-off-transient-mode ()
   (if (eq major-mode 'sly--completion-display-mode)
       (sly-message "Choosing completions directly in %s" (current-buffer))
-    (setq sly--completion-transient-data nil)
-    (sly--completion-hide-completions)))
+    (sly-completion-hide-completions)))
 
 (define-minor-mode sly--completion-transient-mode
   "Minor mode when the \"*sly completions*\" buffer is showing"
@@ -415,7 +415,7 @@ Intended to go into `completion-at-point-functions'"
 ;; `define-minor-mode' added to `minor-mode-map-alist', but we wanted
 ;; `minor-mode-overriding-map-alist' instead, so undo changes to
 ;; `minor-mode-map-alist'
-;; 
+;;
 (setq minor-mode-map-alist
       (delq (assq 'sly--completion-transient-mode minor-mode-map-alist)
             minor-mode-map-alist))
@@ -434,7 +434,14 @@ Intended to go into `completion-at-point-functions'"
   ;; buffer as intended.
   nil)
 
-(defun sly--completion-hide-completions ()
+(defun sly--completion-kill-transient-data ()
+  (when (overlayp (car sly--completion-transient-data))
+    (delete-overlay (car sly--completion-transient-data)))
+  (setq sly--completion-transient-data nil))
+
+(defun sly-completion-hide-completions ()
+  (interactive)
+  (sly--completion-kill-transient-data)
   (let* ((buffer (get-buffer (sly-buffer-name :completions)))
          (win (and buffer
                    (get-buffer-window buffer 0))))
@@ -487,7 +494,8 @@ Intended to go into `completion-at-point-functions'"
          (setq sly--completion-reference-buffer reference)
          (sly--completion-fill-completions-buffer completions)
          (setq completions-buffer standard-output
-               first-completion-point (point)))))
+               first-completion-point (point))
+         (add-hook 'kill-buffer-hook 'sly--completion-kill-transient-data t t))))
     (with-current-buffer completions-buffer
       (goto-char first-completion-point))))
 
@@ -563,13 +571,14 @@ Intended to go into `completion-at-point-functions'"
     (let ((completion-text
            (buffer-substring-no-properties (overlay-start sly--completion-in-region-overlay)
                                            (overlay-end sly--completion-in-region-overlay))))
-      
       (unless (buffer-live-p sly--completion-reference-buffer)
         (sly-error "Destination buffer is dead"))
       (choose-completion-string completion-text
                                 sly--completion-reference-buffer
-                                (list (cl-first sly--completion-transient-data)
-                                      (cl-second sly--completion-transient-data)))
+                                (let ((pattern-ov
+                                       (car sly--completion-transient-data)))
+                                  (list (overlay-start pattern-ov)
+                                        (overlay-end pattern-ov))))
       (sly--completion-transient-mode -1))))
 
 (defun sly-quit-completing ()
