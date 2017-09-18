@@ -1734,32 +1734,44 @@ that <acronym>SLY</acronym> tries to mimic as much as possible.
 </p>
 <p>SLY provides two styles of completion. The choice between them happens
 in the Emacs customization variable
-see <a href="#sly_002dcomplete_002dsymbol_002dfunction">sly-complete-symbol-function</a>, which can be set to two values.
+see <a href="#sly_002dcomplete_002dsymbol_002dfunction">sly-complete-symbol-function</a>, which can be set to two values,
+or methods:
 </p>
 <ol>
 <li> <code>sly-flex-completions</code>
-This method searches all available symbols, including symbols not
-directly accessible from the current package without package
-qualification, and presents a subset to the user as a sorted by
-probable usefulness.
+This method is speculative. It assumes that the letters you&rsquo;ve already
+typed aren&rsquo;t necessarily an exact prefix of the symbol you&rsquo;re thinking
+of. Therefore, any possible completion that contains these letters, in
+the order that you have typed them, is potentially a match. Completion
+matches are then sorted according to a score that should reflect the
+probability that you really meant that them.
 
-<p>Importantly, this kind of completion assumes that the letters you&rsquo;ve
-already typed aren&rsquo;t necessarily an exact prefix of the symbol you&rsquo;re
-thinking of: they just have to be there, in order, in the final
-completion. Here are the top results for some typical searches.
+<p>Flex completion implies that the package-qualification needed to
+access some symbols is automatically discovered for you. However, to
+avoid searching too many symbols unnecessarily, this method makes some
+minimal assumptions that you can override: it assumes, for example,
+that you don&rsquo;t normally want to complete to fully qualified internal
+symbols, but will do so if it finds two consecutive colons (<code>::</code>)
+in your initial pattern. Similarly, it assumes that if you start a
+completion on a word starting <code>:</code>, you must mean a keyword (a
+symbol from the keyword package.)
+</p>
+<p>Here are the top results for some typical searches.
 </p>
 <table><tr><td>&nbsp;</td><td><pre class="example">CL-USER&gt; (quiloa&lt;TAB&gt;)         -&gt;  (ql:quickload)
-CL-USER&gt; (scan&lt;TAB&gt;)           -&gt;  (ppcre:scan)
-CL-USER&gt; (setf locadirs&lt;TAB&gt;)  -&gt;  (setf ql:*local-project-directories*)
 CL-USER&gt; (mvbind&lt;TAB&gt;)         -&gt;  (multiple-value-bind)
+CL-USER&gt; (scan&lt;TAB&gt;)           -&gt;  (ppcre:scan)
+CL-USER&gt; (p::scan&lt;TAB&gt;)        -&gt;  (ppcre::scanner)
+CL-USER&gt; (setf locadirs&lt;TAB&gt;)  -&gt;  (setf ql:*local-project-directories*)
 CL-USER&gt; foobar                -&gt;  asdf:monolithic-binary-op
 </pre></td></tr></table>
 
 </li><li> <code>sly-simple-completions</code>
-Use &ldquo;classical&rdquo; completion on an exact prefix. This method is
-simpler, more predictable and also closer to the default Emacs
-completion method. You type a prefix for a symbol reference and <acronym>SLY</acronym>
-let&rsquo;s you choose from symbols whose beginnings match it exactly.
+This method uses &ldquo;classical&rdquo; completion on an exact prefix. Although
+poorer, this is simpler, more predictable and closer to the default
+Emacs completion method. You type a prefix for a symbol reference and
+<acronym>SLY</acronym> let&rsquo;s you choose from symbols whose beginnings match it
+exactly.
 </li></ol>
 
 <p>As an enhancement in <acronym>SLY</acronym> over Emacs&rsquo; built-in completion styles,
@@ -4910,8 +4922,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-B"><code>B</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-C">C</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-c"><code>c</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C"><code>C</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-c"><code>c</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003a"><code>C-c :</code></a></td><td valign="top"><a href="#Evaluation">4.1 Evaluating code</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003c"><code>C-c &lt;</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003e"><code>C-c &gt;</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
@@ -5042,8 +5054,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-T">T</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-t"><code>t</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">5.3 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB"><code>TAB</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">5.3 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB-1"><code>TAB</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-V">V</a></th><td></td><td></td></tr>
