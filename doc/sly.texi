@@ -1174,33 +1174,45 @@ that @SLY{} tries to mimic as much as possible.
 
 SLY provides two styles of completion. The choice between them happens
 in the Emacs customization variable
-@pxref{sly-complete-symbol-function}, which can be set to two values.
+@pxref{sly-complete-symbol-function}, which can be set to two values,
+or methods:
 
 @enumerate
 @item @code{sly-flex-completions}
-This method searches all available symbols, including symbols not
-directly accessible from the current package without package
-qualification, and presents a subset to the user as a sorted by
-probable usefulness.
+This method is speculative. It assumes that the letters you've already
+typed aren't necessarily an exact prefix of the symbol you're thinking
+of. Therefore, any possible completion that contains these letters, in
+the order that you have typed them, is potentially a match. Completion
+matches are then sorted according to a score that should reflect the
+probability that you really meant that them.
 
-Importantly, this kind of completion assumes that the letters you've
-already typed aren't necessarily an exact prefix of the symbol you're
-thinking of: they just have to be there, in order, in the final
-completion. Here are the top results for some typical searches.
+Flex completion implies that the package-qualification needed to
+access some symbols is automatically discovered for you. However, to
+avoid searching too many symbols unnecessarily, this method makes some
+minimal assumptions that you can override: it assumes, for example,
+that you don't normally want to complete to fully qualified internal
+symbols, but will do so if it finds two consecutive colons (@code{::})
+in your initial pattern. Similarly, it assumes that if you start a
+completion on a word starting @code{:}, you must mean a keyword (a
+symbol from the keyword package.)
+
+Here are the top results for some typical searches.
 
 @example
 CL-USER> (quiloa<TAB>)         ->  (ql:quickload)
-CL-USER> (scan<TAB>)           ->  (ppcre:scan)
-CL-USER> (setf locadirs<TAB>)  ->  (setf ql:*local-project-directories*)
 CL-USER> (mvbind<TAB>)         ->  (multiple-value-bind)
+CL-USER> (scan<TAB>)           ->  (ppcre:scan)
+CL-USER> (p::scan<TAB>)        ->  (ppcre::scanner)
+CL-USER> (setf locadirs<TAB>)  ->  (setf ql:*local-project-directories*)
 CL-USER> foobar                ->  asdf:monolithic-binary-op
 @end example
 
 @item @code{sly-simple-completions}
-Use ``classical'' completion on an exact prefix. This method is
-simpler, more predictable and also closer to the default Emacs
-completion method. You type a prefix for a symbol reference and @SLY{}
-let's you choose from symbols whose beginnings match it exactly.
+This method uses ``classical'' completion on an exact prefix. Although
+poorer, this is simpler, more predictable and closer to the default
+Emacs completion method. You type a prefix for a symbol reference and
+@SLY{} let's you choose from symbols whose beginnings match it
+exactly.
 @end enumerate
 
 As an enhancement in @SLY{} over Emacs' built-in completion styles,

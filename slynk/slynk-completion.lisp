@@ -137,7 +137,7 @@ INDEXES as calculated by FLEX-MATCHES."
    (/ (length indexes)
       (* (length string)
          (+ 1 (reduce #'+
-                      (loop for (a b) on `(0
+                      (loop for (a b) on `(-1
                                            ,@indexes
                                            ,(length string))
                             while b
@@ -187,7 +187,7 @@ Return an unsorted list of matches.
 Matches are produced by COLLECT-IF-MATCHES (which see)."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
-         (do-symbols (s (find-package :keyword))
+         (do-symbols (s +keyword-package+)
            (collect-if-matches #'collect pattern (format nil ":~a" (symbol-name s)) s)))))
 
 (defun accessible-matching (pattern package)
@@ -211,47 +211,57 @@ order, i.e. they are not sorted (except for the fact that
 qualifications with shorter package nicknames are tried first).
 
 Matches are produced by COLLECT-IF-MATCHES (which see)."
-  (and
-   (not (char= (aref pattern 0) #\:))
-   (let ((package-local-nicknames
-           (slynk-backend:package-local-nicknames home-package)))
-     (collecting (collect-external collect-internal)
-       (loop
-         with use-list = (package-use-list home-package)
-         for package in (list-all-packages)
-         for sorted-nicknames = (and (not (member package
-                                                  (list home-package
-                                                        +keyword-package+)))
-                                     (sort (append
-                                            (loop for (short . full) in
-                                                  package-local-nicknames
-                                                  when (eq (find-package full)
-                                                           package)
-                                                    collect short)
-                                            (copy-list (package-nicknames package))
-                                            (list (package-name package)))
-                                           #'<
-                                           :key #'length))
-         when sorted-nicknames
-           do (do-symbols (s package)
-                (let ((status (nth-value 1 (find-symbol (symbol-name s) package))))
-                  (cond ((and (eq status :external)
-                              (not (member (symbol-package s) use-list)))
-                         (loop for nickname in sorted-nicknames
-                               do (collect-if-matches #'collect-external
-                                                      pattern
-                                                      (format nil "~a:~a"
-                                                              nickname
-                                                              (symbol-name s))
-                                                      s)))
-                        ((eq status :internal)
-                         (loop for nickname in sorted-nicknames
-                               do (collect-if-matches #'collect-internal
-                                                      pattern
-                                                      (format nil "~a::~a"
-                                                              nickname
-                                                              (symbol-name s))
-                                                      s)))))))))))
+  (let* ((first-colon (position #\: pattern))
+         (starts-with-colon (and first-colon (zerop first-colon)))
+         (two-colons (and first-colon (< (1+ first-colon) (length pattern))
+                          (eq #\: (aref pattern (1+ first-colon))))))
+    (unless (and starts-with-colon
+                 (not two-colons))
+      (let* ((package-local-nicknames
+               (slynk-backend:package-local-nicknames home-package))
+             (nicknames-by-package
+               (let ((ret (make-hash-table)))
+                 (loop for (short . full) in
+                       package-local-nicknames
+                       do (push short (gethash (find-package full)
+                                               ret)))
+                 ret)))
+        (collecting (collect-external collect-internal)
+          (loop
+            with use-list = (package-use-list home-package)
+            for package in (list-all-packages)
+            for sorted-nicknames = (and (not (member package
+                                                     (list home-package
+                                                           +keyword-package+)))
+                                        (sort (append
+                                               (gethash package nicknames-by-package)
+                                               (package-nicknames package)
+                                               (list (package-name package)))
+                                              #'<
+                                              :key #'length))
+            when sorted-nicknames
+              do (do-symbols (s package)
+                   (let ((status (nth-value 1 (find-symbol (symbol-name s) package))))
+                     (cond ((and (eq status :external)
+                                 (or first-colon
+                                     (not (member (symbol-package s) use-list))))
+                            (loop for nickname in sorted-nicknames
+                                  do (collect-if-matches #'collect-external
+                                                         pattern
+                                                         (format nil "~a:~a"
+                                                                 nickname
+                                                                 (symbol-name s))
+                                                         s)))
+                           ((and two-colons
+                                 (eq status :internal))
+                            (loop for nickname in sorted-nicknames
+                                  do (collect-if-matches #'collect-internal
+                                                         pattern
+                                                         (format nil "~a::~a"
+                                                                 nickname
+                                                                 (symbol-name s))
+                                                         s)))
+                           )))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
@@ -262,21 +272,17 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
             with package = (guess-buffer-package package-name)
             for (string symbol indexes score)
               in
-              (remove-duplicates
-               (loop with (external internal)
-                       = (multiple-value-list (qualified-matching pattern package))
-                     for e in (append (sort-by-score
-                                       (keywords-matching pattern))
-                                      (sort-by-score
-                                       (append (accessible-matching pattern package)
-                                               external))
-                                      (sort-by-score
-                                       internal))
-                     for i upto limit
-                     collect e)
-               :from-end t
-               :test #'string=
-               :key #'first)
+              (loop with (external internal)
+                      = (multiple-value-list (qualified-matching pattern package))
+                    for e in (append (sort-by-score
+                                      (keywords-matching pattern))
+                                     (sort-by-score
+                                      (append (accessible-matching pattern package)
+                                              external))
+                                     (sort-by-score
+                                      internal))
+                    for i upto limit
+                    collect e)
             collect
             (list (if (every #'common-lisp:upper-case-p pattern)
                       (string-upcase string)
