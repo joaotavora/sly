@@ -520,12 +520,12 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
    :after-prompt after))
 
 (defun sly-mrepl--make-result-button (result idx)
-  (make-text-button (car result) nil
-                    :type 'sly-mrepl-part
-                    'part-args (list (cadr result) idx)
-                    'part-label (format "REPL Result")
-                    'sly-mrepl--result result
-                    'sly-button-search-id (sly-button-next-search-id))
+  (sly--make-text-button (car result) nil
+                         :type 'sly-mrepl-part
+                         'part-args (list (cadr result) idx)
+                         'part-label (format "REPL Result")
+                         'sly-mrepl--result result
+                         'sly-button-search-id (sly-button-next-search-id))
   (car result))
 
 (defun sly-mrepl--insert-results (results)
@@ -1207,6 +1207,7 @@ a list of result buttons thus highlighted"
    for e-idx = (car (button-get button 'part-args))
    for v-idx = (cadr (button-get button 'part-args))
    when (and (button-type-subtype-p (button-type button) 'sly-mrepl-part)
+             (eq (button-get button 'sly-connection) (sly-current-connection))
              (not (button-get button 'sly-mrepl--highlight-overlay))
              (and (or (not entry-idx)
                       (= e-idx entry-idx))

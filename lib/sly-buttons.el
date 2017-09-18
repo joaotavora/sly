@@ -62,14 +62,19 @@
        (interactive (list (sly-button-at)))
        (let ((fn (button-get button ',action))
              (args (button-get button 'part-args)))
-         (cond ((and fn args)
-                (apply fn args))
-               (args
-                (error (format "[sly] button of type `%s' doesn't implement `%s'"
-                               (button-type button) ',action)))
-               (fn
-                (error (format "[sly] button %s doesn't have the `part-args' property"
-                               button))))))
+         (if (and
+              (sly-current-connection)
+              (eq (button-get button 'sly-connection)
+                  (sly-current-connection)))
+             (cond ((and fn args)
+                    (apply fn args))
+                   (args
+                    (sly-error "button of type `%s' doesn't implement `%s'"
+                               (button-type button) ',action))
+                   (fn
+                    (sly-error "button %s doesn't have the `part-args' property"
+                               button)))
+           (sly-error (format "button is from an older connection")))))
      ,@(when key
          `((define-key sly-part-button-keymap ,key
              '(menu-item "" ,action
@@ -90,8 +95,14 @@
 (sly-button-define-part-action sly-button-show-source  "Show Source"   (kbd "v"))
 (sly-button-define-part-action sly-button-goto-source  "Go To Source"  (kbd "."))
 
+(defun sly--make-text-button (beg end &rest properties)
+  "Just like `make-text-button', but add sly-specifics."
+  (apply #'make-text-button beg end
+         'sly-connection (sly-current-connection)
+         properties))
+
 (defun sly-make-action-button (label action &rest props)
-  (apply #'make-text-button
+  (apply #'sly--make-text-button
          label nil :type 'sly-action
          'action action
          'mouse-action action

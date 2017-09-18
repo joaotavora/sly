@@ -3706,7 +3706,7 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
 (defun sly--compilation-note-group-button  (label notes)
   "Pepare notes as a `sly-compilation-note' button.
 For insertion in the `compilation-mode' buffer"
-  (make-text-button label nil :type 'sly-compilation-note-group 'sly-notes-group notes)
+  (sly--make-text-button label nil :type 'sly-compilation-note-group 'sly-notes-group notes)
   label)
 
 
@@ -4399,11 +4399,11 @@ TODO"
 (defun sly-apropos-insert-symbol (designator item bounds package-designator-searched-p)
   (let ((start (point))
         (label (sly-apropos-designator-string designator)))
-    (make-text-button label nil
-                      'face 'sly-apropos-symbol
-                      'part-args (list item nil)
-                      'part-label "Symbol"
-                      :type 'sly-apropos-symbol)
+    (sly--make-text-button label nil
+                           'face 'sly-apropos-symbol
+                           'part-args (list item nil)
+                           'part-label "Symbol"
+                           :type 'sly-apropos-symbol)
     (insert label)
     (when bounds
       (let* ((offset (if package-designator-searched-p
@@ -4548,10 +4548,10 @@ The most important commands:
                               (sly--pop-to-source-location location 'sly-xref)))
 
 (defun sly-xref-button (label location)
-  (make-text-button label nil
-                    :type 'sly-xref
-                    'part-args (list location)
-                    'part-label "Location")
+  (sly--make-text-button label nil
+                         :type 'sly-xref
+                         'part-args (list location)
+                         'part-label "Location")
   label)
 
 (defun sly-insert-xrefs (xref-alist)
@@ -5493,7 +5493,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
                                          (cadr frame)))))))
 
 (defun sly-db-frame-button (label frame face &rest props)
-  (apply #'make-text-button label nil :type 'sly-db-frame
+  (apply #'sly--make-text-button label nil :type 'sly-db-frame
          'face face
          'field (car frame)
          'frame-number (car frame)
@@ -5609,7 +5609,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
                                                     ,var-id))))
 
 (defun sly-db-local-variable-button (label frame-number var-id &rest props)
-  (apply #'make-text-button label nil
+  (apply #'sly--make-text-button label nil
          :type 'sly-db-local-variable
          'part-args (list frame-number var-id)
          'part-label (format "Local Variable %d" var-id) props)
@@ -6342,7 +6342,7 @@ was called originally."
             (sly--display-source-location result 'noerror)))))
 
 (defun sly-inspector-part-button (label id &rest props)
-  (apply #'make-text-button
+  (apply #'sly--make-text-button
          label nil
          :type 'sly-inspector-part
          'part-args (list id)

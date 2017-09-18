@@ -334,7 +334,7 @@ render the underlying text unreadable."
 
 (defun sly-stickers--recording-part (label sticker-id recording vindex
                                            &rest props)
-  (apply #'make-text-button
+  (apply #'sly--make-text-button
          label nil
          :type 'sly-stickers--recording-part
          'part-args (list sticker-id recording vindex)
