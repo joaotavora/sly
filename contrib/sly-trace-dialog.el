@@ -357,13 +357,13 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
        `(slynk-trace-dialog:describe-trace-part ,trace-id ,part-id ,type))))
 
 (defun sly-trace-dialog-part-button (part-id part-text trace-id type)
-  (make-text-button part-text nil
-                    :type 'sly-trace-dialog-part
-                    'part-args (list trace-id part-id type)
-                    'part-label (format "%s %s"
-                                        (capitalize
-                                         (substring (symbol-name type) 1))
-                                        part-id))
+  (sly--make-text-button part-text nil
+                         :type 'sly-trace-dialog-part
+                         'part-args (list trace-id part-id type)
+                         'part-label (format "%s %s"
+                                             (capitalize
+                                              (substring (symbol-name type) 1))
+                                             part-id))
   part-text)
 
 (define-button-type 'sly-trace-dialog-spec :supertype 'sly-part
@@ -395,7 +395,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 
 (defun sly-trace-dialog-spec-button (label trace &rest props)
   (let ((id (sly-trace-dialog--trace-id trace)))
-    (apply #'make-text-button label nil
+    (apply #'sly--make-text-button label nil
            :type 'sly-trace-dialog-spec
            'trace-id id
            'part-args (list id
