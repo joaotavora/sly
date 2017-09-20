@@ -229,10 +229,9 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
         (collecting (collect-external collect-internal)
           (loop
             with use-list = (package-use-list home-package)
-            for package in (list-all-packages)
-            for sorted-nicknames = (and (not (member package
-                                                     (list home-package
-                                                           +keyword-package+)))
+            for package in (remove +keyword-package+ (list-all-packages))
+            for sorted-nicknames = (and (or first-colon
+                                            (not (eq package home-package)))
                                         (sort (append
                                                (gethash package nicknames-by-package)
                                                (package-nicknames package)
