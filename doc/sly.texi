@@ -1821,7 +1821,7 @@ will copy the @emph{call}, and not the object, to the @REPL{}. This
 works by first copying over the argument objects in order to the
 @REPL{} results, and then composing an input line that includes the
 called function's name and backreferences to those arguments
-(@pxref{Backreferences}).
+(@pxref{REPL backreferences}).
 
 Naturally, this call isn't @emph{exactly} the same because it doesn’t
 evaluate in the same dynamic environment as the original one. But it's
@@ -2623,8 +2623,23 @@ These variables can be used to customize the printer in various
 situations.  The values of the variables are association lists of
 printer variable names with the corresponding value.  E.g., to enable
 the pretty printer for formatting backtraces in @SLY-DB{}, you can use:
+
 @example
 (push '(*print-pretty* . t) slynk:*sly-db-printer-bindings*).
+@end example
+
+The fact that most @SLY{} output (in the @REPL{} for instance,
+@xref{REPL}) uses @code{SLYNK:*SLYNK-PPRINT-BINDINGS*} may surprise
+you if you expected it to use a global setting for, say,
+@code{*PRINT-LENGTH*}. Because output is a very basic feature of
+@SLY{} and it should keep operating normally even if you (mistakenly)
+set absurd values for some variable. But you can override this
+protection, of course:
+
+@example
+(setq slynk:*slynk-pprint-bindings*
+      (delete '*print-length*
+              slynk:*slynk-pprint-bindings* :key #'car))
 @end example
 
 @item SLYNK:*ECHO-NUMBER-ALIST*
