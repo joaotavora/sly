@@ -5,7 +5,7 @@ Távora for SLY.
 
 This file has been placed in the public domain.
  -->
-<!-- Created on September 18, 2017 by texi2html 1.82
+<!-- Created on September 20, 2017 by texi2html 1.82
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -80,7 +80,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 <h1 class="settitle">SLY</h1>
 
 <p><acronym>SLY</acronym> is a Common Lisp IDE for Emacs. This is the manual for version
-1.0.0-beta-2. (Last updated September 18, 2017)
+1.0.0-beta-2. (Last updated September 20, 2017)
 </p>
 <p>Written for SLIME Luke Gorrie and others, rewritten by João
 Távora for SLY.
@@ -2751,7 +2751,7 @@ will copy the <em>call</em>, and not the object, to the <acronym>REPL</acronym>.
 works by first copying over the argument objects in order to the
 <acronym>REPL</acronym> results, and then composing an input line that includes the
 called function&rsquo;s name and backreferences to those arguments
-(@pxref{Backreferences}).
+(see section <a href="#REPL-backreferences">REPL backreferences</a>).
 </p>
 <p>Naturally, this call isn&rsquo;t <em>exactly</em> the same because it doesn’t
 evaluate in the same dynamic environment as the original one. But it&rsquo;s
@@ -4092,7 +4092,21 @@ application&rsquo;s thread lands into the debugger (see
 situations.  The values of the variables are association lists of
 printer variable names with the corresponding value.  E.g., to enable
 the pretty printer for formatting backtraces in <acronym>SLY-DB</acronym>, you can use:
-</p><table><tr><td>&nbsp;</td><td><pre class="example">(push '(*print-pretty* . t) slynk:*sly-db-printer-bindings*).
+</p>
+<table><tr><td>&nbsp;</td><td><pre class="example">(push '(*print-pretty* . t) slynk:*sly-db-printer-bindings*).
+</pre></td></tr></table>
+
+<p>The fact that most <acronym>SLY</acronym> output (in the <acronym>REPL</acronym> for instance,
+See section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>) uses <code>SLYNK:*SLYNK-PPRINT-BINDINGS*</code> may surprise
+you if you expected it to use a global setting for, say,
+<code>*PRINT-LENGTH*</code>. Because output is a very basic feature of
+<acronym>SLY</acronym> and it should keep operating normally even if you (mistakenly)
+set absurd values for some variable. But you can override this
+protection, of course:
+</p>
+<table><tr><td>&nbsp;</td><td><pre class="example">(setq slynk:*slynk-pprint-bindings*
+      (delete '*print-length*
+              slynk:*slynk-pprint-bindings* :key #'car))
 </pre></td></tr></table>
 
 </dd>
@@ -4997,8 +5011,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-e-1"><code>e</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-G">G</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-1"><code>g</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-2"><code>g</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
@@ -5039,8 +5053,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-q-3"><code>q</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-R">R</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-r"><code>r</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-R"><code>R</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-r"><code>r</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-R-1"><code>R</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET"><code>RET</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET-1"><code>RET</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
@@ -5054,8 +5068,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-T">T</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-t"><code>t</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-TAB"><code>TAB</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">5.3 Auto-completion</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-TAB"><code>TAB</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB-1"><code>TAB</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-V">V</a></th><td></td><td></td></tr>
@@ -5566,7 +5580,7 @@ using that port number instead
 </tr></table>
 <h1>About This Document</h1>
 <p>
-  This document was generated by <em>Joao Tavora</em> on <em>September 18, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao Tavora</em> on <em>September 20, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -5668,7 +5682,7 @@ using that port number instead
 <hr size="1">
 <p>
  <font size="-1">
-  This document was generated by <em>Joao Tavora</em> on <em>September 18, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao Tavora</em> on <em>September 20, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
  </font>
  <br>
 
