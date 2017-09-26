@@ -54,7 +54,7 @@
    (setq sly-connection-list-button-action
          #'(lambda (process)
              (let ((sly-default-connection process))
-               (sly-mrepl 'interactive)))))
+               (sly-mrepl 'pop-to-buffer)))))
   (:on-unload
    ;; FIXME: This `:on-unload' is grossly incomplete
    ;;
@@ -880,13 +880,16 @@ enclosed macro or function."
   (interactive "p")
   (sly-mrepl-previous-input-or-button (- n)))
 
-(defun sly-mrepl (&optional pop-to-buffer)
-  "Find or create the first useful REPL for the default connection."
-  (interactive (list t))
+(defun sly-mrepl (&optional display-action)
+  "Find or create the first useful REPL for the default connection.
+If supplied, DISPLAY-ACTION is called on the
+buffer. Interactively, DISPLAY-ACTION defaults to
+`switch-to-buffer'"
+  (interactive (list 'switch-to-buffer))
   (let* ((buffer
           (sly-mrepl--find-create (sly-current-connection))))
-    (when pop-to-buffer
-      (pop-to-buffer buffer))
+    (when display-action
+      (funcall display-action buffer))
     buffer))
 
 (defun sly-mrepl-on-connection ()

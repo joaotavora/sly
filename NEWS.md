@@ -29,7 +29,6 @@ information.
 Package-local nicknames are also considered (provided your
 implementation supports them).
 
-
 ### Completely rewritten manual
 
 Manual has been reviewed from top to bottom. It should be much easier
@@ -44,12 +43,12 @@ Reorganized nodes into a new structure not so focused on core vs
 contribs. Deleted stale sections. REPL section heavily rewritten to
 explain output types and backreferences.
 
-### Improved `sly-stickers` contrib
+### Improved SLY Stickers UI
 
 The UI for SLY Stickers, particularly for `M-x sly-stickers-replay`
 has been cleanup up. Upon entering the replay mode, SLY may ask user
 if she wants to delete the previous recordings, a commonly forgotten
-and useful pre-step (an idea by Javier Olaechea, github #91). Also,
+but useful pre-step (an idea by Javier Olaechea, github #91). Also,
 window management is less random.
 
 ### The .swankrc and .swank.lisp are not loaded by default
@@ -65,6 +64,15 @@ the original intent of M-. of switching buffers in the original
 window. Quit the *xref* window should fully restore the previous
 window configuration. Thanks to Michael Fiano for insisting on what is
 indubitably the correct behavior (github #123).
+
+### More predictably choose REPL windows
+
+Calling `sly-mrepl` interactively, either via `M-x` or
+ `sly-selector-map` switches to buffer in the current
+ window. Accessing the REPL indirectly (by returning objects into it
+ form other modes) attempts to pop the buffer in another window.
+
+A problem encoutered by Zach Beane. 
 
 ### Travis CI infrastructure has been revamped
 
