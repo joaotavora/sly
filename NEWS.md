@@ -1,13 +1,43 @@
 Upcoming SLY 1.0.0-beta-3 (Somewhere 2017)
 -----------------------------------------
 
+### Redesigned completion mechanism
+
+The completion UI was redesigned and is now invoked via the built-in
+`completion-at-point` mechanism for a more consistent experience with
+the rest of Emacs.
+
+A redesigned completion backend replaces the legacy contribs
+`sly-fuzzy` and `sly-c-p-c`. The new "flex" backend considers package
+designators in the search string so you can complete other package's
+symbols even when outside a package.
+
+Here's an example:
+
+```
+CL-USER> (quiloa)         ->  (ql:quickload)
+CL-USER> (scan)           ->  (ppcre:scan)
+CL-USER> (setf locadirs)  ->  (setf ql:*local-project-directories*)
+CL-USER> (mvbind)         ->  (multiple-value-bind)
+```
+
+Flex completion is on by default, but that can be changed via
+`sly-complete-symbol-function`. The
+[documentation](http://joaotavora.github.io/sly/#Completion) has more
+information.
+
+Package-local nicknames are also considered (provided your
+implementation supports them).
+
+
 ### Completely rewritten manual
 
-Manual has been reviewed from top to bottom and should be a much nicer
-read. *still needs quite some proofreading*
+Manual has been reviewed from top to bottom. It should be much easier
+to navigate and nicer read in general, thouch it *still needs quite
+some proofreading*
 
-A new chapter called "A SLY tour for SLIME users" figures prominently
-in the top-level.
+[A new chapter for existing SLIME users](http://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users)
+figures prominently in the top-level.
 
 Presently no major omissions (*except maybe for multiple inspectors*).
 Reorganized nodes into a new structure not so focused on core vs
@@ -16,11 +46,11 @@ explain output types and backreferences.
 
 ### Improved `sly-stickers` contrib
 
-The UI for SLY Stickers, particularly for M-x sly-stickers-replay has
-been cleanup up. Upon entering the replay mode, SLY may ask user if
-she wants to delete the previous recordings, a commonly forgotten and
-useful pre-step (an idea by Javier Olaechea, github #91), Also, window
-management is less random.
+The UI for SLY Stickers, particularly for `M-x sly-stickers-replay`
+has been cleanup up. Upon entering the replay mode, SLY may ask user
+if she wants to delete the previous recordings, a commonly forgotten
+and useful pre-step (an idea by Javier Olaechea, github #91). Also,
+window management is less random.
 
 ### The .swankrc and .swank.lisp are not loaded by default
 
@@ -38,33 +68,10 @@ indubitably the correct behavior (github #123).
 
 ### Travis CI infrastructure has been revamped
 
-Depends on `roswell` and `emacs-travis` instead of `cl-travis` and
-`apt`, respectively. Thus no longer needs travis sudo and uses
-directory caching, resulting in much faster builds.
-
-### Redesigned completion mechanism
-
-The `sly-fuzzy` and `sly-c-p-c` contribs are gone, but the choice
-between "simple" and "flex/fuzzy/scatter" completion remains in place
-(see the `sly-complete-symbol-function`).
-
-Fuzzy completion also been redesigned and enhanced to include the
-package designators in the string to search so you can search other
-package's symbols even when outside a package.
-
-Package-local nicknames are understood if the implementation accepts
-them.
-
-```
-CL-USER> (quiloa)         ->  (ql:quickload)
-CL-USER> (scan)           ->    (ppcre:scan)
-CL-USER> (setf locadirs)  ->  (setf ql:*local-project-directories*)
-CL-USER> (mvbind)         ->  (multiple-value-bind)
-```
-
-The UI was also redesigned and is now invoked via built-in
-`completion-at-point` mechanism for a more consistent UI with the rest
-of Emacs.
+The Travis CI infrastructure now uses `roswell` and `emacs-travis`
+instead of `cl-travis` and `apt`, respectively. Thus no longer needs
+Travis's `sudo` and uses directory caching, resulting in much faster
+builds.
 
 ### New variables `*SLYNK:ECHO-NUMBER-ALIST*` and `*SLYNK:PRESENT-NUMBER-ALIST*`
 
@@ -81,12 +88,12 @@ can choose to disable that contrib temporarily.
 
 ### On par with SLIME 2.19 and 2.20
 
-Where applicable, SLY tracks bugfixes and improvements contributed to
+Where applicable, SLY tracks bug-fixes and improvements contributed to
 SLIME:
 
 - More secure handling of ~/.sly-secret files
 
-- Compatiblity with the latest SBCL and older SBCL.
+- Compatibility with the latest SBCL and older SBCL.
 
 - ECL backend now supports threads
 
