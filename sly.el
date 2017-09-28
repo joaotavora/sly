@@ -315,7 +315,7 @@ The default is nil, as this feature can be a security risk."
   :type '(boolean)
   :group 'sly-lisp)
 
-(defcustom sly-lisp-host "127.0.0.1"
+(defcustom sly-lisp-host "localhost"
   "The default hostname (or IP address) to connect to."
   :type 'string
   :group 'sly-lisp)
