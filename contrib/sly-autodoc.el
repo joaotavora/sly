@@ -150,7 +150,7 @@ If it's not in the cache, the cache will be updated asynchronously."
       ;; Now that we've got our information,
       ;; get it to the user ASAP.
       (when (eldoc-display-message-p)
-	(eldoc-message "%s" (sly-autodoc--format doc multilinep))))))
+	(eldoc-message (format "%s" (sly-autodoc--format doc multilinep)))))))
 
 
 ;;; Minor mode definition
