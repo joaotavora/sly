@@ -1072,10 +1072,11 @@ Doesn't clear input history."
            when (eq (field-at-pos pos) 'sly-mrepl--output)
            do (let ((inhibit-read-only t))
                 (delete-region (field-beginning pos)
-                               (1+ (field-end pos)))))
-  (sly-mrepl--insert-note (propertize "Cleared recent output"
-                                      'sly-mrepl-break-output t))
-  (sly-message "Cleared recent output"))
+                               (1+ (field-end pos)))
+                (sly-mrepl--insert-output "; Cleared last output"
+                                          'sly-mrepl-note-face))
+           and return nil)
+  (sly-message "Cleared last output"))
 
 
 ;;; "External" non-interactive functions for plugging into
