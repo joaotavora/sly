@@ -1776,33 +1776,7 @@ stack."
 
     (defimplementation find-registered (name)
       (sb-thread:with-mutex (mutex)
-        (cdr (assoc name alist)))))
-
-  ;; Workaround for deadlocks between the world-lock and auto-flush-thread
-  ;; buffer write lock.
-  ;;
-  ;; Another alternative would be to grab the world-lock here, but that's less
-  ;; future-proof, and could introduce other lock-ordering issues in the
-  ;; future.
-  ;;
-  ;; In an ideal world we would just have an :AROUND method on
-  ;; SLY-OUTPUT-STREAM, and be done, but that class doesn't exist when this
-  ;; file is loaded -- so first we need a dummy definition that will be
-  ;; overridden by slynk-gray.lisp.
-  #.(unless (find-package 'slynk-gray) (make-package 'slynk-gray) nil)
-  (eval-when (:load-toplevel :execute)
-    (unless (find-package 'slynk-gray) (make-package 'slynk-gray) nil))
-  (defclass slynk-gray::sly-output-stream
-      (sb-gray:fundamental-character-output-stream)
-    ())
-  (defmethod sb-gray:stream-force-output
-      :around ((stream slynk-gray::sly-output-stream))
-    (handler-case
-        (sb-sys:with-deadline (:seconds 0.1)
-          (call-next-method))
-      (sb-sys:deadline-timeout ()
-        nil)))
-  )
+        (cdr (assoc name alist))))))
 
 (defimplementation quit-lisp ()
   #+#.(slynk-backend:with-symbol 'exit 'sb-ext)
