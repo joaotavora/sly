@@ -97,7 +97,7 @@ Set this to NIL to turn this feature off.")
   (declare (ignore subchar arg))
   (let* ((*readtable*
            (let ((table (copy-readtable nil)))
-             (set-macro-character #\: (lambda (&rest args) nil) nil table)
+             (set-macro-character #\: (constantly nil) nil table)
              table))
          (entry-idx
            (progn
