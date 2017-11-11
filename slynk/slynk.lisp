@@ -2919,6 +2919,11 @@ Record compiler notes signalled as `compiler-condition's."
 
 SLY's own `slynk-loader.lisp' is tried first, then ASDF")
 
+(defvar *asdf-load-in-progress* nil
+  "Set to t if inside a \"ASDF:LOAD-SYSTEM\" operation.
+Introduced to prevent problematic recursive ASDF loads, but going away
+soon once non-ASDF loading is removed. (see github#134)")
+
 (defgeneric require-module (method module)
   (:documentation
    "Use METHOD to load MODULE.
@@ -2927,7 +2932,9 @@ managed to load it.")
   (:method ((method (eql :slynk-loader)) module)
     (funcall (intern "REQUIRE-MODULE" :slynk-loader) module))
   (:method ((method (eql :asdf)) module)
-    (funcall (intern "LOAD-SYSTEM" :asdf) module)))
+    (unless *asdf-load-in-progress*
+      (let ((*asdf-load-in-progress* t))
+        (funcall (intern "LOAD-SYSTEM" :asdf) module)))))
 
 (defun add-to-load-path-1 (path load-path-var)
   (pushnew path (symbol-value load-path-var) :test #'equal))
