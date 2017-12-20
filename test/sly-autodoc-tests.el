@@ -133,13 +133,12 @@
  &key format-arguments format-control)" :fails-for ("ccl"))
   ("(cerror \"Foo\" 'simple-condition*HERE*"
    "(cerror \"Foo\" 'simple-condition\
- &rest arguments &key format-arguments format-control)"
-   :fails-for ("ccl"))
+ &rest arguments &key format-arguments format-control)")
 
   ;; Test &KEY and nested arglists
   ("(slynk::with-retry-restart (:msg *HERE*"
    "(with-retry-restart (&key ===> (msg \"Retry.\") <===) &body body)"
-   :fails-for ("allegro" "ccl"))
+   :fails-for ("allegro"))
   ("(slynk::with-retry-restart (:msg *HERE*(foo"
    "(with-retry-restart (&key ===> (msg \"Retry.\") <===) &body body)"
    :skip-trailing-test-p t
