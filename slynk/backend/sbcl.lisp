@@ -1651,7 +1651,7 @@ stack."
     (sb-thread:with-mutex (*thread-id-counter-lock*)
       (incf *thread-id-counter*)))
 
-  (defparameter *thread-id-map* (make-hash-table))
+  (defvar *thread-id-map* (make-hash-table))
 
   ;; This should be a thread -> id map but as weak keys are not
   ;; supported it is id -> map instead.
