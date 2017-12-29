@@ -6671,7 +6671,8 @@ position of point in the current buffer."
   (sly-eval-describe `(slynk:describe-inspectee)))
 
 (defun sly-inspector-eval (string)
-  "Eval an expression in the context of the inspected object."
+  "Eval an expression in the context of the inspected object.
+The `*' variable will be bound to the inspected object."
   (interactive (list (sly-read-from-minibuffer "Inspector eval: ")))
   (sly-eval-with-transcript `(slynk:inspector-eval ,string)))
 
