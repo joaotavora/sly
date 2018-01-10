@@ -434,13 +434,13 @@ list."
 
 ;;;; Dedicated stream
 ;;;;
-(defparameter *use-dedicated-output-stream* t
+(defvar *use-dedicated-output-stream* t
   "When T, dedicate a second stream for sending output to Emacs.")
 
-(defparameter *dedicated-output-stream-port* 0
+(defvar *dedicated-output-stream-port* 0
   "Which port we should use for the dedicated output stream.")
 
-(defparameter *dedicated-output-stream-buffering*
+(defvar *dedicated-output-stream-buffering*
   (if (eq slynk:*communication-style* :spawn) :line nil)
   "The buffering scheme that should be used for the output stream.
 Be advised that some Lisp backends don't support this.
