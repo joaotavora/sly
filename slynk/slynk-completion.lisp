@@ -238,29 +238,32 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
                                                (list (package-name package)))
                                               #'<
                                               :key #'length))
+            for seen = (make-hash-table)
             when sorted-nicknames
               do (do-symbols (s package)
-                   (let ((status (nth-value 1 (find-symbol (symbol-name s) package))))
-                     (cond ((and (eq status :external)
-                                 (or first-colon
-                                     (not (member (symbol-package s) use-list))))
-                            (loop for nickname in sorted-nicknames
-                                  do (collect-if-matches #'collect-external
-                                                         pattern
-                                                         (format nil "~a:~a"
-                                                                 nickname
-                                                                 (symbol-name s))
-                                                         s)))
-                           ((and two-colons
-                                 (eq status :internal))
-                            (loop for nickname in sorted-nicknames
-                                  do (collect-if-matches #'collect-internal
-                                                         pattern
-                                                         (format nil "~a::~a"
-                                                                 nickname
-                                                                 (symbol-name s))
-                                                         s)))
-                           )))))))))
+                   (unless (gethash s seen)
+                     (setf (gethash s seen) t)
+                     (let ((status (nth-value 1 (find-symbol (symbol-name s) package))))
+                       (cond ((and (eq status :external)
+                                   (or first-colon
+                                       (not (member (symbol-package s) use-list))))
+                              (loop for nickname in sorted-nicknames
+                                    do (collect-if-matches #'collect-external
+                                                           pattern
+                                                           (format nil "~a:~a"
+                                                                   nickname
+                                                                   (symbol-name s))
+                                                           s)))
+                             ((and two-colons
+                                   (eq status :internal))
+                              (loop for nickname in sorted-nicknames
+                                    do (collect-if-matches #'collect-internal
+                                                           pattern
+                                                           (format nil "~a::~a"
+                                                                   nickname
+                                                                   (symbol-name s))
+                                                           s)))
+                             ))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
