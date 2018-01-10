@@ -80,9 +80,9 @@ contributors.texi: Makefile texinfo-tabulate.awk
 	git log --format='%aN' | \
 	sort | \
 	uniq -c | \
-	sort -nr| \
-	sed -e 's/^[^A-Z]*//' | \
-	awk -f texinfo-tabulate.awk \
+	LC_ALL=C sort -nr | \
+	sed -e 's/^[^A-Z]*//; /^$$/d' | \
+	LC_ALL=C awk -f texinfo-tabulate.awk \
 	> $@
 
 #.INTERMEDIATE: contributors.texi
