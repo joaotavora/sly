@@ -2799,8 +2799,14 @@ have one port open we must tell Slynk's REPL contrib (see @REPL{}) to
 not use an extra connection for output, which it will do by default.
 
 @example
+(asdf:require-system :slynk-mrepl)
 (setf slynk:*use-dedicated-output-stream* nil)
 @end example
+
+Here we have to load slynk-mrepl because *use-dedicated-output-stream*
+parameter is defined there. And if you don't load this system beforehand,
+then it will be loaded during connection setup and will overwrite
+the value of the slynk:*use-dedicated-output-stream*.
 
 @footnote{Alternatively, a separate tunnel for the port set in
 @code{slynk:*dedicated-output-stream-port*} can also be used if a dedicated output
