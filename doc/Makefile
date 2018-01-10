@@ -61,6 +61,9 @@ publish: sly.html
 sly.pdf: $(TEXI)
 	texi2pdf $<
 
+sly-refcard.pdf: sly-refcard.tex
+	texi2pdf $<
+
 install: install-info
 
 uninstall: uninstall-info
@@ -116,4 +119,5 @@ clean:
 	rm -f sly.kys sly.log sly.pg sly.tmp sly.toc sly.tp
 	rm -f sly.vr sly.vrs
 	rm -f sly.info sly.pdf sly.dvi sly.ps sly.html
+	rm -f sly-refcard.pdf sly-refcard.log sly-refcard.aux
 	rm -rf html html.tgz
