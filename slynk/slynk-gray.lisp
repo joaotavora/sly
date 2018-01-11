@@ -42,7 +42,18 @@
    (buffer :initform (make-string 8000))
    (fill-pointer :initform 0)
    (column :initform 0)
-   (lock :initform (make-lock :name "buffer write lock"))))
+   (lock :initform (make-lock :name "buffer write lock"))
+   (flush-thread :initarg :flush-thread
+                 :initform nil
+                 :accessor flush-thread)
+   (flush-scheduled :initarg :flush-scheduled
+                    :initform nil
+                    :accessor flush-scheduled)))
+
+(defun maybe-schedule-flush (stream)
+  (unless (flush-scheduled stream)
+    (setf (flush-scheduled stream) t)
+    (send (flush-thread stream) t)))
 
 (defmacro with-sly-output-stream (stream &body body)
   `(with-slots (lock output-fn buffer fill-pointer column) ,stream
@@ -54,10 +65,10 @@
     (incf fill-pointer)
     (incf column)
     (when (char= #\newline char)
-      (setf column 0)
-      (finish-output stream))
-    (when (= fill-pointer (length buffer))
-      (finish-output stream)))
+      (setf column 0))
+    (if (= fill-pointer (length buffer))
+        (finish-output stream)
+        (maybe-schedule-flush stream)))
   char)
 
 (defmethod stream-write-string ((stream sly-output-stream) string
@@ -72,12 +83,13 @@
         (stream-finish-output stream))
       (cond ((< count len)
              (replace buffer string :start1 fill-pointer
-                      :start2 start :end2 end)
-             (incf fill-pointer count))
+                                    :start2 start :end2 end)
+             (incf fill-pointer count)
+             (maybe-schedule-flush stream))
             (t
              (funcall output-fn (subseq string start end))))
       (let ((last-newline (position #\newline string :from-end t
-                                    :start start :end end)))
+                                                     :start start :end end)))
         (setf column (if last-newline
                          (- end last-newline 1)
                          (+ column count))))))
