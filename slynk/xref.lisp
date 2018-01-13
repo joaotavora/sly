@@ -1,4 +1,4 @@
-;;; -*- Mode: LISP; Package: XREF; Syntax: Common-lisp;  -*- 
+;;; -*- Mode: LISP; Syntax: Common-lisp;  -*-
 ;;; Mon Jan 21 16:21:20 1991 by Mark Kantrowitz <mkant@GLINDA.OZ.CS.CMU.EDU>
 ;;; xref.lisp
 

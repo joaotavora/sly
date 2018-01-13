@@ -1,4 +1,4 @@
-;;; -*- Mode: LISP; Package: monitor; Syntax: Common-lisp; Base: 10.;  -*-
+;;; -*- Mode: LISP; Syntax: Common-lisp; Base: 10.;  -*-
 ;;; Tue Jan 25 18:32:28 1994 by Mark Kantrowitz <mkant@GLINDA.OZ.CS.CMU.EDU>
 
 ;;; ****************************************************************
