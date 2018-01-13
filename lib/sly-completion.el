@@ -500,7 +500,7 @@ Intended to go into `completion-at-point-functions'"
       (goto-char first-completion-point))))
 
 (defvar sly--completion-explanation
-  (concat "Use \\[sly-next-completion] and \\[sly-prev-completion] no navigate completions."
+  (concat "Use \\[sly-next-completion] and \\[sly-prev-completion] to navigate completions."
           " \\[sly-choose-completion] or [mouse-1] selects a completion."
           "\n\nAnnotation flags: (b)oundp (f)boundp (g)eneric-function (c)lass (m)acro (s)pecial-operator\n\n"))
 
