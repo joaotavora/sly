@@ -126,32 +126,94 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                    indexes
                    :initial-value nil)))
 
+(defparameter *flex-score-falloff* 1.5
+  "The larger the value, the more big index distances are penalized.")
+
+(defparameter *more-qualified-matches* t
+  "If non-nil, \"foo\" more likely completes to \"bar:foo\".
+ Specifically this assigns a \"foo\" on \"bar:foo\" a
+ higher-than-usual score, as if the package qualifier \"bar\" was
+ shorter.")
+
 (defun flex-score (string indexes &key pattern symbol)
   "Score the match of STRING as given by INDEXES.
-INDEXES as calculated by FLEX-MATCHES."
-  ;; TODO: better scoring algorithm? PATTERN and SYMBOL are given as
-  ;; hints for more avanced scoring in the future, but perhaps they
-  ;; shouldn't...
-  (declare (ignore symbol pattern))
+  INDEXES as calculated by FLEX-MATCHES."
+  (declare (ignore symbol))
+  (let* ((first-pattern-colon (and pattern
+                                   (position #\: pattern)))
+         (index-of-first-pattern-colon (and first-pattern-colon
+                                            (elt indexes first-pattern-colon)))
+         (first-string-colon)
+         (string-length (length string)))
+    (cond ((and first-pattern-colon
+                (plusp first-pattern-colon))
+           ;; If the user included a colon (":") in the pattern, score
+           ;; the pre-colon and post-colon parts separately and add
+           ;; the resulting halves together. This tends to fare
+           ;; slightly better when matching qualified symbols.
+           (let ((package-designator-score
+                   (flex-score-1 index-of-first-pattern-colon
+                                 (subseq indexes 0 first-pattern-colon)))
+                 (symbol-name-score
+                   (flex-score-1 (- string-length
+                                    index-of-first-pattern-colon)
+                                 (mapcar (lambda (index)
+                                           (- index index-of-first-pattern-colon))
+                                         (subseq indexes (1+ first-pattern-colon))))))
+             (+ (/ package-designator-score 2)
+                (/ symbol-name-score 2))))
+          ((and
+            *more-qualified-matches*
+            (setf first-string-colon (position #\: string))
+            (< first-string-colon
+               (car indexes)))
+           ;; If the user did not include a colon, but the string
+           ;; we're matching again does have that colon (we're
+           ;; matching a qualified name), and the position of that
+           ;; colon happens to be less than the first index, then act
+           ;; as if the pre-colon part were actually half the size of
+           ;; what it is. This also tends to promote qualified matches
+           ;; meant on the symbol-name.
+           (let ((adjust (truncate (/ first-string-colon 2))))
+             (flex-score-1 (- string-length
+                              adjust)
+                           (mapcar (lambda (idx)
+                                     (- idx adjust))
+                                   indexes))))
+          (t
+           ;; the default: score the whole pattern on the whole
+           ;; string.
+           (flex-score-1 string-length indexes)))))
+
+(defun flex-score-1 (string-length indexes)
+  "Does the real work of FLEX-SCORE.
+  Given that INDEXES is a list of integer position of characters in a
+  string of length STRING-LENGTH, say how well these characters
+  represent that STRING. There is a non-linear falloff with the
+  distances between the indexes, according to *FLEX-SCORE-FALLOFF*. If
+  that value is 2, for example, the indices '(0 1 2) on a 3-long
+  string of is a perfect (100% match,) while '(0 2) on that same
+  string is a 33% match and just '(1) is a 11% match."
   (float
    (/ (length indexes)
-      (* (length string)
+      (* string-length
          (+ 1 (reduce #'+
-                      (loop for (a b) on `(-1
+                      (loop for i from 0
+                            for (a b) on `(,-1
                                            ,@indexes
-                                           ,(length string))
+                                           ,string-length)
                             while b
-                            collect (expt (- b a 1) 2))))))))
+                            collect (expt (- b a 1) *flex-score-falloff*))))))))
 
 (defun flex-matches (pattern string symbol)
   "Return non-NIL if PATTERN flex-matches STRING.
-In case of a match, return two values:
+  In case of a match, return two values:
 
-A list of non-negative integers which are the indexes of the
-characters in PATTERN as found consecutively in STRING. This list
-measures in length the number of characters in PATTERN.
+  A list of non-negative integers which are the indexes of the
+  characters in PATTERN as found consecutively in STRING. This list
+  measures in length the number of characters in PATTERN.
 
-A floating-point score. Higher scores for better matches."
+  A floating-point score. Higher scores for better matches."
   (let ((indexes (loop for char across pattern
                        for from = 0 then (1+ pos)
                        for pos = (position char string :start from :test #'char-equal)
@@ -164,7 +226,7 @@ A floating-point score. Higher scores for better matches."
 
 (defun collect-if-matches (collector pattern string symbol)
   "Make and collect a match with COLLECTOR if PATTERN matches STRING.
-A match is a list (STRING SYMBOL INDEXES SCORE)."
+  A match is a list (STRING SYMBOL INDEXES SCORE)."
   (multiple-value-bind (indexes score)
       (flex-matches pattern string symbol)
     (when indexes
@@ -177,14 +239,14 @@ A match is a list (STRING SYMBOL INDEXES SCORE)."
 (defun sort-by-score (matches)
   "Sort MATCHES by SCORE, highest score first.
 
-Matches are produced by COLLECT-IF-MATCHES (which see)."
+  Matches are produced by COLLECT-IF-MATCHES (which see)."
   (sort matches #'> :key #'fourth))
 
 (defun keywords-matching (pattern)
   "Find keyword symbols flex-matching PATTERN.
-Return an unsorted list of matches.
+  Return an unsorted list of matches.
 
-Matches are produced by COLLECT-IF-MATCHES (which see)."
+  Matches are produced by COLLECT-IF-MATCHES (which see)."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
          (do-symbols (s +keyword-package+)
@@ -192,9 +254,9 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
 
 (defun accessible-matching (pattern package)
   "Find symbols flex-matching PATTERN accessible without package-qualification.
-Return an unsorted list of matches.
+  Return an unsorted list of matches.
 
-Matches are produced by COLLECT-IF-MATCHES (which see)."
+  Matches are produced by COLLECT-IF-MATCHES (which see)."
   (and (not (find #\: pattern))
        (collecting (collect)
          (do-symbols (s package)
@@ -202,15 +264,15 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
 
 (defun qualified-matching (pattern home-package)
   "Find package-qualified symbols flex-matching PATTERN.
-Return, as two values, a set of matches for external symbols,
-package-qualified using one colon, and another one for internal
-symbols, package-qualified using two colons.
+  Return, as two values, a set of matches for external symbols,
+  package-qualified using one colon, and another one for internal
+  symbols, package-qualified using two colons.
 
-The matches in the two sets are not guaranteed to be in their final
-order, i.e. they are not sorted (except for the fact that
-qualifications with shorter package nicknames are tried first).
+  The matches in the two sets are not guaranteed to be in their final
+  order, i.e. they are not sorted (except for the fact that
+                                          qualifications with shorter package nicknames are tried first).
 
-Matches are produced by COLLECT-IF-MATCHES (which see)."
+                                          Matches are produced by COLLECT-IF-MATCHES (which see)."
   (let* ((first-colon (position #\: pattern))
          (starts-with-colon (and first-colon (zerop first-colon)))
          (two-colons (and first-colon (< (1+ first-colon) (length pattern))
