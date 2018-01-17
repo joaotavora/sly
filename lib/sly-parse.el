@@ -72,39 +72,39 @@ that the character is not escaped."
 ;; 
 (defun sly-parse-form-upto-point (&optional max-levels)
   (save-restriction
-    ;; Don't parse more than 500 lines before point, so we don't spend
-    ;; too much time. NB. Make sure to go to beginning of line, and
-    ;; not possibly anywhere inside comments or strings.
-    (narrow-to-region (line-beginning-position -500) (point-max))
-    (save-excursion
-      (let ((suffix (list sly-cursor-marker)))
-        (cond ((sly-compare-char-syntax #'char-after "(" t)
-               ;; We're at the start of some expression, so make sure
-               ;; that SLYNK::%CURSOR-MARKER% will come after that
-               ;; expression. If the expression is not balanced, make
-               ;; still sure that the marker does *not* come directly
-               ;; after the preceding expression.
-               (or (ignore-errors (forward-sexp) t)
-                   (push "" suffix)))
-              ((or (bolp) (sly-compare-char-syntax #'char-before " " t))
-               ;; We're after some expression, so we have to make sure
-               ;; that %CURSOR-MARKER% does *not* come directly after
-               ;; that expression.
-               (push "" suffix))
-              ((sly-compare-char-syntax #'char-before "(" t)
-               ;; We're directly after an opening parenthesis, so we
-               ;; have to make sure that something comes before
-               ;; %CURSOR-MARKER%.
-               (push "" suffix))
-              (t
-               ;; We're at a symbol, so make sure we get the whole symbol.
-               (sly-end-of-symbol)))
-        (let ((pt (point))
-              (ppss (syntax-ppss)))
-          (unless (zerop (car ppss))
-            (ignore-errors (up-list (if max-levels (- max-levels) -5))))
-          (ignore-errors (down-list))
-          (sly-parse-form-until pt suffix))))))
+    (let ((ppss (syntax-ppss)))
+      ;; Don't parse more than 500 lines before point, so we don't spend
+      ;; too much time. NB. Make sure to go to beginning of line, and
+      ;; not possibly anywhere inside comments or strings.
+      (narrow-to-region (line-beginning-position -500) (point-max))
+      (save-excursion
+        (let ((suffix (list sly-cursor-marker)))
+          (cond ((sly-compare-char-syntax #'char-after "(" t)
+                 ;; We're at the start of some expression, so make sure
+                 ;; that SLYNK::%CURSOR-MARKER% will come after that
+                 ;; expression. If the expression is not balanced, make
+                 ;; still sure that the marker does *not* come directly
+                 ;; after the preceding expression.
+                 (or (ignore-errors (forward-sexp) t)
+                     (push "" suffix)))
+                ((or (bolp) (sly-compare-char-syntax #'char-before " " t))
+                 ;; We're after some expression, so we have to make sure
+                 ;; that %CURSOR-MARKER% does *not* come directly after
+                 ;; that expression.
+                 (push "" suffix))
+                ((sly-compare-char-syntax #'char-before "(" t)
+                 ;; We're directly after an opening parenthesis, so we
+                 ;; have to make sure that something comes before
+                 ;; %CURSOR-MARKER%.
+                 (push "" suffix))
+                (t
+                 ;; We're at a symbol, so make sure we get the whole symbol.
+                 (sly-end-of-symbol)))
+          (let ((pt (point)))
+            (unless (zerop (car ppss))
+              (ignore-errors (up-list (if max-levels (- max-levels) -5))))
+            (ignore-errors (down-list))
+            (sly-parse-form-until pt suffix)))))))
 
 ;;;; Test cases
 (defun sly-extract-context ()
