@@ -1,5 +1,8 @@
 dist: trusty
-sudo: false
+# Require sudo because Emacs needs to disable ASLR to dump, only
+# possible on sudo-enabled environment.  See also
+# https://github.com/travis-ci/travis-ci/issues/9061.
+sudo: required
 language: emacs-lisp
 cache:
   - directories:
