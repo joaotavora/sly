@@ -356,4 +356,8 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                   (slynk::symbol-classification-string symbol)))
           nil)))
 
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (import 'flex-completions :slynk)
+  (export 'flex-completions :slynk))
+
 (provide :slynk-completion)
