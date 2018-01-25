@@ -661,4 +661,4 @@ Return the current redirection target, or nil"
       (revert-global-io-redirection)
       (format *standard-output* "~&; Reverted global IO direction~%"))))
 
-(provide :slynk-mrepl)
+(provide :slynk/mrepl)

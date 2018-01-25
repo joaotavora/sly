@@ -186,4 +186,4 @@
   (loop for ts in (timed-specs)
         do (reinitialize-instance ts)))
 
-(provide :slynk-profiler)
+(provide :slynk/profiler)

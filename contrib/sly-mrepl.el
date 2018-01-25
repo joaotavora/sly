@@ -8,7 +8,7 @@
 (define-sly-contrib sly-mrepl
   "Multiple REPLs."
   (:license "GPL")
-  (:slynk-dependencies slynk-mrepl)
+  (:slynk-dependencies slynk/mrepl)
   (:on-load
    ;; Define a new "part action" for the `sly-part' buttons and change
    ;; the `sly-inspector-part', `sly-db-local-variable' and

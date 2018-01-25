@@ -62,4 +62,4 @@
         (export symbols)
         symbols))))
 
-(provide :slynk-package-fu)
+(provide :slynk/package-fu)

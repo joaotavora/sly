@@ -356,4 +356,4 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                   (slynk::symbol-classification-string symbol)))
           nil)))
 
-(provide :slynk-completion)
+(provide :slynk/completion)

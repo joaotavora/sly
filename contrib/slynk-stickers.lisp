@@ -381,4 +381,4 @@ Return number of remaining recordings"
   (let ((recording (find-recording-or-lose recording-id vindex)))
     (slynk::inspect-object recording)))
 
-(provide 'slynk-stickers)
+(provide 'slynk/stickers)

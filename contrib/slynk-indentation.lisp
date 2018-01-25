@@ -137,4 +137,4 @@ in Emacs."
   (assert (equal nil
                  (macro-indentation '(x y &key z)))))
 
-(provide :slynk-indentation)
+(provide :slynk/indentation)

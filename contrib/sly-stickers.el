@@ -103,7 +103,7 @@
   "Mark expressions in source buffers and annotate return values."
   (:authors "João Távora <joaotavora@gmail.com>")
   (:license "GPL")
-  (:slynk-dependencies slynk-stickers)
+  (:slynk-dependencies slynk/stickers)
   (:on-load (add-hook 'sly-editing-mode-hook 'sly-stickers-mode)
             (add-hook 'sly-mode-hook 'sly-stickers-shortcut-mode)
             (setq sly-compile-region-function

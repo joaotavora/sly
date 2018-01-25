@@ -320,16 +320,19 @@ global variabes in SLYNK."
            (provided ()
              (member (string-upcase (module)) *modules* :test #'string=)))
     (unless (provided)
-      (let ((src-file
-              (some #'(lambda (dir)
-                        (probe-file (make-pathname
-                                     :name (string-downcase module)
-                                     :type "lisp"
-                                     :defaults dir)))
-                    *load-path*)))
+      (let* ((src-file-name (substitute #\- #\/ (string-downcase module)))
+             (src-file
+               (some #'(lambda (dir)
+                         (probe-file (make-pathname
+                                      :name src-file-name
+                                      :type "lisp"
+                                      :defaults dir)))
+                     *load-path*)))
         (assert src-file
                 nil
-                "Required module ~a but no source file found in ~a" module *load-path*)
+                "Required module ~a but no source file ~a found in ~a" module
+                src-file-name
+                *load-path*)
         (compile-files (list src-file)
                        (module-binary-dir src-file)
                        'load

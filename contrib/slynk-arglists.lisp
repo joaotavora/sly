@@ -1599,4 +1599,4 @@ datum for subsequent logics to rely on."
 (test-print-arglist)
 (test-arglist-ref)
 
-(provide :slynk-arglists)
+(provide :slynk/arglists)
