@@ -1739,7 +1739,7 @@ Signal an error if there's no connection."
            (or (sly-auto-start)
                (error "Not connected.")))
           ((not (process-live-p conn))
-           (error "Connection closed."))
+           (error "Connection closed." conn))
           (t conn))))
 
 (define-obsolete-variable-alias 'sly-auto-connect
@@ -1793,19 +1793,26 @@ The actual variable bindings are stored buffer-local in the
 process-buffers of connections. The accessor function refers to
 the binding for `sly-connection'."
   (declare (indent 2))
-  (let ((real-var (intern (format "%s:connlocal" varname))))
-    `(progn
-       ;; Variable
-       (make-variable-buffer-local
-        (defvar ,real-var ,@initial-value-and-doc))
-       ;; Accessor
-       (defun ,varname (&optional process)
-         (sly-with-connection-buffer (process) ,real-var))
-       ;; Setf
-       (gv-define-setter ,varname (store &optional process)
-         `(sly-with-connection-buffer (,process)
-            (setq (\, (quote (\, real-var))) (\, store))))
-       '(\, varname))))
+  `(progn
+     ;; Accessor
+     (defun ,varname (&optional process)
+       ,(cl-second initial-value-and-doc)
+       (let ((process (or process
+                          (sly-current-connection)
+                          (error "Can't access prop %s for no connection" ',varname))))
+         (or (process-get process ',varname)
+             (let ((once ,(cl-first initial-value-and-doc)))
+               (process-put process ',varname once)
+               once))))
+     ;; Setf
+     (gv-define-setter ,varname (store &optional process)
+       `(let ((process (or ,process
+                           (sly-current-connection)
+                           (error "Can't access prop %s for no connection" ',',varname)))
+              (store-once ,store))
+          (process-put process ',',varname store-once)
+          store-once))
+     '(\, varname)))
 
 (sly-def-connection-var sly-connection-number nil
   "Serial number of a connection.
