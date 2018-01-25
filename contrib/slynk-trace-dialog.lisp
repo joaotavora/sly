@@ -293,4 +293,4 @@ program.")
                      ,values-sym)
        (values-list ,values-sym))))
 
-(provide :slynk-trace-dialog)
+(provide :slynk/trace-dialog)

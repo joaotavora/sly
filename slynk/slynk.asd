@@ -61,7 +61,7 @@
    (:file "slynk")
    (:file "slynk-completion")))
 
-(defsystem :slynk-util
+(defsystem :slynk/util
   :components ((:file "slynk-util")))
 
 (defmethod perform :after ((o load-op) (c (eql (find-system :slynk))))
@@ -77,39 +77,39 @@
 
 ;;; Contrib systems (should probably go into their own file one day)
 ;;;
-(defsystem :slynk-arglists
+(defsystem :slynk/arglists
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-arglists")))
 
-(defsystem :slynk-fancy-inspector
-  :depends-on (:slynk :slynk-util)
+(defsystem :slynk/fancy-inspector
+  :depends-on (:slynk :slynk/util)
   :components ((:file "../contrib/slynk-fancy-inspector")))
 
-(defsystem :slynk-package-fu
+(defsystem :slynk/package-fu
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-package-fu")))
 
-(defsystem :slynk-mrepl
-  :depends-on (:slynk :slynk-util)
+(defsystem :slynk/mrepl
+  :depends-on (:slynk :slynk/util)
   :components ((:file "../contrib/slynk-mrepl")))
 
-(defsystem :slynk-trace-dialog
+(defsystem :slynk/trace-dialog
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-trace-dialog")))
 
-(defsystem :slynk-profiler
+(defsystem :slynk/profiler
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-profiler")))
 
-(defsystem :slynk-stickers
+(defsystem :slynk/stickers
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-stickers")))
 
-(defsystem :slynk-indentation
+(defsystem :slynk/indentation
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-indentation")))
 
-(defsystem :slynk-retro
+(defsystem :slynk/retro
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-retro")))
 

@@ -11,7 +11,7 @@
 inspecting details of timing functions. Invoke this dialog with C-c Y."
   (:authors "João Távora <joaotavora@gmail.com>")
   (:license "GPL")
-  (:slynk-dependencies slynk-profiler)
+  (:slynk-dependencies slynk/profiler)
   (:on-load (add-hook 'sly-mode-hook 'sly-profiler-enable))
   (:on-unload (remove-hook 'sly-mode-hook 'sly-profiler-enable)))
 

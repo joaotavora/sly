@@ -5,7 +5,7 @@
   "Fancy inspector for CLOS objects."
   (:authors "Marco Baringer <mb@bese.it> and others")
   (:license "GPL")
-  (:slynk-dependencies slynk-fancy-inspector))
+  (:slynk-dependencies slynk/fancy-inspector))
 
 (defun sly-inspect-definition ()
   "Inspect definition at point"

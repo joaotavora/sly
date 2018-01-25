@@ -38,6 +38,6 @@
   (setq slynk-api:*loaded-user-init-file*
         (load-swankrcs-maybe)))
 
-(provide :slynk-retro)
+(provide :slynk/retro)
 
 

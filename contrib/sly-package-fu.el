@@ -5,7 +5,7 @@
   "Exporting/Unexporting symbols at point."
   (:authors "Tobias C. Rittweiler <tcr@freebits.de>")
   (:license "GPL")
-  (:slynk-dependencies slynk-package-fu)
+  (:slynk-dependencies slynk/package-fu)
   (:on-load 
    (define-key sly-mode-map "\C-cx"  'sly-export-symbol-at-point))
   (:on-unload

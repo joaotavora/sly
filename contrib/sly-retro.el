@@ -2,7 +2,7 @@
 
 (define-sly-contrib sly-retro
   "Enable SLIME to connect to a SLY-started SLYNK"
-  (:slynk-dependencies slynk-retro)
+  (:slynk-dependencies slynk/retro)
   (:on-load (setq sly-net-send-translator #'sly-retro-slynk-to-swank))
   (:on-unload (setq sly-net-send-translator nil)))
 
