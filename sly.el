@@ -1734,12 +1734,12 @@ Signal an error if there's no connection."
   (let ((conn (sly-current-connection)))
     (cond ((and (not conn) sly-net-processes)
            (or (sly-auto-select-connection)
-               (error "No default connection selected.")))
+               (error "No fallback connection to select.")))
           ((not conn)
            (or (sly-auto-start)
-               (error "Not connected.")))
+               (error "No current SLY connection.")))
           ((not (process-live-p conn))
-           (error "Connection closed." conn))
+           (error "Current connection %s is closed." conn))
           (t conn))))
 
 (define-obsolete-variable-alias 'sly-auto-connect
