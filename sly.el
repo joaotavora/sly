@@ -3506,7 +3506,16 @@ new window or frame."
                         (let ((dedicatedness (window-dedicated-p window)))
                           (unwind-protect
                               (progn
-                                (set-window-dedicated-p window 'soft)
+                                ;; (set-window-dedicated-p window 'soft)
+                                ;;
+                                ;; jt@2018-01-27 commented the line
+                                ;; above because since the fix to
+                                ;; emacs' bug#28814 in Emacs 26.1
+                                ;; (which I myself authored), it won't
+                                ;; work correctly. Best to disable it
+                                ;; for now and eventually copy Emacs's
+                                ;; approach to xref buffers, or better
+                                ;; yet, reuse it.
                                 (pop-it target-buffer sub-method))
                             (set-window-dedicated-p window dedicatedness))))
                        (t
