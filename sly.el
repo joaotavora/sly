@@ -3538,14 +3538,14 @@ If called from an xref buffer, method will be `sly-xref' and
 thus also honour `sly-xref--popup-method'."
   (let* ((xref-window (selected-window))
          (xref-buffer (window-buffer xref-window)))
-    (when (eq method 'sly-xref)
-      (quit-window nil xref-window))
     (with-current-buffer xref-buffer
       ;; now pop to target
       ;;
       (select-window
        (sly--display-source-location source-location nil method)))
-    (set-buffer (window-buffer (selected-window)))))
+    (set-buffer (window-buffer (selected-window)))
+    (when (eq method 'sly-xref)
+      (quit-window nil xref-window))))
 
 (defun sly-location-offset (location)
   "Return the position, as character number, of LOCATION."
