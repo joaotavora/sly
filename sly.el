@@ -3548,7 +3548,7 @@ thus also honour `sly-xref--popup-method'."
   (let* ((xref-window (selected-window))
          (xref-buffer (window-buffer xref-window)))
     (when (eq method 'sly-xref)
-      (quit-window nil xref-window))
+      (quit-restore-window xref-window 'bury))
     (with-current-buffer xref-buffer
       ;; now pop to target
       ;;
