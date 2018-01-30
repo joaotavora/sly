@@ -13,9 +13,22 @@ jobs:
           command: date
       - run:
           name: Install emacs
+          # Installs under HOME
           command:  |
             wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
             make -f emacs-travis.mk install_emacs
-            ls -la
+      - run:
+          name: Install Roswell
+          command:  |
+            export ROSWELL_INSTALL_DIR=~/.roswell
+            mkdir -p $ROSWELL_INSTALL_DIR
+            PATH=$ROSWELL_INSTALL_DIR/bin:$PATH
+            LISP=sbcl-bin/1.2.14
+            curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
+      - run:
+          name: Check core
+          command: |
+            make LISP="ros run -L sbcl-bin/1.2.14" EMACS=$HOME/emacs/25.3/src/emacs core
+            
       
           
