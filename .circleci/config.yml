@@ -11,4 +11,11 @@ jobs:
       - run:
           name: Print the Current Time
           command: date
+      - run:
+          name: Install emacs
+          command:  |
+            wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
+            make -f emacs-travis.mk install_emacs
+            ls -la
+      
           
