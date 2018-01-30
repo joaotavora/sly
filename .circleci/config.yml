@@ -22,13 +22,14 @@ jobs:
           command:  |
             export ROSWELL_INSTALL_DIR=~/.roswell
             mkdir -p $ROSWELL_INSTALL_DIR
-            PATH=$ROSWELL_INSTALL_DIR/bin:$PATH
-            LISP=sbcl-bin/1.2.14
+            export PATH=$ROSWELL_INSTALL_DIR/bin:$PATH
+            export LISP=sbcl-bin/1.2.14
             curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
       - run:
           name: Check core
           command: |
-            make LISP="ros run -L sbcl-bin/1.2.14" EMACS=$HOME/emacs/25.3/src/emacs core
+            env
+            make LISP="ros run -L sbcl-bin/1.2.14" EMACS=$HOME/emacs/25.3/src/emacs check-core
             
       
           
