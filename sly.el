@@ -1890,6 +1890,17 @@ This is automatically synchronized from Lisp.")
       nil
       `((sly-ignore-protocol-mismatches . ,sly-ignore-protocol-mismatches)))))
 
+(defun sly--trampling-rename-buffer (newname)
+  "Rename current buffer NEWNAME, trampling over existing ones."
+  (let ((existing (get-buffer newname)))
+    (unless (eq existing
+                (current-buffer))
+      ;; Trample over any existing buffers on reconnection
+      (when existing
+        (let ((kill-buffer-query-functions nil))
+          (kill-buffer existing)))
+      (rename-buffer newname))))
+
 (defun sly-set-connection-info (connection info)
   "Initialize CONNECTION with INFO received from Lisp."
   (let ((sly-dispatching-connection connection)
@@ -1925,18 +1936,19 @@ This is automatically synchronized from Lisp.")
         (funcall fun)))
     ;; Give the events buffer its final name
     (with-current-buffer (sly--events-buffer connection)
-      (let ((events-buffer-name (sly-buffer-name :events :connection connection)))
-        ;; Trample over any existing buffers on reconnection
-        (when (get-buffer events-buffer-name)
-          (kill-buffer events-buffer-name))
-        (rename-buffer (sly-buffer-name :events :connection connection))))
+      (sly--trampling-rename-buffer (sly-buffer-name
+                                     :events
+                                     :connection connection)))
     ;; Rename the inferior lisp buffer if there is one (i.e. when
     ;; started via `M-x sly')
     ;;
-    (let ((inferior-lisp-buffer (sly-inferior-lisp-buffer (sly-process connection))))
+    (let ((inferior-lisp-buffer (sly-inferior-lisp-buffer
+                                 (sly-process connection))))
       (when inferior-lisp-buffer
         (with-current-buffer inferior-lisp-buffer
-          (rename-buffer (sly-buffer-name :inferior-lisp :connection connection)))))
+          (sly--trampling-rename-buffer (sly-buffer-name
+                                         :inferior-lisp
+                                         :connection connection)))))
     (sly-message "Connected. %s" (sly-random-words-of-encouragement))))
 
 (defun sly-check-version (version conn)
