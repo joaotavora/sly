@@ -1525,7 +1525,9 @@ first line of the file."
   "Send a SEXP to Lisp over the socket PROC.
 This is the lowest level of communication. The sexp will be READ and
 EVAL'd by Lisp."
-  (let* ((sexp (if (and sly-net-send-translator
+  (let* ((print-circle nil)
+         (print-quoted nil)
+         (sexp (if (and sly-net-send-translator
                         (fboundp sly-net-send-translator))
                    (funcall sly-net-send-translator sexp)
                  sexp))
