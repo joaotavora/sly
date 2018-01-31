@@ -1,23 +1,14 @@
 version: 2
 jobs:
-  build:
+  setup:
     docker:
       - image: circleci/ruby:2
         environment:
+          EMACS_VERSION: 24.4
           LISP: sbcl-bin/1.2.14
           TARGET: check-core
-      - image: circleci/ruby:2
-        environment:
-          LISP: ccl-bin
-          TARGET: check-fancy
     steps:
       - checkout
-      - run:
-          name: Greeting
-          command: echo Hello, world.
-      - run:
-          name: Print the Current Time
-          command: date
       - run:
           name: Install emacs
           # Installs under HOME
@@ -25,16 +16,31 @@ jobs:
             wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
             make -f emacs-travis.mk install_emacs
       - run:
-          name: Install Roswell
+          name: Install roswell
           command:  |
             export ROSWELL_INSTALL_DIR=~/.roswell
             mkdir -p $ROSWELL_INSTALL_DIR
             export PATH=$ROSWELL_INSTALL_DIR/bin:$PATH
             curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
+  test:
+    docker:
+      - image: circleci/ruby:2
+        environment:
+          EMACS_VERSION: 24.4
+          LISP: sbcl-bin/1.2.14
+          TARGET: check-core
+    steps:
       - run:
           name: Check core
           command: |
             make LISP="$HOME/.roswell/bin/ros run -L sbcl-bin/1.2.14" EMACS="$HOME/emacs/25.3/src/emacs" $TARGET
+
+workflows:
+  version: 2
+  build_and_test:
+    jobs:
+      - setup
+      - test
             
       
           
