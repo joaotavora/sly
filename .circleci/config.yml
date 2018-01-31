@@ -1,6 +1,6 @@
 version: 2
 jobs:
-  setup:
+  sbcl-24-4:
     docker:
       - image: circleci/ruby:2
         environment:
@@ -22,14 +22,32 @@ jobs:
             mkdir -p $ROSWELL_INSTALL_DIR
             export PATH=$ROSWELL_INSTALL_DIR/bin:$PATH
             curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
-  test:
+      - run:
+          name: Check core
+          command: |
+            make LISP="$HOME/.roswell/bin/ros run -L sbcl-bin/1.2.14" EMACS="$HOME/emacs/25.3/src/emacs" $TARGET
+  sbcl-25-3:
     docker:
       - image: circleci/ruby:2
         environment:
-          EMACS_VERSION: 24.4
+          EMACS_VERSION: 25.3
           LISP: sbcl-bin/1.2.14
           TARGET: check-core
     steps:
+      - checkout
+      - run:
+          name: Install emacs
+          # Installs under HOME
+          command:  |
+            wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
+            make -f emacs-travis.mk install_emacs
+      - run:
+          name: Install roswell
+          command:  |
+            export ROSWELL_INSTALL_DIR=~/.roswell
+            mkdir -p $ROSWELL_INSTALL_DIR
+            export PATH=$ROSWELL_INSTALL_DIR/bin:$PATH
+            curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
       - run:
           name: Check core
           command: |
@@ -37,10 +55,11 @@ jobs:
 
 workflows:
   version: 2
-  build_and_test:
+  test:
     jobs:
-      - setup
-      - test
+      - sbcl-25-3
+      - sbcl-24-4
+
             
       
           
