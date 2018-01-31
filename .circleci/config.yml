@@ -3,6 +3,13 @@ jobs:
   build:
     docker:
       - image: circleci/ruby:2
+        environment:
+          LISP: sbcl-bin/1.2.14
+          TARGET: check-core
+      - image: circleci/ruby:2
+        environment:
+          LISP: ccl-bin
+          TARGET: check-fancy
     steps:
       - checkout
       - run:
@@ -23,12 +30,11 @@ jobs:
             export ROSWELL_INSTALL_DIR=~/.roswell
             mkdir -p $ROSWELL_INSTALL_DIR
             export PATH=$ROSWELL_INSTALL_DIR/bin:$PATH
-            export LISP=sbcl-bin/1.2.14
             curl -L https://raw.githubusercontent.com/snmsts/roswell/release/scripts/install-for-ci.sh | sh
       - run:
           name: Check core
           command: |
-            make LISP="$HOME/.roswell/bin/ros run -L sbcl-bin/1.2.14" EMACS="$HOME/emacs/25.3/src/emacs" check-core
+            make LISP="$HOME/.roswell/bin/ros run -L sbcl-bin/1.2.14" EMACS="$HOME/emacs/25.3/src/emacs" $TARGET
             
       
           
