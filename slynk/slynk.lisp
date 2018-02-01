@@ -4270,12 +4270,12 @@ Collisions are caused because package information is ignored."
   "User init file actually loaded from user's home, if any.")
 (defun load-user-init-file ()
   "Load the user init file, return NIL if it does not exist."
-  (find (lambda (homedir-file)
-          (load (merge-pathnames (user-homedir-pathname)
-                                 homedir-file)
-                :if-does-not-exist nil))
-        (list (make-pathname :name ".slynk" :type "lisp")
-              (make-pathname :name ".slynkrc"))))
+  (find-if (lambda (homedir-file)
+             (load (merge-pathnames (user-homedir-pathname)
+                                    homedir-file)
+                   :if-does-not-exist nil))
+           (list (make-pathname :name ".slynk" :type "lisp")
+                 (make-pathname :name ".slynkrc"))))
 
 (defun init ()
   (unless (member :slynk *features*)
