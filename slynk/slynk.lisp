@@ -1201,18 +1201,6 @@ point the thread terminates and CHANNEL is closed."
     (with-panic-handler (connection)
       (loop (dispatch-event connection (receive))))))
 
-(defvar *auto-flush-interval* 0.08)
-
-(defun auto-flush-loop (stream)
-  (loop
-   (when (not (and (open-stream-p stream)
-                   (output-stream-p stream)))
-     (return nil))
-   (force-output stream)
-   (setf (swank/gray::flush-scheduled stream) nil)
-   (receive-if #'identity)
-   (sleep *auto-flush-interval*)))
-
 (defgeneric thread-for-evaluation (connection id)
   (:documentation "Find or create a thread to evaluate the next request.")
   (:method ((connection multithreaded-connection) (id (eql t)))
