@@ -278,7 +278,10 @@ render the underlying text unreadable."
     (setq containers not-contained)
     (let* ((label "Brand new sticker")
            (sticker
+            ;;; FIXME: We aren't using sly--make-text-button here
+            ;;; because it doesn't allow overlay button s
             (make-button from to :type 'sly-stickers-sticker
+                         'sly-connection (sly-current-connection)
                          'part-args (list -1 nil)
                          'part-label label
                          'sly-button-search-id (sly-button-next-search-id)
