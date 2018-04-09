@@ -352,25 +352,6 @@ symbol in the Lisp image if possible."
       t)))
 
 
-(defun sly-package-write-imported (symbol)
-  "Like rites given symbol to the end of the :import-from clause.
-
-   Expects that current point is right after the last symbol
-   in the :import-from sexp:
-
-   (:import-from #:weblocks/requests
-                 #:get-parameters<point>)"
-
-  (goto-char point)
-  (down-list)
-  (sly-end-of-list))
-
-
-(defun get-piece (chars)
-  (buffer-substring-no-properties (point)
-                                  (+ (point)
-                                     chars)))
-
 (defun sly-package-create-new-import-from (package symbol)
   (sly-goto-package-source-definition (sly-current-package))
   (forward-sexp)
