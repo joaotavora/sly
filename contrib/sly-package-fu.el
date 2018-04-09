@@ -404,7 +404,6 @@ symbol in the Lisp image if possible."
                               :test 'equalp)
              ;; If symbol is not imported yet, then just
              ;; add it to the end
-             ;; TODO: rename function
              (sly-package-fu--insert-symbol simple-symbol)))
          ;; If there is no import from this package yet,
          ;; then we'll add it right after the last :import-from
