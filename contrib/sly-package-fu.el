@@ -338,8 +338,6 @@ symbol in the Lisp image if possible."
 ;; 
 ;; Dealing with import-from
 ;;
-;; MELPA version: (buffer-substring-no-properties point1 pount2)
-;; ~/.emacs.d/elpa/sly-20171111.1604/contrib/sly-package-fu.el
 
 (defun sly-search-import-from (package)
   ;; Suppose, we are in the defpackage sexp
