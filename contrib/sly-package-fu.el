@@ -372,8 +372,14 @@ symbol in the Lisp image if possible."
     (t (error "Unable to find :use form in the defpackage form."))))
 
 
-(defun sly-import-symbol-from (symbol)
-  "Accepts "
+(defun sly-package-fu--add-or-update-import-from-form (symbol)
+  "Accepts a string or a symbol like \"alexandria:with-gensyms\",
+   and adds it to existing (import-from #:alexandria ...) form
+   or creates a new one.
+
+   Returns a name of the given symbol inside of it's package.
+   For example above, it will return \"with-gensyms\"."
+  
   (save-excursion
    ;; First, will go to the package definition
    (sly-goto-package-source-definition (sly-current-package))
@@ -424,7 +430,8 @@ symbol in the Lisp image if possible."
                 (buffer-substring-no-properties left-bound
                                                 right-bound))
               (simple-symbol
-                (sly-import-symbol-from symbol-name)))
+                (sly-package-fu--add-or-update-import-from-form
+                 symbol-name)))
          ;; If symbol was imported, then we need to replace
          ;; fully qualified symbol name with simple one:
          (when simple-symbol
