@@ -216,7 +216,7 @@ already exported/unexported."
            (let ((symbol-name (sly-cl-symbol-name symbol)))
              (unless (sly-symbol-exported-p symbol-name exported-symbols)
                (cl-incf number-of-actions)
-               (sly-insert-export symbol-name)))))
+               (sly-package-fu--insert-symbol symbol-name)))))
         (:unexport
          (dolist (symbol symbols)
            (let ((symbol-name (sly-cl-symbol-name symbol)))
@@ -273,8 +273,9 @@ already exported/unexported."
              sly-export-symbol-representation-function)
            symbol-name))
 
-(defun sly-insert-export (symbol-name)
-  ;; Assumes we're at the inside :export after the last symbol
+(defun sly-package-fu--insert-symbol (symbol-name)
+  ;; Assumes we're at the inside :export or :import-from form
+  ;; after the last symbol
   (let ((symbol-name (sly-format-symbol-for-defpackage symbol-name)))
     (unless (looking-back "^\\s-*" (line-beginning-position) nil)
       (newline-and-indent))
@@ -404,7 +405,7 @@ symbol in the Lisp image if possible."
              ;; If symbol is not imported yet, then just
              ;; add it to the end
              ;; TODO: rename function
-             (sly-insert-export simple-symbol)))
+             (sly-package-fu--insert-symbol simple-symbol)))
          ;; If there is no import from this package yet,
          ;; then we'll add it right after the last :import-from
          ;; or :use construction
