@@ -392,22 +392,24 @@ symbol in the Lisp image if possible."
 
      ;; We only process symbols in fully qualified form like
      ;; weblocks/request:get-parameter
-     (when package
-       (if import-exists
-           (let ((imported-symbols (mapcar #'sly-package-normalize-name
-                                           (sly-package-fu--read-symbols))))
-             (unless (cl-member simple-symbol
-                                imported-symbols
-                                :test 'equalp)
-               ;; If symbol is not imported yet, then just
-               ;; add it to the end
-               ;; TODO: rename function
-               (sly-insert-export simple-symbol)))
-           ;; If there is no import from this package yet,
-           ;; then we'll add it right after the last :import-from
-           ;; or :use construction
-           (sly-package-fu--create-new-import-from package
-                                                   simple-symbol)))
+     (unless package
+       (user-error "This only works on symbols with package designator."))
+     
+     (if import-exists
+         (let ((imported-symbols (mapcar #'sly-package-normalize-name
+                                         (sly-package-fu--read-symbols))))
+           (unless (cl-member simple-symbol
+                              imported-symbols
+                              :test 'equalp)
+             ;; If symbol is not imported yet, then just
+             ;; add it to the end
+             ;; TODO: rename function
+             (sly-insert-export simple-symbol)))
+         ;; If there is no import from this package yet,
+         ;; then we'll add it right after the last :import-from
+         ;; or :use construction
+         (sly-package-fu--create-new-import-from package
+                                                 simple-symbol))
      ;; Always return symbol-without-package, because it is useful
      ;; to replace symbol at point and change it from fully qualified
      ;; form to a simple-form
