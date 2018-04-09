@@ -155,19 +155,22 @@ places the cursor at the start of the DEFPACKAGE form."
                                  (1+ (point))
                                (point))))))))))))
 
-(defun sly-read-symbols ()
-  "Return a list of symbols inside :export clause of a defpackage."
-  ;; Assumes we're at the beginning of :export
-  
-  ;; На самом деле, читает содержимое внутри скобок и возвращает
-  ;; список строк с каждым элементом
+
+(defun sly-package-fu--read-symbols ()
+  "Reads a list of symbols from the current point to the end of the current s-exp.
+
+   For example, when point is here:
+
+   (for<point> bar minor (again 123))
+
+   Function will return (\"bar\" \"minor\" \"(again 123)\")"
   (cl-labels ((read-sexp ()
                          (ignore-errors
-                           (forward-comment (point-max))
-                           (buffer-substring-no-properties
-                            (point) (progn (forward-sexp) (point))))))
-    (save-excursion
-      (cl-loop for sexp = (read-sexp) while sexp collect sexp))))
+                          (forward-comment (point-max))
+                          (buffer-substring-no-properties
+                           (point) (progn (forward-sexp) (point))))))
+             (save-excursion
+              (cl-loop for sexp = (read-sexp) while sexp collect sexp))))
 
 (defun sly-package-normalize-name (name)
   (if (string-prefix-p "\"" name)
@@ -182,7 +185,7 @@ places the cursor at the start of the DEFPACKAGE form."
    (mapcar #'sly-package-normalize-name
            (cl-loop while (ignore-errors (sly-goto-next-export-clause) t)
                     do (down-list) (forward-sexp)
-                    append (sly-read-symbols)
+                    append (sly-package-fu--read-symbols)
                     do (up-list) (backward-sexp)))))
 
 (defun sly-symbol-exported-p (name symbols)
@@ -246,7 +249,7 @@ already exported/unexported."
   (save-excursion
     (sly-beginning-of-list)
     (sly-forward-sexp)
-    (let ((symbols (sly-read-symbols)))
+    (let ((symbols (sly-package-fu--read-symbols)))
       (cond ((null symbols)
              sly-export-symbol-representation-function)
             ((cl-every (lambda (x)
@@ -407,7 +410,7 @@ symbol in the Lisp image if possible."
      (when package
        (if import-exists
            (let ((imported-symbols (mapcar #'sly-package-normalize-name
-                                           (sly-read-symbols))))
+                                           (sly-package-fu--read-symbols))))
              (unless (cl-member simple-symbol
                                 imported-symbols
                                 :test 'equalp)
