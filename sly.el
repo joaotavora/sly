@@ -7077,7 +7077,7 @@ The result is unspecified if there isn't a symbol under the point."
   "Return the bounds of the symbol around point.
 The returned bounds are either nil or non-empty."
   (let ((bounds (bounds-of-thing-at-point 'sly-symbol)))
-    (when (and bounds
+    (if (and bounds
                (< (car bounds)
                   (cdr bounds)))
       bounds)))
