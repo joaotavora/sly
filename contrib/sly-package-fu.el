@@ -339,7 +339,7 @@ symbol in the Lisp image if possible."
 ;; Dealing with import-from
 ;;
 
-(defun sly-search-import-from (package)
+(defun sly-package-fu--search-import-from (package)
   ;; Suppose, we are in the defpackage sexp
   (let* ((normalized-package (sly-package-normalize-name package))
          (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s"
@@ -401,7 +401,7 @@ symbol in the Lisp image if possible."
                             (sly-cl-symbol-package symbol)))
           (simple-symbol (sly-cl-symbol-name symbol))
           (import-exists (when package
-                           (sly-search-import-from package))))
+                           (sly-package-fu--search-import-from package))))
 
      ;; We only process symbols in fully qualified form like
      ;; weblocks/request:get-parameter
