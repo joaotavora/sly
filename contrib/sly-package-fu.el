@@ -352,7 +352,7 @@ symbol in the Lisp image if possible."
       t)))
 
 
-(defun sly-package-create-new-import-from (package symbol)
+(defun sly-package-fu--create-new-import-from (package symbol)
   (sly-goto-package-source-definition (sly-current-package))
   (forward-sexp)
   ;; Now, search last :import-from or :use form
@@ -400,8 +400,8 @@ symbol in the Lisp image if possible."
            ;; If there is no import from this package yet,
            ;; then we'll add it right after the last :import-from
            ;; or :use construction
-           (sly-package-create-new-import-from package
-                                               simple-symbol)))
+           (sly-package-fu--create-new-import-from package
+                                                   simple-symbol)))
      ;; Always return symbol-without-package, because it is useful
      ;; to replace symbol at point and change it from fully qualified
      ;; form to a simple-form
