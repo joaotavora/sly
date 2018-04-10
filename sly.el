@@ -5046,30 +5046,42 @@ process associated with CONNECTION."
   (let ((sly-dispatching-connection connection))
     (sly-eval-async '(slynk:quit-lisp))
     (set-process-filter connection  nil)
-    (set-process-sentinel
-     connection
-     (lambda (connection status)
-       (sly-message "Connection %s is dying (%s)" connection status)
-       (let ((inf-process (sly-inferior-process connection)))
-         (cond ((and kill
-                     inf-process
-                     (not (memq (process-status inf-process) '(exit signal))))
-                (sly-message "Quitting %s: also killing the inferior process %s"
-                             connection inf-process)
-                (kill-process inf-process))
-               ((and kill
-                     inf-process)
-                (sly-message "Quitting %s: inferior process was already dead"
-                             connection
-                             inf-process))
-               ((and
-                 kill
-                 (not inf-process))
-                (sly-message "Quitting %s: No inferior processto kill!"
-                             connection
-                             inf-process))))
-       (when sentinel
-         (funcall sentinel connection status))))))
+    (let ((attempt 0)
+          (dying-p nil))
+      (set-process-sentinel
+       connection
+       (lambda (connection status)
+         (setq dying-p t)
+         (sly-message "Connection %s is dying (%s)" connection status)
+         (let ((inf-process (sly-inferior-process connection)))
+           (cond ((and kill
+                       inf-process
+                       (not (memq (process-status inf-process) '(exit signal))))
+                  (sly-message "Quitting %s: also killing the inferior process %s"
+                               connection inf-process)
+                  (kill-process inf-process))
+                 ((and kill
+                       inf-process)
+                  (sly-message "Quitting %s: inferior process was already dead"
+                               connection
+                               inf-process))
+                 ((and
+                   kill
+                   (not inf-process))
+                  (sly-message "Quitting %s: No inferior processto kill!"
+                               connection
+                               inf-process))))
+         (when sentinel
+           (funcall sentinel connection status))))
+      (sly-message
+       "Waiting for connection %s to die by itself..." connection)
+      (while (and (< (cl-incf attempt) 30)
+                  (not dying-p))
+        (sleep-for 0.1))
+      (unless dying-p
+        (sly-message
+         "Connection %s didn't die by itself. Killing it." connection)
+        (delete-process connection)))))
 
 (defun sly-quit-sentinel (process _message)
   (cl-assert (process-status process) 'closed)
