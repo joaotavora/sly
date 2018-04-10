@@ -285,7 +285,10 @@ for output printed to the REPL (not for evaluation results)")
 
 (defun sly-mrepl--mark ()
   "Returns a marker to the end of the last prompt."
-  (process-mark (sly-mrepl--process)))
+  (let ((proc (sly-mrepl--process)))
+    (unless proc
+      (user-error "Sorry, can't do anything in this disconnected REPL"))
+    (process-mark proc)))
 
 (defun sly-mrepl--safe-mark ()
   "Like `sly-mrepl--mark', but safe if there's no process."
