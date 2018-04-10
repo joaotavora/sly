@@ -663,10 +663,13 @@ recent entry that is discarded."
   (when sly-mrepl--dedicated-stream
     (process-put sly-mrepl--dedicated-stream 'sly-mrepl--channel nil)
     (kill-buffer (process-buffer sly-mrepl--dedicated-stream)))
+  (sly-close-channel sly-mrepl--local-channel)
   ;; signal lisp that we're closingq
-  (when (ignore-errors (sly-connection))
-    (sly-mrepl--send `(:teardown))
-    (sly-close-channel sly-mrepl--local-channel))
+  (ignore-errors
+    ;; uses `sly-connection', which falls back to
+    ;; `sly-buffer-connection'. If that is closed it's probably
+    ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
+    (sly-mrepl--send `(:teardown)))
   (set (make-local-variable 'sly-mrepl--remote-channel) nil)
   (when (sly-mrepl--process)
     (delete-process (sly-mrepl--process))))

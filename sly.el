@@ -1549,6 +1549,7 @@ EVAL'd by Lisp."
            (not (sly-coding-system-mulibyte-p coding-system)))))
 
 (defun sly-net-close (process reason &optional debug _force)
+  "Close the network connection PROCESS because REASON."
   (process-put process 'sly-net-close-reason reason)
   (setq sly-net-processes (remove process sly-net-processes))
   (when (eq process sly-default-connection)
@@ -1557,10 +1558,12 @@ EVAL'd by Lisp."
   ;;
   (unless debug
     (run-hook-with-args 'sly-net-process-close-hooks process))
-  ;; Kill the process (socket). Killing the buffer does it in case it
-  ;; still exists (interactive `sly-disconnect' call, for instance),
-  ;; but we first unset its sentinel otherwise we get a second
-  ;; `sly-net-close' call.
+  ;; We close the socket connection by killing its hidden
+  ;; *sly-<number>* buffer, but we first unset the connection's
+  ;; sentinel otherwise we could get a second `sly-net-close' call. In
+  ;; case the buffer is already killed (we killed it manually), this
+  ;; function is probably running as a result of that, and rekilling
+  ;; it is harmless.
   ;;
   (set-process-sentinel process nil)
   (when debug
@@ -2653,14 +2656,14 @@ Also rearrange windows."
   (cl-assert (process-status process) 'closed)
   (let* ((proc (sly-inferior-process process))
          (args (sly-inferior-lisp-args proc))
-         (buffer (buffer-name (process-buffer proc)))
-         (new-proc (sly-start-lisp (plist-get args :program)
-                                   (plist-get args :program-args)
-                                   (plist-get args :env)
-                                   nil
-                                   buffer)))
+         (buffer (buffer-name (process-buffer proc))))
     (sly-net-close process "Restarting inferior lisp process")
-    (sly-inferior-connect new-proc args)))
+    (sly-inferior-connect (sly-start-lisp (plist-get args :program)
+                                          (plist-get args :program-args)
+                                          (plist-get args :env)
+                                          nil
+                                          buffer)
+                          args)))
 
 
 ;;;; Compilation and the creation of compiler-note annotations
@@ -5034,15 +5037,39 @@ string to expand.
     (sly-quit-lisp-internal connection 'sly-quit-sentinel kill)))
 
 (defun sly-quit-lisp-internal (connection sentinel kill)
+  "Kill SLY socket connection CONNECTION.
+Do this by evaluating (SLYNK:QUIT-LISP) in it, and don't wait for
+it to reply as usual with other evaluations.  If it's non-nil,
+setup SENTINEL to run on CONNECTION when it finishes dying.  If
+KILL is t, and there is such a thing, also kill the inferior lisp
+process associated with CONNECTION."
   (let ((sly-dispatching-connection connection))
     (sly-eval-async '(slynk:quit-lisp))
-    (let* ((process (sly-inferior-process connection)))
-      (set-process-filter connection  nil)
-      (set-process-sentinel connection sentinel)
-      (when (and kill process)
-        (sleep-for 0.2)
-        (unless (memq (process-status process) '(exit signal))
-          (kill-process process))))))
+    (set-process-filter connection  nil)
+    (set-process-sentinel
+     connection
+     (lambda (connection status)
+       (sly-message "Connection %s is dying (%s)" connection status)
+       (let ((inf-process (sly-inferior-process connection)))
+         (cond ((and kill
+                     inf-process
+                     (not (memq (process-status inf-process) '(exit signal))))
+                (sly-message "Quitting %s: also killing the inferior process %s"
+                             connection inf-process)
+                (kill-process inf-process))
+               ((and kill
+                     inf-process)
+                (sly-message "Quitting %s: inferior process was already dead"
+                             connection
+                             inf-process))
+               ((and
+                 kill
+                 (not inf-process))
+                (sly-message "Quitting %s: No inferior processto kill!"
+                             connection
+                             inf-process))))
+       (when sentinel
+         (funcall sentinel connection status))))))
 
 (defun sly-quit-sentinel (process _message)
   (cl-assert (process-status process) 'closed)
