@@ -39,7 +39,10 @@ system-definition style.")
 If it's mixed or no symbols are exported so far,
 use `sly-export-symbol-representation-function'.")
 
-(defvar sly-export-save-file nil
+(define-obsolete-variable-alias 'sly-export-save-file
+  'sly-package-fu-save-file "1.0.0-beta-3")
+
+(defvar sly-package-fu-save-file nil
   "Save the package file after each automatic modification")
 
 (defvar sly-defpackage-regexp
@@ -223,7 +226,7 @@ already exported/unexported."
              (when (sly-symbol-exported-p symbol-name exported-symbols)
                (sly-remove-export symbol-name)
                (cl-incf number-of-actions))))))
-      (when sly-export-save-file
+      (when sly-package-fu-save-file
         (save-buffer))
       (cons number-of-actions
             (current-buffer)))))
@@ -395,6 +398,13 @@ package.  For example above, return \"with-gensyms\"."
       (unless package
         (user-error "This only works on symbols with package designator."))
 
+      ;; First ask CL to actually import the symbol (a synchronized
+      ;; eval makes sure that an error aborts the rest of the command)
+      ;;
+      (sly-eval `(slynk:import-symbol-for-emacs ,symbol
+                                                ,(sly-current-package)
+                                                ,package))
+
       (if import-exists
           (let ((imported-symbols (mapcar #'sly-package-fu--normalize-name
                                           (sly-package-fu--read-symbols))))
@@ -403,12 +413,14 @@ package.  For example above, return \"with-gensyms\"."
                                :test 'equalp)
               ;; If symbol is not imported yet, then just
               ;; add it to the end
-              (sly-package-fu--insert-symbol simple-symbol)))
+              (sly-package-fu--insert-symbol simple-symbol)
+              (when sly-package-fu-save-file (save-buffer))))
         ;; If there is no import from this package yet,
         ;; then we'll add it right after the last :import-from
         ;; or :use construction
         (sly-package-fu--create-new-import-from package
-                                                simple-symbol))
+                                                simple-symbol)
+        (when sly-package-fu-save-file (save-buffer)))
       ;; Always return symbol-without-package, because it is useful
       ;; to replace symbol at point and change it from fully qualified
       ;; form to a simple-form

@@ -1,4 +1,4 @@
-Upcoming SLY 1.0.0-beta-3 (Somewhere 2017)
+Upcoming SLY 1.0.0-beta-3 (Somewhere 2018)
 -----------------------------------------
 
 ### Redesigned completion mechanism
@@ -42,6 +42,14 @@ Presently no major omissions (*except maybe for multiple inspectors*).
 Reorganized nodes into a new structure not so focused on core vs
 contribs. Deleted stale sections. REPL section heavily rewritten to
 explain output types and backreferences.
+
+### New command M-x sly-import-symbol-at-point bound to C-c i by default
+
+This is a counterpart to the existing M-x sly-export-symbol-at-point,
+bound to C-c e. It strips the symbol under point of its package
+designator, and adds it under the :import-from subclause of the
+current package's defpackage form. An improvement suggested and
+implemented by Alexander Artemenko (github #147).
 
 ### Improved SLY Stickers UI
 

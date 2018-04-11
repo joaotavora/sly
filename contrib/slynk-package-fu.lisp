@@ -12,6 +12,17 @@
       (let ((*buffer-package* package))
 	(export `(,(from-string symbol-str)) package)))))
 
+(defslyfun import-symbol-for-emacs (symbol-str
+                                    destination-package-str
+                                    origin-package-str)
+  (let ((destination (guess-package destination-package-str))
+        (origin (guess-package origin-package-str)))
+    (when (and destination origin)
+      (let* ((*buffer-package* origin)
+             (symbol (from-string symbol-str)))
+        (when symbol
+          (import symbol destination))))))
+
 (defslyfun unexport-symbol-for-emacs (symbol-str package-str)
   (let ((package (guess-package package-str)))
     (when package
