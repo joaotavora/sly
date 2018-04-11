@@ -1254,26 +1254,20 @@ Return the created process."
   (sly-start-slynk-server process args)
   (sly-read-port-and-connect process))
 
-(defvar sly-inferior-lisp-args nil
-  "A buffer local variable in the inferior proccess.
-See `sly-start'.")
-
-(defun sly-start-slynk-server (process args)
+(defun sly-start-slynk-server (inf-process args)
   "Start a Slynk server on the inferior lisp."
   (cl-destructuring-bind (&key coding-system init &allow-other-keys) args
-    (with-current-buffer (process-buffer process)
-      (make-local-variable 'sly-inferior-lisp-args)
-      (setq sly-inferior-lisp-args args)
+    (with-current-buffer (process-buffer inf-process)
+      (process-put inf-process 'sly-inferior-lisp-args args)
       (let ((str (funcall init (sly-slynk-port-file) coding-system)))
-        (goto-char (process-mark process))
+        (goto-char (process-mark inf-process))
         (insert-before-markers str)
-        (process-send-string process str)))))
+        (process-send-string inf-process str)))))
 
-(defun sly-inferior-lisp-args (process)
+(defun sly-inferior-lisp-args (inf-process)
   "Return the initial process arguments.
 See `sly-start'."
-  (with-current-buffer (process-buffer process)
-    sly-inferior-lisp-args))
+  (process-get inf-process 'sly-inferior-lisp-args))
 
 (defun sly-init-using-asdf (port-filename coding-system)
   "Return a string to initialize Lisp using ASDF.
@@ -1476,19 +1470,19 @@ first line of the file."
   "Establish a connection with a CL."
   (let* ((inhibit-quit nil)
          (name (format "sly-%s" (cl-incf sly--net-connect-counter)))
-         (proc (open-network-stream name nil host port))
+         (connection (open-network-stream name nil host port))
          (buffer (sly-make-net-buffer (format " *%s*" name))))
-    (push proc sly-net-processes)
-    (set-process-plist proc `(sly--net-connect-counter
-                              ,sly--net-connect-counter))
-    (set-process-buffer proc buffer)
-    (set-process-filter proc 'sly-net-filter)
-    (set-process-sentinel proc 'sly-net-sentinel)
-    (set-process-query-on-exit-flag proc (not sly-kill-without-query-p))
+    (push connection sly-net-processes)
+    (set-process-plist connection `(sly--net-connect-counter
+                                    ,sly--net-connect-counter))
+    (set-process-buffer connection buffer)
+    (set-process-filter connection 'sly-net-filter)
+    (set-process-sentinel connection 'sly-net-sentinel)
+    (set-process-query-on-exit-flag connection (not sly-kill-without-query-p))
     (when (fboundp 'set-process-coding-system)
-      (set-process-coding-system proc 'binary 'binary))
-    (sly-send-secret proc)
-    proc))
+      (set-process-coding-system connection 'binary 'binary))
+    (sly-send-secret connection)
+    connection))
 
 (defun sly-make-net-buffer (name)
   "Make a buffer suitable for a network process."
@@ -1548,16 +1542,16 @@ EVAL'd by Lisp."
       (and (not (multibyte-string-p string))
            (not (sly-coding-system-mulibyte-p coding-system)))))
 
-(defun sly-net-close (process reason &optional debug _force)
-  "Close the network connection PROCESS because REASON."
-  (process-put process 'sly-net-close-reason reason)
-  (setq sly-net-processes (remove process sly-net-processes))
-  (when (eq process sly-default-connection)
+(defun sly-net-close (connection reason &optional debug _force)
+  "Close the network connection CONNECTION because REASON."
+  (process-put connection 'sly-net-close-reason reason)
+  (setq sly-net-processes (remove connection sly-net-processes))
+  (when (eq connection sly-default-connection)
     (setq sly-default-connection nil))
   ;; Run hooks
   ;;
   (unless debug
-    (run-hook-with-args 'sly-net-process-close-hooks process))
+    (run-hook-with-args 'sly-net-process-close-hooks connection))
   ;; We close the socket connection by killing its hidden
   ;; *sly-<number>* buffer, but we first unset the connection's
   ;; sentinel otherwise we could get a second `sly-net-close' call. In
@@ -1565,12 +1559,12 @@ EVAL'd by Lisp."
   ;; function is probably running as a result of that, and rekilling
   ;; it is harmless.
   ;;
-  (set-process-sentinel process nil)
+  (set-process-sentinel connection nil)
   (when debug
-    (set-process-filter process nil))
+    (set-process-filter connection nil))
   (if debug
-      (delete-process process) ; leave the buffer
-    (kill-buffer (process-buffer process))))
+      (delete-process connection) ; leave the buffer
+    (kill-buffer (process-buffer connection))))
 
 (defun sly-net-sentinel (process message)
   (let ((reason (format "Lisp connection closed unexpectedly: %s" message)))
@@ -2650,14 +2644,14 @@ With prefix argument, prompt for MODE"
   (cl-assert (sly-inferior-process) () "No inferior lisp process")
   (sly-quit-lisp-internal (sly-connection) 'sly-restart-sentinel t))
 
-(defun sly-restart-sentinel (process _message)
-  "Restart the inferior lisp process.
+(defun sly-restart-sentinel (connection _message)
+  "When CONNECTION dies, start a similar inferior lisp process.
 Also rearrange windows."
-  (cl-assert (process-status process) 'closed)
-  (let* ((proc (sly-inferior-process process))
-         (args (sly-inferior-lisp-args proc))
-         (buffer (buffer-name (process-buffer proc))))
-    (sly-net-close process "Restarting inferior lisp process")
+  (cl-assert (process-status connection) 'closed)
+  (let* ((moribund-proc (sly-inferior-process connection))
+         (args (sly-inferior-lisp-args moribund-proc))
+         (buffer (buffer-name (process-buffer moribund-proc))))
+    (sly-net-close connection "Restarting inferior lisp process")
     (sly-inferior-connect (sly-start-lisp (plist-get args :program)
                                           (plist-get args :program-args)
                                           (plist-get args :env)
@@ -5068,7 +5062,7 @@ process associated with CONNECTION."
                  ((and
                    kill
                    (not inf-process))
-                  (sly-message "Quitting %s: No inferior processto kill!"
+                  (sly-message "Quitting %s: No inferior process to kill!"
                                connection
                                inf-process))))
          (when sentinel
