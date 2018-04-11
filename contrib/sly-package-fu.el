@@ -26,13 +26,13 @@
 
 (defvar sly-import-symbol-package-transform-function
   'identity
-  "This function is applied to a package name before
-   it is inserted into the defpackage form.
+  "String transformation used by `sly-import-symbol-at-point'.
 
-   By default, it is an 'identity, but you may wish
-   redefine it to do some tranformations, for example,
-   to replace dots with slashes to conform to a package
-   inferred asdf system requirements.")
+This function is applied to a package name before it is inserted
+into the defpackage form. By default, it is `identity' but you
+may wish redefine it to do some tranformations, for example, to
+replace dots with slashes to conform to a package-inferred ASDF
+system-definition style.")
 
 (defvar sly-export-symbol-representation-auto t
   "Determine automatically which style is used for symbols, #: or :
@@ -157,36 +157,36 @@ places the cursor at the start of the DEFPACKAGE form."
 
 
 (defun sly-package-fu--read-symbols ()
-  "Reads a list of symbols from the current point to the end of the current s-exp.
+  "Reads sexps as strings from the point to end of sexp.
 
-   For example, when point is here:
+For example, in this situation.
 
    (for<point> bar minor (again 123))
 
-   Function will return (\"bar\" \"minor\" \"(again 123)\")"
+this will return (\"bar\" \"minor\" \"(again 123)\")"
   (cl-labels ((read-sexp ()
                          (ignore-errors
-                          (forward-comment (point-max))
-                          (buffer-substring-no-properties
-                           (point) (progn (forward-sexp) (point))))))
-             (save-excursion
-              (cl-loop for sexp = (read-sexp) while sexp collect sexp))))
+                           (forward-comment (point-max))
+                           (buffer-substring-no-properties
+                            (point) (progn (forward-sexp) (point))))))
+    (save-excursion
+      (cl-loop for sexp = (read-sexp) while sexp collect sexp))))
 
-(defun sly-package-normalize-name (name)
+(defun sly-package-fu--normalize-name (name)
   (if (string-prefix-p "\"" name)
       (read name)
-      (replace-regexp-in-string "^\\(\\(#:\\)\\|:\\)"
-                                "" name)))
+    (replace-regexp-in-string "^\\(\\(#:\\)\\|:\\)"
+                              "" name)))
 
 (defun sly-defpackage-exports ()
   "Return a list of symbols inside :export clause of a defpackage."
   ;; Assumes we're inside the beginning of a DEFPACKAGE form.
   (save-excursion
-   (mapcar #'sly-package-normalize-name
-           (cl-loop while (ignore-errors (sly-goto-next-export-clause) t)
-                    do (down-list) (forward-sexp)
-                    append (sly-package-fu--read-symbols)
-                    do (up-list) (backward-sexp)))))
+    (mapcar #'sly-package-fu--normalize-name
+            (cl-loop while (ignore-errors (sly-goto-next-export-clause) t)
+                     do (down-list) (forward-sexp)
+                     append (sly-package-fu--read-symbols)
+                     do (up-list) (backward-sexp)))))
 
 (defun sly-symbol-exported-p (name symbols)
   (cl-member name symbols :test 'equalp))
@@ -342,7 +342,7 @@ symbol in the Lisp image if possible."
 
 (defun sly-package-fu--search-import-from (package)
   ;; Suppose, we are in the defpackage sexp
-  (let* ((normalized-package (sly-package-normalize-name package))
+  (let* ((normalized-package (sly-package-fu--normalize-name package))
          (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s"
                          (regexp-quote (regexp-quote normalized-package))))
          (search-result (re-search-forward regexp nil t)))
@@ -374,75 +374,64 @@ symbol in the Lisp image if possible."
 
 
 (defun sly-package-fu--add-or-update-import-from-form (symbol)
-  "Accepts a string or a symbol like \"alexandria:with-gensyms\",
-   and adds it to existing (import-from #:alexandria ...) form
-   or creates a new one.
+  "Do the heavy-lifting for `sly-import-symbol-at-point'.
 
-   Returns a name of the given symbol inside of it's package.
-   For example above, it will return \"with-gensyms\"."
-  
+Accept a string or a symbol like \"alexandria:with-gensyms\",
+and add it to existing (import-from #:alexandria ...) form, or
+create a new one. Return name of the given symbol inside of its
+package.  For example above, return \"with-gensyms\"."
   (save-excursion
-   ;; First, will go to the package definition
-   (sly-goto-package-source-definition (sly-current-package))
+    ;; First, will go to the package definition
+    (sly-goto-package-source-definition (sly-current-package))
 
-   (let* ((package (funcall sly-import-symbol-package-transform-function
-                            (sly-cl-symbol-package symbol)))
-          (simple-symbol (sly-cl-symbol-name symbol))
-          (import-exists (when package
-                           (sly-package-fu--search-import-from package))))
+    (let* ((package (funcall sly-import-symbol-package-transform-function
+                             (sly-cl-symbol-package symbol)))
+           (simple-symbol (sly-cl-symbol-name symbol))
+           (import-exists (when package
+                            (sly-package-fu--search-import-from package))))
 
-     ;; We only process symbols in fully qualified form like
-     ;; weblocks/request:get-parameter
-     (unless package
-       (user-error "This only works on symbols with package designator."))
-     
-     (if import-exists
-         (let ((imported-symbols (mapcar #'sly-package-normalize-name
-                                         (sly-package-fu--read-symbols))))
-           (unless (cl-member simple-symbol
-                              imported-symbols
-                              :test 'equalp)
-             ;; If symbol is not imported yet, then just
-             ;; add it to the end
-             (sly-package-fu--insert-symbol simple-symbol)))
-         ;; If there is no import from this package yet,
-         ;; then we'll add it right after the last :import-from
-         ;; or :use construction
-         (sly-package-fu--create-new-import-from package
-                                                 simple-symbol))
-     ;; Always return symbol-without-package, because it is useful
-     ;; to replace symbol at point and change it from fully qualified
-     ;; form to a simple-form
-     simple-symbol)))
+      ;; We only process symbols in fully qualified form like
+      ;; weblocks/request:get-parameter
+      (unless package
+        (user-error "This only works on symbols with package designator."))
+
+      (if import-exists
+          (let ((imported-symbols (mapcar #'sly-package-fu--normalize-name
+                                          (sly-package-fu--read-symbols))))
+            (unless (cl-member simple-symbol
+                               imported-symbols
+                               :test 'equalp)
+              ;; If symbol is not imported yet, then just
+              ;; add it to the end
+              (sly-package-fu--insert-symbol simple-symbol)))
+        ;; If there is no import from this package yet,
+        ;; then we'll add it right after the last :import-from
+        ;; or :use construction
+        (sly-package-fu--create-new-import-from package
+                                                simple-symbol))
+      ;; Always return symbol-without-package, because it is useful
+      ;; to replace symbol at point and change it from fully qualified
+      ;; form to a simple-form
+      simple-symbol)))
 
 
 (defun sly-import-symbol-at-point ()
-  "Takes a fully-qualified symbol at point, adds it to the defpackage
-   and replaces with a symbol name without a package part."
+  "Add a qualified symbol to package's :import-from subclause.
+
+Takes a package-qualified symbol at point, adds it to the current
+package's defpackage form (under its :import-form subclause) and
+replaces with a symbol name without the package designator."
   (interactive)
   (let* ((bounds (sly-bounds-of-symbol-at-point))
-         (left-bound (car bounds))
-         (right-bound (cdr bounds)))
+         (beg (set-marker (make-marker) (car bounds)))
+         (end (set-marker (make-marker) (cdr bounds))))
     (when bounds
-      (save-excursion
-       ;; Put point to the beginning of the symbol to remove it at the end of the operation
-       (goto-char left-bound)
-       
-       (let* ((symbol-name
-                (buffer-substring-no-properties left-bound
-                                                right-bound))
-              (simple-symbol
-                (sly-package-fu--add-or-update-import-from-form
-                 symbol-name)))
-         ;; If symbol was imported, then we need to replace
-         ;; fully qualified symbol name with simple one:
-         (when simple-symbol
-           ;; Now, remove symbol at the point from the buffer
-           (delete-region (point)
-                          (+ (point)
-                             (length symbol-name)))
-           ;; And insert simplified symbol without package prefix
-           (insert simple-symbol)))))))
+      (let ((non-qualified-name
+             (sly-package-fu--add-or-update-import-from-form
+              (buffer-substring-no-properties beg end))))
+        (when non-qualified-name
+          (delete-region beg end)
+          (insert non-qualified-name))))))
 
 
 (provide 'sly-package-fu)
