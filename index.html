@@ -5,7 +5,7 @@ Távora for SLY.
 
 This file has been placed in the public domain.
  -->
-<!-- Created on September 20, 2017 by texi2html 1.82
+<!-- Created on April 12, 2018 by texi2html 1.82
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -80,7 +80,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 <h1 class="settitle">SLY</h1>
 
 <p><acronym>SLY</acronym> is a Common Lisp IDE for Emacs. This is the manual for version
-1.0.0-beta-2. (Last updated September 20, 2017)
+1.0.0-beta-2. (Last updated April 12, 2018)
 </p>
 <p>Written for SLIME Luke Gorrie and others, rewritten by João
 Távora for SLY.
@@ -715,44 +715,45 @@ of some of the improvements of <acronym>SLY</acronym> over <acronym>SLIME</acron
 <p>When you start <acronym>SLY</acronym> with <kbd>M-x sly</kbd> (see section <a href="#Basic-setup">Basic setup</a>) you are
 greeted with its <acronym>REPL</acronym>, a common starting point of Lisp hacking
 sessions. This has been completely redesigned in <acronym>SLY</acronym>. You can spawn
-multiple REPL sessions with <code>sly-mrepl-new</code>, copy objects from
-most places directly into it (<kbd>M-RET</kbd> and <kbd>M-S-RET</kbd>), and use
-a much more powerful incremental history search engine(<kbd>C-r</kbd>).
+multiple REPL sessions with <code>sly-mrepl-new</code>, copy objects from most
+places directly into it (with <kbd>M-RET</kbd> and <kbd>M-S-RET</kbd>), and use a
+much more powerful incremental history search engine (with <kbd>C-r</kbd>).
 </p>
 <br><img src="images/tutorial-1.png" alt="images/tutorial-1"><br>
 
-<p>To showcase some of <acronym>SLY</acronym>’s new features, let’s pretend we want to
-hack an existing Lisp project. Let’s say we want to hack on <acronym>SLY</acronym>
-itself, or rather a part of its Lisp server called Slynk. Say we&rsquo;re
-intrigued by the way its &ldquo;flex&rdquo;-style completion works. What is
-&ldquo;flex&rdquo; completion, you ask? Well, if you&rsquo;re at the <acronym>REPL</acronym> you can
-try it now: it&rsquo;s a way of <kbd>TAB</kbd>-completing (see section <a href="#Completion">Auto-completion</a>)
-symbol names based on approximate guesses of a few letters. Thus if we
-type <code>mvbind</code>, <acronym>SLY</acronym> guesses that we probably meant
-<code>multiple-value-bind</code>, and if we type <code>domat</code> it might
-possibly guess <code>cl-ppcre:do-matches</code>. Let&rsquo;s dig into the code
-that lets this happen.
+<p>Starting from the <acronym>REPL</acronym>, let&rsquo;s showcase some of <acronym>SLY</acronym>’s new features.
+let’s pretend we want to hack an existing Lisp project, say <acronym>SLY</acronym>
+itself, or rather a part of its Lisp server which is called Slynk. Let&rsquo;s
+pretend we&rsquo;re intrigued by the way its &ldquo;flex&rdquo;-style completion
+works. What is &ldquo;flex&rdquo;-style completion, you ask? Well, if you&rsquo;re at
+the <acronym>REPL</acronym> you can try it now: it&rsquo;s a way of <kbd>TAB</kbd>-completing
+(see section <a href="#Completion">Auto-completion</a>) symbol names based on educated guesses of a few
+letters. Thus if we type <code>mvbind</code>, <acronym>SLY</acronym> guesses that we probably
+meant <code>multiple-value-bind</code>, and if we type <code>domat</code> it might
+possibly guess <code>cl-ppcre:do-matches</code>. Let&rsquo;s dig into the code that
+lets this happen.
 </p>
-<p>Assuming we know very little about Slynk, a good point to start is
-SLY’s <em>apropos</em> functionality, which is a <code>grep</code> of sorts,
-but symbolic rather than purely textual. So if we want to hack of
-&ldquo;SLY&rsquo;s flex-completion&rdquo;, a reasonable search string is probably
-<code>sly.*flex</code>. So we type <kbd>C-c C-d C-z</kbd> and then type in that
-string at the prompt, followed by enter or return
+<p>Where to start, assuming we know very little about this project? Well, a
+good point to start is always SLY’s <em>apropos</em> functionality, which
+is a <code>grep</code> of sorts, but symbolic rather than purely textual. So
+if we want to hack on <acronym>SLY</acronym>&rsquo;s &ldquo;flex-completion&rdquo;, a reasonable search
+string is probably <code>sly.*flex</code>. So we type <kbd>C-c C-d C-z</kbd> (a
+shortcut for <kbd>M-x sly-apropos-all</kbd>) and then type in that search
+string at the prompt, followed by <kbd>enter</kbd> or <kbd>return</kbd>
 (abbreviated <code>RET</code> or <kbd>C-m</kbd>).
 </p>
-<p>We’ve entered a <em>regular-expression</em> in the prompt, something
-that regular Lisp <em>apropos</em> search doesn’t normally allow. <acronym>SLY</acronym>
-does, but there&rsquo;s a quirk: it needs access to a regular expression
-library, so by now you may or may not have results in
-a <code>*sly-apropos*</code> buffer! If you don’t, <acronym>SLY</acronym> will advise you to
-load the (very popular) <code>cl-ppcre</code> regular expression
-system. Assuming you have Quicklisp (you <em>do</em> know about
-Quicklisp, right?) that&rsquo;s a matter of typing <code>(ql:quickload
-cl-ppcre) RET</code> in the REPL, waiting a moment, and then trying
-the <kbd>C-c C-d C-z</kbd> apropos search again. If everything goes to
-plan, <acronym>SLY</acronym> should present all Lisp symbols that match
-the <code>sly.*flex</code> regular expression.
+<p>Notice that we’ve just entered a <em>regular-expression</em> in
+<acronym>SLY</acronym>&rsquo;s <em>apropos</em> prompt, something that regular
+Lisp <em>apropos</em> search doesn’t normally allow. <acronym>SLY</acronym> does, but
+there&rsquo;s a quirk: it needs access to a regular expression library, so by
+now you may or may not have results in a <code>*sly-apropos*</code> buffer! If
+you don’t, <acronym>SLY</acronym> will advise you to load the (very
+popular) <code>cl-ppcre</code> regular expression system. Assuming you have
+Quicklisp (you <em>do</em> know about Quicklisp, right?) that&rsquo;s a matter
+of typing <code>(ql:quickload :cl-ppcre) RET</code> in the REPL, waiting some
+brief moments, and then trying the <kbd>C-c C-d C-z</kbd> apropos search
+again. If everything goes to plan, <acronym>SLY</acronym> should now present all Lisp
+symbols that match the <code>sly.*flex</code> regular expression.
 </p>
 <br><img src="images/tutorial-2.png" alt="images/tutorial-2"><br>
 
@@ -782,12 +783,12 @@ minibuffer prompt.
 </p>
 <p>Now let’s return to the REPL by switching to its 
 <code>*sly-mrepl ...</code> buffer or typing <kbd>C-c C-z</kbd>. In the REPL, let’s try to
-complete some typical Lisp string by typing just <code>desbind</code> and
-then typing <kbd>TAB</kbd>. We should see a window popup including the
-desired completion <code>destructuring-bind</code> (it should also be the
-top match). Of course, we could now select some completion from the
-list, but let&rsquo;s just type <kbd>C-g</kbd> to dismiss
-the <code>*sly-completions*</code> window since what we wanted to test
+complete some typical Lisp string by typing just <code>desbind</code> and then
+typing <kbd>TAB</kbd>. We should see a window popup including the desired
+completion <code>destructuring-bind</code> (it should also be the top
+match). Of course, we could now select some completion from the list,
+but instead let&rsquo;s just type <kbd>C-g</kbd> to dismiss
+the <code>*sly-completions*</code> window, since what we wanted to test
 completion, not write any actual <code>destructuring-bind</code> expression.
 </p>
 <p>Remember the traced functions? Let’s see if we got any traces: let&rsquo;s
@@ -797,17 +798,19 @@ call graph.
 </p>
 <br><img src="images/tutorial-3.png" alt="images/tutorial-3"><br>
 
-<p>We can later learn more about this mode (see section <a href="#Trace-Dialog">Trace Dialog</a>), but
-for now let’s again pretend we expected the function <code>FLEX-SCORE</code>
-to return a wildly different score for
-<code>COMMON-LISP:DESTRUCTURING-BIND</code>. We now want to surgically
-re-run that function with those very same arguments. To do this, let’s
-find the function call in the Trace Dialog window, right-click it with
-the mouse and select &ldquo;Copy call to REPL&rdquo;. As an alternative,
+<p>We can later learn more about this mode (see section <a href="#Trace-Dialog">Trace Dialog</a>), but for
+now let’s again pretend we expected the function <code>FLEX-SCORE</code> to
+return a wildly different score for
+<code>COMMON-LISP:DESTRUCTURING-BIND</code>.  But if we want to
+witness <code>FLEX-SCORE</code> respond to any implementation improvements
+later on, we probably want to be able to surgically re-run that function
+with those very same arguments, so that we can witness .  To do this,
+let’s find the function call in the Trace Dialog window, right-click it
+with the mouse and select &ldquo;Copy call to REPL&rdquo;. As an alternative,
 pressing <kbd>M-S-RET</kbd> on it also works. When we do this we are
-automatically transported to the REPL again, where the desired
-function call has already been typed out for us at the command prompt,
-awaiting a confirmation <kbd>RET</kbd>. The call may look strange, though:
+automatically transported to the REPL again, where the desired function
+call has already been typed out for us at the command prompt, awaiting a
+confirmation <kbd>RET</kbd>. The call may look strange, though:
 </p>
 <table><tr><td>&nbsp;</td><td><pre class="example">; The actual arguments passed to trace 15
 &quot;desbind&quot;
@@ -825,14 +828,14 @@ copied over its actual arguments, and then wrote the function using
 special <em>backreferences</em> to those arguments in the correct
 place. These are the <code>#v4:0</code> and <code>#v4:1</code> bits seen at the
 command prompt. Let’s go ahead and put the cursor on them, to see how
-they highlight the corresponding object (later, you can also try
-typing &ldquo;#v&rdquo; at the REPL to see what happens). Finally,
-typing <kbd>RET</kbd> should run the function call.
+this makes them highlight the corresponding object a few lines above in
+the buffer (later, you can also try typing &ldquo;#v&rdquo; at the REPL to see
+what happens). Finally, typing <kbd>RET</kbd> should run the function call.
 </p>
 <p>For one final demonstration, let’s now suppose say we are still
 intrigued by how that function works internally. So let&rsquo;s navigate to
 its definition using <kbd>M-.</kbd> again (or just open
-the &lsquo;<tt>local-projects.lisp</tt>&rsquo; buffer that you probably still have
+the &lsquo;<tt>sly-completion.lisp</tt>&rsquo; buffer that you probably still have
 open). The function’s code might look like this:
 </p>
 <table><tr><td>&nbsp;</td><td><pre class="example">(defun flex-score (pattern string indexes)
@@ -872,16 +875,16 @@ should now look like a rainbow in blue.
 <br><img src="images/tutorial-5.png" alt="images/tutorial-5"><br>
 
 <p>Now we return to the <acronym>SLY</acronym> REPL, but this time let’s use <kbd>C-c ~</kbd>
-(that’s <kbd>C-c</kbd> followed by &ldquo;tilde&rdquo;) to do so. This syncs the
-REPL’s local package and local directory to the Lisp file that we’re
+(that’s <kbd>C-c</kbd> followed by &ldquo;tilde&rdquo;) to do so. This syncs the REPL’s
+local package and local directory to the Lisp file that we’re
 visiting. This is something not strictly necessary here but generally
 convenient when hacking on a system, since you can call functions from
 the file you came from without package-qualification. Now, to re-run
 newly the instrumented function, by calling it with the same
 arguments. But no need to type all that again, because this REPL
 supports reverse history i-search, remember?  So just type the
-binding <kbd>C-r</kbd> and then something like <kbd>scor</kbd> to search history
-backwards and arrive at the function call copied to the REPL
+binding <kbd>C-r</kbd> and then type something like <kbd>scor</kbd> to search
+history backwards and arrive at the function call copied to the REPL
 earlier. Type <kbd>RET</kbd> once to confirm that call, and <kbd>RET</kbd> again
 to evaluate it. Because those <code>#v...</code>  backreferences are still
 trained specifically on those very same function arguments, you can be
@@ -5011,8 +5014,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-e-1"><code>e</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-G">G</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-1"><code>g</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-2"><code>g</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
@@ -5580,7 +5583,7 @@ using that port number instead
 </tr></table>
 <h1>About This Document</h1>
 <p>
-  This document was generated by <em>Joao Tavora</em> on <em>September 20, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao Tavora</em> on <em>April 12, 2018</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -5682,7 +5685,7 @@ using that port number instead
 <hr size="1">
 <p>
  <font size="-1">
-  This document was generated by <em>Joao Tavora</em> on <em>September 20, 2017</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao Tavora</em> on <em>April 12, 2018</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
  </font>
  <br>
 
