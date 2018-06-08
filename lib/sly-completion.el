@@ -145,7 +145,11 @@ COMPLETIONS is a list of propertized strings."
                                                  (length substring))
                                           'face
                                           'completions-first-difference
-                                          completion))
+                                          completion)
+                    collect `(,pos . ,(+ pos (length substring))) into chunks-2
+                    finally (put-text-property 0 (length completion)
+                                               'sly-completion-chunks chunks-2
+                                               completion))
            (put-text-property 0
                               (length completion)
                               'sly--annotation
@@ -193,12 +197,10 @@ ANNOTATION) describing each completion possibility."
            t)
           (;; metadata request
            ;;
-           metadata
-           (list 'metadata
-                 (cons 'display-sort-function #'identity)
-                 (cons 'annotation-function #'sly-completion-annotation)))
+           metadata (list 'metadata
+                          (cons 'display-sort-function #'identity)))
           ;; all completions
-          ;; 
+          ;;
           ((t)
            (all))
           ;; try completion
@@ -225,7 +227,27 @@ ANNOTATION) describing each completion possibility."
   (let* ((beg (sly-symbol-start-pos))
          (end (sly-symbol-end-pos)))
     (list beg end
-          (sly--completion-function-wrapper fn))))
+          (sly--completion-function-wrapper fn)
+          :annotation-function #'sly-completion-annotation
+          :company-docsig
+          (lambda (obj)
+            (let ((arglist (sly-eval `(slynk:operator-arglist
+                                       ,(substring-no-properties obj)
+                                       ,(sly-current-package)))))
+              (if arglist (sly-autodoc--fontify arglist)
+                "no autodoc information")))
+          :company-no-cache t
+          :company-doc-buffer
+          (lambda (obj)
+            (let ((doc (sly-eval `(slynk:describe-symbol
+                                   ,(substring-no-properties obj)))))
+              (with-current-buffer (get-buffer-create " *sly-completion doc*")
+                (erase-buffer)
+                (insert doc)
+                (current-buffer))))
+          :company-match
+          (lambda (obj)
+            (get-text-property 0 'sly-completion-chunks obj)))))
 
 (defun sly-simple-complete-symbol ()
   "Prefix completion on the symbol at point.
