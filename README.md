@@ -1,7 +1,7 @@
 [![Build Status](https://travis-ci.org/joaotavora/sly.png?branch=master)](https://travis-ci.org/joaotavora/sly)
 [![MELPA](http://melpa.org/packages/sly-badge.svg)](http://melpa.org/#/sly)
 
-```
+```lisp
           _____    __   __  __        
          / ___/   / /   \ \/ /               |\      _,,,---,,_
          \__ \   / /     \  /                /,`.-'`'    -.  ;-;;,_
@@ -12,10 +12,10 @@
 
 SLY is Sylvester the Cat's Common Lisp IDE for Emacs:
 
-* Read [a short illustrated guide][tutorial]
-* Scroll down this README for some [pretty gifs](#animated_gifs)
-* Read the [NEWS][6] file
-* Read the [manual][documentation]
+* 🤔 Read [a short illustrated guide][tutorial]
+* 📽️ Scroll down this README for some [pretty gifs](#animated_gifs)
+* 📣 Read the [NEWS][6] file
+* 📚 Read the [manual][documentation]
 
 SLY is a fork of [SLIME][1] and contains the following improvements upon
 it:
