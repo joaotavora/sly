@@ -10,34 +10,28 @@
 
 ```
 
-SLY is Sylvester the Cat's Common Lisp IDE for Emacs. Read
-[a short illustrated guide][tutorial] or scroll down this README for some
-[pretty gifs](#animated_gifs).
+SLY is Sylvester the Cat's Common Lisp IDE for Emacs:
+
+* Read [a short illustrated guide][tutorial]
+* Scroll down this README for some [pretty gifs](#animated_gifs)
+* Read the [NEWS][6] file
+* Read the [manual][documentation]
 
 SLY is a fork of [SLIME][1] and contains the following improvements upon
 it:
 
 * Completely redesigned REPL based on Emacs's own full-featured `comint.el`
 * Live code annotations via a new `sly-stickers` contrib
-* Consistent interactive button interface. Everything can be copied to the REPL.
+* Consistent interactive button interface. Everything can be copied to the REPL
 * Doesn't need an extra package to work with [company][14]
-* Multiple inspectors with independent history
-* Regexp-capable `M-x sly-apropos`
-* Contribs are first class SLY citizens, enabled by default, loaded with ASDF on
-  demand.
+* Contribs are are enabled by default, and loaded with ASDF on demand
 * Support for [NAMED-READTABLES][11], [macrostep.el][12] and [quicklisp][13]
 
 SLY tracks SLIME's bugfixes and all its familar features (debugger, inspector,
 xref, etc...) are still available , but with better integration.
 
-Read about the reasons for forking [here][2] and see the [NEWS.md][6] for
-complete list of differences between the two projects.
-
-SLY is currently *beta* status. Its
-[documentation can be found here][documentation].
-
-Install from MELPA
-------------------
+Installation
+------------
 
 Ensure that [MELPA][10] is setup as usual and ask `M-x package-install` to
 install the package `sly`.
