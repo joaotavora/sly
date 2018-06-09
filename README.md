@@ -11,8 +11,8 @@
 ```
 
 SLY is Sylvester the Cat's Common Lisp IDE for Emacs. Read
-[a short illustrated guide][tutorial] or see it in action in
-[this (older) screencast][7].
+[a short illustrated guide][tutorial] or scroll down this README for some
+[pretty gifs](#animated_gifs).
 
 SLY is a fork of [SLIME][1] and contains the following improvements upon
 it:
@@ -20,6 +20,7 @@ it:
 * Completely redesigned REPL based on Emacs's own full-featured `comint.el`
 * Live code annotations via a new `sly-stickers` contrib
 * Consistent interactive button interface. Everything can be copied to the REPL.
+* Doesn't need an extra package to work with [company][14]
 * Multiple inspectors with independent history
 * Regexp-capable `M-x sly-apropos`
 * Contribs are first class SLY citizens, enabled by default, loaded with ASDF on
@@ -47,9 +48,27 @@ fire up SLY, connect to a Lisp and get a friendly REPL, use `M-x sly`.
 Even if you already have SLIME installed, SLY will ask you and temporarily
 disable it for the Emacs session.
 
-<!-- TODO put a screeshot here, maybe -->
+<a name="animated_gifs"></a>
+_Obligatory animated gif section_
+-----------------------------------
 
-Install from Github
+[Flex completion](http://joaotavora.github.io/sly/#Completion)
+
+![company-flex-completion](./doc/animations/company-flex-completion.gif)
+
+[Backreferences](http://joaotavora.github.io/sly/#REPL-backreferences)
+
+![backreferences](./doc/animations/backreferences.gif)
+
+[Reverse i-search](http://joaotavora.github.io/sly/#REPL-commands)
+
+![reverse-isearch](./doc/animations/reverse-isearch.gif)
+
+[Stickers](http://joaotavora.github.io/sly/#Stickers)
+
+![stickers-example](./doc/animations/stickers-example.gif)
+
+Install from git
 -------------------
 
 Clone this repository, add this to your `~/.emacs` file and fill in the
@@ -128,6 +147,7 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [11]: https://github.com/joaotavora/sly-named-readtables
 [12]: https://github.com/joaotavora/sly-macrostep
 [13]: https://github.com/joaotavora/sly-quicklisp
+[14]: https://github.com/company-mode/company-mode
 [documentation]: http://joaotavora.github.io/sly
 [tutorial]: http://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users
 

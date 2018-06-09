@@ -1,6 +1,11 @@
 Upcoming SLY 1.0.0-beta-3 (Somewhere 2018)
 -----------------------------------------
 
+### Company works by default
+
+If you haven't yet, just `M-x package-install RET company-mode`,
+enable company, and it should start working in every SLY buffer.
+
 ### Redesigned completion mechanism
 
 The completion UI was redesigned and is now invoked via the built-in
