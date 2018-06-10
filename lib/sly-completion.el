@@ -225,8 +225,7 @@ ANNOTATION) describing each completion possibility."
 
 ;; This duplicates a function in sly-parse.el
 (defun sly--completion-inside-string-or-comment-p ()
-  (let ((state (sly-current-parser-state)))
-    (or (nth 3 state) (nth 4 state))))
+  (let ((ppss (syntax-ppss))) (or (nth 3 ppss) (nth 4 ppss))))
 
 (defun sly--completions-complete-symbol-1 (fn)
   (let* ((beg (sly-symbol-start-pos))
