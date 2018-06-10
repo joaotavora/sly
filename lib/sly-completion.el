@@ -223,6 +223,11 @@ ANNOTATION) describing each completion possibility."
              ;; (sly-error "Unrecognized completion command %s" command)
              nil)))))))
 
+;; This duplicates a function in sly-parse.el
+(defun sly--completion-inside-string-or-comment-p ()
+  (let ((state (sly-current-parser-state)))
+    (or (nth 3 state) (nth 4 state))))
+
 (defun sly--completions-complete-symbol-1 (fn)
   (let* ((beg (sly-symbol-start-pos))
          (end (sly-symbol-end-pos)))
@@ -257,7 +262,7 @@ ANNOTATION) describing each completion possibility."
                   (cons buffer (with-current-buffer buffer
                                  (point)))))))
           :company-prefix-length
-          (and (sly-inside-string-or-comment-p) 0))))
+          (and (sly--completion-inside-string-or-comment-p) 0))))
 
 (defun sly-simple-complete-symbol ()
   "Prefix completion on the symbol at point.
