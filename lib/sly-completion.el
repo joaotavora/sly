@@ -248,6 +248,14 @@ ANNOTATION) describing each completion possibility."
           :company-match
           (lambda (obj)
             (get-text-property 0 'sly-completion-chunks obj))
+          :company-location
+          (lambda (obj)
+            (save-window-excursion
+              (let* ((buffer (sly-edit-definition
+                              (substring-no-properties obj))))
+                (when (buffer-live-p buffer) ; on the safe side
+                  (cons buffer (with-current-buffer buffer
+                                 (point)))))))
           :company-prefix-length
           (and (sly-inside-string-or-comment-p) 0))))
 
