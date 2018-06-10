@@ -247,7 +247,9 @@ ANNOTATION) describing each completion possibility."
                 (current-buffer))))
           :company-match
           (lambda (obj)
-            (get-text-property 0 'sly-completion-chunks obj)))))
+            (get-text-property 0 'sly-completion-chunks obj))
+          :company-prefix-length
+          (and (sly-inside-string-or-comment-p) 0))))
 
 (defun sly-simple-complete-symbol ()
   "Prefix completion on the symbol at point.
