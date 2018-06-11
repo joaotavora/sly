@@ -833,15 +833,17 @@ history entry navigated to."
 ;;;
 (defun sly-mrepl-indent-and-complete-symbol (arg)
   "Indent the current line, perform symbol completion or show arglist.
-Completion performed by `completion-at-point'.  If there's no
-symbol at the point, show the arglist for the most recently
-enclosed macro or function."
+Completion performed by `completion-at-point' or
+`company-complete'.  If there's no symbol at the point, show the
+arglist for the most recently enclosed macro or function."
   (interactive "P")
   (let ((pos (point)))
     (indent-for-tab-command arg)
     (when (= pos (point))
       (cond ((save-excursion (re-search-backward "[^() \n\t\r]+\\=" nil t))
-             (completion-at-point))
+             (if (bound-and-true-p company-mode)
+                 (funcall 'company-complete)
+               (completion-at-point)))
             ((memq (char-before) '(?\t ?\ ))
              (sly-show-arglist))))))
 
