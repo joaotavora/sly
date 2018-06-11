@@ -2257,31 +2257,41 @@ or nil if nothing suitable can be found.")
 (defvar sly-stack-eval-tags nil
   "List of stack-tags of continuations waiting on the stack.")
 
-(defun sly-eval (sexp &optional package)
-  "Evaluate EXPR on the superior Lisp and return the result."
+(defun sly-eval (sexp &optional package cancel-on-input cancel-on-input-retval)
+  "Evaluate EXPR on the superior Lisp and return the result.
+If CANCEL-ON-INPUT cancel the request immediately if the user
+wants to input, and return CANCEL-ON-INPUT-RETVAL."
   (when (null package) (setq package (sly-current-package)))
   (let* ((tag (cl-gensym (format "sly-result-%d-"
                                  (1+ (sly-continuation-counter)))))
-         (sly-stack-eval-tags (cons tag sly-stack-eval-tags)))
+         (sly-stack-eval-tags (cons tag sly-stack-eval-tags))
+         (cancelled nil))
     (apply
      #'funcall
      (catch tag
        (sly-rex (tag sexp)
            (sexp package)
          ((:ok value)
-          (unless (member tag sly-stack-eval-tags)
-            (error "Reply to canceled synchronous eval request tag=%S sexp=%S"
-                   tag sexp))
-          (throw tag (list #'identity value)))
+          (unless cancelled
+            (unless (member tag sly-stack-eval-tags)
+              (error "Reply to canceled synchronous eval request tag=%S sexp=%S"
+                     tag sexp))
+            (throw tag (list #'identity value))))
          ((:abort _condition)
           (throw tag (list #'error "Synchronous Lisp Evaluation aborted"))))
-       (let ((debug-on-quit t)
-             (inhibit-quit nil)
-             (conn (sly-connection)))
-         (while t
-           (unless (eq (process-status conn) 'open)
-             (error "Lisp connection closed unexpectedly"))
-           (accept-process-output nil 0.01)))))))
+       (let* ((inhibit-quit nil)
+              (spin (lambda ()
+                      (unless (eq (process-status (sly-connection)) 'open)
+                        (error "Lisp connection closed unexpectedly"))
+                      (accept-process-output nil 30))))
+         (cond (cancel-on-input
+                (while (sit-for 30))
+                (unless (eq (process-status (sly-connection)) 'open)
+                  (error "Lisp connection closed unexpectedly"))
+                (setq cancelled t))
+               (t
+                (while t (funcall spin)))))
+       (list #'identity cancel-on-input-retval)))))
 
 (defun sly-eval-async (sexp &optional cont package env)
   "Evaluate EXPR on the superior Lisp and call CONT with the result.

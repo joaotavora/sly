@@ -115,7 +115,7 @@ collected from the Slynk server."
   (let ((sly-current-thread t))
     (sly-eval
      `(,slyfun ,(substring-no-properties pattern) ',(sly-current-package))
-     nil)))
+     nil t nil)))
 
 (defun sly-simple-completions (prefix)
   "Returns (COMPLETIONS NIL) where COMPLETIONS complete the PREFIX.
