@@ -3,14 +3,18 @@ Upcoming SLY 1.0.0-beta-3 (Somewhere 2018)
 
 ### Company works by default
 
-If you haven't yet, just `M-x package-install RET company-mode`,
-enable company, and it should start working in every SLY buffer.
+If you haven't yet, just `M-x package-install RET company-mode`, to
+enable `company`, and it should start working in every SLY buffer.
 
-### Redesigned completion mechanism
+Moreover, a new "lazy" way to SLY collect completions from the Lisp
+backend means that user input is not blocked if this takes a long
+time.  The result is a much more responsive on-the-fly completion
+experience.
 
-The completion UI was redesigned and is now invoked via the built-in
-`completion-at-point` mechanism for a more consistent experience with
-the rest of Emacs.
+If you don't like company, you can still use the normal on-request TAB
+completion, with a much improved UI.
+
+### Redesigned completion backend
 
 A redesigned completion backend replaces the legacy contribs
 `sly-fuzzy` and `sly-c-p-c`. The new "flex" backend considers package

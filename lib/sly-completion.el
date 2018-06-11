@@ -30,10 +30,12 @@
 
 
 ;;; Forward declarations (later replace with a `sly-common' lib)
-;;; 
+;;;
 (defvar sly-current-thread)
 
-(declare-function sly-eval "sly" '(sexp &optional package))
+(declare-function sly-eval "sly" (sexp &optional package
+                                       cancel-on-input
+                                       cancel-on-input-retval))
 
 (declare-function sly-symbol-at-point "sly")
 
@@ -108,17 +110,38 @@ collected from the Slynk server."
   :type 'function
   :group 'sly-ui)
 
+
+(cl-defmacro sly--responsive-eval ((var sexp
+                                        &optional
+                                        package
+                                        input-arrived-retval) &rest body)
+  "Use `sly-eval' on SEXP, PACKAGE, bind to VAR, run BODY.
+If user input arrives in the meantime return INPUT-ARRIVED-RETVAL
+immediately."
+  (declare (indent 1) (debug (sexp &rest form)))
+  (let ((sym (make-symbol "sly--responsive-eval")))
+    `(let* ((,sym (make-symbol "sly--responsive-eval-unique"))
+            (,var (sly-eval ,sexp ,package t ,sym)))
+       (if (eq ,var ,sym)
+           ,input-arrived-retval
+         ,@body))))
+
 
 ;;; Completion calculation
 ;;;
 (defun sly--completion-request-completions (pattern slyfun)
-  (let ((sly-current-thread t))
-    (sly-eval
-     `(,slyfun ,(substring-no-properties pattern) ',(sly-current-package))
-     nil t nil)))
+  "Request completions for PATTERN using SLYFUN.
+SLYFUN takes two arguments, a pattern and a package."
+  (let* ((sly-current-thread t))
+    (sly--responsive-eval
+        (completions `(,slyfun ,(substring-no-properties pattern)
+                               ',(sly-current-package)))
+      (or completions
+          (and (not (current-message))
+               (sly-message "No completions for %s" pattern))))))
 
 (defun sly-simple-completions (prefix)
-  "Returns (COMPLETIONS NIL) where COMPLETIONS complete the PREFIX.
+  "Return (COMPLETIONS NIL) where COMPLETIONS complete the PREFIX.
 COMPLETIONS is a list of propertized strings."
   (cl-loop with first-difference-pos = (length prefix)
            with (completions common) =
@@ -134,7 +157,7 @@ COMPLETIONS is a list of propertized strings."
            finally return (list formatted common)))
 
 (defun sly-flex-completions (pattern)
-  "Returns (COMPLETIONS NIL) where COMPLETIONS flex-complete PATTERN.
+  "Return (COMPLETIONS NIL) where COMPLETIONS flex-complete PATTERN.
 COMPLETIONS is a list of propertized strings."
   (cl-loop with (completions _) =
            (sly--completion-request-completions pattern 'slynk-completion:flex-completions)
@@ -235,20 +258,22 @@ ANNOTATION) describing each completion possibility."
           :annotation-function #'sly-completion-annotation
           :company-docsig
           (lambda (obj)
-            (let ((arglist (sly-eval `(slynk:operator-arglist
-                                       ,(substring-no-properties obj)
-                                       ,(sly-current-package)))))
-              (if arglist (sly-autodoc--fontify arglist)
-                "no autodoc information")))
+            (sly--responsive-eval (arglist `(slynk:operator-arglist
+                                             ,(substring-no-properties obj)
+                                             ,(sly-current-package)))
+              (or (and arglist
+                       (sly-autodoc--fontify arglist))
+                  "no autodoc information")))
           :company-no-cache t
           :company-doc-buffer
           (lambda (obj)
-            (let ((doc (sly-eval `(slynk:describe-symbol
-                                   ,(substring-no-properties obj)))))
-              (with-current-buffer (get-buffer-create " *sly-completion doc*")
-                (erase-buffer)
-                (insert doc)
-                (current-buffer))))
+            (sly--responsive-eval (doc `(slynk:describe-symbol
+                                         ,(substring-no-properties obj)))
+              (when doc
+                (with-current-buffer (get-buffer-create " *sly-completion doc*")
+                  (erase-buffer)
+                  (insert doc)
+                  (current-buffer)))))
           :company-match
           (lambda (obj)
             (get-text-property 0 'sly-completion-chunks obj))
