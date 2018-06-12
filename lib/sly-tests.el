@@ -123,15 +123,22 @@ Also don't error if `ert.el' is missing."
                                           doc
                                           t))
        ,@(if fails-for
-             `(:expected-result '(satisfies
-                                  (lambda (result)
-                                    (ert-test-result-type-p
-                                     result
-                                     (if (member
-                                          (sly-lisp-implementation-name)
-                                          ',fails-for)
-                                         :failed
-                                       :passed))))))
+             `(:expected-result
+               '(satisfies
+                 (lambda (result)
+                   (ert-test-result-type-p
+                    result
+                    (if (cl-find-if
+                         (lambda (impl)
+                           (unless (listp impl)
+                             (setq impl (list impl #'(lambda (&rest _ign) t))))
+                           (and (equal (car impl) (sly-lisp-implementation-name))
+                                (funcall (cadr impl)
+                                         (sly-lisp-implementation-version)
+                                         (caddr impl))))
+                         ',fails-for)
+                        :failed
+                      :passed))))))
 
        ,@(when style
            `((let ((style (sly-communication-style)))
@@ -526,7 +533,8 @@ confronted with nasty #.-fu."
       )))
 
 (def-sly-test (find-definition.3
-                 (:fails-for "abcl" "allegro" "clisp" "lispworks" "sbcl"
+                 (:fails-for "abcl" "allegro" "clisp" "lispworks"
+                             ("sbcl" version< "1.3.0")
                              "ecl"))
     (name source regexp)
     "Extra tests for defstruct."
