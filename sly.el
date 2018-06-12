@@ -5250,6 +5250,32 @@ Full list of frame-specific commands:
 
 
 ;;;;; SLY-DB buffer creation & update
+
+(defcustom sly-db-focus-debugger 'always
+  "Control how debugger windows are displayed.
+ALWAYS: the debugger window is always focused.
+NEVER: the debugger window is never focused.
+REPL: only at the REPL."
+  :group 'sly-debugger
+  :type '(choice (const always)
+                 (const never)
+                 (const repl)))
+
+(defun sly-db-should-focus-debugger-p ()
+  "Decide whether to select the debugger window.
+Behavior depends on the current value of
+`sly-db-focus-debugger'."
+  (cl-ecase sly-db-focus-debugger
+    (always t)
+    (never nil)
+    (repl
+     (when-let (win (selected-window))
+       (when-let (buf (window-buffer win))
+         (and (eq (buffer-local-value 'major-mode buf)
+                  'sly-mrepl-mode)
+              (eq (sly-current-connection)
+                  (buffer-local-value 'sly-buffer-connection buf))))))))
+
 (defun sly-filter-buffers (predicate)
   "Return a list of where PREDICATE returns true.
 PREDICATE is executed in the buffer to test."
@@ -5317,6 +5343,19 @@ The chosen buffer the default connection's it if exists."
     (ignore-errors (sly-db-quit))
     t))
 
+(defun sly-db-display-debugger (buffer)
+  "Display (or pop to) BUFFER as appropriate.
+Also mark the window as a debugger window."
+  (let* ((action '(sly-db--display-in-prev-sly-db-window))
+         (win
+          (if (sly-db-should-focus-debugger-p)
+              (progn
+                (pop-to-buffer buffer action)
+                (selected-window))
+            (display-buffer buffer action))))
+    (set-window-parameter win 'sly-db buffer)
+    win))
+
 (defun sly-db-setup (thread level condition restarts frame-specs conts)
   "Setup a new SLY-DB buffer.
 CONDITION is a string describing the condition to debug.
@@ -5331,8 +5370,7 @@ pending Emacs continuations."
                  t)
                () "Bug: sly-db-level is equal but condition differs\n%s\n%s"
                sly-db-condition condition)
-    (pop-to-buffer (current-buffer) '(sly-db--display-in-prev-sly-db-window))
-    (set-window-parameter (selected-window) 'sly-db (current-buffer))
+    (sly-db-display-debugger (current-buffer))
     (unless (equal sly-db-level level)
       (let ((inhibit-read-only t))
         (sly-db-mode)
@@ -5356,7 +5394,8 @@ pending Emacs continuations."
             (insert "[No backtrace]")))
         (run-hooks 'sly-db-hook)
         (set-syntax-table lisp-mode-syntax-table)))
-    (sly-recenter (point-min))
+    (with-selected-window (get-buffer-window (current-buffer))
+      (sly-recenter (point-min)))
     (when (and sly-stack-eval-tags
                ;; (sly-y-or-n-p "Enter recursive edit? ")
                )
