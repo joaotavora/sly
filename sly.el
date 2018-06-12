@@ -5261,7 +5261,7 @@ REPL: only at the REPL."
                  (const never)
                  (const repl)))
 
-(defun sly-db-should-focus-debugger-p ()
+(defun sly-db--should-focus-debugger-p ()
   "Decide whether to select the debugger window.
 Behavior depends on the current value of
 `sly-db-focus-debugger'."
@@ -5269,12 +5269,12 @@ Behavior depends on the current value of
     (always t)
     (never nil)
     (repl
-     (when-let (win (selected-window))
-       (when-let (buf (window-buffer win))
-         (and (eq (buffer-local-value 'major-mode buf)
-                  'sly-mrepl-mode)
-              (eq (sly-current-connection)
-                  (buffer-local-value 'sly-buffer-connection buf))))))))
+     (let* ((conn (sly-current-connection))
+            (win (selected-window))
+            (buf (window-buffer win)))
+       (with-current-buffer buf
+         (and (eq major-mode 'sly-mrepl-mode)
+              (eq conn sly-buffer-connection)))))))
 
 (defun sly-filter-buffers (predicate)
   "Return a list of where PREDICATE returns true.
@@ -5343,12 +5343,12 @@ The chosen buffer the default connection's it if exists."
     (ignore-errors (sly-db-quit))
     t))
 
-(defun sly-db-display-debugger (buffer)
+(defun sly-db--display-debugger (buffer)
   "Display (or pop to) BUFFER as appropriate.
 Also mark the window as a debugger window."
   (let* ((action '(sly-db--display-in-prev-sly-db-window))
          (win
-          (if (sly-db-should-focus-debugger-p)
+          (if (sly-db--should-focus-debugger-p)
               (progn
                 (pop-to-buffer buffer action)
                 (selected-window))
@@ -5370,7 +5370,7 @@ pending Emacs continuations."
                  t)
                () "Bug: sly-db-level is equal but condition differs\n%s\n%s"
                sly-db-condition condition)
-    (sly-db-display-debugger (current-buffer))
+    (sly-db--display-debugger (current-buffer))
     (unless (equal sly-db-level level)
       (let ((inhibit-read-only t))
         (sly-db-mode)
