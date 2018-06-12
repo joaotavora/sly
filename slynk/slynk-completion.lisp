@@ -126,6 +126,24 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                    indexes
                    :initial-value nil)))
 
+(defun readably-classify (sym)
+  (let* ((translations '((:fboundp . "fn")
+                         (:class . "cla")
+                         (:typespec . "type")
+                         (:generic-function . "generic-fn")
+                         (:macro . "macro")
+                         (:special-operator . "special-op")
+                         (:package . "pak")
+                         (:boundp . "var")
+                         (:constant . "constant")))
+         (classes (slynk::classify-symbol sym))
+         (classes (if (find :generic-function classes)
+                      (delete :fboundp classes)
+                      classes))
+         (translated (mapcar (lambda (cla) (cdr (assoc cla translations)))
+                             classes)))
+    (format nil "~{~a~^,~}" translated)))
+
 (defparameter *flex-score-falloff* 1.5
   "The larger the value, the more big index distances are penalized.")
 
@@ -353,7 +371,7 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                       (string-downcase string))
                   score
                   (to-chunks string indexes)
-                  (slynk::symbol-classification-string symbol)))
+                  (readably-classify symbol)))
           nil)))
 
 (provide :slynk/completion)
