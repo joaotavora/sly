@@ -63,8 +63,9 @@
   (if (version< emacs-version "24.3")
       (error "Sly requires at least Emacs 24.3")))
 
-(or (require 'hyperspec nil t)
-    (require 'hyperspec "lib/hyperspec"))
+(eval-and-compile
+  (or (require 'hyperspec nil t)
+      (require 'hyperspec "lib/hyperspec")))
 (require 'thingatpt)
 (require 'comint)
 (require 'pp)
@@ -106,11 +107,11 @@ Emacs Lisp package.")
   (expand-file-name "slynk/" sly-path))
 
 ;;;###autoload
-(defvar sly-contribs '(sly-fancy)
-  "A list of contrib packages to load with SLY.")
-;;;###autoload
 (define-obsolete-variable-alias 'sly-setup-contribs
   'sly-contribs "2.3.2")
+;;;###autoload
+(defvar sly-contribs '(sly-fancy)
+  "A list of contrib packages to load with SLY.")
 
 (defun sly-setup (&optional contribs)
   "Have SLY load and use extension modules CONTRIBS.
@@ -143,6 +144,7 @@ To ensure that a particular contrib is loaded, use
     (setq sly-contribs contribs))
   (sly--setup-contribs))
 
+(defvaralias 'sly-required-modules 'sly-contrib--required-slynk-modules)
 
 (defvar sly-contrib--required-slynk-modules '()
   "Alist of (MODULE . (WHERE CONTRIB)) for slynk-provided features.
@@ -151,8 +153,6 @@ MODULE is a symbol naming a specific Slynk feature, WHERE is
 the full pathname to the directory where the file(s)
 providing the feature are found and CONTRIB is a symbol as found
 in `sly-contribs.'")
-
-(defvaralias 'sly-required-modules 'sly-contrib--required-slynk-modules)
 
 (cl-defmacro sly--contrib-safe (contrib &body body)
   "Run BODY catching and resignalling any errors for CONTRIB"
@@ -286,6 +286,9 @@ be a port number ready in SLYNK-PORTFILE."
                         sly-init-using-slynk-loader))
   :group 'sly-lisp)
 
+(define-obsolete-variable-alias 'sly-backend
+  'sly-slynk-loader-backend "3.0")
+
 (defcustom sly-slynk-loader-backend "slynk-loader.lisp"
   "The name of the slynk-loader that loads the Slynk server.
 Only applicable if `sly-init-function' is set to
@@ -294,9 +297,6 @@ relative to the directory containing sly.el, but could also be
 set to an absolute filename."
   :type 'string
   :group 'sly-lisp)
-
-(define-obsolete-variable-alias 'sly-backend
-  'sly-slynk-loader-backend "3.0")
 
 (defcustom sly-connected-hook nil
   "List of functions to call when SLY connects to Lisp."
