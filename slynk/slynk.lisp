@@ -2465,7 +2465,7 @@ after Emacs causes a restart to be invoked."
            (list* :debug (current-thread-id) level
                   (debugger-info-for-emacs 0 *sly-db-initial-frames*)))
           (send-to-emacs
-           (list :debug-activate (current-thread-id) level nil))
+           (list :debug-activate (current-thread-id) level))
           (loop
            (handler-case
                (destructure-case (wait-for-event

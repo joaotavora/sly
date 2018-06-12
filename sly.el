@@ -2403,9 +2403,9 @@ Debugged requests are ignored."
                         (sly--refresh-mode-line))
                    (t
                     (error "Unexpected reply: %S %S" id value)))))
-          ((:debug-activate thread level &optional select)
+          ((:debug-activate thread level &optional _ignored)
            (cl-assert thread)
-           (sly-db-activate thread level select))
+           (sly-db--ensure-initialized thread level))
           ((:debug thread level condition restarts frames conts)
            (cl-assert thread)
            (sly-db-setup thread level condition restarts frames conts))
@@ -5375,23 +5375,19 @@ pending Emacs continuations."
       (set-window-buffer window buffer)
       window)))
 
-(defun sly-db-activate (thread level select)
-  "Display the debugger buffer for THREAD.
-If LEVEL isn't the same as in the buffer reinitialize the buffer."
-  (or (let ((buffer (sly-db-find-buffer thread)))
-        (when buffer
-          (with-current-buffer buffer
-            (when (equal sly-db-level level)
-              (when select (pop-to-buffer (current-buffer)))
-              t))))
-      (sly-db-reinitialize thread level)))
-
-(defun sly-db-reinitialize (thread level)
-  (sly-rex (thread level)
-      ('(slynk:debugger-info-for-emacs 0 10)
-       nil thread)
-    ((:ok result)
-     (apply #'sly-db-setup thread level result))))
+(defun sly-db--ensure-initialized (thread level)
+  "Initialize debugger buffer for THREAD.
+If such a buffer exists for LEVEL, it is assumed to have been
+sufficiently initialized, and this function does nothing."
+  (let ((buffer (sly-db-find-buffer thread)))
+    (unless (and buffer
+                 (with-current-buffer buffer
+                   (equal sly-db-level level)))
+      (sly-rex (thread level)
+          ('(slynk:debugger-info-for-emacs 0 10)
+           nil thread)
+        ((:ok result)
+         (apply #'sly-db-setup thread level result))))))
 
 (defvar sly-db-exit-hook nil
   "Hooks run in the debugger buffer just before exit")
