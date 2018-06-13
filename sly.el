@@ -2168,7 +2168,7 @@ This is set only in buffers bound to specific packages."))
 (defvar sly-rex-extra-options-functions nil
   "Functions returning extra options to send with `sly-rex'.")
 
-(cl-defmacro sly-rex ((&rest saved-vars)
+(cl-defmacro sly-rex ((&rest _)
                       (sexp &optional
                             (package '(sly-current-package))
                             (thread 'sly-current-thread))
@@ -2176,9 +2176,6 @@ This is set only in buffers bound to specific packages."))
   "(sly-rex (VAR ...) (SEXP &optional PACKAGE THREAD) CLAUSES ...)
 
 Remote EXecute SEXP.
-
-VARs are a list of saved variables visible in the other forms.  Each
-VAR is either a symbol or a list (VAR INIT-VALUE).
 
 SEXP is evaluated and the princed version is sent to Lisp.
 
@@ -2197,17 +2194,13 @@ versions cannot deal with that."
            (debug (sexp (form &optional sexp sexp)
                         &rest (sexp &rest form))))
   (let ((result (cl-gensym)))
-    `(let ,(cl-loop for var in saved-vars
-                    collect (cl-etypecase var
-                              (symbol (list var var))
-                              (cons var)))
-       (sly-dispatch-event
-        (cl-list* :emacs-rex ,sexp ,package ,thread
-                  (lambda (,result)
-                    (sly-dcase ,result
-                      ,@continuations))
-                  (cl-loop for fn in sly-rex-extra-options-functions
-                           append (funcall fn)))))))
+    `(sly-dispatch-event
+      (cl-list* :emacs-rex ,sexp ,package ,thread
+                (lambda (,result)
+                  (sly-dcase ,result
+                    ,@continuations))
+                (cl-loop for fn in sly-rex-extra-options-functions
+                         append (funcall fn))))))
 
 ;;; Interface
 (defun sly-current-package ()
@@ -2254,69 +2247,64 @@ or nil if nothing suitable can be found.")
 ;;; that `throw's its result up to a `catch' and then enter a loop of
 ;;; handling I/O until that happens.
 
-(defvar sly-stack-eval-tags nil
-  "List of stack-tags of continuations waiting on the stack.")
-
 (defun sly-eval (sexp &optional package cancel-on-input cancel-on-input-retval)
-  "Evaluate EXPR on the superior Lisp and return the result.
+  "Evaluate SEXP in Slynk's PACKAGE and return the result.
 If CANCEL-ON-INPUT cancel the request immediately if the user
 wants to input, and return CANCEL-ON-INPUT-RETVAL."
   (when (null package) (setq package (sly-current-package)))
-  (let* ((tag (cl-gensym (format "sly-result-%d-"
-                                 (1+ (sly-continuation-counter)))))
-         (sly-stack-eval-tags (cons tag sly-stack-eval-tags))
-         (cancelled nil))
+  (let* ((catch-tag (make-symbol (format "sly-result-%d"
+                                         (1+ (sly-continuation-counter)))))
+         (cancelled nil)
+         (check-conn
+          (lambda ()
+            (unless (eq (process-status (sly-connection)) 'open)
+              (error "Lisp connection closed unexpectedly")))))
     (apply
      #'funcall
-     (catch tag
-       (sly-rex (tag sexp)
+     (catch catch-tag
+       (sly-rex ()
            (sexp package)
          ((:ok value)
           (unless cancelled
-            (unless (member tag sly-stack-eval-tags)
-              (error "Reply to canceled synchronous eval request tag=%S sexp=%S"
-                     tag sexp))
-            (throw tag (list #'identity value))))
+            (throw catch-tag (list #'identity value))))
          ((:abort _condition)
-          (throw tag (list #'error "Synchronous Lisp Evaluation aborted"))))
-       (let* ((inhibit-quit nil)
-              (spin (lambda ()
-                      (unless (eq (process-status (sly-connection)) 'open)
-                        (error "Lisp connection closed unexpectedly"))
-                      (accept-process-output nil 30))))
-         (cond (cancel-on-input
+          (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
+       (cond (cancel-on-input
+              (let ((inhibit-quit t))
                 (while (sit-for 30))
-                (unless (eq (process-status (sly-connection)) 'open)
-                  (error "Lisp connection closed unexpectedly"))
                 (setq cancelled t))
-               (t
-                (while t (funcall spin)))))
+              (funcall check-conn))
+             (t
+              (while t
+                (funcall check-conn)
+                (accept-process-output nil 30))))
        (list #'identity cancel-on-input-retval)))))
 
 (defun sly-eval-async (sexp &optional cont package env)
-  "Evaluate EXPR on the superior Lisp and call CONT with the result.
+  "Evaluate SEXP on the superior Lisp and call CONT with the result.
 
 CONT is called with the overriding dynamic environment in ENV, an
 alist of bindings"
   (declare (indent 1))
-  (sly-rex (cont (buffer (current-buffer)))
-      (sexp (or package (sly-current-package)))
-    ((:ok result)
-     (when cont
-       (set-buffer buffer)
-       (cl-progv (mapcar #'car env) (mapcar #'cdr env)
-         (if debug-on-error
-             (funcall cont result)
-           (condition-case err
+  (let ((buffer (current-buffer)))
+    (sly-rex ()
+        (sexp (or package (sly-current-package)))
+      ((:ok result)
+       (when cont
+         (set-buffer buffer)
+         (cl-progv (mapcar #'car env) (mapcar #'cdr env)
+           (if debug-on-error
                (funcall cont result)
-             (error
-              (sly-message "`sly-eval-async' errored: %s"
-                           (if (and (eq 'error (car err))
-                                    (stringp (cadr err)))
-                               (cadr err)
-                             err))))))))
-    ((:abort condition)
-     (sly-message "Evaluation aborted on %s." condition)))
+             (condition-case err
+                 (funcall cont result)
+               (error
+                (sly-message "`sly-eval-async' errored: %s"
+                             (if (and (eq 'error (car err))
+                                      (stringp (cadr err)))
+                                 (cadr err)
+                               err))))))))
+      ((:abort condition)
+       (sly-message "Evaluation aborted on %s." condition))))
   ;; Guard against arbitrary return values which once upon a time
   ;; showed up in the minibuffer spuriously (due to a bug in
   ;; sly-autodoc.)  If this ever happens again, returning the
@@ -5395,12 +5383,7 @@ pending Emacs continuations."
         (run-hooks 'sly-db-hook)
         (set-syntax-table lisp-mode-syntax-table)))
     (with-selected-window (get-buffer-window (current-buffer))
-      (sly-recenter (point-min)))
-    (when (and sly-stack-eval-tags
-               ;; (sly-y-or-n-p "Enter recursive edit? ")
-               )
-      (sly-message "Entering recursive edit..")
-      (recursive-edit))))
+      (sly-recenter (point-min)))))
 
 (defun sly-db--display-in-prev-sly-db-window (buffer _alist)
   (let ((window
@@ -5422,7 +5405,7 @@ sufficiently initialized, and this function does nothing."
     (unless (and buffer
                  (with-current-buffer buffer
                    (equal sly-db-level level)))
-      (sly-rex (thread level)
+      (sly-rex ()
           ('(slynk:debugger-info-for-emacs 0 10)
            nil thread)
         ((:ok result)
