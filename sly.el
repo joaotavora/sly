@@ -770,17 +770,34 @@ corresponding values in the CDR of VALUE."
                "*")
              ""))
 
-(defun sly-recenter (target)
-  "Try to make the region between point and TARGET visible.
-Minimize point motion if possible."
-  (let ((window-height (window-text-height))
-        (height-diff (abs (- (line-number-at-pos target)
-                             (line-number-at-pos (point))))))
-    (when (or (> height-diff window-height)
-              (not (pos-visible-in-window-p target)))
-      (recenter (if (< target (point))
-                    (min (- window-height 2) height-diff)
-                  (max 0 (- window-height height-diff 1)))))))
+(defun sly-recenter (target &optional move-point)
+  "Make the region between point and TARGET visible.
+Minimize window motion if possible.  If MOVE-POINT allow point to
+move to make TARGET visible."
+  (unless (pos-visible-in-window-p target)
+    (redisplay)
+    (let ((screen-line (- (line-number-at-pos)
+                          (line-number-at-pos (window-start))))
+          (window-end (line-number-at-pos (window-end)))
+          (window-start (line-number-at-pos (window-start)))
+          (target-line (line-number-at-pos target))
+          recenter-arg)
+      (cond ((> (point) target)
+             (setq recenter-arg (+ screen-line (- window-start target-line)))
+             (if (or (not move-point)
+                     (<= recenter-arg (window-height)))
+                 (recenter recenter-arg)
+               (goto-char target)
+               (recenter -1)
+               (move-to-window-line -1)))
+            ((<= (point) target)
+             (setq recenter-arg (- screen-line (- target-line window-end)))
+             (if (or (not move-point)
+                     (> recenter-arg 0))
+                 (recenter (max recenter-arg 0))
+               (goto-char target)
+               (recenter 0)
+               (move-to-window-line 0)))))))
 
 ;; Interface
 (defun sly-set-truncate-lines ()
@@ -5332,7 +5349,7 @@ The chosen buffer the default connection's it if exists."
     t))
 
 (defun sly-db--display-debugger (buffer)
-  "Display (or pop to) BUFFER as appropriate.
+  "Display (or pop to) sly-db BUFFER as appropriate.
 Also mark the window as a debugger window."
   (let* ((action '(sly-db--display-in-prev-sly-db-window))
          (win
@@ -5358,32 +5375,31 @@ pending Emacs continuations."
                  t)
                () "Bug: sly-db-level is equal but condition differs\n%s\n%s"
                sly-db-condition condition)
-    (sly-db--display-debugger (current-buffer))
-    (unless (equal sly-db-level level)
-      (let ((inhibit-read-only t))
-        (sly-db-mode)
-        (add-to-list (make-local-variable 'kill-buffer-query-functions)
-                     'sly-db-confirm-buffer-kill)
-        (setq sly-current-thread thread)
-        (setq sly-db-level level)
-        (setq mode-name (format "sly-db[%d]" sly-db-level))
-        (setq sly-db-condition condition)
-        (setq sly-db-restarts restarts)
-        (setq sly-db-continuations conts)
-        (sly-db-insert-condition condition)
-        (insert "\n\n" (sly-db-in-face section "Restarts:") "\n")
-        (setq sly-db-restart-list-start-marker (point-marker))
-        (sly-db-insert-restarts restarts 0 sly-db-initial-restart-limit)
-        (insert "\n" (sly-db-in-face section "Backtrace:") "\n")
-        (setq sly-db-backtrace-start-marker (point-marker))
-        (save-excursion
-          (if frame-specs
-              (sly-db-insert-frames (sly-db-prune-initial-frames frame-specs) t)
-            (insert "[No backtrace]")))
-        (run-hooks 'sly-db-hook)
-        (set-syntax-table lisp-mode-syntax-table)))
-    (with-selected-window (get-buffer-window (current-buffer))
-      (sly-recenter (point-min)))))
+    (with-selected-window (sly-db--display-debugger (current-buffer))
+      (unless (equal sly-db-level level)
+        (let ((inhibit-read-only t))
+          (sly-db-mode)
+          (add-to-list (make-local-variable 'kill-buffer-query-functions)
+                       'sly-db-confirm-buffer-kill)
+          (setq sly-current-thread thread)
+          (setq sly-db-level level)
+          (setq mode-name (format "sly-db[%d]" sly-db-level))
+          (setq sly-db-condition condition)
+          (setq sly-db-restarts restarts)
+          (setq sly-db-continuations conts)
+          (sly-db-insert-condition condition)
+          (insert "\n\n" (sly-db-in-face section "Restarts:") "\n")
+          (setq sly-db-restart-list-start-marker (point-marker))
+          (sly-db-insert-restarts restarts 0 sly-db-initial-restart-limit)
+          (insert "\n" (sly-db-in-face section "Backtrace:") "\n")
+          (setq sly-db-backtrace-start-marker (point-marker))
+          (save-excursion
+            (if frame-specs
+                (sly-db-insert-frames (sly-db-prune-initial-frames frame-specs) t)
+              (insert "[No backtrace]")))
+          (run-hooks 'sly-db-hook)
+          (set-syntax-table lisp-mode-syntax-table)))
+      (sly-recenter (point-min) 'allow-moving-point))))
 
 (defun sly-db--display-in-prev-sly-db-window (buffer _alist)
   (let ((window
@@ -5492,7 +5508,10 @@ RESTARTS should be a list ((NAME DESCRIPTION) ...)."
                    (let ((inhibit-read-only t))
                      (delete-region (button-start button)
                                     (1+ (button-end button)))
-                     (sly-db-insert-restarts restarts end nil)))
+                     (sly-db-insert-restarts restarts end nil)
+                     (sly--when-let (win (get-buffer-window (current-buffer)))
+                       (with-selected-window win
+                         (sly-recenter (point-max))))))
                'point-entered #'(lambda (_ new) (push-button new)))
               "\n"))))
 
@@ -5529,7 +5548,10 @@ If MORE is non-nil, more frames are on the Lisp stack."
                       (delete-region (button-start button)
                                      (button-end button))
                       (save-excursion
-                        (sly-db-insert-frames frames more))))
+                        (sly-db-insert-frames frames more))
+                      (sly--when-let (win (get-buffer-window (current-buffer)))
+                        (with-selected-window win
+                          (sly-recenter (point-max))))))
                 'point-entered #'(lambda (_ new) (push-button new)))))))
 
 (defvar sly-db-frame-map
