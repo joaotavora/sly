@@ -274,6 +274,7 @@ ANNOTATION) describing each completion possibility."
                   (erase-buffer)
                   (insert doc)
                   (current-buffer)))))
+          :company-require-match 'never
           :company-match
           (lambda (obj)
             (get-text-property 0 'sly-completion-chunks obj))
