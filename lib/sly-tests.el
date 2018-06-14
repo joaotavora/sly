@@ -25,7 +25,13 @@
 
 
 ;;;; Tests
-(require 'sly)
+(require 'sly-common)
+(require 'sly-messages)
+(require 'sly-buttons)
+(require 'sly-completion)
+(eval-and-compile
+  (or (require 'sly nil t)
+      (require 'sly "../sly" t)))
 (require 'ert nil t)
 (require 'ert "lib/ert" t) ;; look for bundled version for Emacs 23
 (require 'cl-lib)
@@ -157,7 +163,7 @@ INPUTS is a list of argument lists, each tested separately.
 BODY is the test case. The body can use `sly-check' to test
 conditions (assertions)."
   (declare (debug (&define name sexp sexp sexp &rest def-form))
-           (indent 2))
+           (indent 4))
   (if (not (featurep 'ert))
       (warn "No ert.el found: not defining test %s"
             name)
@@ -174,13 +180,13 @@ conditions (assertions)."
                             with fails-for = (cdr (assoc :fails-for options))
                             with style = (cdr (assoc :style options))
                             collect (sly-test-ert-test-for name
-                                                             input
-                                                             i
-                                                             doc
-                                                             body
-                                                             fails-for
-                                                             style
-                                                             fname))))))))
+                                                           input
+                                                           i
+                                                           doc
+                                                           body
+                                                           fails-for
+                                                           style
+                                                           fname))))))))
 
 (put 'def-sly-test 'lisp-indent-function 4)
 
@@ -371,8 +377,8 @@ conditions (assertions)."
                        #'equal)))
 
 (def-sly-test narrowing ()
-    "Check that narrowing is properly sustained."
-    '()
+              "Check that narrowing is properly sustained."
+              '()
   (sly-check-top-level)
   (let ((random-buffer-name (symbol-name (cl-gensym)))
         (defun-pos) (tmpbuffer))
@@ -389,18 +395,18 @@ conditions (assertions)."
       (goto-char defun-pos)
       (narrow-to-defun)
       (sly-check "Checking that narrowing succeeded."
-       (sly-buffer-narrowed-p))
+        (sly-buffer-narrowed-p))
 
       (sly-with-popup-buffer (random-buffer-name)
         (sly-check ("Checking that we're in Sly's temp buffer `%s'"
-                      random-buffer-name)
+                    random-buffer-name)
           (equal (buffer-name (current-buffer)) random-buffer-name)))
       (with-current-buffer random-buffer-name
         ;; Notice that we cannot quit the buffer within the extent
         ;; of sly-with-output-to-temp-buffer.
         (quit-window t))
       (sly-check ("Checking that we've got back from `%s'"
-                    random-buffer-name)
+                  random-buffer-name)
         (and (eq (current-buffer) tmpbuffer)
              (= (point) defun-pos)))
 
@@ -410,11 +416,11 @@ after quitting Sly's temp buffer."
 
       (let ((sly-buffer-package "SLYNK")
             (symbol '*buffer-package*))
-        (sly-edit-definition (symbol-name symbol))
+        (xref-find-definitions (symbol-name symbol))
         (sly-check ("Checking that we've got M-. into slynk.lisp. %S" symbol)
           (string= (file-name-nondirectory (buffer-file-name))
                    "slynk.lisp"))
-        (sly-pop-find-definition-stack)
+        (xref-pop-marker-stack)
         (sly-check ("Checking that we've got back.")
           (and (eq (current-buffer) tmpbuffer)
                (= (point) defun-pos)))
@@ -471,16 +477,16 @@ after quitting Sly's temp buffer."
         (orig-pos (point))
         (enable-local-variables nil)    ; don't get stuck on -*- eval: -*-
         (sly-buffer-package buffer-package))
-    (sly-edit-definition name)
+    (xref-find-definitions name)
     ;; Postconditions
     (sly-check ("Definition of `%S' is in slynk.lisp." name)
       (string= (file-name-nondirectory (buffer-file-name)) "slynk.lisp"))
     (sly-check ("Looking at '%s'." snippet) (looking-at snippet))
-    (sly-pop-find-definition-stack)
+    (xref-pop-marker-stack)
     (sly-check "Returning from definition restores original buffer/position."
       (and (eq orig-buffer (current-buffer))
            (= orig-pos (point)))))
-    (sly-check-top-level))
+  (sly-check-top-level))
 
 (def-sly-test (find-definition.2 (:fails-for "allegro" "lispworks"))
     (buffer-content buffer-package snippet)
@@ -512,8 +518,8 @@ confronted with nasty #.-fu."
 (eval-when (:load-toplevel :execute) (makunbound '*bar*))
 (defun bar () #.*bar*)
 (defun .foo. () 123)"
-"SLYNK"
-"[ \t]*(defun .foo. () 123)"))
+       "SLYNK"
+       "[ \t]*(defun .foo. () 123)"))
   (let ((sly-buffer-package buffer-package))
     (with-temp-buffer
       (insert buffer-content)
@@ -526,16 +532,16 @@ confronted with nasty #.-fu."
          ,nil
          ,nil))
       (let ((bufname (buffer-name)))
-        (sly-edit-definition ".foo.")
+        (xref-find-definitions ".foo.")
         (sly-check ("Definition of `.foo.' is in buffer `%s'." bufname)
           (string= (buffer-name) bufname))
         (sly-check "Definition now at point." (looking-at snippet)))
       )))
 
 (def-sly-test (find-definition.3
-                 (:fails-for "abcl" "allegro" "clisp" "lispworks"
-                             ("sbcl" version< "1.3.0")
-                             "ecl"))
+               (:fails-for "abcl" "allegro" "clisp" "lispworks"
+                           ("sbcl" version< "1.3.0")
+                           "ecl"))
     (name source regexp)
     "Extra tests for defstruct."
     '(("slynk::foo-struct"
@@ -545,23 +551,23 @@ confronted with nasty #.-fu."
 )"
        "(defstruct (foo-struct"))
   (switch-to-buffer "*scratch*")
-    (with-temp-buffer
-      (insert source)
-      (let ((sly-buffer-package "SLYNK"))
-        (sly-eval
-         `(slynk:compile-string-for-emacs
-           ,source
-           ,(buffer-name)
-           '((:position 0) (:line 1 1))
-           ,nil
-           ,nil)))
-      (let ((temp-buffer (current-buffer)))
-        (with-current-buffer "*scratch*"
-          (sly-edit-definition name)
-          (sly-check ("Definition of %S is in buffer `%s'."
-                        name temp-buffer)
-            (eq (current-buffer) temp-buffer))
-          (sly-check "Definition now at point." (looking-at regexp)))
+  (with-temp-buffer
+    (insert source)
+    (let ((sly-buffer-package "SLYNK"))
+      (sly-eval
+       `(slynk:compile-string-for-emacs
+         ,source
+         ,(buffer-name)
+         '((:position 0) (:line 1 1))
+         ,nil
+         ,nil)))
+    (let ((temp-buffer (current-buffer)))
+      (with-current-buffer "*scratch*"
+        (xref-find-definitions name)
+        (sly-check ("Definition of %S is in buffer `%s'."
+                    name temp-buffer)
+          (eq (current-buffer) temp-buffer))
+        (sly-check "Definition now at point." (looking-at regexp)))
       )))
 
 (def-sly-test complete-symbol
@@ -1422,8 +1428,8 @@ Reconnect afterwards."
   (second (sly-eval `(slynk:eval-and-grab-output ,string))))
 
 (def-sly-test (sly-recompile-all-xrefs (:fails-for "cmucl")) ()
-  "Test recompilation of all references within an xref buffer."
-  '(())
+              "Test recompilation of all references within an xref buffer."
+              '(())
   (let* ((cell (cons nil nil))
          (hook (sly-curry (lambda (cell &rest _) (setcar cell t)) cell))
          (filename (make-temp-file "sly-recompile-all-xrefs" nil ".lisp"))
@@ -1446,7 +1452,7 @@ Reconnect afterwards."
           (setcar cell nil)
           (sly-xref :calls ".fn1."
                     (lambda (&rest args)
-                      (setq xref-buffer (apply #'sly-xref--show-results args))
+                      (setq xref-buffer (error "caralho %s" args))
                       (setcar cell t)))
           (sly-wait-condition "Xrefs computed and displayed"
                               (lambda () (car cell))
@@ -1504,20 +1510,20 @@ Reconnect afterwards."
                      (should (= ,total-windows (length (window-list ,temp-frame-sym))))
                      (with-current-buffer
                          (window-buffer (selected-window))
-                       (should (eq major-mode 'sly-xref-mode))
+                       (should (eq major-mode 'xref--xref-buffer-mode))
                        (forward-line 1)
-                       (sly-xref-goto))
+                       (xref-goto-xref))
                      ,@body))))
            (unless noninteractive
              (delete-frame ,temp-frame-sym t)))))))
 
 (def-sly-test find-definition-same-window (window-splits total-windows)
-  "Test `sly-edit-definition' windows"
-  '((0 2)
-    (1 2)
-    (2 3))
+              "Test `xref-find-definitions' windows"
+              '((0 2)
+                (1 2)
+                (2 3))
   (sly-test--with-find-definition-window-checker
-      'sly-edit-definition
+      'xref-find-definitions
       (window-splits
        total-windows
        temp-buffer
@@ -1532,12 +1538,12 @@ Reconnect afterwards."
                (length (window-list (selected-frame)))))))
 
 (def-sly-test find-definition-other-window (window-splits total-windows)
-  "Test `sly-edit-definition-other-window' windows"
-  '((0 2)
-    (1 2)
-    (2 3))
+              "Test `xref-find-definitions-other-window' windows"
+              '((0 2)
+                (1 2)
+                (2 3))
   (sly-test--with-find-definition-window-checker
-      'sly-edit-definition-other-window
+      'xref-find-definitions-other-window
       (window-splits
        total-windows
        temp-buffer
