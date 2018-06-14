@@ -5258,7 +5258,7 @@ Full list of frame-specific commands:
 
 ;;;;; SLY-DB buffer creation & update
 
-(defcustom sly-db-focus-debugger 'always
+(defcustom sly-db-focus-debugger 'repl
   "Control how debugger windows are displayed.
 ALWAYS: the debugger window is always focused.
 NEVER: the debugger window is never focused.
@@ -5268,7 +5268,7 @@ REPL: only at the REPL."
                  (const never)
                  (const repl)))
 
-(defun sly-db--should-focus-debugger-p ()
+(defun sly-db--should-focus-debugger-p (thread)
   "Decide whether to select the debugger window.
 Behavior depends on the current value of
 `sly-db-focus-debugger'."
@@ -5281,7 +5281,9 @@ Behavior depends on the current value of
             (buf (window-buffer win)))
        (with-current-buffer buf
          (and (eq major-mode 'sly-mrepl-mode)
-              (eq conn sly-buffer-connection)))))))
+              (eq conn sly-buffer-connection)
+              (or (eq t sly-current-thread)
+                  (eq sly-current-thread thread))))))))
 
 (defun sly-filter-buffers (predicate)
   "Return a list of where PREDICATE returns true.
@@ -5350,12 +5352,13 @@ The chosen buffer the default connection's it if exists."
     (ignore-errors (sly-db-quit))
     t))
 
-(defun sly-db--display-debugger (buffer)
-  "Display (or pop to) sly-db BUFFER as appropriate.
+(defun sly-db--display-debugger (thread)
+  "Display (or pop to) sly-db for THREAD as appropriate.
 Also mark the window as a debugger window."
   (let* ((action '(sly-db--display-in-prev-sly-db-window))
+         (buffer (current-buffer))
          (win
-          (if (sly-db--should-focus-debugger-p)
+          (if (sly-db--should-focus-debugger-p thread)
               (progn
                 (pop-to-buffer buffer action)
                 (selected-window))
@@ -5377,7 +5380,7 @@ pending Emacs continuations."
                  t)
                () "Bug: sly-db-level is equal but condition differs\n%s\n%s"
                sly-db-condition condition)
-    (with-selected-window (sly-db--display-debugger (current-buffer))
+    (with-selected-window (sly-db--display-debugger thread)
       (unless (equal sly-db-level level)
         (let ((inhibit-read-only t))
           (sly-db-mode)
