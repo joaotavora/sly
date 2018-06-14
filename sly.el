@@ -82,6 +82,9 @@
 (require 'sly-buttons    "lib/sly-buttons")
 (require 'sly-completion "lib/sly-completion")
 
+(require 'xref)
+(eval-when-compile (require 'subr-x))
+
 (require 'gv) ; for gv--defsetter
 
 (eval-when-compile
@@ -527,12 +530,12 @@ interactive command.\".")
 (defvar sly-mode-map
   (let ((map (make-sparse-keymap)))
     ;; These used to be a `sly-parent-map'
-    (define-key map (kbd "M-.")     'sly-edit-definition)
-    (define-key map (kbd "M-,")     'sly-pop-find-definition-stack)
-    (define-key map (kbd "M-_")     'sly-edit-uses)    ; for German layout
-    (define-key map (kbd "M-?")     'sly-edit-uses)    ; for USian layout
-    (define-key map (kbd "C-x 4 .") 'sly-edit-definition-other-window)
-    (define-key map (kbd "C-x 5 .") 'sly-edit-definition-other-frame)
+    (define-key map (kbd "M-.")     'xref-find-definitions)
+    (define-key map (kbd "M-,")     'xref-pop-marker-stack);
+    (define-key map (kbd "M-_")     'xref-find-references)    ; for German layout
+    (define-key map (kbd "M-?")     'xref-find-references)    ; for USian layout
+    (define-key map (kbd "C-x 4 .") 'xref-find-definitions-other-window)
+    (define-key map (kbd "C-x 5 .") 'xref-find-definitions-other-frame)
     (define-key map (kbd "C-x C-e") 'sly-eval-last-expression)
     (define-key map (kbd "C-M-x")   'sly-eval-defun)
     ;; Include PREFIX keys...
@@ -574,7 +577,11 @@ interactive command.\".")
 ;;;###autoload
 (define-minor-mode sly-mode
   "Minor mode for horizontal SLY functionality."
-  nil nil nil)
+  nil nil nil
+  (cond (sly-mode
+         (add-hook 'xref-backend-functions 'sly-xref-backend nil t))
+        (t
+         (remove-hook 'xref-backend-functions 'sly-xref-backend t))))
 
 ;;;###autoload
 (define-minor-mode sly-editing-mode
@@ -2591,7 +2598,7 @@ Debugged requests are ignored."
         (sly-pprint-event event (current-buffer)))
       (when (and (boundp 'outline-minor-mode)
                  outline-minor-mode)
-        (hide-entry))
+        (outline-hide-entry))
       (goto-char (point-max)))))
 
 (defun sly-pprint-event (event buffer)
@@ -2694,7 +2701,6 @@ if a string."
   :type 'hook
   :options '(sly-maybe-show-compilation-log
              sly-show-compilation-log
-             sly-maybe-show-xrefs-for-notes
              sly-goto-first-note))
 
 ;; FIXME: I doubt that anybody uses this directly and it seems to be
@@ -2841,186 +2847,38 @@ ASK asks the user."
     (always t)
     (ask (sly-y-or-n-p "Compilation failed.  Load fasl file anyway? "))))
 
-(defun sly-compilation-finished (result buffer &optional message)
+(defun sly-compilation-finished (result buffer &optional _message)
   (let ((notes (sly-compilation-result.notes result))
-        (duration (sly-compilation-result.duration result))
+        (_duration (sly-compilation-result.duration result))
         (successp (sly-compilation-result.successp result))
         (faslfile (sly-compilation-result.faslfile result))
         (loadp (sly-compilation-result.loadp result)))
     (setf sly-last-compilation-result result)
-    (sly-show-note-counts notes duration (cond ((not loadp) successp)
-                                               (t (and faslfile successp)))
-                          (or (not buffer) loadp)
-                          message)
     (when sly-highlight-compiler-notes
-      (sly-highlight-notes notes))
+      (sly-message "flymake talvez %s %s" result buffer))
     (when (and loadp faslfile
                (or successp
                    (sly-load-failed-fasl-p)))
       (sly-eval-async `(slynk:load-file ,faslfile)))
     (run-hook-with-args 'sly-compilation-finished-hook successp notes buffer loadp)))
 
-(defun sly-show-note-counts (notes secs successp loadp &optional message)
-  (sly-message (concat
-                (cond ((and successp loadp)
-                       "Compiled and loaded")
-                      (successp "Compilation finished")
-                      (t (sly-add-face 'font-lock-warning-face
-                           "Compilation failed")))
-                (if (null notes) ". (No warnings)" ": ")
-                (mapconcat
-                 (lambda (msgs)
-                   (cl-destructuring-bind (sev . notes) msgs
-                     (let ((len (length notes)))
-                       (format "%d %s%s" len (sly-severity-label sev)
-                               (if (= len 1) "" "s")))))
-                 (sort (sly-alistify notes #'sly-note.severity #'eq)
-                       (lambda (x y) (sly-severity< (car y) (car x))))
-                 "  ")
-                (if secs (format "  [%.2f secs]" secs))
-                message)))
-
-(defun sly-highlight-notes (notes)
-  "Highlight compiler notes, warnings, and errors in the buffer."
-  (interactive (list (sly-compiler-notes)))
-  (with-temp-message "Highlighting notes..."
-    (save-excursion
-      (save-restriction
-        (widen)                  ; highlight notes on the whole buffer
-        (sly-remove-notes (point-min) (point-max))
-        (mapc #'sly--add-in-buffer-note notes)))))
-
 
 ;;;;; Recompilation.
 
-;; FIXME: This whole idea is questionable since it depends so
-;; crucially on precise source-locs.
-
-(defun sly-recompile-location (location)
-  (save-excursion
-    (sly-move-to-source-location location)
-    (sly-compile-defun)))
-
-(defun sly-recompile-locations (locations cont)
-  (sly-eval-async
-      `(slynk:compile-multiple-strings-for-emacs
-        ',(cl-loop for loc in locations collect
-                   (save-excursion
-                     (sly-move-to-source-location loc)
-                     (cl-destructuring-bind (start end)
-                         (sly-region-for-defun-at-point)
-                       (list (buffer-substring-no-properties start end)
-                             (buffer-name)
-                             (sly-current-package)
-                             start
-                             (if (buffer-file-name)
-                                 (sly-to-lisp-filename (buffer-file-name))
-                               nil)))))
-        ',sly-compilation-policy)
-    cont))
 
 
 ;;;;; Compiler notes list
-
-(defun sly-one-line-ify (string)
-  "Return a single-line version of STRING.
-Each newlines and following indentation is replaced by a single space."
-  (with-temp-buffer
-    (insert string)
-    (goto-char (point-min))
-    (while (re-search-forward "\n[\n \t]*" nil t)
-      (replace-match " "))
-    (buffer-string)))
-
-(defun sly-xref--get-xrefs-for-notes (notes)
-  (let ((xrefs))
-    (dolist (note notes)
-      (let* ((location (cl-getf note :location))
-             (fn (cadr (assq :file (cdr location))))
-             (file (assoc fn xrefs))
-             (node
-              (list (format "%s: %s"
-                            (cl-getf note :severity)
-                            (sly-one-line-ify (cl-getf note :message)))
-                    location)))
-        (when fn
-          (if file
-              (push node (cdr file))
-            (setf xrefs (cl-acons fn (list node) xrefs))))))
-    xrefs))
-
-(defun sly-maybe-show-xrefs-for-notes (_successp notes _buffer _loadp)
-  "Show the compiler notes NOTES if they come from more than one file."
-  (let ((xrefs (sly-xref--get-xrefs-for-notes notes)))
-    (when (sly-length> xrefs 1)          ; >1 file
-      (sly-xref--show-results
-       xrefs 'definition "Compiler notes" (sly-current-package)))))
-
-(defun sly-note-has-location-p (note)
-  (not (eq ':error (car (sly-note.location note)))))
-
-(defun sly-redefinition-note-p (note)
-  (eq (sly-note.severity note) :redefinition))
 
 (defun sly-maybe-show-compilation-log (successp notes buffer loadp)
   "Display the log on failed compilations or if NOTES is non-nil."
   (sly-show-compilation-log successp notes buffer loadp
                             (if successp :hidden nil)))
 
-(defun sly-show-compilation-log (successp notes buffer loadp &optional select)
+(defun sly-show-compilation-log (_successp _notes _buffer _loadp &optional _select)
   "Create and display the compilation log buffer."
   (interactive (list (sly-compiler-notes)))
-  (sly-with-popup-buffer ((sly-buffer-name :compilation)
-                          :mode 'compilation-mode
-                          :select select)
-    (sly--insert-compilation-log successp notes buffer loadp)
-    (insert "Compilation "
-            (if successp "successful" "failed")
-            ".")))
-
-(defvar sly-compilation-log--notes (make-hash-table)
-  "Hash-table (NOTE -> (BUFFER POSITION)) for finding notes in
-  the SLY compilation log")
-
-(defun sly--insert-compilation-log (_successp notes _buffer _loadp)
-  "Insert NOTES in format suitable for `compilation-mode'."
-  (clrhash sly-compilation-log--notes)
-  (cl-multiple-value-bind (grouped-notes canonicalized-locs-table)
-      (sly-group-and-sort-notes notes)
-    (with-temp-message "Preparing compilation log..."
-      (let ((inhibit-read-only t)
-            (inhibit-modification-hooks t)) ; inefficient font-lock-hook
-        (insert (format "cd %s\n%d compiler notes:\n\n"
-                        default-directory (length notes)))
-        (cl-loop for notes in grouped-notes
-                 for loc = (gethash (cl-first notes) canonicalized-locs-table)
-                 for start = (point)
-                 do
-                 (cl-loop for note in notes
-                          do (puthash note
-                                      (cons (current-buffer) start)
-                                      sly-compilation-log--notes))
-                 (insert
-                  (sly--compilation-note-group-button
-                   (sly-canonicalized-location-to-string loc) notes)
-                  ":")
-                 (sly-insert-note-group notes)
-                 (insert "\n")
-                 (add-text-properties start (point) `(field ,notes))))
-      (set (make-local-variable 'compilation-skip-threshold) 0)
-      (setq next-error-last-buffer (current-buffer)))))
-
-(defun sly-insert-note-group (notes)
-  "Insert a group of compiler messages."
-  (insert "\n")
-  (dolist (note notes)
-    (insert "  " (sly-severity-label (sly-note.severity note)) ": ")
-    (let ((start (point)))
-      (insert (sly-note.message note))
-      (let ((ctx (sly-note.source-context note)))
-        (if ctx (insert "\n" ctx)))
-      (sly-indent-block start 4))
-    (insert "\n")))
+  
+  )
 
 (defun sly-indent-block (start column)
   "If the region back to START isn't a one-liner indent it."
@@ -3030,120 +2888,9 @@ Each newlines and following indentation is replaced by a single space."
       (insert "\n"))
     (sly-indent-rigidly start (point) column)))
 
-(defun sly-canonicalized-location (location)
-  "Return a list (FILE LINE COLUMN) for sly-location LOCATION.
-This is quite an expensive operation so use carefully."
-  (save-excursion
-    (sly-goto-location-buffer (sly-location.buffer location))
-    (save-excursion
-      (sly-move-to-source-location location)
-      (list (or (buffer-file-name) (buffer-name))
-            (save-restriction
-              (widen)
-              (line-number-at-pos))
-            (1+ (current-column))))))
-
-(defun sly-canonicalized-location-to-string (loc)
-  (if loc
-      (cl-destructuring-bind (filename line col) loc
-        (format "%s:%d:%d"
-                (cond ((not filename) "")
-                      ((let ((rel (file-relative-name filename)))
-                         (if (< (length rel) (length filename))
-                             rel)))
-                      (t filename))
-                line col))
-    (format "Unknown location")))
-
-(defun sly-group-and-sort-notes (notes)
-  "First sort, then group NOTES according to their canonicalized locs."
-  (let ((locs (make-hash-table :test #'eq)))
-    (mapc (lambda (note)
-            (let ((loc (sly-note.location note)))
-              (when (sly-location-p loc)
-                (puthash note (sly-canonicalized-location loc) locs))))
-          notes)
-    (cl-values (sly-group-similar
-                (lambda (n1 n2)
-                  (equal (gethash n1 locs nil) (gethash n2 locs t)))
-                (let* ((bottom most-negative-fixnum)
-                       (+default+ (list "" bottom bottom)))
-                  (sort notes
-                        (lambda (n1 n2)
-                          (cl-destructuring-bind (filename1 line1 col1)
-                              (gethash n1 locs +default+)
-                            (cl-destructuring-bind (filename2 line2 col2)
-                                (gethash n2 locs +default+)
-                              (cond ((string-lessp filename1 filename2) t)
-                                    ((string-lessp filename2 filename1) nil)
-                                    ((< line1 line2) t)
-                                    ((> line1 line2) nil)
-                                    (t (< col1 col2)))))))))
-               locs)))
-
-(defun sly-note.severity (note)
-  (plist-get note :severity))
-
-(defun sly-note.message (note)
-  (plist-get note :message))
-
-(defun sly-note.source-context (note)
-  (plist-get note :source-context))
-
-(defun sly-note.location (note)
-  (plist-get note :location))
-
-(defun sly-severity-label (severity)
-  (cl-subseq (symbol-name severity) 1))
-
-
 
 ;;;;; Adding a single compiler note
 ;;;;;
-(defun sly-choose-overlay-region (note)
-  "Choose the start and end points for an overlay over NOTE.
-If the location's sexp is a list spanning multiple lines, then the
-region around the first element is used.
-Return nil if there's no useful source location."
-  (let ((location (sly-note.location note)))
-    (when location
-      (sly-dcase location
-        ((:error _))                 ; do nothing
-        ((:location file pos _hints)
-         (cond ((eq (car file) ':source-form) nil)
-               ((eq (sly-note.severity note) :read-error)
-                (sly-choose-overlay-for-read-error location))
-               ((equal pos '(:eof))
-                (list (1- (point-max)) (point-max)))
-               (t
-                (sly-choose-overlay-for-sexp location))))))))
-
-(defun sly-choose-overlay-for-read-error (location)
-  (let ((pos (sly-location-offset location)))
-    (save-excursion
-      (goto-char pos)
-      (cond ((sly-symbol-at-point)
-             ;; package not found, &c.
-             (list (sly-symbol-start-pos) (sly-symbol-end-pos)))
-            (t
-             (list pos (1+ pos)))))))
-
-(defun sly-choose-overlay-for-sexp (location)
-  (sly-move-to-source-location location)
-  (skip-chars-forward "'#`")
-  (let ((start (point)))
-    (ignore-errors (sly-forward-sexp))
-    (if (sly-same-line-p start (point))
-        (list start (point))
-      (list (1+ start)
-            (progn (goto-char (1+ start))
-                   (ignore-errors (forward-sexp 1))
-                   (point))))))
-(defun sly-same-line-p (pos1 pos2)
-  "Return t if buffer positions POS1 and POS2 are on the same line."
-  (save-excursion (goto-char (min pos1 pos2))
-                  (<= (max pos1 pos2) (line-end-position))))
-
 (defvar sly-severity-face-plist
   (list :error         'sly-error-face
         :read-error    'sly-error-face
@@ -3186,7 +2933,7 @@ first element of the source-path redundant."
                         (when more (down-list 1))))
           ;; Align at beginning
           (sly-forward-sexp)
-          (beginning-of-sexp))
+          (thing-at-point--beginning-of-sexp))
       (error (goto-char origin)))))
 
 
@@ -3267,7 +3014,7 @@ highlighting face."
 
 (defvar sly-warn-when-possibly-tricked-by-M-. t
   "When working on multiple source trees simultaneously, the way
-`sly-edit-definition' (M-.) works can sometimes be confusing:
+`xref-find-definitions' (M-.) works can sometimes be confusing:
 
 `M-.' visits locations that are present in the current Lisp image,
 which works perfectly well as long as the image reflects the source
@@ -3315,74 +3062,23 @@ you should check twice before modifying.")
    (buffer-file-name (get-buffer buffer-name))))
 
 
+;; `xref-find-de'
 
-(defun sly-goto-location-buffer (buffer)
-  (sly-dcase buffer
-    ((:file filename)
-     (let ((filename (sly-from-lisp-filename filename)))
-       (sly-check-location-filename-sanity filename)
-       (set-buffer (or (get-file-buffer filename)
-                       (let ((find-file-suppress-same-file-warnings t))
-                         (find-file-noselect filename))))))
-    ((:buffer buffer-name)
-     (sly-check-location-buffer-name-sanity buffer-name)
-     (set-buffer buffer-name))
-    ((:buffer-and-file buffer filename)
-     (sly-goto-location-buffer
-      (if (get-buffer buffer)
-          (list :buffer buffer)
-        (list :file filename))))
-    ((:source-form string)
-     (set-buffer (get-buffer-create (sly-buffer-name :source)))
-     (erase-buffer)
-     (lisp-mode)
-     (insert string)
-     (goto-char (point-min)))
-    ((:zip file entry)
-     (require 'arc-mode)
-     (set-buffer (find-file-noselect file t))
-     (goto-char (point-min))
-     (re-search-forward (concat "  " entry "$"))
-     (let ((buffer (save-window-excursion
-                     (archive-extract)
-                     (current-buffer))))
-       (set-buffer buffer)
-       (goto-char (point-min))))))
+(defun sly-search-call-site (fname)
+  "Move to the place where FNAME called.
+Don't move if there are multiple or no calls in the current defun."
+  (save-restriction
+    (narrow-to-defun)
+    (let ((start (point))
+          (regexp (concat "(" fname "[)\n \t]"))
+          (case-fold-search t))
+      (cond ((and (re-search-forward regexp nil t)
+                  (not (re-search-forward regexp nil t)))
+             (goto-char (match-beginning 0)))
+            (t (goto-char start))))))
 
-(defun sly-goto-location-position (position)
-  (sly-dcase position
-    ((:position pos)
-     (goto-char 1)
-     (forward-char (- (1- pos) (sly-eol-conversion-fixup (1- pos)))))
-    ((:offset start offset)
-     (goto-char start)
-     (forward-char offset))
-    ((:line start &optional column)
-     (goto-char (point-min))
-     (beginning-of-line start)
-     (cond (column (move-to-column column))
-           (t (skip-chars-forward " \t"))))
-    ((:function-name name)
-     (let ((case-fold-search t)
-           (name (regexp-quote name)))
-       (goto-char (point-min))
-       (when (or
-              (re-search-forward
-               (format "\\s *(def\\(\\s_\\|\\sw\\)*\\s +(*%s\\S_"
-                       (regexp-quote name)) nil t)
-              (re-search-forward
-               (format "[( \t]%s\\>\\(\\s \\|$\\)" name) nil t))
-         (goto-char (match-beginning 0)))))
-    ((:method name specializers &rest qualifiers)
-     (sly-search-method-location name specializers qualifiers))
-    ((:source-path source-path start-position)
-     (cond (start-position
-            (goto-char start-position)
-            (sly-forward-positioned-source-path source-path))
-           (t
-            (sly-forward-source-path source-path))))
-    ((:eof)
-     (goto-char (point-max)))))
+(defvar sly-edit-uses-xrefs
+  '(:calls :macroexpands :binds :references :sets :specializes))
 
 (defun sly-eol-conversion-fixup (n)
   ;; Return the number of \r\n eol markers that we need to cross when
@@ -3398,364 +3094,96 @@ you should check twice before modifying.")
          (cl-decf pos))))
     (t 0)))
 
-(defun sly-search-method-location (name specializers qualifiers)
-  ;; Look for a sequence of words (def<something> method name
-  ;; qualifers specializers don't look for "T" since it isn't requires
-  ;; (arg without t) as class is taken as such.
-  (let* ((case-fold-search t)
-         (name (regexp-quote name))
-         (qualifiers (mapconcat (lambda (el) (concat ".+?\\<" el "\\>"))
-                                qualifiers ""))
-         (specializers (mapconcat
-                        (lambda (el)
-                          (if (eql (aref el 0) ?\()
-                              (let ((spec (read el)))
-                                (if (eq (car spec) 'EQL)
-                                    (concat
-                                     ".*?\\n\\{0,1\\}.*?(EQL.*?'\\{0,1\\}"
-                                     (format "%s" (cl-second spec)) ")")
-                                  (error "don't understand specializer: %s,%s"
-                                         el (car spec))))
-                            (concat ".+?\n\\{0,1\\}.+?\\<" el "\\>")))
-                        (remove "T" specializers) ""))
-         (regexp (format "\\s *(def\\(\\s_\\|\\sw\\)*\\s +%s\\s +%s%s" name
-                         qualifiers specializers)))
-    (or (and (re-search-forward regexp  nil t)
-             (goto-char (match-beginning 0)))
-        ;;      (sly-goto-location-position `(:function-name ,name))
-        )))
+(defun sly-xref-backend () "SLY xref backend." 'sly)
 
-(defun sly-search-call-site (fname)
-  "Move to the place where FNAME called.
-Don't move if there are multiple or no calls in the current defun."
-  (save-restriction
-    (narrow-to-defun)
-    (let ((start (point))
-          (regexp (concat "(" fname "[)\n \t]"))
-          (case-fold-search t))
-      (cond ((and (re-search-forward regexp nil t)
-                  (not (re-search-forward regexp nil t)))
-             (goto-char (match-beginning 0)))
-            (t (goto-char start))))))
+(cl-defmethod xref-backend-identifier-at-point ((_backend (eql sly)))
+  (sly-symbol-at-point))
 
-(defun sly-search-edit-path (edit-path)
-  "Move to EDIT-PATH starting at the current toplevel form."
-  (when edit-path
-    (unless (and (= (current-column) 0)
-                 (looking-at "("))
-      (beginning-of-defun))
-    (sly-forward-source-path edit-path)))
+(defclass sly--xref-file-location-with-position (xref-location)
+  ((file :type string :initarg :file)
+   (position :type fixnum :initarg :position)
+   (offset :type fixnum :initform 0 :initarg :offset)))
 
-(defun sly-move-to-source-location (location &optional noerror)
-  "Move to the source location LOCATION.
-If NOERROR don't signal an error,  but return nil.
+(cl-defmethod xref-location-marker ((l sly--xref-file-location-with-position))
+  (with-slots (file position offset) l
+    (with-current-buffer
+        (or (get-file-buffer file)
+            (let ((find-file-suppress-same-file-warnings t))
+              (find-file-noselect file)))
+      (save-restriction (widen) (save-excursion
+                                  (goto-char position)
+                                  (forward-char offset)
+                                  (point-marker))))))
 
-Several kinds of locations are supported:
+(cl-defmethod xref-location-group ((l sly--xref-file-location-with-position))
+  (oref l file))
 
-<location> ::= (:location <buffer> <position> <hints>)
-             | (:error <message>)
+(defclass sly--xref-buffer-location (xref-buffer-location)
+  ((offset :type fixnum :initform 0 :initarg :offset)))
 
-<buffer>   ::= (:file <filename>)
-             | (:buffer <buffername>)
-             | (:buffer-and-file <buffername> <filename>)
-             | (:source-form <string>)
-             | (:zip <file> <entry>)
+(cl-defmethod xref-location-marker ((l sly--xref-buffer-location))
+  (with-slots (buffer position offset) l
+    (with-current-buffer buffer
+      (goto-char position)
+      (forward-char offset)
+      (point-marker))))
 
-<position> ::= (:position <fixnum>) ; 1 based (for files)
-             | (:offset <start> <offset>) ; start+offset (for C-c C-c)
-             | (:line <line> [<column>])
-             | (:function-name <string>)
-             | (:source-path <list> <start-position>)
-             | (:method <name string> <specializers> . <qualifiers>)"
-  (sly-dcase location
-    ((:location buffer _position _hints)
-     (sly-goto-location-buffer buffer)
-     (let ((pos (sly-location-offset location)))
-       (cond ((and (<= (point-min) pos) (<= pos (point-max))))
-             (widen-automatically (widen))
-             (t
-              (error "Location is outside accessible part of buffer")))
-       (goto-char pos)))
-    ((:error message)
-     (cond (noerror
-            (sly-message "%s" message)
-            nil)
-           (t
-            (error "%s" message))))))
-
-(defun sly--highlight-sexp (&optional start end)
-  "Highlight the first sexp after point."
-  (let ((start (or start (point)))
-        (end (or end (save-excursion (ignore-errors (forward-sexp)) (point)))))
-    (sly-flash-region start end)))
-
-(defun sly--highlight-line (&optional timeout)
-  (sly-flash-region (+ (line-beginning-position) (current-indentation))
-                    (line-end-position)
-                    :timeout timeout))
-
-(make-variable-buffer-local
- (defvar sly-xref--popup-method nil
-   "Helper for `sly--display-source-location'"))
-
-(cl-defun sly--display-source-location (source-location
-                                        &optional noerror (method 'window))
-  "Display SOURCE-LOCATION in a window according to METHOD.
-Highlight the resulting sexp. Return the window or raise an
-error, unless NOERROR is nil, in which case return nil.  METHOD
-specifies how to behave when a reference is selected in an xref
-buffer.  If one of symbols `window' or `frame' just
-`display-buffer' accordingly. If nil, just switch to buffer in
-current window. If a cons (WINDOW . METHOD) consider WINDOW the
-\"starting window\" and reconsider METHOD like above: If it is
-nil try to use WINDOW exclusively for showing the location,
-otherwise prevent that window from being reused when popping to a
-new window or frame."
-  (cl-labels
-      ((pop-it
-        (target-buffer method)
-        (cond ((eq method 'window)
-               (display-buffer target-buffer t))
-              ((eq method 'frame)
-               (let ((pop-up-frames t))
-                 (display-buffer target-buffer t)))
-              ((consp method)
-               (let* ((window (car method))
-                      (sub-method (cdr method)))
-                 (cond ((not (window-live-p window))
-                        ;; the original window has been deleted: all
-                        ;; bets are off!
-                        ;;
-                        (pop-it target-buffer sub-method))
-                       (sub-method
-                        ;; shield window from reuse, but restoring
-                        ;; any dedicatedness
-                        ;;
-                        (let ((dedicatedness (window-dedicated-p window)))
-                          (unwind-protect
-                              (progn
-                                ;; (set-window-dedicated-p window 'soft)
-                                ;;
-                                ;; jt@2018-01-27 commented the line
-                                ;; above because since the fix to
-                                ;; emacs' bug#28814 in Emacs 26.1
-                                ;; (which I myself authored), it won't
-                                ;; work correctly. Best to disable it
-                                ;; for now and eventually copy Emacs's
-                                ;; approach to xref buffers, or better
-                                ;; yet, reuse it.
-                                (pop-it target-buffer sub-method))
-                            (set-window-dedicated-p window dedicatedness))))
-                       (t
-                        ;; make efforts to reuse the window, respecting
-                        ;; any `display-buffer' overrides
-                        ;;
-                        (display-buffer
-                         target-buffer
-                         `(,(lambda (buffer _alist)
-                              (when (window-live-p window)
-                                (set-window-buffer window buffer)
-                                window))))))))
-              (t
-               (switch-to-buffer target-buffer)
-               (selected-window)))))
-    (when (eq method 'sly-xref)
-      (setq method sly-xref--popup-method))
-    (when (sly-move-to-source-location source-location noerror)
-      (let ((pos (point)))
-        (with-selected-window (pop-it (current-buffer) method)
-          (goto-char pos)
-          (recenter (if (= (current-column) 0) 1))
-          (sly--highlight-sexp)
-          (selected-window))))))
-
-(defun sly--pop-to-source-location (source-location &optional method)
-  "Pop to SOURCE-LOCATION using METHOD.
-If called from an xref buffer, method will be `sly-xref' and
-thus also honour `sly-xref--popup-method'."
-  (let* ((xref-window (selected-window))
-         (xref-buffer (window-buffer xref-window)))
-    (when (eq method 'sly-xref)
-      (quit-restore-window xref-window 'bury))
-    (with-current-buffer xref-buffer
-      ;; now pop to target
-      ;;
-      (select-window
-       (sly--display-source-location source-location nil method)))
-    (set-buffer (window-buffer (selected-window)))))
-
-(defun sly-location-offset (location)
-  "Return the position, as character number, of LOCATION."
-  (save-restriction
-    (widen)
-    (condition-case nil
-        (sly-goto-location-position
-         (sly-location.position location))
-      (error (goto-char 0)))
-    (let ((hints (sly-location.hints location)))
-      (sly--when-let (snippet (cl-getf hints :snippet))
-        (sly-isearch snippet))
-      (sly--when-let (snippet (cl-getf hints :edit-path))
-        (sly-search-edit-path snippet))
-      (sly--when-let (fname (cl-getf hints :call-site))
-        (sly-search-call-site fname))
-      (when (cl-getf hints :align)
-        (sly-forward-sexp)
-        (beginning-of-sexp)))
-    (point)))
-
-
-;;;;; Incremental search
-;;
-;; Search for the longest match of a string in either direction.
-;;
-;; This is for locating text that is expected to be near the point and
-;; may have been modified (but hopefully not near the beginning!)
-
-(defun sly-isearch (string)
-  "Find the longest occurence of STRING either backwards of forwards.
-If multiple matches exist the choose the one nearest to point."
-  (goto-char
-   (let* ((start (point))
-          (len1 (sly-isearch-with-function 'search-forward string))
-          (pos1 (point)))
-     (goto-char start)
-     (let* ((len2 (sly-isearch-with-function 'search-backward string))
-            (pos2 (point)))
-       (cond ((and len1 len2)
-              ;; Have a match in both directions
-              (cond ((= len1 len2)
-                     ;; Both are full matches -- choose the nearest.
-                     (if (< (abs (- start pos1))
-                            (abs (- start pos2)))
-                         pos1 pos2))
-                    ((> len1 len2) pos1)
-                    ((> len2 len1) pos2)))
-             (len1 pos1)
-             (len2 pos2)
-             (t start))))))
-
-(defun sly-isearch-with-function (search-fn string)
-  "Search for the longest substring of STRING using SEARCH-FN.
-SEARCH-FN is either the symbol `search-forward' or `search-backward'."
-  (unless (string= string "")
-    (cl-loop for i from 1 to (length string)
-             while (funcall search-fn (substring string 0 i) nil t)
-             for match-data = (match-data)
-             do (cl-case search-fn
-                  (search-forward  (goto-char (match-beginning 0)))
-                  (search-backward (goto-char (1+ (match-end 0)))))
-             finally (cl-return (if (null match-data)
-                                    nil
-                                  ;; Finish based on the last successful match
-                                  (store-match-data match-data)
-                                  (goto-char (match-beginning 0))
-                                  (- (match-end 0) (match-beginning 0)))))))
-
-
-;;;;; Visiting and navigating the overlays of compiler notes
-(defun sly-note-button-p (button)
-  (eq (button-type button) 'sly-in-buffer-note))
-
-(defalias 'sly-next-note 'sly-button-forward)
-
-(defalias 'sly-previous-note 'sly-button-backward)
-
-(defun sly-goto-first-note (_successp notes _buffer _loadp)
-  "Go to the first note in the buffer."
-  (interactive (list (sly-compiler-notes)))
-  (when notes
-    (goto-char (point-min))
-    (sly-next-note 1)))
-
-(defun sly-remove-notes (beg end)
-  "Remove `sly-note' annotation buttons from BEG to END."
-  (interactive (if (region-active-p)
-                   (list (region-beginning) (region-end))
-                 (list (point-min) (point-max))))
-  (cl-loop for existing in (overlays-in beg end)
-           when (sly-note-button-p existing)
-           do (delete-overlay existing)))
-
-(defun sly-show-notes (button &rest more-buttons)
-  "Present the details of a compiler note to the user."
-  (interactive)
-  (let ((notes (mapcar (sly-rcurry #'button-get 'sly-note)
-                       (cons button more-buttons))))
-    (sly-button-flash button :face (let ((color (face-underline-p (button-get button 'face))))
-                                     (if color `(:background ,color) 'highlight)))
-    ;; If the compilation window is showing, try to land in a suitable
-    ;; place there, too...
-    ;;
-    (let* ((anchor (car notes))
-           (compilation-buffer (sly-buffer-name :compilation))
-           (compilation-window (get-buffer-window compilation-buffer t)))
-      (if compilation-window
-          (with-current-buffer compilation-buffer
-            (with-selected-window compilation-window
-              (let ((buffer-and-pos (gethash anchor
-                                             sly-compilation-log--notes)))
-                (when buffer-and-pos
-                  (cl-assert (eq (car buffer-and-pos) (current-buffer)))
-                  (goto-char (cdr buffer-and-pos))
-                  (let ((field-end (field-end (1+ (point)))))
-                    (sly-flash-region (point) field-end)
-                    (sly-recenter field-end))))
-              (sly-message "Showing note in %s" (current-buffer))))
-        ;; Else, do the next best thing, which is echo the messages.
-        ;;
-        (if (cdr notes)
-            (sly-message "%s notes:\n%s"
-                         (length notes)
-                         (mapconcat #'sly-note.message notes "\n"))
-          (sly-message "%s" (sly-note.message (car notes))))))))
-
-(define-button-type 'sly-note :supertype 'sly-button)
-
-(define-button-type 'sly-in-buffer-note :supertype 'sly-note
-  'keymap (let ((map (copy-keymap button-map)))
-            (define-key map "RET" nil)
-            map)
-  'mouse-action 'sly-show-notes
-  'sly-button-echo 'sly-show-notes
-  'modification-hooks '(sly--in-buffer-note-modification))
-
-(define-button-type 'sly-compilation-note-group :supertype 'sly-note
-  'face nil)
-
-(defun sly--in-buffer-note-modification (button after? _beg _end &optional _len)
-  (unless after? (delete-overlay button)))
-
-(defun sly--add-in-buffer-note  (note)
-  "Add NOTE as an `sly-in-buffer-note' button to the source buffer."
-  (cl-destructuring-bind (&optional beg end)
-      (sly-choose-overlay-region note)
-    (when beg
-      (let* ((contained (sly-button--overlays-between beg end))
-             (containers (cl-set-difference (sly-button--overlays-at beg)
-                                            contained)))
-        (cl-loop for ov in contained
-                 do (overlay-put ov 'priority (1+ (overlay-get ov 'priority))))
-        (make-button beg
-                     end
-                     :type 'sly-in-buffer-note
-                     'sly-button-search-id (sly-button-next-search-id)
-                     'sly-note note
-                     'help-echo (format "[sly] %s" (sly-note.message note))
-                     'priority (1+ (cl-reduce #'max containers
-                                              :key (sly-rcurry #'overlay-get 'priority)
-                                              :initial-value 0))
-                     'face (sly-severity-face (sly-note.severity note)))))))
-
-(defun sly--compilation-note-group-button  (label notes)
-  "Pepare notes as a `sly-compilation-note' button.
-For insertion in the `compilation-mode' buffer"
-  (sly--make-text-button label nil :type 'sly-compilation-note-group 'sly-notes-group notes)
-  label)
+(cl-defmethod xref-backend-definitions ((_backend (eql sly)) identifier)
+  (let ((reply (sly-eval `(slynk:find-definitions-for-emacs ,identifier))))
+    (cl-loop
+     for def in reply
+     collect
+     (cl-destructuring-bind
+         (label location) def
+       (sly-dcase location
+         ;; FIXME use hints
+         ((:location buffer position _hints)
+          (xref-make
+           label
+           (sly-dcase buffer
+             ((:buffer-and-file buffer-name filename)
+              (sly-dcase position
+                ((:offset start offset)
+                 (if (get-buffer buffer-name)
+                     (make-instance 'sly--xref-buffer-location
+                                    :buffer (get-buffer buffer-name)
+                                    :position (+ start offset))
+                   (make-instance 'sly--xref-file-location-with-position
+                                  :file filename
+                                  :position start
+                                  :offset offset)))
+                ((&rest args)
+                 (sly-error "%s `:buffer-and-file' location position unimplemented"
+                            args))))
+             ((:file filename)
+              (sly-dcase position
+                ((:line line &optional column)
+                 (make-instance 'xref-file-location
+                                :file filename
+                                :line line
+                                :column (or column 0)))
+                ((:position fixnum)
+                 (make-instance 'sly--xref-file-location-with-position
+                                :file filename
+                                :position fixnum))
+                ((&rest args)
+                 (sly-error "%s `:file' location position unimplemented"
+                            args))))
+             ((:buffer buffername)
+              (sly-dcase position
+                ((:position fixnum)
+                 (make-instance 'xref-buffer-location
+                                :buffer (get-buffer buffername)
+                                :position fixnum))
+                ((&rest args)
+                 (sly-error "%s `:buffer' location position unimplemented"
+                            args)))))))
+         ((:error message)
+          (sly-error "definition for %s errored: %s" label message)))))))
 
 
 ;;;; Basic arglisting
-;;;;
+
 (defun sly-show-arglist ()
   (let ((op (ignore-errors
               (save-excursion
@@ -3769,133 +3197,7 @@ For insertion in the `compilation-mode' buffer"
             (sly-message "%s" arglist)))))))
 
 
-;;;; Edit definition
-
-(defun sly-push-definition-stack ()
-  "Add point to find-tag-marker-ring."
-  (ring-insert find-tag-marker-ring (point-marker)))
-
-(defun sly-pop-find-definition-stack ()
-  "Pop the edit-definition stack and goto the location."
-  (interactive)
-  (pop-tag-mark))
-
-(cl-defstruct (sly-xref (:conc-name sly-xref.) (:type list))
-  dspec location)
-
-(cl-defstruct (sly-location (:conc-name sly-location.) (:type list)
-                            (:constructor nil)
-                            (:copier nil))
-  tag buffer position hints)
-
-(defun sly-location-p (o) (and (consp o) (eq (car o) :location)))
-
-(defun sly-xref-has-location-p (xref)
-  (sly-location-p (sly-xref.location xref)))
-
-(defun make-sly-buffer-location (buffer-name position &optional hints)
-  `(:location (:buffer ,buffer-name) (:position ,position)
-              ,(when hints `(:hints ,hints))))
-
-(defun make-sly-file-location (file-name position &optional hints)
-  `(:location (:file ,file-name) (:position ,position)
-              ,(when hints `(:hints ,hints))))
-
-
-
-(defun sly-edit-definition (&optional name method)
-  "Lookup the definition of the name at point.
-If there's no name at point, or a prefix argument is given, then
-the function name is prompted. METHOD can be nil, or one of
-`window' or `frame' to specify if the new definition should be
-popped, respectively, in the current window, a new window, or a
-new frame."
-  (interactive (list (or (and (not current-prefix-arg)
-                              (sly-symbol-at-point))
-                         (sly-read-symbol-name "Edit Definition of: "))))
-  ;; The hooks might search for a name in a different manner, so don't
-  ;; ask the user if it's missing before the hooks are run
-  (let ((xrefs (sly-eval `(slynk:find-definitions-for-emacs ,name))))
-    (unless xrefs
-      (error "No known definition for: %s (in %s)"
-             name (sly-current-package)))
-    (cl-destructuring-bind (1loc file-alist)
-        (sly-analyze-xrefs xrefs)
-      (cond (1loc
-             (sly-push-definition-stack)
-             (sly--pop-to-source-location
-              (sly-xref.location (car xrefs)) method))
-            ((sly-length= xrefs 1)      ; ((:error "..."))
-             (error "%s" xrefs))
-            (t
-             (sly-push-definition-stack)
-             (sly-xref--show-results file-alist 'definition name
-                                     (sly-current-package)
-                                     (cons (selected-window)
-                                           method)))))))
-
-(defvar sly-edit-uses-xrefs
-  '(:calls :macroexpands :binds :references :sets :specializes))
-
-;;; FIXME. TODO: Would be nice to group the symbols (in each
-;;;              type-group) by their home-package.
-(defun sly-edit-uses (symbol)
-  "Lookup all the uses of SYMBOL."
-  (interactive (list (sly-read-symbol-name "Edit Uses of: ")))
-  (sly-xref--get-xrefs
-   sly-edit-uses-xrefs
-   symbol
-   (lambda (xrefs type symbol package)
-     (cond
-      ((and (sly-length= xrefs 1)          ; one group
-            (sly-length= (cdar  xrefs) 1)) ; one ref in group
-       (cl-destructuring-bind (_ (_ loc)) (cl-first xrefs)
-         (sly-push-definition-stack)
-         (sly--pop-to-source-location loc)))
-      (t
-       (sly-push-definition-stack)
-       (sly-xref--show-results xrefs type symbol package 'window))))))
-
-(defun sly-analyze-xrefs (xrefs)
-  "Find common filenames in XREFS.
-Return a list (SINGLE-LOCATION FILE-ALIST).
-SINGLE-LOCATION is true if all xrefs point to the same location.
-FILE-ALIST is an alist of the form ((FILENAME . (XREF ...)) ...)."
-  (list (and xrefs
-             (let ((loc (sly-xref.location (car xrefs))))
-               (and (sly-location-p loc)
-                    (cl-every (lambda (x) (equal (sly-xref.location x) loc))
-                              (cdr xrefs)))))
-        (sly-alistify xrefs #'sly-xref-group #'equal)))
-
-(defun sly-xref-group (xref)
-  (cond ((sly-xref-has-location-p xref)
-         (sly-dcase (sly-location.buffer (sly-xref.location xref))
-           ((:file filename) filename)
-           ((:buffer bufname)
-            (let ((buffer (get-buffer bufname)))
-              (if buffer
-                  (format "%S" buffer) ; "#<buffer foo.lisp>"
-                (format "%s (previously existing buffer)" bufname))))
-           ((:buffer-and-file _buffer filename) filename)
-           ((:source-form _) "(S-Exp)")
-           ((:zip _zip entry) entry)))
-        (t
-         "(No location)")))
-
-(defun sly-edit-definition-other-window (name)
-  "Like `sly-edit-definition' but switch to the other window."
-  (interactive (list (sly-read-symbol-name "Symbol: ")))
-  (sly-edit-definition name 'window))
-
-(defun sly-edit-definition-other-frame (name)
-  "Like `sly-edit-definition' but switch to the other window."
-  (interactive (list (sly-read-symbol-name "Symbol: ")))
-  (sly-edit-definition name 'frame))
-
-
-
-;;;;; first-change-hook
+;;;; first-change-hook
 
 (defun sly-first-change-hook ()
   "Notify Lisp that a source file's buffer has been modified."
@@ -3997,7 +3299,7 @@ This is for use in the implementation of COMMON-LISP:ED."
                         (byte-to-position position)
                       position))))
       ((:function-name name)
-       (sly-edit-definition name)))))
+       (xref-find-definitions name)))))
 
 (defun sly-goto-line (line-number)
   "Move to line LINE-NUMBER (1-based).
@@ -4425,7 +3727,7 @@ TODO"
       (sly-inspect (format "(quote %s)" name)))
   'sly-button-goto-source
   #'(lambda (name _type)
-      (sly-edit-definition name 'window))
+      (xref-find-definitions-other-window name))
   'sly-button-describe
   #'(lambda (name _type)
       (sly-eval-describe `(slynk:describe-symbol ,name))))
@@ -4529,123 +3831,7 @@ TODO"
   (info (if node (format "(%s)%s" file node) file)))
 
 
-;;;; XREF: cross-referencing
-
-(defvar sly-xref-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "RET") 'sly-xref-goto)
-    (define-key map (kbd "SPC") 'sly-xref-show)
-    (define-key map (kbd "n") 'sly-xref-next-line)
-    (define-key map (kbd "p") 'sly-xref-prev-line)
-    (define-key map (kbd ".") 'sly-xref-next-line)
-    (define-key map (kbd ",") 'sly-xref-prev-line)
-    (define-key map (kbd "C-c C-c") 'sly-recompile-xref)
-    (define-key map (kbd "C-c C-k") 'sly-recompile-all-xrefs)
-
-    (define-key map (kbd "q")     'quit-window)
-    (set-keymap-parent map button-buffer-map)
-
-    map))
-
-(define-derived-mode sly-xref-mode lisp-mode "Xref"
-  "sly-xref-mode: Major mode for cross-referencing.
-\\<sly-xref-mode-map>\
-The most important commands:
-\\[sly-xref-show]       - Display referenced source and keep xref window.
-\\[sly-xref-goto]       - Jump to referenced source and dismiss xref window.
-
-\\{sly-xref-mode-map}"
-  (setq font-lock-defaults nil)
-  (setq delayed-mode-hooks nil)
-  (setq buffer-read-only t)
-  (sly-mode))
-
-(defun sly-next-line/not-add-newlines ()
-  (interactive)
-  (let ((next-line-add-newlines nil))
-    (forward-line 1)))
-
-
-;;;;; XREF results buffer and window management
-
-(cl-defmacro sly-with-xref-buffer ((_xref-type _symbol &optional package)
-                                   &body body)
-  "Execute BODY in a xref buffer, then show that buffer."
-  (declare (indent 1))
-  `(sly-with-popup-buffer ((sly-buffer-name :xref
-                                            :connection t)
-                           :package ,package
-                           :connection t
-                           :select t
-                           :mode 'sly-xref-mode)
-     (sly-set-truncate-lines)
-     ,@body))
-
-;; TODO: Have this button support more options, not just "show source"
-;; and "goto-source"
-(define-button-type 'sly-xref :supertype 'sly-part
-  'action 'sly-button-goto-source ;default action
-  'mouse-action 'sly-button-goto-source ;default action
-  'sly-button-show-source #'(lambda (location)
-                              (sly-xref--show-location location))
-  'sly-button-goto-source #'(lambda (location)
-                              (sly--pop-to-source-location location 'sly-xref)))
-
-(defun sly-xref-button (label location)
-  (sly--make-text-button label nil
-                         :type 'sly-xref
-                         'part-args (list location)
-                         'part-label "Location")
-  label)
-
-(defun sly-insert-xrefs (xref-alist)
-  "Insert XREF-ALIST in the current-buffer.
-XREF-ALIST is of the form ((GROUP . ((LABEL LOCATION) ...)) ...).
-GROUP and LABEL are for decoration purposes.  LOCATION is a
-source-location."
-  (cl-loop for (group . refs) in xref-alist do
-           (sly-insert-propertized '(face bold) group "\n")
-           (cl-loop for (label location) in refs
-                    for start = (point)
-                    do
-                    (insert
-                     " "
-                     (sly-xref-button (sly-one-line-ify label) location)
-                     "\n")
-                    (add-text-properties start (point) (list 'sly-location location))))
-  ;; Remove the final newline to prevent accidental window-scrolling
-  (backward-delete-char 1))
-
-(defun sly-xref-next-line (arg)
-  (interactive "p")
-  (let ((button (forward-button arg)))
-    (when button (sly-button-show-source button))))
-
-(defun sly-xref-prev-line (arg)
-  (interactive "p")
-  (sly-xref-next-line (- arg)))
-
-(defun sly-xref--show-location (loc)
-  (cl-ecase (car loc)
-    (:location (sly--display-source-location loc))
-    (:error (sly-message "%s" (cadr loc)))
-    ((nil))))
-
-(defun sly-xref--show-results (xrefs _type symbol package &optional method)
-  "Maybe show a buffer listing the cross references XREFS.
-METHOD is used to set `sly-xref--popup-method', which see."
-  (cond ((null xrefs)
-         (sly-message "No references found for %s." symbol)
-         nil)
-        (t
-         (sly-with-xref-buffer (_type _symbol package)
-           (sly-insert-xrefs xrefs)
-           (setq sly-xref--popup-method method)
-           (goto-char (point-min))
-           (current-buffer)))))
-
-
-;;;;; XREF commands
+;;;;; Old XREF stuff
 
 (defun sly-who-calls (symbol)
   "Show all known callers of the function SYMBOL."
@@ -4692,19 +3878,11 @@ METHOD is used to set `sly-xref--popup-method', which see."
   (interactive (list (sly-read-symbol-name "List callees: ")))
   (sly-xref :callees symbol-name))
 
-(defun sly-xref (type symbol &optional continuation)
+(defun sly-xref (type symbol &optional _continuation)
   "Make an XREF request to Lisp."
   (sly-eval-async
       `(slynk:xref ',type ',symbol)
-    (sly-rcurry (lambda (result type symbol package cont)
-                  (and (sly-xref-implemented-p type result)
-                       (let* ((file-alist (cadr (sly-analyze-xrefs result))))
-                         (funcall (or cont 'sly-xref--show-results)
-                                  file-alist type symbol package))))
-                type
-                symbol
-                (sly-current-package)
-                continuation)))
+    (error "caneco")))
 
 (defun sly-xref-implemented-p (type xrefs)
   "Tell if xref TYPE is available according to XREFS."
@@ -4719,19 +3897,12 @@ METHOD is used to set `sly-xref--popup-method', which see."
   "Return a human readable version of xref TYPE."
   (format "who-%s" (sly-cl-symbol-name type)))
 
-(defun sly-xref--get-xrefs (types symbol &optional continuation)
+(defun sly-xref--get-xrefs (types symbol &optional _continuation)
   "Make multiple XREF requests at once."
   (sly-eval-async
       `(slynk:xrefs ',types ',symbol)
-    #'(lambda (result)
-        (funcall (or continuation
-                     #'sly-xref--show-results)
-                 (cl-loop for (key . val) in result
-                          collect (cons (sly-xref-type key) val))
-                 types symbol (sly-current-package)))))
-
-
-;;;;; XREF navigation
+    (lambda (_result)
+      (error "canecao"))))
 
 (defun sly-xref-location-at-point ()
   (save-excursion
@@ -4740,35 +3911,6 @@ METHOD is used to set `sly-xref--popup-method', which see."
     (beginning-of-line 1)
     (or (get-text-property (point) 'sly-location)
         (error "No reference at point."))))
-
-(defun sly-xref-dspec-at-point ()
-  (save-excursion
-    (beginning-of-line 1)
-    (with-syntax-table lisp-mode-syntax-table
-      (forward-sexp)                    ; skip initial whitespaces
-      (backward-sexp)
-      (sly-sexp-at-point))))
-
-(defun sly-all-xrefs ()
-  (let ((xrefs nil))
-    (save-excursion
-      (goto-char (point-min))
-      (while (zerop (forward-line 1))
-        (sly--when-let (loc (get-text-property (point) 'sly-location))
-          (let* ((dspec (sly-xref-dspec-at-point))
-                 (xref  (make-sly-xref :dspec dspec :location loc)))
-            (push xref xrefs)))))
-    (nreverse xrefs)))
-
-(defun sly-xref-goto ()
-  "Goto the cross-referenced location at point."
-  (interactive)
-  (sly--pop-to-source-location (sly-xref-location-at-point) 'sly-xref))
-
-(defun sly-xref-show ()
-  "Display the xref at point in the other window."
-  (interactive)
-  (sly--display-source-location (sly-xref-location-at-point)))
 
 (defun sly-search-property (prop &optional backward prop-value-fn)
   "Search the next text range where PROP is non-nil.
@@ -4791,69 +3933,13 @@ If PROP-VALUE-FN is non-nil use it to extract PROP's value."
     (cond (prop-value)
           (t (goto-char start) nil))))
 
-(defun sly-recompile-xref (&optional raw-prefix-arg)
+(defun sly-recompile-xref (&optional _raw-prefix-arg)
   (interactive "P")
-  (let ((sly-compilation-policy (sly-compute-policy raw-prefix-arg)))
-    (let ((location (sly-xref-location-at-point))
-          (dspec    (sly-xref-dspec-at-point)))
-      (sly-recompile-locations
-       (list location)
-       (sly-rcurry #'sly-xref-recompilation-cont
-                   (list dspec) (current-buffer))))))
+  (error "caneco"))
 
-(defun sly-recompile-all-xrefs (&optional raw-prefix-arg)
+(defun sly-recompile-all-xrefs (&optional _raw-prefix-arg)
   (interactive "P")
-  (let ((sly-compilation-policy (sly-compute-policy raw-prefix-arg)))
-    (let ((dspecs) (locations))
-      (dolist (xref (sly-all-xrefs))
-        (when (sly-xref-has-location-p xref)
-          (push (sly-xref.dspec xref) dspecs)
-          (push (sly-xref.location xref) locations)))
-      (sly-recompile-locations
-       locations
-       (sly-rcurry #'sly-xref-recompilation-cont
-                   dspecs (current-buffer))))))
-
-(defun sly-xref-recompilation-cont (results dspecs buffer)
-  ;; Extreme long-windedness to insert status of recompilation;
-  ;; sometimes Elisp resembles more of an Ewwlisp.
-
-  ;; FIXME: Should probably throw out the whole recompilation cruft
-  ;; anyway.  -- helmut
-  ;; TODO: next iteration of fixme cleanup this is going in a contrib -- jt
-  (with-current-buffer buffer
-    (sly-compilation-finished (sly-aggregate-compilation-results results)
-                              nil)
-    (save-excursion
-      (sly-xref-insert-recompilation-flags
-       dspecs (cl-loop for r in results collect
-                       (or (sly-compilation-result.successp r)
-                           (and (sly-compilation-result.notes r)
-                                :complained)))))))
-
-(defun sly-aggregate-compilation-results (results)
-  `(:compilation-result
-    ,(cl-reduce #'append (mapcar #'sly-compilation-result.notes results))
-    ,(cl-every #'sly-compilation-result.successp results)
-    ,(cl-reduce #'+ (mapcar #'sly-compilation-result.duration results))))
-
-(defun sly-xref-insert-recompilation-flags (dspecs compilation-results)
-  (let* ((buffer-read-only nil)
-         (max-column (sly-column-max)))
-    (goto-char (point-min))
-    (cl-loop for dspec in dspecs
-             for result in compilation-results
-             do (save-excursion
-                  (cl-loop for dspec2 = (progn (search-forward dspec)
-                                               (sly-xref-dspec-at-point))
-                           until (equal dspec2 dspec))
-                  (end-of-line) ; skip old status information.
-                  (insert-char ?\  (1+ (- max-column (current-column))))
-                  (insert (format "[%s]"
-                                  (cl-case result
-                                    ((t)   :success)
-                                    ((nil) :failure)
-                                    (t     result))))))))
+  (error "fodase"))
 
 
 ;;;; Macroexpansion
@@ -4916,7 +4002,7 @@ This variable specifies both what was expanded and how.")
     (erase-buffer)
     (insert expansion)
     (goto-char (point-min))
-    (font-lock-fontify-buffer)))
+    (font-lock-ensure)))
 
 (defun sly-create-macroexpansion-buffer ()
   (let ((name (sly-buffer-name :macroexpansion)))
@@ -5577,8 +4663,6 @@ If MORE is non-nil, more frames are on the Lisp stack."
     (define-key map "o"    'sly-db-out)
     (define-key map "b"    'sly-db-break-on-return)
 
-    (define-key map "\C-c\C-c" 'sly-db-recompile-frame-source)
-
     (set-keymap-parent map sly-part-button-keymap)
     map))
 
@@ -5708,7 +4792,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
          (sly-message "%s" message)
          (ding))
         (t
-         (sly--display-source-location source-location))))))
+         (error "fodase"))))))
 
 
 ;;;;;; SLY-DB toggle details
@@ -6063,20 +5147,6 @@ was called originally."
 
 ;;;;;; SLY-DB recompilation commands
 
-(defun sly-db-recompile-frame-source (frame-number &optional raw-prefix-arg)
-  (interactive
-   (list (sly-db-frame-number-at-point) current-prefix-arg))
-  (sly-eval-async
-      `(slynk:frame-source-location ,frame-number)
-    (let ((policy (sly-compute-policy raw-prefix-arg)))
-      (lambda (source-location)
-        (sly-dcase source-location
-          ((:error message)
-           (sly-message "%s" message)
-           (ding))
-          (t
-           (let ((sly-compilation-policy policy))
-             (sly-recompile-location source-location))))))))
 
 
 ;;;; Thread control panel
@@ -6456,8 +5526,8 @@ was called originally."
   #'(lambda (id)
       (sly-eval-async
           `(slynk:find-source-location-for-emacs '(:inspector ,id))
-        #'(lambda (result)
-            (sly--display-source-location result 'noerror)))))
+        #'(lambda (_result)
+            (error "oops `:inspector' find source location broken")))))
 
 (defun sly-inspector-part-button (label id &rest props)
   (apply #'sly--make-text-button
