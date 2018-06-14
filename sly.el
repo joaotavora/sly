@@ -428,12 +428,14 @@ PROPERTIES specifies any default face properties."
 
 (define-sly-db-faces
   (topline        "the top line describing the error")
-  (condition      "the condition class")
-  (section        "the labels of major sections in the debugger buffer")
-  (frame-label    "backtrace frame numbers")
+  (condition "the condition class" '(:inherit error))
+  (section        "the labels of major sections in the debugger buffer"
+                  '(:inherit header-line))
+  (frame-label    "backtrace frame numbers"
+                  '(:inherit shadow))
   (restart        "restart descriptions")
   (restart-number "restart numbers (correspond to keystrokes to invoke)"
-                  '(:bold t))
+                  '(:inherit shadow))
   (frame-line     "function names and arguments in the backtrace")
   (restartable-frame-line
    "frames which are surely restartable"
@@ -5632,7 +5634,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
          (label (cadr frame-spec))
          (origin (point)))
     (insert
-     (propertize (format " %2d: " number)
+     (propertize (format "%2d: " number)
                  'face 'sly-db-frame-label-face)
      (sly-db-frame-button label frame-spec
                           (if (sly-db-frame-restartable-p frame-spec)
