@@ -288,15 +288,16 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 
   The matches in the two sets are not guaranteed to be in their final
   order, i.e. they are not sorted (except for the fact that
-                                          qualifications with shorter package nicknames are tried first).
+  qualifications with shorter package nicknames are tried first).
 
-                                          Matches are produced by COLLECT-IF-MATCHES (which see)."
+  Matches are produced by COLLECT-IF-MATCHES (which see)."
   (let* ((first-colon (position #\: pattern))
          (starts-with-colon (and first-colon (zerop first-colon)))
          (two-colons (and first-colon (< (1+ first-colon) (length pattern))
                           (eq #\: (aref pattern (1+ first-colon))))))
-    (unless (and starts-with-colon
-                 (not two-colons))
+    (if (and starts-with-colon
+             (not two-colons))
+        (values nil nil)
       (let* ((package-local-nicknames
                (slynk-backend:package-local-nicknames home-package))
              (nicknames-by-package
@@ -342,8 +343,7 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                                                            (format nil "~a::~a"
                                                                    nickname
                                                                    (symbol-name s))
-                                                           s)))
-                             ))))))))))
+                                                           s)))))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
