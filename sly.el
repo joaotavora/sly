@@ -571,6 +571,9 @@ interactive command.\".")
 (defvar sly-dispatching-connection)
 (defvar sly-current-thread)
 
+;; exceptional forward decl
+(defvar company-tooltip-align-annotations)
+
 ;;;###autoload
 (define-minor-mode sly-mode
   "Minor mode for horizontal SLY functionality."
@@ -581,6 +584,9 @@ interactive command.\".")
   "Minor mode for editing `lisp-mode' buffers."
   nil nil nil
   (sly-mode 1)
+  ;; Company-mode should have this by default
+  ;; See gh#166
+  (set (make-local-variable 'company-tooltip-align-annotations) t)
   (set (make-local-variable 'lisp-indent-function)
        'common-lisp-indent-function))
 
