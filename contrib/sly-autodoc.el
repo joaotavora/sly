@@ -112,6 +112,7 @@
 (defun sly-autodoc (&optional force-multiline)
   "Returns the cached arglist information as string, or nil.
 If it's not in the cache, the cache will be updated asynchronously."
+  (interactive "P")
   (save-excursion
     (save-match-data
       (let ((context (sly-autodoc--parse-context)))
@@ -154,21 +155,21 @@ If it's not in the cache, the cache will be updated asynchronously."
 
 
 ;;; Minor mode definition
-(defvar sly-autodoc-keymap
+(defvar sly-autodoc-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-d A") 'sly-autodoc)
     map))
 
 (define-minor-mode sly-autodoc-mode
   "Toggle echo area display of Lisp objects at point."
-  t nil nil
+  nil nil nil
   (cond (sly-autodoc-mode
-	 (set (make-local-variable 'eldoc-documentation-function) 'sly-autodoc)
-	 (set (make-local-variable 'eldoc-minor-mode-string) "")
-	 (setq sly-autodoc-mode (eldoc-mode sly-autodoc-mode)))
-	(t
-	 (eldoc-mode -1)
+         (set (make-local-variable 'eldoc-documentation-function) 'sly-autodoc)
+         (set (make-local-variable 'eldoc-minor-mode-string) "")
+         (eldoc-mode sly-autodoc-mode))
+        (t
+         (eldoc-mode -1)
          (set (make-local-variable 'eldoc-documentation-function) nil)
-	 (set (make-local-variable 'eldoc-minor-mode-string) " ElDoc"))))
+         (set (make-local-variable 'eldoc-minor-mode-string) " ElDoc"))))
 
 (provide 'sly-autodoc)

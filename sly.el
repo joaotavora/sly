@@ -199,7 +199,13 @@ in `sly-contribs.'")
     (cl-loop for to-enable in all-active-contribs
              unless (sly--contrib-safe to-enable
                       (sly-contrib--enabled-p to-enable))
-             do (funcall (sly-contrib--enable to-enable)))))
+             do (funcall (sly-contrib--enable to-enable)))
+    ;; Some contribs add stuff to `sly-mode-hook' or
+    ;; `sly-editing-hook', so make sure we re-run those hooks now.
+    (when all-active-contribs
+      (cl-loop for buffer in (buffer-list)
+               do (with-current-buffer buffer
+                    (when sly-editing-mode (sly-editing-mode 1)))))))
 
 (eval-and-compile
   (defun sly-version (&optional interactive file)
