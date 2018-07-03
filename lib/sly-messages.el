@@ -80,6 +80,8 @@ SIT-FOR is has the semantincs of `minibuffer-message-timeout', which see."
 
 (defvar sly-completing-read-function 'sly-ido-completing-read)
 
+(defvar sly-completing-read-no-match-label "(none)")
+
 (defun sly-ido-completing-read (prompt choices &optional
                                        predicate
                                        require-match
@@ -90,12 +92,16 @@ SIT-FOR is has the semantincs of `minibuffer-message-timeout', which see."
   "Like `ido-completing-read' but treat REQUIRE-MATCH different.
 If REQUIRE-MATCH is nil, offer a \"(none)\" option to return the
 empty string."
-  (let ((res (ido-completing-read prompt
-                       (append
-                        (unless require-match
-                          (list (propertize "(none)" 'sly--none t)))
-                        choices)
-                       predicate require-match initial-input hist def inherit-input-method)))
+  (let ((res (ido-completing-read
+              prompt
+              (append
+               choices
+               (unless require-match
+                 (list (propertize
+                        sly-completing-read-no-match-label
+                        'sly--none t))))
+              predicate require-match initial-input hist def
+              inherit-input-method)))
     (if (get-text-property 0 'sly--none res)
         ""
       res)))

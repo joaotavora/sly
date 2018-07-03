@@ -725,6 +725,14 @@ that returns one such construct.")
   `(let ((,var ,value))
      (when ,var ,@body)))
 
+(cl-defmacro sly--when-let* (bindings &rest body)
+  "Same as `sly--when-let', but for multiple BINDINGS"
+  (declare (indent 1))
+  (if bindings
+      `(sly--when-let ,(car bindings)
+         (sly--when-let* ,(cdr bindings) ,@body))
+    `(progn ,@body)))
+
 (defmacro sly-dcase (value &rest patterns)
   (declare (indent 1)
            (debug (sexp &rest (sexp &rest form))))
@@ -1005,6 +1013,19 @@ Here's an example:
  ((cmucl (\"/opt/cmucl/bin/lisp\" \"-quiet\") :init sly-init-command)
   (acl (\"acl7\") :coding-system emacs-mule))")
 
+(defcustom sly-command-switch-to-existing-lisp 'ask
+  "Should the `sly' command start new lisp if one is available?"
+  :type '(choice (const :tag "Ask the user" ask)
+                 (const :tag "Always" 'always)
+                 (const :tag "Never" 'never)))
+
+(defcustom sly-auto-select-connection 'ask
+  "Controls auto selection after the default connection was closed."
+  :group 'sly-mode
+  :type '(choice (const never)
+                 (const always)
+                 (const ask)))
+
 (defcustom sly-default-lisp nil
   "A symbol naming the preferred Lisp implementation.
 See `sly-lisp-implementations'"
@@ -1016,10 +1037,10 @@ See `sly-lisp-implementations'"
 (defvar sly-default-connection)
 
 ;;;###autoload
-(defun sly (&optional command coding-system interactive)
+(cl-defun sly (&optional command coding-system interactive)
   "Start a Lisp implementation and connect to it.
 
-COMMAND designates a the Lisp implementation to start as an
+  COMMAND designates a the Lisp implementation to start as an
 \"inferior\" process to the Emacs process. It is either a
 pathname string pathname to a lisp executable, a list (EXECUTABLE
 ARGS...), or a symbol indexing
@@ -1029,11 +1050,14 @@ ARGS...), or a symbol indexing
 Interactively, both COMMAND and CODING-SYSTEM are nil and the
 prefix argument controls the precise behaviour:
 
-- With no prefix arg, try to automatically find a Lisp. First
-  lookup `sly-lisp-implementations', using `sly-default-lisp' as
-  a default strategy. Then try `inferior-lisp-program' if it
-  looks like it points to a valid lisp. Failing that, guess the
-  location of a lisp implementation.
+- With no prefix arg, try to automatically find a Lisp.  First
+  consult `sly-command-switch-to-existing-lisp' and analyse open
+  connections to maybe switch to one of those.  If a new lisp is
+  to be created, first lookup `sly-lisp-implementations', using
+  `sly-default-lisp' as a default strategy.  Then try
+  `inferior-lisp-program' if it looks like it points to a valid
+  lisp.  Failing that, guess the location of a lisp
+  implementation.
 
 - With a positive prefix arg (one C-u), prompt for a command
   string that starts a Lisp implementation.
@@ -1042,6 +1066,21 @@ prefix argument controls the precise behaviour:
   for a symbol indexing one of the entries in
   `sly-lisp-implementations'"
   (interactive (list nil nil t))
+  (sly--when-let*
+      ((active (and interactive
+                    (not current-prefix-arg)
+                    (sly--purge-connections)))
+       (sly-completing-read-no-match-label "(start a new one)")
+       (target (or (and (eq sly-command-switch-to-existing-lisp 'ask)
+                        (sly-prompt-for-connection
+                         "[sly] Switch to open connection?\n\
+  (Customize `sly-command-switch-to-existing-lisp' to avoid this prompt.)\n\
+  Connections: " nil t))
+                   (and (eq sly-command-switch-to-existing-lisp 'always)
+                        (car active)))))
+    (sly-message "Switching to `%s'" (sly-connection-name target))
+    (sly-connection-list-default-action target)
+    (cl-return-from sly nil))
   (let ((command (or command inferior-lisp-program))
         (sly-net-coding-system (or coding-system sly-net-coding-system)))
     (apply #'sly-start
@@ -1787,13 +1826,6 @@ This doesn't mean it will connect right after SLY is loaded."
            (sly-connection)))
         (t nil)))
 
-(defcustom sly-auto-select-connection 'ask
-  "Controls auto selection after the default connection was closed."
-  :group 'sly-mode
-  :type '(choice (const never)
-                 (const always)
-                 (const ask)))
-
 (cl-defmacro sly-with-connection-buffer ((&optional process) &rest body)
   "Execute BODY in the process-buffer of PROCESS.
 If PROCESS is not specified, `sly-connection' is used.
@@ -2012,8 +2044,8 @@ This is automatically synchronized from Lisp.")
            (sly-warning "process %s in `sly-net-processes' dead. Force closing..." process)
            (sly-net-close process "process state invalid" nil t)))
 
-(defun sly-prompt-for-connection (&optional prompt)
-  (let* ((connections (sly--purge-connections))
+(defun sly-prompt-for-connection (&optional prompt connections dont-require-match)
+  (let* ((connections (or connections (sly--purge-connections)))
          (connection-names (cl-loop for process in
                                     (sort connections
                                           #'(lambda (p1 _p2)
@@ -2023,11 +2055,13 @@ This is automatically synchronized from Lisp.")
                                (sly-completing-read
                                 (or prompt "Connection: ")
                                 connection-names
-                                nil t)))
+                                nil (not dont-require-match))))
          (target (cl-find connection-name sly-net-processes :key #'sly-connection-name
                           :test #'string=)))
     (cond (target
            target)
+          (dont-require-match
+           nil)
           (connection-name
            (sly-error "Bug in `sly-prompt-for-connection'"))
           (t

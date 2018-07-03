@@ -1,10 +1,10 @@
 Upcoming SLY 1.0.0-beta-3 (Somewhere 2018)
 -----------------------------------------
 
-### Company works by default
+### Much improved company completion
 
 If you haven't yet, just `M-x package-install RET company-mode`, to
-enable `company`, and it should start working in every SLY buffer.
+enable `company`.  It should start working in every SLY buffer.
 
 Moreover, a new "lazy" way to SLY collect completions from the Lisp
 backend means that user input is not blocked if this takes a long
@@ -12,7 +12,7 @@ time.  The result is a much more responsive on-the-fly completion
 experience.
 
 If you don't like company, you can still use the normal on-request TAB
-completion, with a much improved UI.
+completion, which also features an improved UI.
 
 ### Redesigned completion backend
 
@@ -104,6 +104,12 @@ Customize the formats that integer numbers get presented back to SLY,
 additionally to the binary, octal and hex defaults. Good when working
 with Unix Epoch times, for example. See manual "Other configurables"
 for documentation and example.
+
+### New customization variable `sly-command-switch-to-existing-lisp`
+
+This makes a prefixless `M-x sly` switch to an active connection
+instead of starting a new one.  Customize this to `never` to never
+prompted, or to `always` to always move to the first live connection.
 
 ### Loading contribs is a more robust process
 
