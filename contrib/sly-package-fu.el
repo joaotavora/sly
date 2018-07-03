@@ -192,7 +192,7 @@ this will return (\"bar\" \"minor\" \"(again 123)\")"
                      do (up-list) (backward-sexp)))))
 
 (defun sly-symbol-exported-p (name symbols)
-  (cl-member name symbols :test 'equalp))
+  (cl-member name symbols :test 'cl-equalp))
 
 (defun sly-frob-defpackage-form (current-package do-what symbols)
   "Adds/removes `symbol' from the DEFPACKAGE form of `current-package'
@@ -410,7 +410,7 @@ package.  For example above, return \"with-gensyms\"."
                                           (sly-package-fu--read-symbols))))
             (unless (cl-member simple-symbol
                                imported-symbols
-                               :test 'equalp)
+                               :test 'cl-equalp)
               ;; If symbol is not imported yet, then just
               ;; add it to the end
               (sly-package-fu--insert-symbol simple-symbol)
