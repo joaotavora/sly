@@ -91,6 +91,8 @@
   (require 'compile)
   (require 'gud))
 
+(defvar sly-editing-mode) ; forward decl
+
 (defvar sly-path nil
   "Directory containing the SLY package.
 This is used to load the supporting Common Lisp library, Slynk.
@@ -595,11 +597,16 @@ interactive command.\".")
 
 ;;;###autoload
 (define-minor-mode sly-editing-mode
-"Minor mode for editing `lisp-mode' buffers."
-nil nil nil
-(sly-mode 1)
-(set (make-local-variable 'lisp-indent-function)
-     'common-lisp-indent-function))
+  "Minor mode for editing `lisp-mode' buffers."
+  nil nil nil
+  (cond (sly-editing-mode
+         (sly-mode 1)
+         (add-hook 'flymake-diagnostic-functions #'sly-flymake nil t)
+         (flymake-mode 1)
+         (set (make-local-variable 'lisp-indent-function)
+              'common-lisp-indent-function))
+        (t
+         )))
 
 (define-minor-mode sly-popup-buffer-mode
   "Minor mode for all read-only SLY buffers"
@@ -2799,7 +2806,7 @@ Currently only :fasl-directory is supported."
   :group 'sly-lisp
   :type '(plist :key-type symbol :value-type (file :must-match t)))
 
-(defun sly-compile-file (&optional load policy)
+(defun sly-compile-file (&optional load policy cont)
   "Compile current buffer's file and highlight resulting compiler notes.
 
 See `sly-compile-and-load-file' for further details."
@@ -2817,8 +2824,8 @@ See `sly-compile-and-load-file' for further details."
     (sly-eval-async
         `(slynk:compile-file-for-emacs ,file ,(if load t nil)
                                        . ,(sly-hack-quotes options))
-      #'(lambda (result)
-          (sly-compilation-finished result (current-buffer))))
+      (or cont
+          #'sly-compilation-finished))
     (sly-message "Compiling %s..." file)))
 
 (defun sly-hack-quotes (arglist)
@@ -2854,11 +2861,14 @@ to it depending on its sign."
   (sly-connection)
   (funcall sly-compile-region-function start end))
 
-(defun sly-compile-region-as-string (start end)
-  (sly-flash-region start end)
-  (sly-compile-string (buffer-substring-no-properties start end) start))
+(defun sly-compile-region-as-string (start end &optional dont-flash cont)
+  "Compile region from START to END, then call CONT with result.
+CONT defaults to `sly-compilation-finished'.
+If DONT-FLASH, don't flash the region being compiled."
+  (unless dont-flash (sly-flash-region start end))
+  (sly-compile-string (buffer-substring-no-properties start end) start cont))
 
-(defun sly-compile-string (string start-offset)
+(defun sly-compile-string (string start-offset &optional cont)
   (let* ((position (sly-compilation-position start-offset)))
     (sly-eval-async
         `(slynk:compile-string-for-emacs
@@ -2867,8 +2877,8 @@ to it depending on its sign."
           ',position
           ,(if (buffer-file-name) (sly-to-lisp-filename (buffer-file-name)))
           ',sly-compilation-policy)
-      #'(lambda (result)
-          (sly-compilation-finished result nil)))))
+      (or cont
+          #'sly-compilation-finished))))
 
 (defun sly-compilation-position (start-offset)
   (let ((line (save-excursion
@@ -2891,7 +2901,7 @@ ASK asks the user."
     (always t)
     (ask (sly-y-or-n-p "Compilation failed.  Load fasl file anyway? "))))
 
-(defun sly-compilation-finished (result buffer &optional _message)
+(defun sly-compilation-finished (result &optional _message)
   (let ((notes (sly-compilation-result.notes result))
         (_duration (sly-compilation-result.duration result))
         (successp (sly-compilation-result.successp result))
@@ -2899,16 +2909,52 @@ ASK asks the user."
         (loadp (sly-compilation-result.loadp result)))
     (setf sly-last-compilation-result result)
     (when sly-highlight-compiler-notes
-      (sly-message "flymake talvez %s %s" result buffer))
+      (sly-message "would be highlighting compiler notes, maybe"))
     (when (and loadp faslfile
                (or successp
                    (sly-load-failed-fasl-p)))
       (sly-eval-async `(slynk:load-file ,faslfile)))
-    (run-hook-with-args 'sly-compilation-finished-hook successp notes buffer loadp)))
+    (run-hook-with-args 'sly-compilation-finished-hook successp notes (current-buffer) loadp)))
 
 
-;;;;; Recompilation.
+;;;;; Flymake
 
+(cl-defun sly-flymake (report-fn &key changes-start changes-end &allow-other-keys)
+  (when (sly-connection)
+    (cond ((and changes-start changes-end)
+           (save-excursion
+             (let ((start
+                    (progn
+                      (goto-char changes-start)
+                      (beginning-of-defun)
+                      (point)))
+                   (end
+                    (progn
+                      (goto-char changes-end)
+                      (end-of-defun)
+                      (point))))
+               (sly-compile-region-as-string
+                start end
+                nil ; later set to t
+                (pcase-lambda
+                  (`(:compilation-result ,notes ,_successp
+                                         ,_duration ,_loadp
+                                         ,_faslfile))
+                  (funcall report-fn
+                           (mapcar (cl-function
+                                    (lambda (&key _message _severity _location _references)))
+                                   notes)
+                           :region (cons start end)))))))
+          (t
+           (sly-compile-file nil nil
+                             (pcase-lambda
+                               (`(:compilation-result ,notes ,_successp
+                                                      ,_duration ,_loadp
+                                                      ,_faslfile))
+                               (funcall report-fn
+                                        (mapcar (cl-function
+                                                 (lambda (&key _message _severity _location _references)))
+                                                notes))))))))
 
 
 ;;;;; Compiler notes list
@@ -2920,17 +2966,9 @@ ASK asks the user."
 
 (defun sly-show-compilation-log (_successp _notes _buffer _loadp &optional _select)
   "Create and display the compilation log buffer."
-  (interactive (list (sly-compiler-notes)))
+  (interactive (list nil (sly-compiler-notes)))
   
   )
-
-(defun sly-indent-block (start column)
-  "If the region back to START isn't a one-liner indent it."
-  (when (< start (line-beginning-position))
-    (save-excursion
-      (goto-char start)
-      (insert "\n"))
-    (sly-indent-rigidly start (point) column)))
 
 
 ;;;;; Adding a single compiler note
