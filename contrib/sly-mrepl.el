@@ -1374,6 +1374,26 @@ a list of result buttons thus highlighted"
   (remove-hook 'post-command-hook 'sly-mrepl--debug 'local))
 
 
+;;; A hack for Emacs Bug#32014  (Sly gh#165)
+;;;
+(when (version<= "26.1" emacs-version)
+  (advice-add
+   #'lisp-indent-line
+   :around
+   (lambda (&rest args)
+     (let ((beg (save-excursion (progn (beginning-of-line) (point)))))
+       (cl-letf (((symbol-function #'indent-line-to)
+                  (lambda (indent)
+                    (let ((shift-amt (- indent (current-column))))
+                      (if (zerop shift-amt)
+                          nil
+                        (delete-region beg (point))
+                        (indent-to indent))))))
+         ;; call original
+         (apply args))))
+   '((name . sly-workaround-for-emacs-bug-32014))))
+
+
 ;;; Sylvesters
 ;;;
 (defvar  sly-mrepl--sylvesters

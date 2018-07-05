@@ -14,11 +14,13 @@ env:
   - "TARGET=check-core        ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=24.4"
   - "TARGET=check-fancy       ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=24.4"
   - "TARGET=check-core        ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=25.2"
-  - "TARGET=check-core        ROSWELL_LISP=ccl-bin         EMACS_VERSION=25.2"
   - "TARGET=check-fancy       ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=25.2"
-  - "TARGET=check-fancy       ROSWELL_LISP=ccl-bin         EMACS_VERSION=25.2"
-  - "TARGET=check-mrepl       ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=25.2"
-  - "TARGET=check-indentation ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=25.2"
+  - "TARGET=check-fancy       ROSWELL_LISP=ccl-bin         EMACS_VERSION=26.1"
+  - "TARGET=check-core        ROSWELL_LISP=ccl-bin         EMACS_VERSION=26.1"
+  - "TARGET=check-mrepl       ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=26.1"
+  - "TARGET=check-indentation ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=26.1"
+  - "TARGET=check-core        ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=26.1"
+  - "TARGET=check-fancy       ROSWELL_LISP=sbcl-bin/1.2.14 EMACS_VERSION=26.1"
 
 before_install:
   - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
