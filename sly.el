@@ -4545,7 +4545,7 @@ TODO"
   (sly-eval-describe `(slynk:describe-definition-for-emacs ,name ,type)))
 
 (defun sly-info--file ()
-  (let ((file (expand-file-name "doc/sly.info" sly-path)))
+  (let ((file (expand-file-name "sly.info" sly-path)))
     (cond ((file-exists-p file) file)
           (t
            (sly-error "No sly.info, run `make -C doc sly.info' in %s"
