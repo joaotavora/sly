@@ -1463,12 +1463,9 @@ Interrupt Lisp (send @code{SIGINT}).
 @cmditem{sly-restart-inferior-lisp}
 Restart the @code{inferior-lisp} process.
 
-@kbditem{C-c ~, sly-sync-package-and-default-directory}
+@kbditem{C-c ~, sly-mrepl-sync}
 Synchronize the current package and working directory from Emacs to
 Lisp.
-
-@kbditem{C-c M-p, sly-mrepl-set-package}
-Set the current package of the @acronym{REPL}.
 
 @cmditem{sly-cd}
 Set the current directory of the Lisp process.  This also
