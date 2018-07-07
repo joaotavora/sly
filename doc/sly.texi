@@ -1590,9 +1590,6 @@ Start or select an existing main @REPL{} buffer.
 @cmditem{sly-mrepl-new}
 Start a new secondary @REPL session, prompting for a nickname.
 
-@kbditem{C-c C-z, sly-mrepl}
-Select the output buffer, preferably in a different window.
-
 @kbditem{C-c ~, sly-mrepl-sync}
 Go to the REPL, switching package and default directory as
 applicable. More precisely the Lisp variables @code{*package*} and
