@@ -1826,8 +1826,8 @@ a useful debug technique because backreferences are stable
 @footnote{until you clear the @REPL{}’s output, that is}, so repeating
 that very same function call with the very same arguments is just a
 matter of textually copying the previous expression into the command
-prompt, no matter how far ago it happened. And that, in turn, is very
-is often as easy as using @kbd{C-r} and some characters (@pxref{REPL
+prompt, no matter how far ago it happened. And that, in turn,
+is as easy as using @kbd{C-r} and some characters (@pxref{REPL
 commands}) to arrive and repeat the desired @REPL{} history entry.
 @end itemize
 
