@@ -1272,7 +1272,7 @@ only when the cursor is on the button.
 
 @item @kbd{M-RET}, ``Copy to REPL''
 
-Copy the object to the main @REPL{} (@xref{REPL output} and @xref{REPL
+Copy the object to the main @REPL{} (@pxref{REPL output} and @pxref{REPL
 backreferences}).
 
 @item @kbd{M-S-RET}, ``Copy call to REPL''
@@ -1858,7 +1858,7 @@ The standard commands available in the inspector are:
 If point is on a value then recursively call the inspector on that
 value. If point is on an action then call that action.
 
-@kbditem{d, sly-inspector-describe}
+@kbditem{D, sly-inspector-describe-inspectee}
 Describe the slot at point.
 
 @kbditem{e, sly-inspector-eval}
@@ -1877,24 +1877,21 @@ The inverse of @kbd{l}. Also bound to @kbd{SPC}.
 @kbditem{g, sly-inspector-reinspect}
 Reinspect.
 
+@kbditem{h, sly-inspector-history}
+Show the previously inspected objects.
+
 @kbditem{q, sly-inspector-quit}
 Dismiss the inspector buffer.
-
-@kbditem{p, sly-inspector-pprint}
-Pretty print in another buffer object at point.
-
-@kbditem{., sly-inspector-show-source}
-Find source of object at point.
 
 @kbditem{>, sly-inspector-fetch-all}
 Fetch all inspector contents and go to the end.
 
-@kbditem{M-RET, sly-inspector-copy-down}
+@kbditem{M-RET, sly-mrepl-copy-part-to-repl}
 Store the value under point in the variable `*'.  This can
 then be used to access the object in the REPL.
 
-@kbditempair{TAB, S-TAB, sly-inspector-next-inspectable-object,
-sly-inspector-previous-inspectable-object}
+@kbditempair{TAB, S-TAB, forward-button,
+backward-button}
 
 Jump to the next and previous inspectable object respectively.
 
@@ -2326,7 +2323,7 @@ For example, you can add one of the following to your init file:
 @end example
 
 @SLY{} comes bundled with many extensions (called ``contribs'' for
-historical reasons, @xref{Extensions}) which you can customize just
+historical reasons, @pxref{Extensions}) which you can customize just
 like @SLY{}'s code. To make @kbd{C-c C-c} clear the last REPL prompt's
 output, for example, use
 
@@ -2626,12 +2623,12 @@ the pretty printer for formatting backtraces in @SLY-DB{}, you can use:
 @end example
 
 The fact that most @SLY{} output (in the @REPL{} for instance,
-@xref{REPL}) uses @code{SLYNK:*SLYNK-PPRINT-BINDINGS*} may surprise
-you if you expected it to use a global setting for, say,
-@code{*PRINT-LENGTH*}. Because output is a very basic feature of
-@SLY{} and it should keep operating normally even if you (mistakenly)
-set absurd values for some variable. But you can override this
-protection, of course:
+@pxref{REPL}) uses @code{SLYNK:*SLYNK-PPRINT-BINDINGS*} may surprise you
+if you expected it to use a global setting for, say,
+@code{*PRINT-LENGTH*}. Because output is a very basic feature of @SLY{}
+and it should keep operating normally even if you (mistakenly) set
+absurd values for some variable. But you can override this protection,
+of course:
 
 @example
 (setq slynk:*slynk-pprint-bindings*
