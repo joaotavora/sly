@@ -1321,10 +1321,10 @@ the final key to be modified or unmodified (@pxref{Keybindings}.)
 This command should land you in an electronic version of this very
 manual that you can read inside Emacs.
 
-@kbditem{C-c C-d d, sly-describe-symbol}
+@kbditem{C-c C-d C-d, sly-describe-symbol}
 Describe the symbol at point.
 
-@kbditem{C-c C-d f, sly-describe-function}
+@kbditem{C-c C-d C-f, sly-describe-function}
 Describe the function at point.
 
 @kbditem{C-c C-d C-a, sly-apropos}
