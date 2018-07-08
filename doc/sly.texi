@@ -516,54 +516,55 @@ initializes @code{SBCL_HOME} in the subprocess.
 @node A SLY tour for SLIME users
 @chapter A SLY tour for SLIME users
 
-The chances are that if you’re into Common Lisp, you already know
-about @SLIME{}, the project that originated @SLY{}. Itself originating
-in older Emacs extensions @acronym{SLIM} and @acronym{ILISP}, @SLIME{}
-has been around for at least a decade longer than @SLY{} and is quite
-an amazing IDE. It seems reasonable to assume that most Lispers have
-some experience with it, and perhaps it is an even more reasonable
-idea to provide, in the form of a quick tutorial, a hands-on overview
-of some of the improvements of @SLY{} over @SLIME{}.
+The chances are that if you’re into Common Lisp, you already know about
+@SLIME{}, the project that originated @SLY{}.  Itself originating in
+older Emacs extensions @acronym{SLIM} and @acronym{ILISP}, @SLIME{} has
+been around for at least a decade longer than @SLY{} and is quite an
+amazing IDE.  It seems reasonable to assume that most Lispers have some
+experience with it, and perhaps it is an even more reasonable idea to
+provide, in the form of a quick tutorial, a hands-on overview of some of
+the improvements of @SLY{} over @SLIME{}.
 
 When you start @SLY{} with @kbd{M-x sly} (@pxref{Basic setup}) you are
 greeted with its @REPL{}, a common starting point of Lisp hacking
-sessions. This has been completely redesigned in @SLY{}. You can spawn
-multiple REPL sessions with @code{sly-mrepl-new}, copy objects from most
-places directly into it (with @kbd{M-RET} and @kbd{M-S-RET}), and use a
+sessions.  This has been completely redesigned in @SLY{}: you can spawn
+multiple REPL sessions with @code{sly-mrepl-new}; copy objects from most
+places directly into it (with @kbd{M-RET} and @kbd{M-S-RET}); and use a
 much more powerful incremental history search engine (with @kbd{C-r}).
 
 @*@image{images/tutorial-1,350pt}@*
 
-Starting from the @REPL{}, let's showcase some of @SLY{}’s new features.
-let’s pretend we want to hack an existing Lisp project, say @SLY{}
-itself, or rather a part of its Lisp server which is called Slynk. Let's
-pretend we're intrigued by the way its ``flex''-style completion
-works. What is ``flex''-style completion, you ask? Well, if you're at
+Starting from the new @REPL{}, let's showcase some of @SLY{}’s features.
+Let’s pretend we want to hack an existing Lisp project, say @SLY{}
+itself, or rather a part of its Lisp server which is called Slynk.
+Let's pretend we're intrigued by the way its ``flex''-style completion
+works.  What is ``flex''-style completion, you ask?  Well, if you're at
 the @REPL{} you can try it now: it's a way of @kbd{TAB}-completing
 (@pxref{Completion}) symbol names based on educated guesses of a few
 letters. Thus if we type @code{mvbind}, @SLY{} guesses that we probably
 meant @code{multiple-value-bind}, and if we type @code{domat} it might
-possibly guess @code{cl-ppcre:do-matches}. Let's dig into the code that
-lets this happen.
+possibly guess @code{cl-ppcre:do-matches}.  Let's dig into the code that
+makes this happen.
 
-Where to start, assuming we know very little about this project? Well, a
-good point to start is always SLY’s @emph{apropos} functionality, which
-is a @code{grep} of sorts, but symbolic rather than purely textual. So
-if we want to hack on @SLY{}'s ``flex-completion'', a reasonable search
-string is probably @code{sly.*flex}. So we type @kbd{C-c C-d C-z} (a
-shortcut for @kbd{M-x sly-apropos-all}) and then type in that search
-string at the prompt, followed by @kbd{enter} or @kbd{return}
-(abbreviated @code{RET} or @kbd{C-m}).
+Where should we start though, if we know very little about this project?
+Well, a good point to start is always the @emph{apropos} functionality,
+which is a @code{grep} of sorts, but symbolic rather than purely
+textual.  So if we want to hack on @SLY{}'s ``flex-completion'', a
+reasonable search string is probably @code{sly.*flex}.  So we
+type @kbd{C-c C-d C-z} (the shortcut for @kbd{M-x sly-apropos-all}) and
+then type in that search string at the prompt, followed by @kbd{enter}
+or @kbd{return} (abbreviated @code{RET} or @kbd{C-m}).
 
 Notice that we’ve just entered a @emph{regular-expression} in
-@SLY{}'s @emph{apropos} prompt, something that regular
-Lisp @emph{apropos} search doesn’t normally allow. @SLY{} does, but
-there's a quirk: it needs access to a regular expression library, so by
-now you may or may not have results in a @code{*sly-apropos*} buffer! If
-you don’t, @SLY{} will advise you to load the (very
-popular) @code{cl-ppcre} regular expression system. Assuming you have
-Quicklisp (you @emph{do} know about Quicklisp, right?) that's a matter
-of typing @code{(ql:quickload :cl-ppcre) RET} in the REPL, waiting some
+@SLY{}'s @emph{apropos} prompt, something that a regular
+Lisp @emph{apropos} search doesn’t allow.  @SLY{} does, but there's a
+quirk: it needs access to a regular expression library, so by now you
+may or may not have results in a @code{*sly-apropos*} buffer!  If you
+don’t, @SLY{} will advise you to load the (very popular) @code{cl-ppcre}
+regular expression system.  Assuming you
+have @uref{https://www.quicklisp.org/beta/,Quicklisp} (you @emph{do}
+know about Quicklisp, right?) that's a matter of
+typing @code{(ql:quickload :cl-ppcre) RET} in the REPL, waiting some
 brief moments, and then trying the @kbd{C-c C-d C-z} apropos search
 again. If everything goes to plan, @SLY{} should now present all Lisp
 symbols that match the @code{sly.*flex} regular expression.
@@ -571,30 +572,40 @@ symbols that match the @code{sly.*flex} regular expression.
 @*@image{images/tutorial-2,350pt}@*
 
 In the @code{apropos} buffer, let’s examine, by right-clicking it, the
-symbol @code{SLY-COMPLETIONS:FLEX-COMPLETIONS}. We’ll be presented
-with a context menu with options for describing the symbol, inspecting
-it, or navigating to its source definition. In general, the Lisp-side
-objects that SLY presents --- symbols, CLOS objects, function calls,
-etc... --- are right-clickable buttons with a such a context menu
+symbol @code{SLY-COMPLETIONS:FLEX-COMPLETIONS}.  We’ll be presented with
+a context menu with options for describing the symbol, inspecting it, or
+navigating to its source definition.  In general, the Lisp-side objects
+that SLY presents --- symbols, CLOS objects, function calls, etc... ---
+are right-clickable buttons with a such a context menu
 (@pxref{Interactive objects}).  For now, let’s navigate to the source
-definition of the symbol by choosing ``Go To source'' from the
-menu. We could also have just pressed @kbd{M-.} on the symbol, of
-course.
+definition of the symbol by choosing ``Go To source'' from the menu.  We
+could also have just pressed @kbd{M-.} on the symbol, of course.
 
 From the Lisp source buffer that we landed on (probably
-@file{sly-completion.lisp}), let’s @emph{trace} the newly found
-function @code{SLY-COMPLETIONS:FLEX-COMPLETIONS}. However, instead of
-using the regular @code{CL:TRACE}, we’ll use @SLY{}’s ``Trace Dialog''
-functionality. So let’s first type @kbd{C-c C-t} on the function’s
-name (or enter that in the minibuffer prompt). Afterwards, we can now
-open the trace dialog in a new window by typing @kbd{C-c T} (that’s a
-capital @code{T}), and we should already see our traced function under
-``Traced specs''. Thirdly, for good measure, let’s also trace the
-nearby function @code{SLY-COMPLETIONS::FLEX-SCORE} by also
-typing @kbd{C-c C-t} on its name, or just entering it in the
-minibuffer prompt.
+@file{sly-completion.lisp}), let’s @emph{trace} the newly found function
+@code{SLY-COMPLETIONS:FLEX-COMPLETIONS}.  However, instead of using the
+regular @code{CL:TRACE}, we’ll use @SLY{}’s Trace Dialog functionality.
+This is how we set it up:
 
-Now let’s return to the REPL by switching to its 
+@enumerate
+
+@item
+first type @kbd{C-c C-t} on the function’s name, or enter that in the
+minibuffer prompt;
+
+@item
+now, open the Trace Dialog in a new window by typing @kbd{C-c T} (that’s
+a capital @code{T}).  We should already see our traced function under
+the heading ``Traced specs'';
+
+@item
+thirdly, for good measure, let’s also trace the nearby
+function @code{SLY-COMPLETIONS::FLEX-SCORE} by also typing @kbd{C-c C-t}
+on its name, or just entering it in the minibuffer prompt.
+
+@end enumerate
+
+Now let’s return to the REPL by switching to its
 @code{*sly-mrepl ...} buffer or typing @kbd{C-c C-z}. In the REPL, let’s try to
 complete some typical Lisp string by typing just @code{desbind} and then
 typing @kbd{TAB}. We should see a window popup including the desired
@@ -604,26 +615,27 @@ but instead let's just type @kbd{C-g} to dismiss
 the @code{*sly-completions*} window, since what we wanted to test
 completion, not write any actual @code{destructuring-bind} expression.
 
-Remember the traced functions? Let’s see if we got any traces: let's
-type @kbd{C-c T} and then capital @kbd{G} in the @code{*sly-traces*}
-buffer. This should produce a fair number of traces organized in a
-call graph.
+Remember the traced functions in the Trace Dialog?  Let’s see if we got
+any traces: let's type @kbd{C-c T} to switch to that buffer, and then
+type capital @kbd{G}. This should produce a fair number of traces
+organized in a call graph.
 
 @*@image{images/tutorial-3,350pt}@*
 
 We can later learn more about this mode (@pxref{Trace Dialog}), but for
 now let’s again pretend we expected the function @code{FLEX-SCORE} to
 return a wildly different score for
-@code{COMMON-LISP:DESTRUCTURING-BIND}.  But if we want to
-witness @code{FLEX-SCORE} respond to any implementation improvements
-later on, we probably want to be able to surgically re-run that function
-with those very same arguments, so that we can witness .  To do this,
-let’s find the function call in the Trace Dialog window, right-click it
-with the mouse and select ``Copy call to REPL''. As an alternative,
-pressing @kbd{M-S-RET} on it also works. When we do this we are
-automatically transported to the REPL again, where the desired function
-call has already been typed out for us at the command prompt, awaiting a
-confirmation @kbd{RET}. The call may look strange, though:
+@code{COMMON-LISP:DESTRUCTURING-BIND}.  In that case we should like to
+witness said @code{FLEX-SCORE} function respond to any implementation
+improvements we perform.  To do so, it's useful to be able to surgically
+re-run that function with those very same arguments.  Let's do this by
+finding the function call in the Trace Dialog window, right-clicking it
+with the mouse and selecting ``Copy call to REPL''.  As an alternative,
+pressing @kbd{M-S-RET} on it also works.  Whichever way we do this, we
+are automatically transported to the REPL again, where the desired
+function call has already been typed out for us at the command prompt,
+awaiting a confirmation @kbd{RET}, which will run the function call.
+The call may look strange, though:
 
 @example
 ; The actual arguments passed to trace 15
@@ -637,14 +649,14 @@ SLYNK-COMPLETION>
 
 @*@image{images/tutorial-4,350pt}@*
 
-So here’s what’s going on: To copy the call to the REPL, @SLY{} first
+So here’s what’s going on: to copy the call to the REPL, @SLY{} first
 copied over its actual arguments, and then wrote the function using
-special @emph{backreferences} to those arguments in the correct
-place. These are the @code{#v4:0} and @code{#v4:1} bits seen at the
-command prompt. Let’s go ahead and put the cursor on them, to see how
-this makes them highlight the corresponding object a few lines above in
-the buffer (later, you can also try typing ``#v'' at the REPL to see
-what happens). Finally, typing @kbd{RET} should run the function call.
+special @emph{backreferences} to those arguments in the correct place.
+These are the @code{#v4:0} and @code{#v4:1} bits seen at the command
+prompt.  Let’s go ahead and put the cursor on them (or hover the mouse).
+See how this makes them highlight the corresponding object a few lines
+above in the buffer?  Later, you can also try typing ``#v'' at the REPL
+to incrementally write your own backreferences.  
 
 For one final demonstration, let’s now suppose say we are still
 intrigued by how that function works internally. So let's navigate to
@@ -668,63 +680,77 @@ INDEXES as calculated by FLEX-MATCHES"
                             collect (- b a 1))))))))
 @end example
 
-Can this function be working correctly? What do all those expressions
-return? Should we reach for good old C-style @code{printf}? Let's try
-``stickers'', which are a form of non-intrusive function
-instrumentation that work like carefully crafted @code{print} or
-@code{(format t ...)}), but are much easier to work with. You can
-later read more about them (@pxref{Stickers}), but for now you can
-just think of them as colorful labels placed on s-exp’s. Let’s place a
-bunch here, like this: on the last line of @code{flex-score}, place
-your cursor on the first open parenthesis of that line (the opening
-parenthesis of the expression @code{(- b a 1)}) and press @kbd{C-c C-s
-C-s}. Now do the same for the symbol @code{indexes} a couple of lines
-above. Again, the same for the expressions @code{(loop...)},
+Can this function be working correctly?  What do all those expressions
+return?  Should we reach for good old C-style @code{printf}?  Let's try
+``stickers'' instead.  SLY's stickers are a form of non-intrusive
+function instrumentation that work like carefully crafted @code{print}
+or @code{(format t ...)}), but are much easier to work with.  You can
+later read more about them (@pxref{Stickers}), but for now you can just
+think of them as colorful labels placed on s-exp’s.  Let’s place a bunch
+here, like this:
+
+@enumerate
+
+@item
+on the last line of @code{flex-score}, place your cursor on the first
+open parenthesis of that line (the opening parenthesis of the expression
+@code{(- b a 1)}) and press @kbd{C-c C-s C-s};
+
+@item
+now do the same for the symbol @code{indexes} a couple of lines above; 
+
+@item
+again, the same for the expressions @code{(loop...)},
 @code{(reduce...)}, @code{(max...)}, @code{(length...)},
-@code{(*...)}, @code{(/... )} and
-@code{(float...)} (You could have done this in any order, by the way).
-Now let’s recompile this definition with @kbd{C-c C-c}. Beside the
+@code{(*...)}, @code{(/... )} and @code{(float...)}.  You could have
+done this in any order, by the way;
+
+@end enumerate
+
+Now let’s recompile this definition with @kbd{C-c C-c}.  Beside the
 minibuffer note something about stickers being ``armed'' our function
 should now look like a rainbow in blue.
 
 @*@image{images/tutorial-5,350pt}@*
 
 Now we return to the @SLY{} REPL, but this time let’s use @kbd{C-c ~}
-(that’s @kbd{C-c} followed by ``tilde'') to do so. This syncs the REPL’s
-local package and local directory to the Lisp file that we’re
-visiting. This is something not strictly necessary here but generally
-convenient when hacking on a system, since you can call functions from
-the file you came from without package-qualification. Now, to re-run
-newly the instrumented function, by calling it with the same
-arguments. But no need to type all that again, because this REPL
+(that’s @kbd{C-c} followed by ``tilde'') to do so.  This syncs the
+REPL’s local package and local directory to the Lisp file that we’re
+visiting.  This is something not strictly necessary here but generally
+convenient when hacking on a system, becasue you can now call functions
+from the file you came from without package-qualification.
+
+Now, to re-run newly the instrumented function, by calling it with the
+same arguments.  No need to type all that again, because this REPL
 supports reverse history i-search, remember?  So just type the
 binding @kbd{C-r} and then type something like @kbd{scor} to search
 history backwards and arrive at the function call copied to the REPL
-earlier. Type @kbd{RET} once to confirm that call, and @kbd{RET} again
-to evaluate it. Because those @code{#v...}  backreferences are still
-trained specifically on those very same function arguments, you can be
-sure that the function call is equivalent.
+earlier.  Type @kbd{RET} once to confirm that's the call your after,
+and @kbd{RET} again to evaluate it.  Because those @code{#v...}
+backreferences are still trained specifically on those very same
+function arguments, you can be sure that the function call is
+equivalent.
 
 We can now use the @kbd{C-c C-s C-r} to @emph{replay}n the sticker
-recordings of this last function call. This is a kind of slow
+recordings of this last function call.  This is a kind of slow
 walk-through conducted in separate navigation window
-called @code{*sly-stickers-replay*} which pops up. There we can see
-the Lisp value(s) that each sticker @code{eval}’ed to each time (or a
-note if it exited non-locally). We can navigate recordings
-with @kbd{n} and @kbd{p}, and do the usual things allowed by
-interactive objects like inspecting them and returning them to the
-REPL. If you need help, toggle help by typing @kbd{h}. There are lots
-of options here for navigating stickers, ignoring some stickers,
-etc. When we’re done in this window, we press @kbd{q} to quit.
+called @code{*sly-stickers-replay*} which pops up.  There we can see the
+Lisp value(s) that each sticker @code{eval}’ed to each time (or a note
+if it exited non-locally).  We can navigate recordings with @kbd{n} and
+@kbd{p}, and do the usual things allowed by interactive objects like
+inspecting them and returning them to the REPL. If you need help, toggle
+help by typing @kbd{h}.  There are lots of options here for navigating
+stickers, ignoring some stickers, etc.  When we’re done in this window,
+we press @kbd{q} to quit.
 
 @*@image{images/tutorial-6,350pt}@*
 
-Finally, we declare that we’re finished debugging
-@code{FLEX-MATCHES}. Even though stickers don’t get saved to the file
-in any way, we decide we’re not interested in them anymore. So let’s
-open the ``SLY'' menu in the menu bar, find the ``Delete stickers from
-top-level form'' option under the ``Stickers'' sub-menu, and click
-it. Alternatively, we could have typed @kbd{C-u C-c C-s C-s}.
+Finally, we declare that we’re finished debugging @code{FLEX-MATCHES}.
+Even though stickers don’t get saved to the file in any way, we decide
+we’re not interested in them anymore.  So let’s open the ``SLY'' menu in
+the menu bar, find the ``Delete stickers from top-level form'' option
+under the ``Stickers'' sub-menu, and click it.  Alternatively, we could
+have typed @kbd{C-u C-c C-s C-s}.
 
 @node Working with source files
 @chapter Working with source files
