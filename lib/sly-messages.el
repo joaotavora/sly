@@ -67,6 +67,9 @@ SIT-FOR is has the semantincs of `minibuffer-message-timeout', which see."
 (defun sly-error (format-string &rest args)
   (apply #'error (format "[sly] %s" format-string) args))
 
+(defun sly-user-error (format-string &rest args)
+  (apply #'user-error (format "[sly] %s" format-string) args))
+
 (defun sly-display-oneliner (format-string &rest format-args)
   (let* ((msg (apply #'format format-string format-args)))
     (unless (minibuffer-window-active-p (minibuffer-window))

@@ -889,6 +889,9 @@ arglist for the most recently enclosed macro or function."
   (interactive "p")
   (sly-mrepl-previous-input-or-button (- n)))
 
+(put 'sly-mrepl-next-input-or-button 'sly-button-navigation-command t)
+(put 'sly-mrepl-previous-input-or-button 'sly-button-navigation-command t)
+
 (defun sly-mrepl (&optional display-action)
   "Find or create the first useful REPL for the default connection.
 If supplied, DISPLAY-ACTION is called on the
@@ -936,7 +939,7 @@ handle to distinguish the new buffer from the existing."
   (let* ((name (sly-mrepl--buffer-name connection handle))
          (existing (get-buffer name)))
     (when (and handle existing)
-      (sly-error "A REPL with that handle already exists"))
+      (sly-user-error "A REPL with that handle already exists"))
     ;; Take this oportunity to save any other REPL histories so that
     ;; the new REPL will see them.
     (sly-mrepl--save-all-histories)
@@ -996,7 +999,7 @@ handle to distinguish the new buffer from the existing."
            (insert (sly-trim-whitespace new-input))
            (goto-char (+ (sly-mrepl--mark) offset)))
           (t
-           (sly-error "No input at point")))))
+           (sly-user-error "No input at point")))))
 
 (defun sly-mrepl-guess-package (&optional point interactive)
   (interactive (list (point) t))

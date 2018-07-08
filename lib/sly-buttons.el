@@ -223,12 +223,8 @@
 (defun sly-button--searchable-buttons-starting-at (&optional point filter)
   (let ((point (or point (point))))
     (cl-remove-if-not #'(lambda (button)
-                        (= (button-start button) point))
+                          (= (button-start button) point))
                       (sly-button--searchable-buttons-at point filter))))
-
-
-
-(defvar sly-button--last-search-command nil)
 
 (defun sly-button--search-1 (n filter)
   (cl-loop with off-by-one = (if (cl-plusp n) -1 +1)
@@ -259,6 +255,10 @@
                      (eq pos (button-start (car buttons))))
            return buttons))
 
+
+(put 'sly-button-forward 'sly-button-navigation-command t)
+(put 'sly-button-backward 'sly-button-navigation-command t)
+
 (defun sly-button-search (n &optional filter)
   "Go forward to Nth buttons verifying FILTER and echo it.
 
@@ -270,13 +270,13 @@ starting before is visited first. If more than one button start
 at exactly the same spot, they are both visited simultaneously,
 `sly-button-echo' being passed a variable number of button arguments."
   (cl-loop for i from 0 below (abs n)
-           for buttons = (or (and (not (eq this-command sly-button--last-search-command))
-                                  (sly-button--searchable-buttons-starting-at (point)))
-                             (sly-button--search-1 n filter))
+           for buttons =
+           (or (and (not (get last-command 'sly-button-navigation-command))
+                    (sly-button--searchable-buttons-starting-at (point) filter))
+               (sly-button--search-1 n filter))
            for button = (car buttons)
            while buttons
            finally
-           (setq sly-button--last-search-command this-command)
            (cond (buttons
                   (goto-char (button-start (car buttons)))
                   (apply (button-get button 'sly-button-echo)
@@ -286,7 +286,7 @@ at exactly the same spot, they are both visited simultaneously,
                               (= (button-start b) (button-start button)))
                           (cdr buttons))))
                  (t
-                  (sly-error "No more buttons!")))))
+                  (sly-user-error "No more buttons!")))))
 
 (defvar sly-button-filter-function #'identity
   "Filter buttons considered by `sly-button-forward'

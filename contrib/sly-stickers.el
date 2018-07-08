@@ -517,6 +517,9 @@ render the underlying text unreadable."
   (interactive "p")
   (sly-button-search (- n) 'sly-stickers--sticker-id))
 
+(put 'sly-stickers-next-sticker 'sly-button-navigation-command t)
+(put 'sly-stickers-prev-sticker 'sly-button-navigation-command t)
+
 (defun sly-stickers-clear-defun-stickers ()
   "Clear all stickers in the current top-level form."
   (interactive)
@@ -553,7 +556,7 @@ render the underlying text unreadable."
         (sly-message "Deleted sticker %s"
                      (sly-stickers--briefly-describe-sticker (car stickers)))))
      (t
-      (sly-error "No stickers at point")))))
+      (sly-user-error "No stickers at point")))))
 
 (defun sly-stickers-maybe-add-sticker (&optional point)
   "Add of remove a sticker at POINT.
