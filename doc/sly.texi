@@ -1994,7 +1994,7 @@ restores to a known program state. For errors in other threads,
 @kbditem{c, sly-db-continue}
 Invoke the @code{CONTINUE} restart.
 
-@item 0 ... 9
+@kbditem{0 ... 9, sly-db-invoke-restart-n}
 Invoke a restart by number.
 @end table
 
