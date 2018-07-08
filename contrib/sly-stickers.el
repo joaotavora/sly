@@ -553,7 +553,7 @@ render the underlying text unreadable."
         (sly-message "Deleted sticker %s"
                      (sly-stickers--briefly-describe-sticker (car stickers)))))
      (t
-      (sly-error "No stickers at point")))))
+      (sly-user-error "No stickers at point")))))
 
 (defun sly-stickers-maybe-add-sticker (&optional point)
   "Add of remove a sticker at POINT.

@@ -286,7 +286,7 @@ at exactly the same spot, they are both visited simultaneously,
                               (= (button-start b) (button-start button)))
                           (cdr buttons))))
                  (t
-                  (sly-error "No more buttons!")))))
+                  (sly-user-error "No more buttons!")))))
 
 (defvar sly-button-filter-function #'identity
   "Filter buttons considered by `sly-button-forward'
