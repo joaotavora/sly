@@ -517,6 +517,9 @@ render the underlying text unreadable."
   (interactive "p")
   (sly-button-search (- n) 'sly-stickers--sticker-id))
 
+(put 'sly-stickers-next-sticker 'sly-button-navigation-command t)
+(put 'sly-stickers-prev-sticker 'sly-button-navigation-command t)
+
 (defun sly-stickers-clear-defun-stickers ()
   "Clear all stickers in the current top-level form."
   (interactive)

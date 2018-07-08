@@ -3704,8 +3704,10 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
   (eq (button-type button) 'sly-in-buffer-note))
 
 (defalias 'sly-next-note 'sly-button-forward)
-
 (defalias 'sly-previous-note 'sly-button-backward)
+
+(put 'sly-next-note 'sly-button-navigation-command t)
+(put 'sly-previous-note 'sly-button-navigation-command t)
 
 (defun sly-goto-first-note (_successp notes _buffer _loadp)
   "Go to the first note in the buffer."
