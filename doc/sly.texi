@@ -1954,7 +1954,7 @@ Commands for examining the stack frame at point.
 @kbditem{t, sly-db-toggle-details}
 Toggle display of local variables and @code{CATCH} tags.
 
-@kbditem{v, sly-db-show-source}
+@kbditem{v, sly-db-show-frame-source}
 View the frame's current source expression. The expression is
 presented in the Lisp source file's buffer.
 
