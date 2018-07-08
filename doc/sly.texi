@@ -1962,8 +1962,8 @@ Invoke the @code{ABORT} restart.
 @anchor{sly-db-quit}
 @kbditem{q, sly-db-quit}
 ``Quit'' -- For @SLY{} evaluation requests, invoke a restart which
-restores to a known program state. For errors in other threads, see
-@ref{SLYNK:*SLY-DB-QUIT-RESTART*}.
+restores to a known program state. For errors in other threads,
+@xref{*SLY-DB-QUIT-RESTART*}.
 
 @kbditem{c, sly-db-continue}
 Invoke the @code{CONTINUE} restart.
@@ -2597,7 +2597,7 @@ globally set to @code{SLYNK:SLYNK-DEBUGGER-HOOK} and thus for @SLY{}
 to handle all debugging in the Lisp image. This is for debugging
 multithreaded and callback-driven applications.
 
-@anchor{SLYNK:*SLY-DB-QUIT-RESTART*}
+@anchor{*SLY-DB-QUIT-RESTART*}
 @item SLYNK:*SLY-DB-QUIT-RESTART*
 This variable names the restart that is invoked when pressing @kbd{q}
 (@pxref{sly-db-quit}) in @SLY-DB{}. For @SLY{} evaluation requests this
