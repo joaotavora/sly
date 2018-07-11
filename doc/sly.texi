@@ -2632,12 +2632,12 @@ the pretty printer for formatting backtraces in @SLY-DB{}, you can use:
 @end example
 
 The fact that most @SLY{} output (in the @REPL{} for instance,
-@xref{REPL}) uses @code{SLYNK:*SLYNK-PPRINT-BINDINGS*} may surprise
-you if you expected it to use a global setting for, say,
-@code{*PRINT-LENGTH*}. Because output is a very basic feature of
-@SLY{} and it should keep operating normally even if you (mistakenly)
-set absurd values for some variable. But you can override this
-protection, of course:
+@pxref{REPL}) uses @code{SLYNK:*SLYNK-PPRINT-BINDINGS*} may surprise you
+if you expected it to use a global setting for, say,
+@code{*PRINT-LENGTH*}.  The rationale for this decision is that output
+is a very basic feature of @SLY{}, and it should keep operating normally
+even if you (mistakenly) set absurd values for some @code{*PRINT-...*}
+variable.  You, of course, override this protection:
 
 @example
 (setq slynk:*slynk-pprint-bindings*
@@ -2648,16 +2648,18 @@ protection, of course:
 @item SLYNK:*ECHO-NUMBER-ALIST*
 @itemx SLYNK:*PRESENT-NUMBER-ALIST*
 These variables hold function designators used for displaying numbers
-in certain contexts of SLY client.
+when SLY presents them in its interface.
 
-The difference between the two is that @code{*PRESENT-NUMBER-ALIST*}
-overrides @code{*ECHO-NUMBER-ALIST*} for the
-@pxref{REPL}, @pxref{Trace Dialog} and @pxref{Stickers} context, while
-the latter is always used for @pxref{Evaluation} commands
-like @kbd{C-x C-e}
+The difference between the two functions is that
+@code{*PRESENT-NUMBER-ALIST*}, if non-nil,
+overrides @code{*ECHO-NUMBER-ALIST*} in the context of the @REPL, Trace
+Dialog and Stickers (@xref{REPL}, @xref{Trace Dialog},
+@pxref{Stickers}), while the latter is used for commands like @kbd{C-x
+C-e} or the inspector (@ref{Evaluation}, @pxref{Inspector}).  If in
+doubt, use @code{*ECHO-NUMBER-ALIST*}.
 
 Both variables have the same structure: each element in the alist
-takes the form (TYPE . FUNCTIONS), where TYPE is a type designator and
+takes the form @var{(TYPE . FUNCTIONS)}, where TYPE is a type designator and
 FUNCTIONS is a list of function designators for displaying that number
 in SLY. Each function takes the number as a single argument and
 returns a string, or nil, if that particular representation is to be
