@@ -2653,15 +2653,16 @@ when SLY presents them in its interface.
 The difference between the two functions is that
 @code{*PRESENT-NUMBER-ALIST*}, if non-nil,
 overrides @code{*ECHO-NUMBER-ALIST*} in the context of the @REPL, Trace
-Dialog and Stickers (@xref{REPL}, @xref{Trace Dialog},
-@pxref{Stickers}), while the latter is used for commands like @kbd{C-x
-C-e} or the inspector (@ref{Evaluation}, @pxref{Inspector}).  If in
-doubt, use @code{*ECHO-NUMBER-ALIST*}.
+Dialog and Stickers (see @ref{REPL}, @ref{Trace Dialog} and
+@ref{Stickers}), while the latter is used for commands like @kbd{C-x
+C-e} or the inspector (see @ref{Evaluation}, @ref{Inspector}).
 
-Both variables have the same structure: each element in the alist
-takes the form @var{(TYPE . FUNCTIONS)}, where TYPE is a type designator and
-FUNCTIONS is a list of function designators for displaying that number
-in SLY. Each function takes the number as a single argument and
+If in doubt, use @code{*ECHO-NUMBER-ALIST*}.
+
+Both variables have the same structure: each element in the alistn takes
+the form @var{(TYPE . FUNCTIONS)}, where @var{TYPE is a type designator
+and @var{FUNCTIONS} is a list of function designators for displaying that
+number in SLY. Each function takes the number as a single argument and
 returns a string, or nil, if that particular representation is to be
 disregarded.
 
