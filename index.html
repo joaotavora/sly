@@ -4121,31 +4121,32 @@ when SLY presents them in its interface.
 <p>The difference between the two functions is that
 <code>*PRESENT-NUMBER-ALIST*</code>, if non-nil,
 overrides <code>*ECHO-NUMBER-ALIST*</code> in the context of the @REPL, Trace
-Dialog and Stickers (See section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>, See section <a href="#Trace-Dialog">Trace Dialog</a>,
-see section <a href="#Stickers">Stickers</a>), while the latter is used for commands like <kbd>C-x
-C-e</kbd> or the inspector (<a href="#Evaluation">Evaluating code</a>, see section <a href="#Inspector">The Inspector</a>).  If in
-doubt, use <code>*ECHO-NUMBER-ALIST*</code>.
+Dialog and Stickers (see <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>, <a href="#Trace-Dialog">Trace Dialog</a> and
+<a href="#Stickers">Stickers</a>), while the latter is used for commands like <kbd>C-x
+C-e</kbd> or the inspector (see <a href="#Evaluation">Evaluating code</a>, <a href="#Inspector">The Inspector</a>).
 </p>
-<p>Both variables have the same structure: each element in the alist
-takes the form <var>(TYPE . FUNCTIONS)</var>, where TYPE is a type designator and
-FUNCTIONS is a list of function designators for displaying that number
-in SLY. Each function takes the number as a single argument and
+<p>If in doubt, use <code>*ECHO-NUMBER-ALIST*</code>.
+</p>
+<p>Both variables have the same structure: each element in the alistn takes
+the form <var>(TYPE . FUNCTIONS)</var>, where <var>TYPE is a type designator
+and <var>FUNCTIONS</var> is a list of function designators for displaying that
+number in SLY. Each function takes the number as a single argument and
 returns a string, or nil, if that particular representation is to be
 disregarded.
-</p>
-<p>Additionally if a given function chooses to return <code>t</code> as its
+</var></p>
+<p><var>Additionally if a given function chooses to return <code>t</code> as its
 optional second value, then all the remaining functions following it
 in the list are disregarded.
-</p>
-<p>For integer numbers, the default value of this variable holds function
+</var></p>
+<p><var>For integer numbers, the default value of this variable holds function
 designators that echo an integer number in its binary, hexadecimal and
 octal representation. However, if your application is using integers
 to represent
 <a href="https://en.wikipedia.org/wiki/Unix_time">Unix Epoch Times</a> you
 can use this function to display a human-readable time
 whenever you evaluate an integer.
-</p>
-<table><tr><td>&nbsp;</td><td><pre class="example">(defparameter *day-names* '(&quot;Monday&quot; &quot;Tuesday&quot; &quot;Wednesday&quot;
+</var></p>
+<table><tr><td>&nbsp;</td><td><pre class="example"><var>(defparameter *day-names* '(&quot;Monday&quot; &quot;Tuesday&quot; &quot;Wednesday&quot;
                             &quot;Thursday&quot; &quot;Friday&quot; &quot;Saturday&quot;
                             &quot;Sunday&quot;))
 
@@ -4170,25 +4171,25 @@ whenever you evaluate an integer.
 
 42 ; =&gt; 42 (6 bits, #x2A, #o52, #b101010)
 1451404675 ; =&gt; 1451404675 (15:57:55 on Tuesday, 12/29/2015 (GMT+0), 31 bits, #x5682AD83)
-</pre></td></tr></table>
+</var></pre></td></tr></table>
 
 </dd>
 <dt> <code>SLYNK:*EXCLUDE-SYMBOL-FUNCTIONS*</code></dt>
-<dd><p>This variable holds a list of functions used for excluding certain
+<dd><p><var>This variable holds a list of functions used for excluding certain
 symbols from functionality like \&quot;apropos\&quot;&quot; listings (see
 see section <a href="#Documentation">Documentation commands</a>) or see section <a href="#Completion">Auto-completion</a> listings. By default, it
 contains a single function that excludes symbols with names so long
 and contorted they wouldn&rsquo;t fit properly in the completions window.
-</p>
+</var></p>
 </dd>
 <dt> <code>SLYNK:*LOG-EVENTS*</code></dt>
-<dd><p>Setting this variable to <code>t</code> causes all protocol messages
+<dd><p><var>Setting this variable to <code>t</code> causes all protocol messages
 exchanged with Emacs to be printed to <code>*TERMINAL-IO*</code>. This is
 useful for low-level debugging and for observing how <acronym>SLY</acronym> works
 &ldquo;on the wire.&rdquo; The output of <code>*TERMINAL-IO*</code> can be found in
 your Lisp system&rsquo;s own listener, usually in the buffer
 <code>*inferior-lisp*</code>.
-</p>
+</var></p>
 </dd>
 </dl>
 
@@ -4934,15 +4935,15 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-_003e-1"><code>&gt;</code></a></td><td valign="top"><a href="#Frame-Navigation">6.3.3 Navigating between frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-A">A</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-A"><code>A</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-a"><code>a</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-A"><code>A</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-B">B</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-B"><code>B</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-C">C</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-c"><code>c</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C"><code>C</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-c"><code>c</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003a"><code>C-c :</code></a></td><td valign="top"><a href="#Evaluation">4.1 Evaluating code</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003c"><code>C-c &lt;</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003e"><code>C-c &gt;</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
@@ -5016,8 +5017,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-e-1"><code>e</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-G">G</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-1"><code>g</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-2"><code>g</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
@@ -5058,8 +5059,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-q-3"><code>q</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-R">R</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-r"><code>r</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-R"><code>R</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-r"><code>r</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-R-1"><code>R</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET"><code>RET</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET-1"><code>RET</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
@@ -5073,8 +5074,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-T">T</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-t"><code>t</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">5.3 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB"><code>TAB</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">5.3 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB-1"><code>TAB</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-V">V</a></th><td></td><td></td></tr>
