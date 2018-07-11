@@ -59,11 +59,11 @@
    (insert "(values (list 1 2 3) #(1 2 3))")
    (sly-mrepl-return)
    (sly-mrepl-tests--assert-prompt)
-   (call-interactively 'sly-button-backward)
-   (call-interactively 'sly-button-backward)
+   (ert-simulate-command '(sly-button-backward 1))
+   (ert-simulate-command '(sly-button-backward 1))
    (should-error
-    (call-interactively 'sly-button-backward))
-   (call-interactively 'sly-button-forward)))
+    (ert-simulate-command '(sly-button-backward 1)))
+   (ert-simulate-command '(sly-button-forward 1))))
 
 (when (>= emacs-major-version 25)
   (define-sly-ert-test repl-completion-pop-up-window ()
