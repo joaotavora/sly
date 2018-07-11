@@ -5,7 +5,7 @@ Távora for SLY.
 
 This file has been placed in the public domain.
  -->
-<!-- Created on April 12, 2018 by texi2html 1.82
+<!-- Created on July 11, 2018 by texi2html 1.82
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -80,7 +80,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 <h1 class="settitle">SLY</h1>
 
 <p><acronym>SLY</acronym> is a Common Lisp IDE for Emacs. This is the manual for version
-1.0.0-beta-2. (Last updated April 12, 2018)
+1.0.0-beta-2. (Last updated July 11, 2018)
 </p>
 <p>Written for SLIME Luke Gorrie and others, rewritten by João
 Távora for SLY.
@@ -4100,12 +4100,12 @@ the pretty printer for formatting backtraces in <acronym>SLY-DB</acronym>, you c
 </pre></td></tr></table>
 
 <p>The fact that most <acronym>SLY</acronym> output (in the <acronym>REPL</acronym> for instance,
-See section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>) uses <code>SLYNK:*SLYNK-PPRINT-BINDINGS*</code> may surprise
-you if you expected it to use a global setting for, say,
-<code>*PRINT-LENGTH*</code>. Because output is a very basic feature of
-<acronym>SLY</acronym> and it should keep operating normally even if you (mistakenly)
-set absurd values for some variable. But you can override this
-protection, of course:
+see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>) uses <code>SLYNK:*SLYNK-PPRINT-BINDINGS*</code> may surprise you
+if you expected it to use a global setting for, say,
+<code>*PRINT-LENGTH*</code>.  The rationale for this decision is that output
+is a very basic feature of <acronym>SLY</acronym>, and it should keep operating normally
+even if you (mistakenly) set absurd values for some <code>*PRINT-...*</code>
+variable.  You, of course, override this protection:
 </p>
 <table><tr><td>&nbsp;</td><td><pre class="example">(setq slynk:*slynk-pprint-bindings*
       (delete '*print-length*
@@ -4116,16 +4116,18 @@ protection, of course:
 <dt> <code>SLYNK:*ECHO-NUMBER-ALIST*</code></dt>
 <dt> <code>SLYNK:*PRESENT-NUMBER-ALIST*</code></dt>
 <dd><p>These variables hold function designators used for displaying numbers
-in certain contexts of SLY client.
+when SLY presents them in its interface.
 </p>
-<p>The difference between the two is that <code>*PRESENT-NUMBER-ALIST*</code>
-overrides <code>*ECHO-NUMBER-ALIST*</code> for the
-see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>, see section <a href="#Trace-Dialog">Trace Dialog</a> and see section <a href="#Stickers">Stickers</a> context, while
-the latter is always used for see section <a href="#Evaluation">Evaluating code</a> commands
-like <kbd>C-x C-e</kbd>
+<p>The difference between the two functions is that
+<code>*PRESENT-NUMBER-ALIST*</code>, if non-nil,
+overrides <code>*ECHO-NUMBER-ALIST*</code> in the context of the @REPL, Trace
+Dialog and Stickers (See section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>, See section <a href="#Trace-Dialog">Trace Dialog</a>,
+see section <a href="#Stickers">Stickers</a>), while the latter is used for commands like <kbd>C-x
+C-e</kbd> or the inspector (<a href="#Evaluation">Evaluating code</a>, see section <a href="#Inspector">The Inspector</a>).  If in
+doubt, use <code>*ECHO-NUMBER-ALIST*</code>.
 </p>
 <p>Both variables have the same structure: each element in the alist
-takes the form (TYPE . FUNCTIONS), where TYPE is a type designator and
+takes the form <var>(TYPE . FUNCTIONS)</var>, where TYPE is a type designator and
 FUNCTIONS is a list of function designators for displaying that number
 in SLY. Each function takes the number as a single argument and
 returns a string, or nil, if that particular representation is to be
@@ -4939,8 +4941,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-B"><code>B</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-C">C</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C"><code>C</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-c"><code>c</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C"><code>C</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003a"><code>C-c :</code></a></td><td valign="top"><a href="#Evaluation">4.1 Evaluating code</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003c"><code>C-c &lt;</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003e"><code>C-c &gt;</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
@@ -5014,8 +5016,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-e-1"><code>e</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-G">G</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-1"><code>g</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-2"><code>g</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
@@ -5056,8 +5058,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-q-3"><code>q</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-R">R</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-R"><code>R</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-r"><code>r</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-R"><code>R</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-R-1"><code>R</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.5 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET"><code>RET</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET-1"><code>RET</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
@@ -5583,7 +5585,7 @@ using that port number instead
 </tr></table>
 <h1>About This Document</h1>
 <p>
-  This document was generated by <em>Joao Tavora</em> on <em>April 12, 2018</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao Tavora</em> on <em>July 11, 2018</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -5685,7 +5687,7 @@ using that port number instead
 <hr size="1">
 <p>
  <font size="-1">
-  This document was generated by <em>Joao Tavora</em> on <em>April 12, 2018</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao Tavora</em> on <em>July 11, 2018</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
  </font>
  <br>
 
