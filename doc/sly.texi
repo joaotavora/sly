@@ -244,45 +244,48 @@ More contribs
 @node Introduction
 @chapter Introduction
 
-@SLY{} is Sylvester the Cat's Common Lisp IDE. It extends Emacs with
+@SLY{} is Sylvester the Cat's Common Lisp IDE.  It extends Emacs with
 support for interactive programming in Common Lisp.
 
 The features are centered around an Emacs minor-mode called
-@code{sly-mode}. It complements the standard major-mode
-@code{lisp-mode}. While
-@code{lisp-mode} supports editing Lisp source files, @code{sly-mode}
+@code{sly-mode}, which complements the standard major-mode
+@code{lisp-mode} for editing Lisp source files.  @code{sly-mode}
 adds support for interacting with a running Common Lisp process for
 compilation, debugging, documentation lookup, and so on.
 
 @SLY{} attempts to follow the example of Emacs's own native Emacs-Lisp
-environment. Many of the keybindings and interface concepts used to
+environment.  Many of the keybindings and interface concepts used to
 interact with Emacs's Elisp machine are reused in @SLY{} to interact
-with the underlying Common Lisp processes, and request from these
-processes that they compile files, code snippets and introspection
-information about objects in the Lisp run-time.
+with the underlying Common Lisp run-times.  Emacs makes requests to
+these processes, asking them to compile files or code snippets; deliver
+introspection information various objects; or invoke commands or
+debugging restarts.
 
-Internally, @SLY{}'s user-interface, which is written in Emacs Lisp,
-is connected via sockets to one or more instances of a server program
-called ``Slynk'' that is running in the Lisp processes.
+Internally, @SLY{}'s user-interface, written in Emacs Lisp, is connected
+via sockets to one or more instances of a server program called
+``Slynk'' that is running in the Lisp processes.
 
-Emacs makes requests to this server using an @acronym{RPC}-like
-protocol. The Lisp-side server is primarily written in portable Common
-Lisp but some needed non-standard functionality is provided
+The two sides communicate using a Remote Procedure Call (@acronym{RPC})
+protocol.  The Lisp-side server is primarily written in portable Common
+Lisp.  However, because some non-standard functionality is provided
 differently by each Lisp implementation (SBCL, CMUCL, Allegro, etc...)
-using a well-defined interface. Each Lisp implementation provides a
-separate implementation, making @SLY{} readily portable.
+the Lisp-side server is again split into two parts -- portable and
+non-portable implementation -- which communicate using a well-defined
+interface.  Each Lisp implementation provides a separate implementation
+of that interface, making @SLY{} as a whole readily portable.
 
-@SLY{} is a direct fork of @acronym{SLIME}, the Superior Lisp
-Interaction Mode for Emacs, itself based on previous modes such
-as @acronym{SLIM} and @acronym{ILISP}. If you already know
-@acronym{SLIME}, @SLY{}'s closeness to is immediately
-apparent. However, where @acronym{SLIME} has traditionally focused on
-the stability of its core functionality, @SLY{} aims for a richer
-feature set brought together by a consistent user interface.
+@SLY{} is a direct fork of @acronym{SLIME}, the ``Superior Lisp
+Interaction Mode for Emacs'', which itself derived from previous Emacs
+programs such as @acronym{SLIM} and @acronym{ILISP}.  If you already
+know @acronym{SLIME}, @SLY{}'s closeness to is immediately apparent.
+However, where @acronym{SLIME} has traditionally focused on the
+stability of its core functionality, @SLY{} aims for a richer feature
+set, a more consistent user interface, and an experience generally
+closer to Emacs' own.
 
 To understand the differences between the two projects read
 @SLY{}'s @uref{https://github.com/joaotavora/sly/blob/master/NEWS.md,,NEWS.md}
-file. For a hand-on approach to these differences you might want to
+file.  For a hand-on approach to these differences you might want to
 @ref{A SLY tour for SLIME users}.
 
 @node Getting started
