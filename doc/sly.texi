@@ -378,8 +378,8 @@ suitable Lisp executable in your @code{PATH} environment variable.
 
 Otherwise, you need to tell it where a Lisp program can be found, so
 customize the variable @code{inferior-lisp-program} (@pxref{Defcustom
-variables}) or add a line like this one to your Emacs initialization
-file (@file{$HOME/.emacs} or @file{$HOME/.emacs.d/init.el})
+variables}) or add a line like this one to your @file{~/.emacs}
+or @file{~/.emacs.d/init.el} (@pxref{Emacs Init File}).
 
 @example
 (setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
@@ -428,12 +428,13 @@ important functionality.
 
 Emacs-side customization is usually done via Emacs-lisp code snippets
 added to the user’s initialization file, usually @file{$HOME/.emacs} or
-@file{$HOME/.emacs.d/init.el}. 90% of Emacs-lisp customization happens
-in either ``keymaps'' or ``hooks'' (@pxref{Emacs-side}). Still on the
-Emacs side, there is also a separate interface, appropriately
-called @code{customize} (or sometimes just @code{custom}), that uses a
-nicer UI with mouse-clickable buttons to set some special
-variables. See @xref{Defcustom variables}.
+@file{$HOME/.emacs.d/init.el} (@pxref{Emacs Init File}).
+
+90% of Emacs-lisp customization happens in either ``keymaps'' or
+``hooks'' (@pxref{Emacs-side}). Still on the Emacs side, there is also a
+separate interface, appropriately called @code{customize} (or sometimes
+just @code{custom}), that uses a nicer UI with mouse-clickable buttons
+to set some special variables. See @xref{Defcustom variables}.
 
 Lisp-side customization is done exclusively via Common Lisp code
 snippets added to the user’s @file{$HOME/.slynkrc}
@@ -461,9 +462,8 @@ Emacs prompts for the program which should be started instead.
 
 If you need to do this frequently or if the command involves long
 filenames it's more convenient to set
-the @code{sly-lisp-implementations} variable in your initialization
-file, usually @file{.emacs} or @file{~/.emacs.d/init.el}.  For example
-here we define two programs:
+the @code{sly-lisp-implementations} variable in your initialization file
+(@pxref{Emacs Init File}).  For example here we define two programs:
 
 @lisp
 (setq sly-lisp-implementations
@@ -2307,7 +2307,10 @@ Shows you the literal sequence of keys you've pressed in order.
 
 @end table
 
-For example, you can add one of the following to your init file:
+@anchor{Emacs Init File}
+For example, you can add one of the following to your Emacs init file
+(usually @file{~/.emacs} or @file{~/.emacs.d/init.el}, but @pxref{Init
+File,Init File, Emacs Init File, emacs, The Emacs Manual}).
 
 @example
 (eval-after-load 'sly
@@ -2324,20 +2327,6 @@ output, for example, use
    `(define-key sly-mrepl-mode-map (kbd "C-c C-k")
                 'sly-mrepl-clear-recent-output))
 @end example
-
-@emph{Minor note:} In this manual the designation @kbd{C-h} is a
-@dfn{canonical key} which might actually mean Ctrl-h, or F1, or
-whatever you have @code{help-command} bound to in your
-@code{.emacs}. Here is a common situation for some users that like to
-use @code{C-h} for deleting backwards:
-
-@example
-(global-set-key [f1]   'help-command)
-(global-set-key "\C-h" 'delete-backward-char)
-@end example
-
-@noindent In this situation everywhere you see @kbd{C-h} in this
-manual you would substitute @kbd{F1}.
 
 @node Keymaps
 @subsection Keymaps
@@ -2568,7 +2557,7 @@ capabilities of your Lisp system. The general order of preference is
 @code{NIL} as a last resort. You can check the default style by
 calling @code{SLYNK-BACKEND::PREFERRED-COMMUNICATION-STYLE}. You can
 also override the default by setting
-@code{SLYNK:*COMMUNICATION-STYLE*} in your Slynk init file.
+@code{SLYNK:*COMMUNICATION-STYLE*} in your Slynk init file (@pxref{Lisp-side customization}).
 
 @node Other configurables
 @subsection Other configurables
@@ -2876,11 +2865,12 @@ shell$ sbcl
 * (save-lisp-and-die "sbcl.core-for-sly")
 @end example
 
-After that, add something like this to your @file{.emacs}:
+After that, add something like this to your @file{~/.emacs} or
+@file{~/.emacs.d/init.el} (@pxref{Emacs Init File}):
 
 @lisp
-(setq sly-lisp-implementations
-      '((sbcl ("sbcl" "--core" "sbcl.core-for-sly"))))
+(setq sly-lisp-implementations '((sbcl ("sbcl" "--core"
+      "sbcl.core-for-sly"))))
 @end lisp
 
 For maximum startup speed you can include the Slynk server directly in
@@ -2895,7 +2885,7 @@ shell$ sbcl
 @end example
 
 @noindent
-Then add this to your @file{.emacs}:
+Then add this to the Emacs initializion file:
 
 @anchor{init-example}
 @lisp
@@ -2909,7 +2899,8 @@ Then add this to your @file{.emacs}:
 @section Connecting to SLY automatically
 
 To make @SLY{} connect to your lisp whenever you open a lisp file
-just add this to your @file{.emacs}:
+just add this to your @file{~/.emacs} or
+@file{~/.emacs.d/init.el} (@pxref{Emacs Init File}):
 
 @example 
 (add-hook 'sly-mode-hook
