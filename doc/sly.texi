@@ -1916,8 +1916,7 @@ Fetch all inspector contents and go to the end.
 Store the value under point in the variable `*'.  This can
 then be used to access the object in the REPL.
 
-@kbditempair{TAB, S-TAB, forward-button,
-backward-button}
+@kbditempair{TAB, S-TAB, forward-button, backward-button}
 
 Jump to the next and previous inspectable object respectively.
 
@@ -2677,10 +2676,10 @@ C-e} or the inspector (see @ref{Evaluation}, @ref{Inspector}).
 If in doubt, use @code{*ECHO-NUMBER-ALIST*}.
 
 Both variables have the same structure: each element in the alistn takes
-the form @var{(TYPE . FUNCTIONS)}, where @var{TYPE is a type designator
-and @var{FUNCTIONS} is a list of function designators for displaying that
-number in SLY. Each function takes the number as a single argument and
-returns a string, or nil, if that particular representation is to be
+the form @var{(TYPE . FUNCTIONS)}, where @var{TYPE} is a type designator
+and @var{FUNCTIONS} is a list of function designators for displaying
+that number in SLY. Each function takes the number as a single argument
+and returns a string, or nil, if that particular representation is to be
 disregarded.
 
 Additionally if a given function chooses to return @code{t} as its
