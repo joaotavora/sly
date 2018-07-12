@@ -2294,22 +2294,14 @@ inside a macro definition.
 @subsection Keybindings
 
 In general we try to make our key bindings fit with the overall Emacs
-style. We also have the following somewhat unusual convention of our
-own: when entering a three-key sequence, the final key can be pressed
-either with control or unmodified. For example, the
-@code{sly-describe-symbol} command is bound to @kbd{C-c C-d d}, but
-it also works to type @kbd{C-c C-d C-d}. We're simply binding both key
-sequences because some people like to hold control for all three keys
-and others don't, and with the two-key prefix we're not afraid of
-running out of keys.
+style.
 
-There is one exception to this rule, just to trip you up. We never
-bind @kbd{C-h} anywhere in a key sequence, so @kbd{C-c C-d C-h}
-doesn't do the same thing as @kbd{C-c C-d h}. This is because Emacs
-has a built-in default so that typing a prefix followed by @kbd{C-h}
-will display all bindings starting with that prefix, so @kbd{C-c C-d
-C-h} will actually list the bindings for all documentation commands.
-This feature is just a bit too useful to clobber!
+We never bind @kbd{C-h} anywhere in a key sequence.  This is because
+Emacs has a built-in default so that typing a prefix followed
+by @kbd{C-h} will display all bindings starting with that prefix,
+so @kbd{C-c C-d C-h} will actually list the bindings for all
+documentation commands.  This feature is just a bit too useful to
+clobber!
 
 @quotation
 @i{``Are you deliberately spiting Emacs's brilliant online help facilities? The gods will be angry!''}
