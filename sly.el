@@ -2319,7 +2319,7 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
   (when (null package) (setq package (sly-current-package)))
   (let* ((catch-tag (make-symbol (format "sly-result-%d"
                                          (1+ (sly-continuation-counter)))))
-         (cancelled nil)
+         (cancelled-on-input nil)
          (check-conn
           (lambda ()
             (unless (eq (process-status (sly-connection)) 'open)
@@ -2330,14 +2330,13 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
        (sly-rex ()
            (sexp package)
          ((:ok value)
-          (unless cancelled
+          (unless cancelled-on-input
             (throw catch-tag (list #'identity value))))
          ((:abort _condition)
           (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
        (cond (cancel-on-input
-              (let ((inhibit-quit t))
-                (while (sit-for 30))
-                (setq cancelled t))
+              (while-no-input (while t (accept-process-output nil 30)))
+              (setq cancelled-on-input t)
               (funcall check-conn))
              (t
               (while t
