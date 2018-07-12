@@ -137,7 +137,7 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                          (:boundp . "var")
                          (:constant . "constant")))
          (classes (slynk::classify-symbol sym))
-         (classes (if (find :generic-function classes)
+         (classes (if (some (lambda (m) (member m classes)) '(:generic-function :macro))
                       (delete :fboundp classes)
                       classes))
          (translated (mapcar (lambda (cla) (cdr (assoc cla translations)))
