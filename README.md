@@ -20,15 +20,20 @@ SLY is Sylvester the Cat's Common Lisp IDE for Emacs:
 SLY is a fork of [SLIME][1] and contains the following improvements upon
 it:
 
-* Completely redesigned REPL based on Emacs's own full-featured `comint.el`
-* Live code annotations via a new `sly-stickers` contrib
-* Consistent interactive button interface. Everything can be copied to the REPL
-* Doesn't need an extra package to work with [company][14]
-* Contribs are are enabled by default, and loaded with ASDF on demand
+* Completely [redesigned REPL](#repl) based on Emacs's own full-featured
+  `comint.el`;
+* [Live code annotations](#stickers) via a new `sly-stickers` contrib;
+* Consistent interactive button interface.  Everything can be copied to the
+  REPL;
+* Modern [flex-style completion](#company-flex-completion).  Also within
+  [company][14], snappier, and no plugin required;
+* Cleanly ASDF-loaded be default, including contribs, which are enabled
+  out-of-the-box;
+* Multiple inspectors;
 * Support for [NAMED-READTABLES][11], [macrostep.el][12] and [quicklisp][13]
 
-SLY tracks SLIME's bugfixes and all its familar features (debugger, inspector,
-xref, etc...) are still available , but with better integration.
+SLY tracks SLIME's bugfixes.  All its familar features (debugger, inspector,
+xref, etc...) are still available, with improved overall UX.
 
 Installation
 ------------
@@ -46,10 +51,12 @@ disable it for the Emacs session.
 _Obligatory animated gif section_
 -----------------------------------
 
+<a name="company-flex-completion"></a>
 [Flex completion](http://joaotavora.github.io/sly/#Completion)
 
 ![company-flex-completion](./doc/animations/company-flex-completion.gif)
 
+<a name="repl"></a>
 [Backreferences](http://joaotavora.github.io/sly/#REPL-backreferences)
 
 ![backreferences](./doc/animations/backreferences.gif)
@@ -58,6 +65,7 @@ _Obligatory animated gif section_
 
 ![reverse-isearch](./doc/animations/reverse-isearch.gif)
 
+<a name="stickers"></a>
 [Stickers](http://joaotavora.github.io/sly/#Stickers)
 
 ![stickers-example](./doc/animations/stickers-example.gif)
