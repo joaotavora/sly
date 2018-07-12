@@ -197,7 +197,6 @@ The SLY-DB Debugger
 * Examining frames::
 * Restarts::
 * Frame Navigation::
-* Stepping::
 * Miscellaneous::
 
 Customization
@@ -1940,7 +1939,6 @@ backtrace, and poking around in stack frames.
 * Examining frames::
 * Restarts::
 * Frame Navigation::
-* Stepping::
 * Miscellaneous::
 @end menu
 
@@ -2018,29 +2016,6 @@ Fetch the entire backtrace and go to the last frame.
 
 @kbditem{<, sly-db-beginning-of-backtrace}
 Go to the first frame.
-
-@end table
-
-@node Stepping
-@subsection Stepping
-
-@cindex Stepping
-
-Stepping is not available in all implementations and works very
-differently in those in which it is available.
-
-@table @kbd
-@kbditem{s, sly-db-step}
-Step to the next expression in the frame.  For CMUCL that means, set a
-breakpoint at all those code locations in the current code block which
-are reachable from the current code location.
-
-@kbditem{x, sly-db-next}
-Step to the next form in the current function.
-
-@kbditem{o, sly-db-out}
-Stop single-stepping temporarily, but resume it once the current
-function returns.
 
 @end table
 
