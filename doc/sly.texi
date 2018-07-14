@@ -39,7 +39,7 @@ This file has been placed in the public domain.
 @title @value{TITLE}
 @sp 10
 @example
-          _____    __   __  __        
+          _____    __   __  __
          / ___/   / /   \ \/ /               |\      _,,,---,,_
          \__ \   / /     \  /                /,`.-'`'    -.  ;-;;,_
         ___/ /  / /___   / /                |,4-  ) )-,_..;\ (  `'-'
@@ -414,7 +414,7 @@ that a Slynk server is running on some local or remote host, and
 listening on a given port. @kbd{M-x sly-connect} prompts the user for
 these values, and upon connection the @REPL{} is established.
 
-@node Basic customization 
+@node Basic customization
 @section Basic customization
 
 A big part of Emacs, and Emacs’s extensions, are its near-infinite
@@ -643,7 +643,7 @@ The call may look strange, though:
 (12 13 14 26 27 28 29)
 SLYNK-COMPLETION> (slynk-completion::flex-score #v1:0 #v1:1 #v1:2)
 0.003030303 (0.30303028%)
-SLYNK-COMPLETION> 
+SLYNK-COMPLETION>
 @end example
 
 @*@image{images/tutorial-4,350pt}@*
@@ -655,7 +655,7 @@ These are the @code{#v4:0} and @code{#v4:1} bits seen at the command
 prompt.  Let’s go ahead and put the cursor on them (or hover the mouse).
 See how this makes them highlight the corresponding object a few lines
 above in the buffer?  Later, you can also try typing ``#v'' at the REPL
-to incrementally write your own backreferences.  
+to incrementally write your own backreferences.
 
 For one final demonstration, let’s now suppose say we are still
 intrigued by how that function works internally. So let's navigate to
@@ -696,7 +696,7 @@ open parenthesis of that line (the opening parenthesis of the expression
 @code{(- b a 1)}) and press @kbd{C-c C-s C-s};
 
 @item
-now do the same for the symbol @code{indexes} a couple of lines above; 
+now do the same for the symbol @code{indexes} a couple of lines above;
 
 @item
 again, the same for the expressions @code{(loop...)},
@@ -1291,7 +1291,7 @@ will appear listing actions that you can take on that object.
 
 Depending on the mode, different actions may be active for different
 types of objects. Actions can also be invoked using keybindings active
-only when the cursor is on the button. 
+only when the cursor is on the button.
 
 @table @kbd
 
@@ -1414,13 +1414,13 @@ the ``connection list'' buffer:
 
 @table @kbd
 @kbditem{C-c C-x c, sly-list-connections}
-Pop up a buffer listing the established connections. 
+Pop up a buffer listing the established connections.
 
 @kbditem{C-c C-x n, sly-next-connection}
 Switch to the next Lisp connection by cycling through all connections.
 
 @kbditem{C-c C-x p, sly-prev-connection}
-Switch to the previous Lisp connection by cycling through all connections.  
+Switch to the previous Lisp connection by cycling through all connections.
 
 @end table
 
@@ -1804,7 +1804,7 @@ CL-USER> (list #v0:1 #v0:2)
 (B C)
 CL-USER> (append #v1:0 #v2:0)
 (A B C)
-CL-USER> 
+CL-USER>
 @end example
 
 @noindent
@@ -1814,7 +1814,7 @@ it worth considering:
 
 @itemize @bullet
 @item
-Backreference annotation and highlighting 
+Backreference annotation and highlighting
 
 As soon as the @SLY{} @REPL{} detects that you have pressed @code{#v},
 all the @REPL{} results that can possibly be referenced are
@@ -2052,7 +2052,7 @@ Attach debugger (e.g. gdb) to the current lisp process.
 
 The @SLY{} Trace Dialog, in package @code{sly-trace-dialog}, is a
 tracing facility, similar to Common Lisp's @code{trace}, but
-interactive rather than purely textual. 
+interactive rather than purely textual.
 
 You use it just like you would regular @code{trace}: after tracing a
 function, calling it causes interesting information about that
@@ -2902,7 +2902,7 @@ To make @SLY{} connect to your lisp whenever you open a lisp file
 just add this to your @file{~/.emacs} or
 @file{~/.emacs.d/init.el} (@pxref{Emacs Init File}):
 
-@example 
+@example
 (add-hook 'sly-mode-hook
           (lambda ()
             (unless (sly-connected-p)
@@ -3067,7 +3067,7 @@ Rhodes of @acronym{SBCL}, Gary Byers of OpenMCL, and Martin Simmons of
 LispWorks. Thanks also to Alain Picard and Memetrics for funding
 Martin's initial work on the LispWorks backend!
 
-@node Key Index 
+@node Key Index
 @unnumbered Key (Character) Index
 @printindex ky
 
