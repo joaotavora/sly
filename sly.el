@@ -5591,24 +5591,24 @@ If MORE is non-nil, more frames are on the Lisp stack."
    for frame-spec in frame-specs
    do (sly-db-insert-frame frame-spec)
    finally
-   (if more
-       (insert (sly-make-action-button
-                " --more--\n"
-                #'(lambda (button)
-                    (let* ((inhibit-read-only t)
-                           (count 40)
-                           (from (1+ (car frame-spec)))
-                           (to (+ from count))
-                           (frames (sly-eval `(slynk:backtrace ,from ,to)))
-                           (more (sly-length= frames count)))
-                      (delete-region (button-start button)
-                                     (button-end button))
-                      (save-excursion
-                        (sly-db-insert-frames frames more))
-                      (sly--when-let (win (get-buffer-window (current-buffer)))
-                        (with-selected-window win
-                          (sly-recenter (point-max))))))
-                'point-entered #'(lambda (_ new) (push-button new)))))))
+   (when more
+     (insert (sly-make-action-button
+              " --more--\n"
+              (lambda (button)
+                (let* ((inhibit-read-only t)
+                       (count 40)
+                       (from (1+ (car frame-spec)))
+                       (to (+ from count))
+                       (frames (sly-eval `(slynk:backtrace ,from ,to)))
+                       (more (sly-length= frames count)))
+                  (delete-region (button-start button)
+                                 (button-end button))
+                  (save-excursion
+                    (sly-db-insert-frames frames more))
+                  (sly--when-let (win (get-buffer-window (current-buffer)))
+                    (with-selected-window win
+                      (sly-recenter (point-max))))))
+              'point-entered #'(lambda (_ new) (push-button new)))))))
 
 (defvar sly-db-frame-map
   (let ((map (make-sparse-keymap)))
@@ -5703,13 +5703,10 @@ If MORE is non-nil, more frames are on the Lisp stack."
 
 
 ;;;;;; SLY-DB examining text props
-(defun sly-db-goto-last-frame ()
+(defun sly-db--goto-last-visible-frame ()
   (goto-char (point-max))
-  (while (not (get-text-property (point) 'frame))
-    (goto-char (previous-single-property-change (point) 'frame))
-    ;; Recenter to bottom of the window; -2 to account for the
-    ;; empty last line displayed in sly-db buffers.
-    (recenter -2)))
+  (while (not (get-text-property (point) 'frame-string))
+    (goto-char (previous-single-property-change (point) 'frame-string))))
 
 (defun sly-db-beginning-of-backtrace ()
   "Goto the first frame."
@@ -5732,17 +5729,18 @@ If MORE is non-nil, more frames are on the Lisp stack."
 (defun sly-db-end-of-backtrace ()
   "Fetch the entire backtrace and go to the last frame."
   (interactive)
-  (sly-db-fetch-all-frames)
-  (sly-db-goto-last-frame))
+  (sly-db--fetch-all-frames)
+  (sly-db--goto-last-visible-frame))
 
-(defun sly-db-fetch-all-frames ()
+(defun sly-db--fetch-all-frames ()
   (let ((inhibit-read-only t)
         (inhibit-point-motion-hooks t))
-    (sly-db-goto-last-frame)
+    (sly-db--goto-last-visible-frame)
     (let ((last (sly-db-frame-number-at-point)))
-      (goto-char (next-single-char-property-change (point) 'frame))
+      (goto-char (next-single-char-property-change (point) 'frame-string))
       (delete-region (point) (point-max))
       (save-excursion
+        (insert "\n")
         (sly-db-insert-frames (sly-eval `(slynk:backtrace ,(1+ last) nil))
                               nil)))))
 
