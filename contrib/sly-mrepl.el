@@ -84,7 +84,6 @@ for output printed to the REPL (not for evaluation results)")
 (defvar sly-mrepl-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "RET")     'sly-mrepl-return)
-    (define-key map [return]        'sly-mrepl-return)
     (define-key map (kbd "TAB")     'sly-mrepl-indent-and-complete-symbol)
     (define-key map (kbd "C-c C-b") 'sly-interrupt)
     (define-key map (kbd "C-c C-c") 'sly-interrupt)
