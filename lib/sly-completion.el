@@ -392,7 +392,6 @@ Intended to go into `completion-at-point-functions'"
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-1] 'sly-choose-completion)
     (define-key map [mouse-2] 'sly-choose-completion)
-    (define-key map "\t"     'sly-next-completion)
     (define-key map [backtab]     'sly-prev-completion)
     (define-key map (kbd "q") 'sly-completion-hide-completions)
     (define-key map (kbd "C-g") 'sly-completion-hide-completions)
