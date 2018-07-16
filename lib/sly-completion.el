@@ -137,8 +137,10 @@ SLYFUN takes two arguments, a pattern and a package."
         (completions `(,slyfun ,(substring-no-properties pattern)
                                ',(sly-current-package)))
       (or completions
-          (and (not (current-message))
-               (sly-message "No completions for %s" pattern))))))
+          (progn
+	    (when (not (current-message))
+	      (sly-message "No completions for %S" pattern))
+	    nil)))))
 
 (defun sly-simple-completions (prefix)
   "Return (COMPLETIONS NIL) where COMPLETIONS complete the PREFIX.
