@@ -2644,7 +2644,8 @@ Debugged requests are ignored."
   (let ((print-length 20)
         (print-level 6)
         (pp-escape-newlines t))
-    (pp event buffer)))
+    ;; HACK workaround for gh#183
+    (condition-case _oops (pp event buffer) (error (print event buffer)))))
 
 (defun sly--events-buffer (process)
   "Return or create the event log buffer."
