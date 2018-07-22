@@ -5310,7 +5310,7 @@ Full list of frame-specific commands:
 
 ;;;;; SLY-DB buffer creation & update
 
-(defcustom sly-db-focus-debugger 'repl
+(defcustom sly-db-focus-debugger 'always
   "Control how debugger windows are displayed.
 ALWAYS: the debugger window is always focused.
 NEVER: the debugger window is never focused.
