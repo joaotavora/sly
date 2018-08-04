@@ -157,7 +157,7 @@ If it's not in the cache, the cache will be updated asynchronously."
     (sly-curry #'sly-autodoc--async% context multilinep)))
 
 (defun sly-autodoc--async% (context multilinep doc)
-  (cl-destructuring-bind (doc cache-p) doc
+  (cl-destructuring-bind (doc &optional cache-p) doc
     (unless (eq doc :not-available)
       (when cache-p
 	(sly-autodoc--cache-put context doc))
