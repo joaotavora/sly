@@ -2522,8 +2522,12 @@ Debugged requests are ignored."
           ((:invalid-channel channel-id reason)
            (error "Invalid remote channel %s: %s" channel-id reason))))))
 
+(defvar sly--send-last-command nil
+  "Value of `this-command' at time of last `sly-send' call.")
+
 (defun sly-send (sexp)
   "Send SEXP directly over the wire on the current connection."
+  (setq sly--send-last-command this-command)
   (sly-net-send sexp (sly-connection)))
 
 (defun sly-reset ()
@@ -5310,32 +5314,16 @@ Full list of frame-specific commands:
 
 ;;;;; SLY-DB buffer creation & update
 
-(defcustom sly-db-focus-debugger 'always
-  "Control how debugger windows are displayed.
-ALWAYS: the debugger window is always focused.
-NEVER: the debugger window is never focused.
-REPL: only at the REPL."
-  :group 'sly-debugger
-  :type '(choice (const always)
-                 (const never)
-                 (const repl)))
+(defcustom sly-db-focus-debugger 'auto
+  "Control if debugger window gets focus immediately.
 
-(defun sly-db--should-focus-debugger-p (thread)
-  "Decide whether to select the debugger window.
-Behavior depends on the current value of
-`sly-db-focus-debugger'."
-  (cl-ecase sly-db-focus-debugger
-    (always t)
-    (never nil)
-    (repl
-     (let* ((conn (sly-current-connection))
-            (win (selected-window))
-            (buf (window-buffer win)))
-       (with-current-buffer buf
-         (and (eq major-mode 'sly-mrepl-mode)
-              (eq conn sly-buffer-connection)
-              (or (eq t sly-current-thread)
-                  (eq sly-current-thread thread))))))))
+If nil, the window is never focused automatically; if the symbol
+`auto', the window is only focused if the user has performed no
+other commands in the meantime (i.e. he/she is expecting a
+possible debugger); any other non-nil value means to always
+automatically focus the debugger window."
+  :group 'sly-debugger
+  :type '(choice (const always) (const never) (const auto)))
 
 (defun sly-filter-buffers (predicate)
   "Return a list of where PREDICATE returns true.
@@ -5410,7 +5398,9 @@ Also mark the window as a debugger window."
   (let* ((action '(sly-db--display-in-prev-sly-db-window))
          (buffer (current-buffer))
          (win
-          (if (sly-db--should-focus-debugger-p thread)
+          (if (cond ((eq sly-db-focus-debugger 'auto)
+                     (eq sly--send-last-command last-command))
+                    (t sly-db-focus-debugger))
               (progn
                 (pop-to-buffer buffer action)
                 (selected-window))
