@@ -578,13 +578,13 @@ symbol @code{SLY-COMPLETIONS:FLEX-COMPLETIONS}.  We’ll be presented with
 a context menu with options for describing the symbol, inspecting it, or
 navigating to its source definition.  In general, the Lisp-side objects
 that SLY presents --- symbols, CLOS objects, function calls, etc... ---
-are right-clickable buttons with a such a context menu
+are right-clickable buttons with such a context menu
 (@pxref{Interactive objects}).  For now, let’s navigate to the source
 definition of the symbol by choosing ``Go To source'' from the menu.  We
 could also have just pressed @kbd{M-.} on the symbol, of course.
 
 From the Lisp source buffer that we landed on (probably
-@file{sly-completion.lisp}), let’s @emph{trace} the newly found function
+@file{slynk-completion.lisp}), let’s @emph{trace} the newly found function
 @code{SLY-COMPLETIONS:FLEX-COMPLETIONS}.  However, instead of using the
 regular @code{CL:TRACE}, we’ll use @SLY{}’s Trace Dialog functionality.
 This is how we set it up:
@@ -614,7 +614,7 @@ typing @kbd{TAB}. We should see a window popup including the desired
 completion @code{destructuring-bind} (it should also be the top
 match). Of course, we could now select some completion from the list,
 but instead let's just type @kbd{C-g} to dismiss
-the @code{*sly-completions*} window, since what we wanted to test
+the @code{*sly-completions*} window, since  we wanted to test
 completion, not write any actual @code{destructuring-bind} expression.
 
 Remember the traced functions in the Trace Dialog?  Let’s see if we got
@@ -661,9 +661,9 @@ above in the buffer?  Later, you can also try typing ``#v'' at the REPL
 to incrementally write your own backreferences.
 
 For one final demonstration, let’s now suppose say we are still
-intrigued by how that function works internally. So let's navigate to
+intrigued by how that function (@code{FLEX-SCORE}) works internally. So let's navigate to
 its definition using @kbd{M-.} again (or just open
-the @file{sly-completion.lisp} buffer that you probably still have
+the @file{slynk-completion.lisp} buffer that you probably still have
 open). The function’s code might look like this:
 
 @example
@@ -722,7 +722,7 @@ visiting.  This is something not strictly necessary here but generally
 convenient when hacking on a system, becasue you can now call functions
 from the file you came from without package-qualification.
 
-Now, to re-run newly the instrumented function, by calling it with the
+Now, to re-run the newly instrumented function, by calling it with the
 same arguments.  No need to type all that again, because this REPL
 supports reverse history i-search, remember?  So just type the
 binding @kbd{C-r} and then type something like @kbd{scor} to search
