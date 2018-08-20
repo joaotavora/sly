@@ -541,7 +541,13 @@ information."
                       (sb-c:compiler-error  :error)
                       (reader-error         :read-error)
                       (error                :error)
-                      #+#.(slynk-backend:with-symbol redefinition-warning 
+                      #+#.(slynk-backend:with-symbol early-deprecation-warning sb-ext)
+                      (sb-ext::early-deprecation-warning :early-deprecation-warning)
+                      #+#.(slynk-backend:with-symbol late-deprecation-warning sb-ext)
+                      (sb-ext::late-deprecation-warning :late-deprecation-warning)
+                      #+#.(slynk-backend:with-symbol final-deprecation-warning sb-ext)
+                      (sb-ext::final-deprecation-warning :final-deprecation-warning)
+                      #+#.(slynk-backend:with-symbol redefinition-warning
                             sb-kernel)
                       (sb-kernel:redefinition-warning
                        :redefinition)
