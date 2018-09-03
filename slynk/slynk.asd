@@ -62,6 +62,7 @@
    (:file "slynk-completion")))
 
 (defsystem :slynk/util
+  :depends-on (:slynk)
   :components ((:file "slynk-util")))
 
 (defmethod perform :after ((o load-op) (c (eql (find-system :slynk))))
