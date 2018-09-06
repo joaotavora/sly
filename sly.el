@@ -2335,8 +2335,11 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
          ((:abort _condition)
           (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
        (cond (cancel-on-input
-              (while-no-input (while t (accept-process-output nil 30)))
-              (setq cancelled-on-input t)
+              (unwind-protect
+                  (let ((inhibit-quit t))
+                    (while-no-input
+                      (while t (accept-process-output nil 30))))
+                (setq cancelled-on-input t))
               (funcall check-conn))
              (t
               (while t
