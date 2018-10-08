@@ -2338,7 +2338,7 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
               (unwind-protect
                   (let ((inhibit-quit t))
                     (while-no-input
-                      (while t (accept-process-output nil 30))))
+                      (while t (accept-process-output nil 0.1))))
                 (setq cancelled-on-input t))
               (funcall check-conn))
              (t
