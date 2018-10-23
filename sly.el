@@ -2029,15 +2029,65 @@ This is automatically synchronized from Lisp.")
                           :key #'sly-connection-name :test #'equal)
            finally (cl-return name)))
 
-(defun sly-connection-close-hook (process)
-  (when (eq process sly-default-connection)
+(defun sly-select-new-default-connection (conn)
+  "If dead CONN was the default connection, select a new one."
+  (when (eq conn sly-default-connection)
     (when sly-net-processes
       (sly-select-connection (car sly-net-processes))
       (sly-message "Default connection closed; default is now #%S (%S)"
                    (sly-connection-number)
                    (sly-connection-name)))))
 
-(add-hook 'sly-net-process-close-hooks 'sly-connection-close-hook)
+(defcustom sly-keep-buffers-on-connection-close '(:mrepl)
+  "List of buffers to keep around after a connection closes."
+  :group 'sly-mode
+  :type '(repeat
+          (choice
+           (const :tag "Debugger" :db)
+           (const :tag "Repl" :mrepl)
+           (const :tag "Ispector" :inspector)
+           (const :tag "Stickers replay" :stickers-replay)
+           (const :tag "Error" :error)
+           (const :tag "Source" :source)
+           (const :tag "Compilation" :compilation)
+           (const :tag "Apropos" :apropos)
+           (const :tag "Xref" :xref)
+           (const :tag "Macroexpansion" :macroexpansion)
+           (symbol :tag "Other"))))
+
+(defun sly-kill-stale-connection-buffers (conn) ;
+  "If CONN had some stale buffers, kill them.
+Respect `sly-keep-buffers-on-connection-close'."
+  (let ((buffer-list (buffer-list))
+        (matchers
+         (mapcar
+          (lambda (type)
+            (format ".*%s.*$"
+                    ;; XXX: this is synched with `sly-buffer-name'.
+                    (regexp-quote (format "*sly-%s"
+                                          (downcase (substring (symbol-name type)
+                                                               1))))))
+          (cl-set-difference '(:db
+                               :mrepl
+                               :inspector
+                               :stickers-replay
+                               :error
+                               :source
+                               :compilation
+                               :apropos
+                               :xref
+                               :macroexpansion)
+                             sly-keep-buffers-on-connection-close))))
+    (cl-loop for buffer in buffer-list
+             when (and (cl-some (lambda (matcher)
+                                  (string-match matcher (buffer-name buffer)))
+                                matchers)
+                       (with-current-buffer buffer
+                         (eq sly-buffer-connection conn)))
+             do (kill-buffer buffer))))
+
+(add-hook 'sly-net-process-close-hooks 'sly-select-new-default-connection)
+(add-hook 'sly-net-process-close-hooks 'sly-kill-stale-connection-buffers 'append)
 
 ;;;;; Commands on connections
 

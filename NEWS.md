@@ -68,6 +68,14 @@ if she wants to delete the previous recordings, a commonly forgotten
 but useful pre-step (an idea by Javier Olaechea, github #91). Also,
 window management is less random.
 
+### Stale buffers are killed on connection close
+
+Inspector, debugger, and other buffers pertaining to a connection are
+automatically killed when the connection is closed.  The types of
+buffers that are exempt from this is configurable in a new
+`sly-keep-buffers-on-connection-close` defcustom, which lists
+REPL buffers by default.
+
 ### The .swankrc and .swank.lisp are not loaded by default
 
 A problem encountered by Zach Beane.

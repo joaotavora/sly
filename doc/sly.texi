@@ -2469,6 +2469,13 @@ use @code{emacs-mule-unix} as coding system.  GNU Emacs has often
 nicer fonts for the latter encoding.  (Different encodings can be used
 for different Lisps, see @ref{Multiple Lisps}.)
 
+@item sly-keep-buffers-on-connection-close
+This variable holds a list of keywords indicating @SLY{} buffer types
+that should be kept around when a connection closes.  For example, if
+the variable's value includes @code{:mrepl} (which is the default),
+@REPL{} buffer is kept around while all other stale buffers (debugger,
+inspector, etc..) are automatically killed.
+
 @end table
 
 @node Hooks
