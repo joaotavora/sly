@@ -7,7 +7,8 @@
   (:use #:cl #:slynk-api)
   (:export
    #:flex-completions
-   #:simple-completions))
+   #:simple-completions
+   #:*get-completions*))
 
 ;; for testing package-local nicknames
 #+sbcl
@@ -345,6 +346,36 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                                                                    (symbol-name s))
                                                            s)))))))))))))
 
+
+(defun get-completions (pattern package &key (limit 300))
+  "Compute \"flex\" completions for PATTERN given current PACKAGE.
+  Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
+  \(STRING SCORE CHUNKS CLASSIFICATION-STRING).
+
+  For example:
+
+  SLYNK-COMPLETION> (get-completions \"getcomplet\" *package*)
+  ((\"GET-COMPLETIONS\" GET-COMPLETIONS (0 1 2 4 5 6 7 8 9 10) 0.06666667)
+   (\"*GET-COMPLETIONS*\" *GET-COMPLETIONS* (1 2 3 5 6 7 8 9 10 11) 0.041482452))"
+  
+  (loop with (external internal)
+          = (multiple-value-list (qualified-matching pattern package))
+        for e in (append (sort-by-score
+                          (keywords-matching pattern))
+                         (sort-by-score
+                          (append (accessible-matching pattern package)
+                                  external))
+                         (sort-by-score
+                          internal))
+        for i upto limit
+        collect e))
+
+
+(defvar *get-completions* 'get-completions
+  "This variable holds a function which returns matchings.
+   See slynk-completion:get-completions as an example of such function.")
+
+
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
   Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
@@ -353,18 +384,7 @@ Returns two values: \(A B C\) and \(1 2 3\)."
     (list (loop
             with package = (guess-buffer-package package-name)
             for (string symbol indexes score)
-              in
-              (loop with (external internal)
-                      = (multiple-value-list (qualified-matching pattern package))
-                    for e in (append (sort-by-score
-                                      (keywords-matching pattern))
-                                     (sort-by-score
-                                      (append (accessible-matching pattern package)
-                                              external))
-                                     (sort-by-score
-                                      internal))
-                    for i upto limit
-                    collect e)
+              in (funcall *get-completions* pattern package :limit limit)
             collect
             (list (if (every #'common-lisp:upper-case-p pattern)
                       (string-upcase string)
@@ -373,5 +393,6 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                   (to-chunks string indexes)
                   (readably-classify symbol)))
           nil)))
+
 
 (provide :slynk/completion)
