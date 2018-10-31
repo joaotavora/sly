@@ -678,6 +678,8 @@ Intended to go into `completion-at-point-functions'"
          (sly-buffer-connection (sly-connection)))
      ,@body))
 
+(defvar sly-minibuffer-setup-hook nil)
+
 (defun sly-read-from-minibuffer (prompt &optional initial-value history allow-empty keymap)
   "Read a string from the minibuffer, prompting with PROMPT.
 If INITIAL-VALUE is non-nil, it is inserted into the minibuffer
@@ -685,6 +687,10 @@ before reading input.  The result is a string (\"\" if no input
 was given and ALLOW-EMPTY is non-nil)."
   (sly--with-sly-minibuffer
    (cl-loop
+    with minibuffer-setup-hook = (cons
+                                  (lambda ()
+                                    (run-hooks 'sly-minibuffer-setup-hook))
+                                  minibuffer-setup-hook)
     for i from 0
     for read = (read-from-minibuffer
                 (concat "[sly] " (when (cl-plusp i)

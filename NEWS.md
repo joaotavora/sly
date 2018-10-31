@@ -76,6 +76,11 @@ buffers that are exempt from this is configurable in a new
 `sly-keep-buffers-on-connection-close` defcustom, which lists
 REPL buffers by default.
 
+### Autodoc function args available in minibuffer prompts
+
+In minibuffer prompts like the one of `M-x sly-inspect`, autodoc
+information is available and displayed temporarily in the mode-line.
+
 ### The .swankrc and .swank.lisp are not loaded by default
 
 A problem encountered by Zach Beane.
