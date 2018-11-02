@@ -594,10 +594,9 @@ Intended to go into `completion-at-point-functions'"
 (defun sly-next-completion (n &optional errorp)
   (interactive "p")
   (with-current-buffer (sly-buffer-name :completions)
-    (unless (zerop n)
-      (when (overlay-buffer sly--completion-in-region-overlay)
-        (goto-char (overlay-start sly--completion-in-region-overlay)))
-      (forward-line n))
+    (when (overlay-buffer sly--completion-in-region-overlay)
+      (goto-char (overlay-start sly--completion-in-region-overlay)))
+    (forward-line n)
     (let* ((end (and (get-text-property (point) 'sly--completion)
                      (save-excursion
                        (skip-syntax-forward "^\s")
@@ -609,7 +608,7 @@ Intended to go into `completion-at-point-functions'"
       (if (and beg end)
           (progn
             (move-overlay sly--completion-in-region-overlay
-                        beg end)
+                          beg end)
             (let ((win (get-buffer-window (current-buffer) 0)))
               (when win
                 (with-selected-window win
