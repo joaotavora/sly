@@ -813,10 +813,6 @@ Edit the value of a setf-able form in a new buffer @file{*Edit <form>*}.
 The value is inserted into a temporary buffer for editing and then set
 in Lisp when committed with @kbd{C-c C-c}.
 
-@kbditem{C-x M-e, sly-eval-last-expression-display-output}
-Display the output buffer and evaluate the expression preceding point.
-This is useful if the expression writes something to the output stream.
-
 @kbditem{C-c C-u, sly-undefine-function}
 Undefine the function, with @code{fmakunbound}, for the symbol at
 point.
