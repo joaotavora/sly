@@ -223,79 +223,97 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                             while b
                             collect (expt (- b a 1) *flex-score-falloff*))))))))
 
-(defun flex-matches (pattern string symbol)
-  "Return non-NIL if PATTERN flex-matches STRING.
-  In case of a match, return two values:
+(defun flex-matches (pattern package qualifier name symbol)
+  "Return non-NIL if PATTERN flex-matches for SYMBOL.
 
-  A list of non-negative integers which are the indexes of the
-  characters in PATTERN as found consecutively in STRING. This list
-  measures in length the number of characters in PATTERN.
+Specifically PATTERN is matched against the string that would be
+obtained by concatenating PACKAGE, QUALIFIER and NAMEm which we can
+call STRING.  In case of a match, return two values:
 
-  A floating-point score. Higher scores for better matches."
+A list of non-negative integers which are the indexes of the
+characters in PATTERN as found consecutively in STRING. This list
+measures in length the number of characters in PATTERN.
+
+A floating-point score. Higher scores for better matches."
   (declare (optimize (speed 3) (safety 0)))
-  (let* ((1-strlen (1- (length string)))
-         (indexes (loop for char across pattern
-                        for from = 0 then (1+ pos)
-                        for pos = (loop for i from from upto 1-strlen
-                                        when (char-equal (aref string i) char)
-                                          return i)
-                        unless pos
-                          return nil
-                        collect pos)))
-    (values indexes
-            (and indexes
-                 (flex-score string indexes pattern symbol)))))
+  (let* ((targets (mapcar (lambda (str)
+                            (cons str (length str)))
+                          (remove nil (list package qualifier name))))
+         (offset 0)
+         (indexes
+           (loop for char across pattern
+                 for from = 0 then (1+ pos)
+                 for pos =
+                         (loop for (target . len) in targets
+                                 thereis (loop for i from (- from offset)
+                                                 below len
+                                               when (char-equal (aref target i)
+                                                                char)
+                                                 return (+ i offset)
+                                               finally
+                                                  (pop targets)
+                                                  (incf offset len)
+                                                  (setq from offset)
+                                               ))
+                 unless pos
+                   return nil
+                 collect pos)))
+    (when indexes
+      (let ((string (concatenate 'string package qualifier name)))
+        (values indexes
+                (flex-score string indexes pattern symbol)
+                string)))))
 
-(defun collect-if-matches (collector pattern string symbol)
-  "Make and collect a match with COLLECTOR if PATTERN matches STRING.
-A match is a list (STRING SYMBOL INDEXES SCORE).
-Return non-nil if match was collected, nil otherwise."
-  (multiple-value-bind (indexes score)
-      (flex-matches pattern string symbol)
+(defun collect-if-matches (collector pattern package qualifier name symbol)
+  "Make and collect a match with COLLECTOR if PATTERN matches.
+PATTERN is matched to the string that would be obtained by
+concatenating PACKAGE, QUALIFIER and NAME.  If it matches, COLLECTOR
+is called on (STRING SYMBOL INDEXES SCORE), where STRING is the
+aforementioned concatenation.  Return non-nil if match was collected,
+nil otherwise."
+  (multiple-value-bind (indexes score string)
+      (flex-matches pattern package qualifier name symbol)
     (when indexes
       (funcall collector
-               (list string
-                     symbol
-                     indexes
-                     score)))))
+               (list string symbol indexes score)))))
 
 (defun sort-by-score (matches)
   "Sort MATCHES by SCORE, highest score first.
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (sort matches #'> :key #'fourth))
 
 (defun keywords-matching (pattern)
   "Find keyword symbols flex-matching PATTERN.
-  Return an unsorted list of matches.
+Return an unsorted list of matches.
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
          (do-symbols (s +keyword-package+)
-           (collect-if-matches #'collect pattern (format nil ":~a" (symbol-name s)) s)))))
+           (collect-if-matches #'collect pattern nil ":" (symbol-name s) s)))))
 
 (defun accessible-matching (pattern package)
   "Find symbols flex-matching PATTERN accessible without package-qualification.
-  Return an unsorted list of matches.
+Return an unsorted list of matches.
 
   Matches are produced by COLLECT-IF-MATCHES (which see)."
   (and (not (find #\: pattern))
        (collecting (collect)
          (do-symbols (s package)
-           (collect-if-matches #'collect pattern (symbol-name s) s)))))
+           (collect-if-matches #'collect pattern nil nil (symbol-name s) s)))))
 
 (defun qualified-matching (pattern home-package)
   "Find package-qualified symbols flex-matching PATTERN.
-  Return, as two values, a set of matches for external symbols,
-  package-qualified using one colon, and another one for internal
-  symbols, package-qualified using two colons.
+Return, as two values, a set of matches for external symbols,
+package-qualified using one colon, and another one for internal
+symbols, package-qualified using two colons.
 
-  The matches in the two sets are not guaranteed to be in their final
-  order, i.e. they are not sorted (except for the fact that
-  qualifications with shorter package nicknames are tried first).
+The matches in the two sets are not guaranteed to be in their final
+order, i.e. they are not sorted (except for the fact that
+qualifications with shorter package nicknames are tried first).
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (let* ((first-colon (position #\: pattern))
          (starts-with-colon (and first-colon (zerop first-colon)))
          (two-colons (and first-colon (< (1+ first-colon) (length pattern))
@@ -334,10 +352,9 @@ Return non-nil if match was collected, nil otherwise."
                          for nickname in (sorted-nicknames package)
                          do (collect-if-matches #'collect-internal
                                                 pattern
-                                                (concatenate 'string
-                                                             nickname
-                                                             "::"
-                                                             (symbol-name s))
+                                                nickname
+                                                "::"
+                                                (symbol-name s)
                                                 s)
                          finally (setf (gethash s seen) t))))))
                 (t
@@ -360,10 +377,7 @@ Return non-nil if match was collected, nil otherwise."
                             (loop for nickname in sorted-nicknames
                                   do (collect-if-matches #'collect-external
                                                          pattern
-                                                         (concatenate 'string
-                                                                      nickname
-                                                                      ":"
-                                                                      (symbol-name s))
+                                                         nickname ":" (symbol-name s)
                                                          s))))))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
