@@ -248,7 +248,8 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 
 (defun collect-if-matches (collector pattern string symbol)
   "Make and collect a match with COLLECTOR if PATTERN matches STRING.
-  A match is a list (STRING SYMBOL INDEXES SCORE)."
+A match is a list (STRING SYMBOL INDEXES SCORE).
+Return non-nil if match was collected, nil otherwise."
   (multiple-value-bind (indexes score)
       (flex-matches pattern string symbol)
     (when indexes
@@ -304,48 +305,66 @@ Returns two values: \(A B C\) and \(1 2 3\)."
         (values nil nil)
         (let* ((package-local-nicknames
                  (slynk-backend:package-local-nicknames home-package))
-               (nicknames-by-package
+               (package-local-nicknames-by-package
                  (let ((ret (make-hash-table)))
                    (loop for (short . full) in
                          package-local-nicknames
                          do (push short (gethash (find-package full)
                                                  ret)))
-                   ret)))
-          (collecting (collect-external collect-internal)
-            (loop
-              with use-list = (package-use-list home-package)
-              for package in (remove +keyword-package+ (list-all-packages))
-              for sorted-nicknames = (and (or first-colon
-                                              (not (eq package home-package)))
-                                          (sort (append
-                                                 (gethash package nicknames-by-package)
-                                                 (package-nicknames package)
-                                                 (list (package-name package)))
-                                                #'<
-                                                :key #'length))
-              do (when sorted-nicknames
-                   (do-external-symbols (s package)
-                     (when (and (or first-colon
-                                    (not two-colons)
-                                    (not (member (symbol-package s) use-list))))
-                       (loop for nickname in sorted-nicknames
-                             do (collect-if-matches #'collect-external
-                                                    pattern
-                                                    (concatenate 'string
-                                                                 nickname
-                                                                 ":"
-                                                                 (symbol-name s))
-                                                    s))))
-                   (when two-colons
-                     (do-symbols (s package)
-                       (loop for nickname in sorted-nicknames
-                             do (collect-if-matches #'collect-internal
-                                                    pattern
-                                                    (concatenate 'string
-                                                                 nickname
-                                                                 "::"
-                                                                 (symbol-name s))
-                                                    s)))))))))))
+                   ret))
+               (nicknames-by-package (make-hash-table)))
+          (flet ((sorted-nicknames (package)
+                   (or (gethash package nicknames-by-package)
+                       (setf (gethash package nicknames-by-package)
+                             (sort (append
+                                    (gethash package package-local-nicknames-by-package)
+                                    (package-nicknames package)
+                                    (list (package-name package)))
+                                   #'<
+                                   :key #'length)))))
+            (collecting (collect-external collect-internal)
+              (cond
+                (two-colons
+                 (let ((seen (make-hash-table)))
+                   (do-all-symbols (s)
+                     (unless (or (gethash s seen)
+                                 (symbol-external-p s))
+                       (loop
+                         with package = (symbol-package s)
+                         for nickname in (sorted-nicknames package)
+                         do (collect-if-matches #'collect-internal
+                                                pattern
+                                                (concatenate 'string
+                                                             nickname
+                                                             "::"
+                                                             (symbol-name s))
+                                                s)
+                         finally (setf (gethash s seen) t))))))
+                (t
+                 (loop
+                   with use-list = (package-use-list home-package)
+                   for package in (remove +keyword-package+ (list-all-packages))
+                   for sorted-nicknames
+                     = (and (not (eq package home-package))
+                            (sorted-nicknames package))
+                   do (when sorted-nicknames
+                        (do-external-symbols (s package)
+                          ;;; XXX: This condition is slightly
+                          ;;; opinionated.  It says, for example, that
+                          ;;; you never want to complete "c:del" to
+                          ;;; "cl:delete" or "common-lisp:delete" in
+                          ;;; packages that use :CL (a very common
+                          ;;; case).
+                          (when (or first-colon
+                                    (not (member (symbol-package s) use-list)))
+                            (loop for nickname in sorted-nicknames
+                                  do (collect-if-matches #'collect-external
+                                                         pattern
+                                                         (concatenate 'string
+                                                                      nickname
+                                                                      ":"
+                                                                      (symbol-name s))
+                                                         s))))))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
