@@ -232,12 +232,14 @@ Returns two values: \(A B C\) and \(1 2 3\)."
   measures in length the number of characters in PATTERN.
 
   A floating-point score. Higher scores for better matches."
-  (declare (optimize (speed 3) (safety 0)))
-  (let* ((1-strlen (1- (length string)))
+  (declare (optimize (speed 3) (safety 0))
+           (type simple-string string)
+           (type simple-string pattern))
+  (let* ((strlen (length string))
          (indexes (loop for char across pattern
                         for from = 0 then (1+ pos)
-                        for pos = (loop for i from from upto 1-strlen
-                                        when (char-equal (aref string i) char)
+                        for pos = (loop for i from from below strlen
+                                        when (char= (aref string i) char)
                                           return i)
                         unless pos
                           return nil
@@ -273,7 +275,9 @@ Return non-nil if match was collected, nil otherwise."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
          (do-symbols (s +keyword-package+)
-           (collect-if-matches #'collect pattern (format nil ":~a" (symbol-name s)) s)))))
+           (collect-if-matches #'collect pattern (concatenate 'simple-string ":"
+                                                              (symbol-name s))
+                               s)))))
 
 (defun accessible-matching (pattern package)
   "Find symbols flex-matching PATTERN accessible without package-qualification.
@@ -334,7 +338,7 @@ Return non-nil if match was collected, nil otherwise."
                          for nickname in (sorted-nicknames package)
                          do (collect-if-matches #'collect-internal
                                                 pattern
-                                                (concatenate 'string
+                                                (concatenate 'simple-string
                                                              nickname
                                                              "::"
                                                              (symbol-name s))
@@ -360,7 +364,7 @@ Return non-nil if match was collected, nil otherwise."
                             (loop for nickname in sorted-nicknames
                                   do (collect-if-matches #'collect-external
                                                          pattern
-                                                         (concatenate 'string
+                                                         (concatenate 'simple-string
                                                                       nickname
                                                                       ":"
                                                                       (symbol-name s))
@@ -373,14 +377,15 @@ Return non-nil if match was collected, nil otherwise."
   (when (plusp (length pattern))
     (list (loop
             with package = (guess-buffer-package package-name)
+            with upcasepat = (string-upcase pattern)
             for (string symbol indexes score)
               in
               (loop with (external internal)
-                      = (multiple-value-list (qualified-matching pattern package))
+                      = (multiple-value-list (qualified-matching upcasepat package))
                     for e in (append (sort-by-score
-                                      (keywords-matching pattern))
+                                      (keywords-matching upcasepat))
                                      (sort-by-score
-                                      (append (accessible-matching pattern package)
+                                      (append (accessible-matching upcasepat package)
                                               external))
                                      (sort-by-score
                                       internal))
