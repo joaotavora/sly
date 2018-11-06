@@ -735,12 +735,11 @@ REPL is the REPL buffer to return the objects to."
   (insert (format
            "%s"
            `(,spec
-             ,@(cl-loop for (object j constant) in results
+             ,@(cl-loop for (_object j constant) in results
                         for i from 0
                         collect
-                        (if constant
-                            object
-                          (make-symbol (format "#v%d:%d" j i))))))))
+                        (or constant
+                            (make-symbol (format "#v%d:%d" j i))))))))
 
 (defun sly-mrepl--assert-mrepl ()
   (unless (eq major-mode 'sly-mrepl-mode)
