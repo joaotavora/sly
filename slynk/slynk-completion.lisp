@@ -286,8 +286,17 @@ Return non-nil if match was collected, nil otherwise."
   Matches are produced by COLLECT-IF-MATCHES (which see)."
   (and (not (find #\: pattern))
        (collecting (collect)
-         (do-symbols (s package)
-           (collect-if-matches #'collect pattern (symbol-name s) s)))))
+         (let ((collected (make-hash-table)))
+           (do-symbols (s package)
+             ;; XXX: since DO-SYMBOLS may visit a symbol more than
+             ;; once. Read similar note apropos DO-ALL-SYMBOLS in
+             ;; QUALIFIED-MATCHING for how we do it.
+             (collect-if-matches
+              (lambda (thing)
+                (unless (gethash s collected)
+                  (setf (gethash s collected) t)
+                  (funcall #'collect thing)))
+              pattern (symbol-name s) s))))))
 
 (defun qualified-matching (pattern home-package)
   "Find package-qualified symbols flex-matching PATTERN.
@@ -329,21 +338,35 @@ Return non-nil if match was collected, nil otherwise."
             (collecting (collect-external collect-internal)
               (cond
                 (two-colons
-                 (let ((seen (make-hash-table)))
+                 (let ((collected (make-hash-table)))
                    (do-all-symbols (s)
-                     (unless (or (gethash s seen)
-                                 (symbol-external-p s))
+                     (unless (symbol-external-p s)
                        (loop
                          with package = (symbol-package s)
                          for nickname in (sorted-nicknames package)
-                         do (collect-if-matches #'collect-internal
-                                                pattern
-                                                (concatenate 'simple-string
-                                                             nickname
-                                                             "::"
-                                                             (symbol-name s))
-                                                s)
-                         finally (setf (gethash s seen) t))))))
+                         do (collect-if-matches
+                             (lambda (thing)
+                               ;; XXX: since DO-ALL-SYMBOLS may visit
+                               ;; a symbol more than once, we want to
+                               ;; avoid double collections.  But
+                               ;; instead of marking every traversed
+                               ;; symbol in a hash table, we mark just
+                               ;; those collected.  We do pay an added
+                               ;; price of checking matching duplicate
+                               ;; symbols, but the much smaller hash
+                               ;; table pays off when benchmarked,
+                               ;; because the number of collections is
+                               ;; generally much smaller than the
+                               ;; total number of symbols.
+                               (unless (gethash s collected)
+                                 (setf (gethash s collected) t)
+                                 (funcall #'collect-internal thing)))
+                             pattern
+                             (concatenate 'simple-string
+                                          nickname
+                                          "::"
+                                          (symbol-name s))
+                             s))))))
                 (t
                  (loop
                    with use-list = (package-use-list home-package)
