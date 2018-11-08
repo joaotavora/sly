@@ -19,7 +19,7 @@
 
 
 ;;; Simple completion
-;;; 
+;;;
 (defslyfun simple-completions (prefix package)
   "Return a list of completions for the string PREFIX."
   (let ((strings (all-simple-completions prefix package)))
@@ -149,13 +149,13 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 
 (defparameter *more-qualified-matches* t
   "If non-nil, \"foo\" more likely completes to \"bar:foo\".
- Specifically this assigns a \"foo\" on \"bar:foo\" a
- higher-than-usual score, as if the package qualifier \"bar\" was
- shorter.")
+Specifically this assigns a \"foo\" on \"bar:foo\" a
+higher-than-usual score, as if the package qualifier \"bar\" was
+shorter.")
 
 (defun flex-score (string indexes pattern symbol)
   "Score the match of STRING as given by INDEXES.
-  INDEXES as calculated by FLEX-MATCHES."
+INDEXES as calculated by FLEX-MATCHES."
   (declare (ignore symbol))
   (let* ((first-pattern-colon (and pattern
                                    (position #\: pattern)))
@@ -205,13 +205,13 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 
 (defun flex-score-1 (string-length indexes)
   "Does the real work of FLEX-SCORE.
-  Given that INDEXES is a list of integer position of characters in a
-  string of length STRING-LENGTH, say how well these characters
-  represent that STRING. There is a non-linear falloff with the
-  distances between the indexes, according to *FLEX-SCORE-FALLOFF*. If
-  that value is 2, for example, the indices '(0 1 2) on a 3-long
-  string of is a perfect (100% match,) while '(0 2) on that same
-  string is a 33% match and just '(1) is a 11% match."
+Given that INDEXES is a list of integer position of characters in a
+string of length STRING-LENGTH, say how well these characters
+represent that STRING. There is a non-linear falloff with the
+distances between the indexes, according to *FLEX-SCORE-FALLOFF*. If
+that value is 2, for example, the indices '(0 1 2) on a 3-long
+string of is a perfect (100% match,) while '(0 2) on that same
+string is a 33% match and just '(1) is a 11% match."
   (float
    (/ (length indexes)
       (* string-length
@@ -225,13 +225,13 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 
 (defun flex-matches (pattern string symbol)
   "Return non-NIL if PATTERN flex-matches STRING.
-  In case of a match, return two values:
+In case of a match, return two values:
 
-  A list of non-negative integers which are the indexes of the
-  characters in PATTERN as found consecutively in STRING. This list
-  measures in length the number of characters in PATTERN.
+A list of non-negative integers which are the indexes of the
+characters in PATTERN as found consecutively in STRING. This list
+measures in length the number of characters in PATTERN.
 
-  A floating-point score. Higher scores for better matches."
+A floating-point score. Higher scores for better matches."
   (declare (optimize (speed 3) (safety 0))
            (type simple-string string)
            (type simple-string pattern))
@@ -264,14 +264,14 @@ Return non-nil if match was collected, nil otherwise."
 (defun sort-by-score (matches)
   "Sort MATCHES by SCORE, highest score first.
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (sort matches #'> :key #'fourth))
 
 (defun keywords-matching (pattern)
   "Find keyword symbols flex-matching PATTERN.
-  Return an unsorted list of matches.
+Return an unsorted list of matches.
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
          (do-symbols (s +keyword-package+)
@@ -281,9 +281,9 @@ Return non-nil if match was collected, nil otherwise."
 
 (defun accessible-matching (pattern package)
   "Find symbols flex-matching PATTERN accessible without package-qualification.
-  Return an unsorted list of matches.
+Return an unsorted list of matches.
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (and (not (find #\: pattern))
        (collecting (collect)
          (let ((collected (make-hash-table)))
@@ -300,15 +300,15 @@ Return non-nil if match was collected, nil otherwise."
 
 (defun qualified-matching (pattern home-package)
   "Find package-qualified symbols flex-matching PATTERN.
-  Return, as two values, a set of matches for external symbols,
-  package-qualified using one colon, and another one for internal
-  symbols, package-qualified using two colons.
+Return, as two values, a set of matches for external symbols,
+package-qualified using one colon, and another one for internal
+symbols, package-qualified using two colons.
 
-  The matches in the two sets are not guaranteed to be in their final
-  order, i.e. they are not sorted (except for the fact that
-  qualifications with shorter package nicknames are tried first).
+The matches in the two sets are not guaranteed to be in their final
+order, i.e. they are not sorted (except for the fact that
+qualifications with shorter package nicknames are tried first).
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (let* ((first-colon (position #\: pattern))
          (starts-with-colon (and first-colon (zerop first-colon)))
          (two-colons (and first-colon (< (1+ first-colon) (length pattern))
@@ -394,8 +394,8 @@ Return non-nil if match was collected, nil otherwise."
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
-  Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
-  \(STRING SCORE CHUNKS CLASSIFICATION-STRING)."
+Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
+\(STRING SCORE CHUNKS CLASSIFICATION-STRING)."
   (when (plusp (length pattern))
     (list (loop
             with package = (guess-buffer-package package-name)
