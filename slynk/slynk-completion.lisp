@@ -340,33 +340,32 @@ Return non-nil if match was collected, nil otherwise."
                 (two-colons
                  (let ((collected (make-hash-table)))
                    (do-all-symbols (s)
-                     (unless (symbol-external-p s)
-                       (loop
-                         with package = (symbol-package s)
-                         for nickname in (sorted-nicknames package)
-                         do (collect-if-matches
-                             (lambda (thing)
-                               ;; XXX: since DO-ALL-SYMBOLS may visit
-                               ;; a symbol more than once, we want to
-                               ;; avoid double collections.  But
-                               ;; instead of marking every traversed
-                               ;; symbol in a hash table, we mark just
-                               ;; those collected.  We do pay an added
-                               ;; price of checking matching duplicate
-                               ;; symbols, but the much smaller hash
-                               ;; table pays off when benchmarked,
-                               ;; because the number of collections is
-                               ;; generally much smaller than the
-                               ;; total number of symbols.
-                               (unless (gethash s collected)
-                                 (setf (gethash s collected) t)
-                                 (funcall #'collect-internal thing)))
-                             pattern
-                             (concatenate 'simple-string
-                                          nickname
-                                          "::"
-                                          (symbol-name s))
-                             s))))))
+                     (loop
+                       with package = (symbol-package s)
+                       for nickname in (sorted-nicknames package)
+                       do (collect-if-matches
+                           (lambda (thing)
+                             ;; XXX: since DO-ALL-SYMBOLS may visit
+                             ;; a symbol more than once, we want to
+                             ;; avoid double collections.  But
+                             ;; instead of marking every traversed
+                             ;; symbol in a hash table, we mark just
+                             ;; those collected.  We do pay an added
+                             ;; price of checking matching duplicate
+                             ;; symbols, but the much smaller hash
+                             ;; table pays off when benchmarked,
+                             ;; because the number of collections is
+                             ;; generally much smaller than the
+                             ;; total number of symbols.
+                             (unless (gethash s collected)
+                               (setf (gethash s collected) t)
+                               (funcall #'collect-internal thing)))
+                           pattern
+                           (concatenate 'simple-string
+                                        nickname
+                                        "::"
+                                        (symbol-name s))
+                           s)))))
                 (t
                  (loop
                    with use-list = (package-use-list home-package)
