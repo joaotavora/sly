@@ -1240,7 +1240,9 @@ stack."
           while f collect f)))
 
 (defimplementation print-frame (frame stream)
-  (sb-debug::print-frame-call frame stream))
+  (sb-debug::print-frame-call frame stream
+                              :allow-other-keys t
+                              :emergency-best-effort t))
 
 (defimplementation frame-restartable-p (frame)
   #+#.(slynk-sbcl::sbcl-with-restart-frame)
