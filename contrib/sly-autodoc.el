@@ -82,30 +82,37 @@
 (defsubst sly-autodoc--canonicalize-whitespace (string)
   (replace-regexp-in-string "[ \n\t]+" " "  string))
 
-(defun sly-autodoc--format (doc multilinep)
-  (let ((doc (sly-autodoc--fontify doc)))
-    (cond (multilinep doc)
-	  (t (sly-oneliner (sly-autodoc--canonicalize-whitespace doc))))))
+(defvar sly-autodoc-preamble nil)
 
-(defun sly-autodoc--fontify (string)
-  "Fontify STRING as `font-lock-mode' does in Lisp mode."
-  (with-current-buffer (get-buffer-create (sly-buffer-name :fontify :hidden t))
-    (erase-buffer)
-    (unless (eq major-mode 'lisp-mode)
-      ;; Just calling (lisp-mode) will turn sly-mode on in that buffer,
-      ;; which may interfere with this function
-      (setq major-mode 'lisp-mode)
-      (lisp-mode-variables t))
-    (insert string)
-    (let ((font-lock-verbose nil))
-      (font-lock-fontify-buffer))
-    (goto-char (point-min))
-    (when (re-search-forward "===> \\(\\(.\\|\n\\)*\\) <===" nil t)
-      (let ((highlight (match-string 1)))
-        ;; Can't use (replace-match highlight) here -- broken in Emacs 21
-        (delete-region (match-beginning 0) (match-end 0))
-	(sly-insert-propertized '(face eldoc-highlight-function-argument)
-                                highlight)))
+(defun sly-autodoc--format (doc multilinep)
+  (let* ((strings (delete nil
+                          (list sly-autodoc-preamble
+                                (and doc
+                                     (sly-autodoc--fontify doc)))))
+         (message (and strings (mapconcat #'identity strings "\n"))))
+    (when message
+      (cond (multilinep message)
+            (t (sly-oneliner (sly-autodoc--canonicalize-whitespace message)))))))
+
+  (defun sly-autodoc--fontify (string)
+    "Fontify STRING as `font-lock-mode' does in Lisp mode."
+    (with-current-buffer (get-buffer-create (sly-buffer-name :fontify :hidden t))
+      (erase-buffer)
+      (unless (eq major-mode 'lisp-mode)
+        ;; Just calling (lisp-mode) will turn sly-mode on in that buffer,
+        ;; which may interfere with this function
+        (setq major-mode 'lisp-mode)
+        (lisp-mode-variables t))
+      (insert string)
+      (let ((font-lock-verbose nil))
+        (font-lock-fontify-buffer))
+      (goto-char (point-min))
+      (when (re-search-forward "===> \\(\\(.\\|\n\\)*\\) <===" nil t)
+        (let ((highlight (match-string 1)))
+          ;; Can't use (replace-match highlight) here -- broken in Emacs 21
+          (delete-region (match-beginning 0) (match-end 0))
+          (sly-insert-propertized '(face eldoc-highlight-function-argument)
+                                  highlight)))
     (buffer-substring (point-min) (point-max))))
 
 

@@ -3,11 +3,13 @@
 ;; sly-mrepl or M-x sly-mrepl-new create new REPL buffers.
 ;;
 (require 'sly)
+(require 'sly-autodoc)
 (require 'cl-lib)
 (require 'comint)
 (define-sly-contrib sly-mrepl
   "Multiple REPLs."
   (:license "GPL")
+  (:sly-dependencies sly-autodoc
   (:slynk-dependencies slynk/mrepl)
   (:on-load
    ;; Define a new "part action" for the `sly-part' buttons and change
@@ -1273,19 +1275,21 @@ a list of result buttons thus highlighted"
                          (or (and m3 (string-to-number m3))
                              (and (not m2)
                                   'all)))))
-    (when match
+    (if (null match)
+        (set (make-local-variable 'sly-autodoc-preamble) nil)
       (let ((buttons (sly-mrepl-highlight-results entry-idx value-idx))
             (overlay
              (or sly-mrepl--backreference-overlay
                  (set (make-local-variable 'sly-mrepl--backreference-overlay)
                       (make-overlay 0 0))))
-            (message-log-max nil))
+            (message-log-max nil)
+            (message-text))
         (move-overlay sly-mrepl--backreference-overlay
                       (match-beginning 0) (match-end 0))
         (cond
          ((null buttons)
           (overlay-put overlay 'face 'font-lock-warning-face)
-          (sly-message "No history references for backreference `%s'" m0))
+          (setq message-text (format "No history references for backreference `%s'" m0)))
          ((and buttons
                entry-idx
                value-idx)
@@ -1311,14 +1315,16 @@ a list of result buttons thus highlighted"
                          "...")
                         'face
                         'sly-action-face)))
-            (sly-message "%s" (format "%s%s" prefix hint))))
+            (setq message-text (format "%s" (format "%s%s" prefix hint)))))
          (buttons
-          (sly-message "Ambiguous backreference `%s', %s values possible"
-                       m0 (length buttons))
+          (setq message-text (format "Ambiguous backreference `%s', %s values possible"
+                                     m0 (length buttons)))
           (overlay-put overlay 'face 'font-lock-warning-face))
          (t
           (overlay-put overlay 'face 'font-lock-warning-face)
-          (sly-message "Invalid backreference `%s'" m0)))))))
+          (setq message-text (format "Invalid backreference `%s'" m0))))
+        (sly-message message-text)
+        (set (make-local-variable 'sly-autodoc-preamble) message-text)))))
 
 
 ;;;; Menu
