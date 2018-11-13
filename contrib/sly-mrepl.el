@@ -836,13 +836,14 @@ Completion performed by `completion-at-point' or
 `company-complete'.  If there's no symbol at the point, show the
 arglist for the most recently enclosed macro or function."
   (interactive "P")
-  (let ((pos (point)))
+  (let ((pos (point))
+        (fn (if (bound-and-true-p 'company-mode)
+                'company-complete
+              'completion-at-point)))
     (indent-for-tab-command arg)
     (when (= pos (point))
       (cond ((save-excursion (re-search-backward "[^() \n\t\r]+\\=" nil t))
-             (if (bound-and-true-p company-mode)
-                 (funcall 'company-complete)
-               (completion-at-point)))
+             (funcall fn))
             ((memq (char-before) '(?\t ?\ ))
              (sly-show-arglist))))))
 
