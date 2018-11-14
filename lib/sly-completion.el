@@ -163,7 +163,7 @@ COMPLETIONS is a list of propertized strings."
 COMPLETIONS is a list of propertized strings."
   (cl-loop with (completions _) =
            (sly--completion-request-completions pattern 'slynk-completion:flex-completions)
-           for (completion score chunks classification) in completions
+           for (completion score chunks classification suggestion) in completions
            do
            (cl-loop for (pos substring) in chunks
                     do (put-text-property pos (+ pos
@@ -175,13 +175,15 @@ COMPLETIONS is a list of propertized strings."
                     finally (put-text-property 0 (length completion)
                                                'sly-completion-chunks chunks-2
                                                completion))
-           (put-text-property 0
-                              (length completion)
-                              'sly--annotation
-                              (format "%s %5.2f%%"
-                                      classification
-                                      (* score 100))
-                              completion)
+           (add-text-properties 0
+                                (length completion)
+                                `(sly--annotation
+                                  ,(format "%s %5.2f%%"
+                                           classification
+                                           (* score 100))
+                                  sly--suggestion
+                                  ,suggestion)
+                                completion)
 
            collect completion into formatted
            finally return (list formatted nil)))
@@ -258,6 +260,12 @@ ANNOTATION) describing each completion possibility."
     (list beg end
           (sly--completion-function-wrapper fn)
           :annotation-function #'sly-completion-annotation
+          :exit-function (lambda (obj _status)
+                           (sly--when-let (suggestion
+                                           (get-text-property 0 'sly--suggestion
+                                                              obj))
+                             (delete-region (- (point) (length obj)) (point))
+                             (insert suggestion)))
           :company-docsig
           (lambda (obj)
             (sly--responsive-eval (arglist `(slynk:operator-arglist
