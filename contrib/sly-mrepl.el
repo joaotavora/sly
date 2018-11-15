@@ -6,10 +6,11 @@
 (require 'sly-autodoc)
 (require 'cl-lib)
 (require 'comint)
+
 (define-sly-contrib sly-mrepl
   "Multiple REPLs."
   (:license "GPL")
-  (:sly-dependencies sly-autodoc
+  (:sly-dependencies sly-autodoc)
   (:slynk-dependencies slynk/mrepl)
   (:on-load
    ;; Define a new "part action" for the `sly-part' buttons and change
