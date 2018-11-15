@@ -4477,8 +4477,8 @@ With M-- (negative) prefix arg, prompt for package only. "
          (t
           (list (sly-read-from-minibuffer "Apropos external symbols: ") t nil nil))))
   (sly-eval-async
-      `(slynk:apropos-list-for-emacs ,string ,only-external-p
-                                     ,case-sensitive-p ',package)
+      `(slynk-apropos:apropos-list-for-emacs ,string ,only-external-p
+                                             ,case-sensitive-p ',package)
     (sly-rcurry #'sly-show-apropos string package
                 (sly-apropos-summary string case-sensitive-p
                                      package only-external-p))))
@@ -4546,21 +4546,21 @@ TODO"
           (car designator)))
 
 (defun sly-apropos-insert-symbol (designator item bounds package-designator-searched-p)
-  (let ((start (point))
-        (label (sly-apropos-designator-string designator)))
+  (let ((label (sly-apropos-designator-string designator)))
     (sly--make-text-button label nil
                            'face 'sly-apropos-symbol
                            'part-args (list item nil)
                            'part-label "Symbol"
                            :type 'sly-apropos-symbol)
-    (insert label)
-    (when bounds
-      (let* ((offset (if package-designator-searched-p
-                         0
-                       (length (sly--package-designator-prefix designator))))
-             (ov (make-overlay (+ start offset (cl-first bounds))
-                               (+ start offset (cl-second bounds)))))
-        (overlay-put ov 'face 'highlight)))))
+    (cl-loop
+     with offset = (if package-designator-searched-p
+                       0
+                     (length (sly--package-designator-prefix designator)))
+     for bound in bounds
+     for (start end) = (if (listp bound) bound (list bound (1+ bound)))
+     do
+     (put-text-property (+ start offset) (+ end offset) 'face 'highlight label)
+     finally (insert label))))
 
 (defun sly-print-apropos (plists package-designator-searched-p)
   (cl-loop

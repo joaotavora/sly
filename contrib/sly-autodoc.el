@@ -12,8 +12,10 @@
             "Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>"
             "Tobias C. Rittweiler  <tcr@freebits.de>")
   (:slynk-dependencies slynk/arglists)
-  (:on-load (add-hook 'sly-mode-hook 'sly-autodoc-mode))
-  (:on-unload (remove-hook 'sly-mode-hook 'sly-autodoc-mode)))
+  (:on-load (add-hook 'sly-mode-hook 'sly-autodoc-mode)
+            (add-hook 'sly-minibuffer-setup-hook 'sly-autodoc-mode))
+  (:on-unload (remove-hook 'sly-mode-hook 'sly-autodoc-mode)
+              (remove-hook 'sly-minibuffer-setup-hook 'sly-autodoc-mode)))
 
 (defcustom sly-autodoc-accuracy-depth 10
   "Number of paren levels that autodoc takes into account for
@@ -41,7 +43,7 @@
   "Like autodoc information forcing multiline display."
   (interactive)
   (let ((doc (sly-autodoc t)))
-    (cond (doc (eldoc-message "%s" doc))
+    (cond (doc (eldoc-message (format "%s" doc)))
 	  (t (eldoc-message nil)))))
 
 ;; Must call eldoc-add-command otherwise (eldoc-display-message-p)
@@ -54,7 +56,7 @@
   (self-insert-command n)
   (let ((doc (sly-autodoc)))
     (when doc
-      (eldoc-message "%s" doc))))
+      (eldoc-message (format "%s" doc)))))
 
 (eldoc-add-command 'sly-autodoc-space)
 
@@ -65,7 +67,7 @@
 (defvar sly-autodoc--cache-last-autodoc nil)
 
 (defun sly-autodoc--cache-get (context)
-  "Return the cached autodoc documentation for `context', or nil."
+  "Return cached autodoc documentation for CONTEXT or nil."
   (and (equal context sly-autodoc--cache-last-context)
        sly-autodoc--cache-last-autodoc))
 
@@ -80,30 +82,37 @@
 (defsubst sly-autodoc--canonicalize-whitespace (string)
   (replace-regexp-in-string "[ \n\t]+" " "  string))
 
-(defun sly-autodoc--format (doc multilinep)
-  (let ((doc (sly-autodoc--fontify doc)))
-    (cond (multilinep doc)
-	  (t (sly-oneliner (sly-autodoc--canonicalize-whitespace doc))))))
+(defvar sly-autodoc-preamble nil)
 
-(defun sly-autodoc--fontify (string)
-  "Fontify STRING as `font-lock-mode' does in Lisp mode."
-  (with-current-buffer (get-buffer-create (sly-buffer-name :fontify :hidden t))
-    (erase-buffer)
-    (unless (eq major-mode 'lisp-mode)
-      ;; Just calling (lisp-mode) will turn sly-mode on in that buffer,
-      ;; which may interfere with this function
-      (setq major-mode 'lisp-mode)
-      (lisp-mode-variables t))
-    (insert string)
-    (let ((font-lock-verbose nil))
-      (font-lock-fontify-buffer))
-    (goto-char (point-min))
-    (when (re-search-forward "===> \\(\\(.\\|\n\\)*\\) <===" nil t)
-      (let ((highlight (match-string 1)))
-        ;; Can't use (replace-match highlight) here -- broken in Emacs 21
-        (delete-region (match-beginning 0) (match-end 0))
-	(sly-insert-propertized '(face eldoc-highlight-function-argument)
-                                highlight)))
+(defun sly-autodoc--format (doc multilinep)
+  (let* ((strings (delete nil
+                          (list sly-autodoc-preamble
+                                (and doc
+                                     (sly-autodoc--fontify doc)))))
+         (message (and strings (mapconcat #'identity strings "\n"))))
+    (when message
+      (cond (multilinep message)
+            (t (sly-oneliner (sly-autodoc--canonicalize-whitespace message)))))))
+
+  (defun sly-autodoc--fontify (string)
+    "Fontify STRING as `font-lock-mode' does in Lisp mode."
+    (with-current-buffer (get-buffer-create (sly-buffer-name :fontify :hidden t))
+      (erase-buffer)
+      (unless (eq major-mode 'lisp-mode)
+        ;; Just calling (lisp-mode) will turn sly-mode on in that buffer,
+        ;; which may interfere with this function
+        (setq major-mode 'lisp-mode)
+        (lisp-mode-variables t))
+      (insert string)
+      (let ((font-lock-verbose nil))
+        (font-lock-fontify-buffer))
+      (goto-char (point-min))
+      (when (re-search-forward "===> \\(\\(.\\|\n\\)*\\) <===" nil t)
+        (let ((highlight (match-string 1)))
+          ;; Can't use (replace-match highlight) here -- broken in Emacs 21
+          (delete-region (match-beginning 0) (match-end 0))
+          (sly-insert-propertized '(face eldoc-highlight-function-argument)
+                                  highlight)))
     (buffer-substring (point-min) (point-max))))
 
 
@@ -115,9 +124,13 @@ If it's not in the cache, the cache will be updated asynchronously."
   (interactive "P")
   (save-excursion
     (save-match-data
-      (let ((context (sly-autodoc--parse-context)))
+      (let ((context
+             (cons
+              (sly-connection)
+              (sly-autodoc--parse-context))))
 	(when context
-	  (let* ((cached (sly-autodoc--cache-get context))
+	  (let* ((cached (sly-autodoc--cache-get
+                          context))
 		 (multilinep (or force-multiline
 				 eldoc-echo-area-use-multiline-p)))
 	    (cond (cached (sly-autodoc--format cached multilinep))
@@ -139,7 +152,7 @@ If it's not in the cache, the cache will be updated asynchronously."
 
 (defun sly-autodoc--async (context multilinep)
   (sly-eval-async
-      `(slynk:autodoc ',context ;; FIXME: misuse of quote
+      `(slynk:autodoc ',(cdr context) ;; FIXME: misuse of quote
 		      :print-right-margin ,(window-width (minibuffer-window)))
     (sly-curry #'sly-autodoc--async% context multilinep)))
 
