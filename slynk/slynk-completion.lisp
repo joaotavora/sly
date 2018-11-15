@@ -8,7 +8,12 @@
   (:export
    #:flex-completions
    #:simple-completions
-   #:*get-completions*))
+   #:*get-completions*
+   #:sort-by-score
+   #:keywords-matching
+   #:accessible-matching
+   #:qualified-matching
+   #:get-completions))
 
 ;; for testing package-local nicknames
 #+sbcl
@@ -394,7 +399,7 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
                                                          s))))))))))))))
 
 
-(defun get-completions (pattern package &key (limit 300))
+(defun get-completions (upcasepat package &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE.
   Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
   \(STRING SCORE CHUNKS CLASSIFICATION-STRING).
