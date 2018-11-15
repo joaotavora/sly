@@ -840,7 +840,7 @@ Completion performed by `completion-at-point' or
 arglist for the most recently enclosed macro or function."
   (interactive "P")
   (let ((pos (point))
-        (fn (if (bound-and-true-p 'company-mode)
+        (fn (if (bound-and-true-p company-mode)
                 'company-complete
               'completion-at-point)))
     (indent-for-tab-command arg)
