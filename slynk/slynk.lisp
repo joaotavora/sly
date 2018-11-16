@@ -197,9 +197,9 @@ Backend code should treat the connection structure as opaque.")
 ;;; Emacs and Lisp. 
 ;;;
 (defstruct (connection
-             (:constructor %make-connection)
-             (:conc-name connection-)
-             (:print-function print-connection))
+            (:constructor %make-connection)
+            (:conc-name connection-)
+            (:print-function print-connection))
   ;; The listening socket. (usually closed)
   ;; 
   (socket           (missing-arg) :type t :read-only t)
@@ -291,8 +291,8 @@ Backend code should treat the connection structure as opaque.")
 
 (defun safe-backtrace ()
   (ignore-errors
-    (call-with-debugging-environment
-     (lambda () (backtrace 0 nil)))))
+   (call-with-debugging-environment
+    (lambda () (backtrace 0 nil)))))
 
 (define-condition slynk-error (error)
   ((backtrace :initarg :backtrace :reader slynk-error.backtrace)
@@ -311,17 +311,17 @@ to T unless you want to debug slynk internals.")
 (defmacro with-slynk-error-handler ((connection) &body body)
   "Close the connection on internal `slynk-error's."
   (let ((conn (gensym)))
-  `(let ((,conn ,connection))
-     (handler-case
-         (handler-bind ((slynk-error
-                         (lambda (condition)
-                           (when *debug-on-slynk-protocol-error*
-                             (invoke-default-debugger condition)))))
-           (progn . ,body))
-       (slynk-error (condition)
-         (close-connection ,conn
-                           (slynk-error.condition condition)
-                           (slynk-error.backtrace condition)))))))
+    `(let ((,conn ,connection))
+       (handler-case
+           (handler-bind ((slynk-error
+                            (lambda (condition)
+                              (when *debug-on-slynk-protocol-error*
+                                (invoke-default-debugger condition)))))
+             (progn . ,body))
+         (slynk-error (condition)
+           (close-connection ,conn
+                             (slynk-error.condition condition)
+                             (slynk-error.backtrace condition)))))))
 
 (defmacro with-panic-handler ((connection) &body body)
   "Close the connection on unhandled `serious-condition's."
@@ -462,11 +462,11 @@ corresponding values in the CDR of VALUE."
 	    (,operands (cdr ,tmp)))
        (case ,operator
          ,@(loop for (pattern . body) in patterns collect
-                 (if (eq pattern t)
-                     `(t ,@body)
-                     (destructuring-bind (op &rest rands) pattern
-                       `(,op (destructuring-bind ,rands ,operands
-                               ,@body)))))
+                                                  (if (eq pattern t)
+                                                      `(t ,@body)
+                                                      (destructuring-bind (op &rest rands) pattern
+                                                        `(,op (destructuring-bind ,rands ,operands
+                                                                ,@body)))))
          ,@(if (eq (caar (last patterns)) t)
                '()
                `((t (error "destructure-case failed: ~S" ,tmp))))))))
@@ -888,14 +888,6 @@ about internal symbols most times. As the spec says:
 If PACKAGE is not specified, the home package of SYMBOL is used."
   (eq (symbol-status symbol package) :external))
 
-(defun baroque-symbol-name-p (symbol)
-  (or (> (length (symbol-name symbol)) 60)))
-
-(defparameter *exclude-symbol-functions*
-  '(baroque-symbol-name-p)
-  "Functions excluding symbols from completion.
-Holds a list of boolean predicates of a single argument, a symbol")
-
 
 ;;;; TCP Server
 
@@ -908,7 +900,7 @@ Holds a list of boolean predicates of a single argument, a symbol")
 (defparameter *loopback-interface* "127.0.0.1")
 
 (defun start-server (port-file &key (style *communication-style*)
-                                    (dont-close *dont-close*))
+                                 (dont-close *dont-close*))
   "Start the server and write the listen port number to PORT-FILE.
 This is the entry point for Emacs."
   (setup-server 0
@@ -948,13 +940,13 @@ Add a restart, prompting user to enter a new port if PORT is already
 taken."
   (restart-loop (create-socket *loopback-interface* port :backlog backlog)
     (use-value (&optional (new-port (1+ port)))
-      :report (lambda (stream) (format stream "Try a port other than ~D" port))
-      :interactive
-      (lambda ()
-        (format *query-io* "Enter port (defaults to ~D): " (1+ port))
-        (finish-output *query-io*)      ; necessary for tunnels
-        (ignore-errors (list (parse-integer (read-line *query-io*)))))
-      (setq port new-port))))
+               :report (lambda (stream) (format stream "Try a port other than ~D" port))
+               :interactive
+               (lambda ()
+                 (format *query-io* "Enter port (defaults to ~D): " (1+ port))
+                 (finish-output *query-io*)      ; necessary for tunnels
+                 (ignore-errors (list (parse-integer (read-line *query-io*)))))
+               (setq port new-port))))
 
 (defun setup-server (port announce-fn style dont-close backlog)
   (init-log-output)
@@ -981,8 +973,8 @@ taken."
   (send-to-sentinel `(:stop-server :port ,port)))
 
 (defun restart-server (&key (port default-server-port)
-                       (style *communication-style*)
-                       (dont-close *dont-close*))
+                         (style *communication-style*)
+                         (dont-close *dont-close*))
   "Stop the server listening on PORT, then start a new SLYNK server
 on PORT running in STYLE. If DONT-CLOSE is true then the listen socket
 will accept multiple connections, otherwise it will be closed after the
@@ -1109,15 +1101,15 @@ The processing is done in the extent of the toplevel restart."
 TIMEOUT has the same meaning as in WAIT-FOR-EVENT."
   (catch 'stop-processing
     (loop
-      (multiple-value-bind (event timed-out-p)
-          (wait-for-event `(or (:emacs-rex . _)
-                               (:emacs-channel-send . _))
-                          timeout)
-        (when timed-out-p (return))
-        (destructure-case event
-          ((:emacs-rex &rest args) (apply #'eval-for-emacs args))
-          ((:emacs-channel-send channel (selector &rest args))
-           (channel-send channel selector args)))))))
+       (multiple-value-bind (event timed-out-p)
+           (wait-for-event `(or (:emacs-rex . _)
+                                (:emacs-channel-send . _))
+                           timeout)
+         (when timed-out-p (return))
+         (destructure-case event
+           ((:emacs-rex &rest args) (apply #'eval-for-emacs args))
+           ((:emacs-channel-send channel (selector &rest args))
+            (channel-send channel selector args)))))))
 
 (defun spawn-channel-thread (connection channel)
   "Spawn a listener thread for CONNECTION and CHANNEL.
@@ -1129,16 +1121,16 @@ point the thread terminates and CHANNEL is closed."
    (lambda ()
      (with-connection (connection)
        (destructure-case
-        (slynk-backend:receive)
-        ((:serve-channel c)
-         (assert (eq c channel))
-         (loop
-           (with-top-level-restart (connection
-                                    (drop-unprocessed-events channel))
-             
-             (when (eq (process-requests nil)
-                       'listener-teardown)
-               (return))))))
+           (slynk-backend:receive)
+         ((:serve-channel c)
+          (assert (eq c channel))
+          (loop
+             (with-top-level-restart (connection
+                                      (drop-unprocessed-events channel))
+               
+               (when (eq (process-requests nil)
+                         'listener-teardown)
+                 (return))))))
        (close-channel channel)))
    :name (with-slots (id name) channel
            (format nil "sly-channel-~a-~a" id name))))
@@ -1202,11 +1194,11 @@ point the thread terminates and CHANNEL is closed."
 
 (defun auto-flush-loop (stream)
   (loop
-   (when (not (and (open-stream-p stream)
-                   (output-stream-p stream)))
-     (return nil))
-   (force-output stream)
-   (sleep *auto-flush-interval*)))
+     (when (not (and (open-stream-p stream)
+                     (output-stream-p stream)))
+       (return nil))
+     (force-output stream)
+     (sleep *auto-flush-interval*)))
 
 (defgeneric thread-for-evaluation (connection id)
   (:documentation "Find or create a thread to evaluate the next request.")
@@ -1378,21 +1370,21 @@ event was found."
 (defun wait-for-event/event-loop (connection pattern timeout)
   (assert (or (not timeout) (eq timeout t)))
   (loop
-   (check-sly-interrupts)
-   (let ((event (poll-for-event connection pattern)))
-     (when event (return (car event))))
-   (let ((events-enqueued (sconn.events-enqueued connection))
-         (ready (wait-for-input (list (current-socket-io)) timeout)))
-     (cond ((and timeout (not ready))
-            (return (values nil t)))
-           ((or (/= events-enqueued (sconn.events-enqueued connection))
-                (eq ready :interrupt))
-            ;; rescan event queue, interrupts may enqueue new events
-            )
-           (t
-            (assert (equal ready (list (current-socket-io))))
-            (dispatch-event connection
-                            (decode-message (current-socket-io))))))))
+     (check-sly-interrupts)
+     (let ((event (poll-for-event connection pattern)))
+       (when event (return (car event))))
+     (let ((events-enqueued (sconn.events-enqueued connection))
+           (ready (wait-for-input (list (current-socket-io)) timeout)))
+       (cond ((and timeout (not ready))
+              (return (values nil t)))
+             ((or (/= events-enqueued (sconn.events-enqueued connection))
+                  (eq ready :interrupt))
+              ;; rescan event queue, interrupts may enqueue new events
+              )
+             (t
+              (assert (equal ready (list (current-socket-io))))
+              (dispatch-event connection
+                              (decode-message (current-socket-io))))))))
 
 (defun poll-for-event (connection pattern)
   (let* ((c connection)
@@ -1514,17 +1506,17 @@ event was found."
 
 (defun simple-repl ()
   (loop
-   (format t "~a> " (package-string-for-prompt *package*))
-   (force-output)
-   (let ((form (handler-case (read)
-                 (end-of-repl-input () (return)))))
-     (let ((- form)
-           (values (multiple-value-list (eval form))))
-       (setq *** **  ** *  * (car values)
-             /// //  // /  / values
-             +++ ++  ++ +  + form)
-       (cond ((null values) (format t "; No values~&"))
-             (t (mapc (lambda (v) (format t "~s~&" v)) values)))))))
+     (format t "~a> " (package-string-for-prompt *package*))
+     (force-output)
+     (let ((form (handler-case (read)
+                   (end-of-repl-input () (return)))))
+       (let ((- form)
+             (values (multiple-value-list (eval form))))
+         (setq *** **  ** *  * (car values)
+               /// //  // /  / values
+               +++ ++  ++ +  + form)
+         (cond ((null values) (format t "; No values~&"))
+               (t (mapc (lambda (v) (format t "~s~&" v)) values)))))))
 
 (defun make-repl-input-stream (connection stdin)
   (make-input-stream
@@ -1532,23 +1524,23 @@ event was found."
 
 (defun repl-input-stream-read (connection stdin)
   (loop
-   (let* ((socket (connection-socket-io connection))
-          (inputs (list socket stdin))
-          (ready (wait-for-input inputs)))
-     (cond ((eq ready :interrupt)
-            (check-sly-interrupts))
-           ((member socket ready)
-            ;; A Sly request from Emacs is pending; make sure to
-            ;; redirect IO to the REPL buffer.
-            (with-simple-restart (process-input "Continue reading input.")
-              (let ((*sly-db-quit-restart* (find-restart 'process-input)))
-                (with-default-listener (connection)
-                  (handle-requests connection t)))))
-           ((member stdin ready)
-            ;; User typed something into the  *inferior-lisp* buffer,
-            ;; so do not redirect.
-            (return (read-non-blocking stdin)))
-           (t (assert (null ready)))))))
+     (let* ((socket (connection-socket-io connection))
+            (inputs (list socket stdin))
+            (ready (wait-for-input inputs)))
+       (cond ((eq ready :interrupt)
+              (check-sly-interrupts))
+             ((member socket ready)
+              ;; A Sly request from Emacs is pending; make sure to
+              ;; redirect IO to the REPL buffer.
+              (with-simple-restart (process-input "Continue reading input.")
+                (let ((*sly-db-quit-restart* (find-restart 'process-input)))
+                  (with-default-listener (connection)
+                    (handle-requests connection t)))))
+             ((member stdin ready)
+              ;; User typed something into the  *inferior-lisp* buffer,
+              ;; so do not redirect.
+              (return (read-non-blocking stdin)))
+             (t (assert (null ready)))))))
 
 (defun read-non-blocking (stream)
   (with-output-to-string (str)
@@ -1677,12 +1669,12 @@ VERSION: the protocol version"
                             :version ,(lisp-implementation-version)
                             :program ,(lisp-implementation-program))
       :machine (:instance ,(machine-instance)
-               :type ,(machine-type)
-               :version ,(machine-version))
+                :type ,(machine-type)
+                :version ,(machine-version))
       :features ,(features-for-emacs)
       :modules ,*modules*
       :package (:name ,(package-name *package*)
-               :prompt ,(package-string-for-prompt *package*))
+                :prompt ,(package-string-for-prompt *package*))
       :version ,*slynk-wire-protocol-version*)))
 
 (defun debug-on-slynk-error ()
@@ -1709,7 +1701,7 @@ buffer are best read in this package.  See also FROM-STRING and TO-STRING.")
     "Readtable associated with the current buffer")
 
 (defmacro with-buffer-syntax ((&optional package-designator
-                                         readtable)
+                                 readtable)
                               &body body)
   "Conceptually execute BODY inside a SLY Lisp buffer.
 
@@ -1742,8 +1734,8 @@ Emacs buffer."
           (call-with-syntax-hooks fun)))))
 
 (defmacro without-printing-errors ((&key object stream
-                                        (msg "<<error printing object>>"))
-                                  &body body)
+                                      (msg "<<error printing object>>"))
+                                   &body body)
   "Catches errors during evaluation of BODY and prints MSG instead."
   `(handler-case (progn ,@body)
      (serious-condition ()
@@ -1751,7 +1743,7 @@ Emacs buffer."
                (let ((gstream (gensym "STREAM+")))
                  `(let ((,gstream ,stream))
                     (print-unreadable-object (,object ,gstream :type t
-                                                      :identity t)
+                                                               :identity t)
                       (write-string ,msg ,gstream)))))
               (stream
                `(write-string ,msg ,stream))
@@ -1802,35 +1794,35 @@ considered to represent a symbol internal to some current package.)"
   "This version of TOKENIZE-SYMBOL handles escape characters."
   (let ((package nil)
         (token (make-array (length string) :element-type 'character
-                           :fill-pointer 0))
+                                           :fill-pointer 0))
         (backslash nil)
         (vertical nil)
         (internp nil))
     (loop for char across string do
-          (cond
-            (backslash
-             (vector-push-extend char token)
-             (setq backslash nil))
-            ((char= char #\\) ; Quotes next character, even within |...|
-             (setq backslash t))
-            ((char= char #\|)
-             (setq vertical (not vertical)))
-            (vertical
-             (vector-push-extend char token))
-            ((char= char #\:)
-             (cond ((and package internp)
-                    (return-from tokenize-symbol-thoroughly))
-                   (package
-                    (setq internp t))
-                   (t
-                    (setq package token
-                          token (make-array (length string)
-                                            :element-type 'character
-                                            :fill-pointer 0)))))
-            (t
-             (vector-push-extend (casify-char char) token))))
+      (cond
+        (backslash
+         (vector-push-extend char token)
+         (setq backslash nil))
+        ((char= char #\\) ; Quotes next character, even within |...|
+         (setq backslash t))
+        ((char= char #\|)
+         (setq vertical (not vertical)))
+        (vertical
+         (vector-push-extend char token))
+        ((char= char #\:)
+         (cond ((and package internp)
+                (return-from tokenize-symbol-thoroughly))
+               (package
+                (setq internp t))
+               (t
+                (setq package token
+                      token (make-array (length string)
+                                        :element-type 'character
+                                        :fill-pointer 0)))))
+        (t
+         (vector-push-extend (casify-char char) token))))
     (unless vertical
-          (values token package (or (not package) internp)))))
+      (values token package (or (not package) internp)))))
 
 (defun untokenize-symbol (package-name internal-p symbol-name)
   "The inverse of TOKENIZE-SYMBOL.
@@ -1867,16 +1859,16 @@ Return the symbol and a flag indicating whether the symbols was found."
   (multiple-value-bind (sname pname internalp)
       (tokenize-symbol-thoroughly string)
     (when sname
-     (let ((package (cond ((string= pname "") +keyword-package+)
-                          (pname              (find-package pname))
-                          (t                  package))))
-       (if package
-           (multiple-value-bind (symbol flag)
-               (if internalp
-                   (find-symbol sname package)
-                   (find-symbol-with-status sname ':external package))
-             (values symbol flag sname package))
-           (values nil nil nil nil))))))
+      (let ((package (cond ((string= pname "") +keyword-package+)
+                           (pname              (find-package pname))
+                           (t                  package))))
+        (if package
+            (multiple-value-bind (symbol flag)
+                (if internalp
+                    (find-symbol sname package)
+                    (find-symbol-with-status sname ':external package))
+              (values symbol flag sname package))
+            (values nil nil nil nil))))))
 
 (defun parse-symbol-or-lose (string &optional (package *package*))
   (multiple-value-bind (symbol status) (parse-symbol string package)
@@ -1889,8 +1881,8 @@ Return the symbol and a flag indicating whether the symbols was found."
 Return the package or nil."
   ;; STRING comes usually from a (in-package STRING) form.
   (ignore-errors
-    (find-package (let ((*package* *slynk-io-package*))
-                    (read-from-string string)))))
+   (find-package (let ((*package* *slynk-io-package*))
+                   (read-from-string string)))))
 
 (defun unparse-name (string)
   "Print the name STRING according to the current printer settings."
@@ -2080,13 +2072,13 @@ last form."
   (with-input-from-string (stream string)
     (let (- values)
       (loop
-       (let ((form (read stream nil stream)))
-         (when (eq form stream)
-           (finish-output)
-           (return (values values -)))
-         (setq - form)
-         (setq values (multiple-value-list (eval form)))
-         (finish-output))))))
+         (let ((form (read stream nil stream)))
+           (when (eq form stream)
+             (finish-output)
+             (return (values values -)))
+           (setq - form)
+           (setq values (multiple-value-list (eval form)))
+           (finish-output))))))
 
 (defslyfun interactive-eval-region (string)
   (with-buffer-syntax ()
@@ -2162,9 +2154,9 @@ If STREAM is nil, use a string"
   (with-buffer-syntax ()
     (let* ((s (make-string-output-stream))
            (values
-            (let ((*standard-output* s)
-                  (*trace-output* s))
-              (multiple-value-list (eval (read-from-string string))))))
+             (let ((*standard-output* s)
+                   (*trace-output* s))
+               (multiple-value-list (eval (read-from-string string))))))
       (cat (get-output-stream-string s)
            (slynk-pprint-values values)))))
 
@@ -2232,12 +2224,12 @@ MAP -- rewrite the chars in STRING according to this alist."
     (write-char #\" stream)
     (loop for c across string
           for i from 0 do
-          (when (= i limit)
-            (write-string "..." stream)
-            (return))
-          (let ((probe (assoc c map)))
-            (cond (probe (write-string (cdr probe) stream))
-                  (t (write-char c stream)))))
+            (when (= i limit)
+              (write-string "..." stream)
+              (return))
+            (let ((probe (assoc c map)))
+              (cond (probe (write-string (cdr probe) stream))
+                    (t (write-char c stream)))))
     (write-char #\" stream)))
 
 
@@ -2249,7 +2241,7 @@ MAP -- rewrite the chars in STRING according to this alist."
 (defvar *canonical-package-nicknames*
   `((:common-lisp-user . :cl-user))
   "Canonical package names to use instead of shortest name/nickname.")
-  
+
 (defvar *auto-abbreviate-dotted-packages* t
   "Abbreviate dotted package names to their last component if T.")
 
@@ -2274,7 +2266,7 @@ N.B. this is not an actual package name or nickname."
     (loop with package-name = (package-name package)
           with offset = nil
           do (let ((last-dot-pos (position #\. package-name :end offset
-                                           :from-end t)))
+                                                            :from-end t)))
                (unless last-dot-pos
                  (return nil))
                ;; If a dot chunk contains only numbers, that chunk most
@@ -2289,9 +2281,9 @@ N.B. this is not an actual package name or nickname."
   "Return the shortest nickname of PACKAGE."
   (loop for name in (cons (package-name package) (package-nicknames package))
         for shortest = name then (if (< (length name) (length shortest))
-                                   name
-                                   shortest)
-              finally (return shortest)))
+                                     name
+                                     shortest)
+        finally (return shortest)))
 
 
 
@@ -2306,14 +2298,14 @@ WHAT can be:
   (flet ((canonicalize-filename (filename)
            (pathname-to-filename (or (probe-file filename) filename))))
     (let ((target
-           (etypecase what
-             (null nil)
-             ((or string pathname)
-              `(:filename ,(canonicalize-filename what)))
-             ((cons (or string pathname) *)
-              `(:filename ,(canonicalize-filename (car what)) ,@(cdr what)))
-             ((or symbol cons)
-              `(:function-name ,(prin1-to-string what))))))
+            (etypecase what
+              (null nil)
+              ((or string pathname)
+               `(:filename ,(canonicalize-filename what)))
+              ((cons (or string pathname) *)
+               `(:filename ,(canonicalize-filename (car what)) ,@(cdr what)))
+              ((or symbol cons)
+               `(:function-name ,(prin1-to-string what))))))
       (cond (*emacs-connection* (send-oob-to-emacs `(:ed ,target)))
             ((default-connection)
              (with-connection ((default-connection))
@@ -2355,7 +2347,7 @@ FORM is expected, but not required, to be SETF'able."
 FORM and VALUE are both strings from Emacs."
   (with-buffer-syntax ()
     (eval `(setf ,(read-from-string form)
-            ,(read-from-string (concatenate 'string "`" value))))
+                 ,(read-from-string (concatenate 'string "`" value))))
     t))
 
 (defun background-message  (format-string &rest args)
@@ -2376,10 +2368,10 @@ at least SECONDS."
          (end (+ start
                  (* seconds internal-time-units-per-second))))
     (loop
-     (let ((now (get-internal-real-time)))
-       (cond ((< end now) (return))
-             (t (sleep (/ (- end now)
-                          internal-time-units-per-second))))))))
+       (let ((now (get-internal-real-time)))
+         (cond ((< end now) (return))
+               (t (sleep (/ (- end now)
+                            internal-time-units-per-second))))))))
 
 
 ;;;; Debugger
@@ -2441,7 +2433,7 @@ after Emacs causes a restart to be invoked."
   (let ((*slynk-debugger-condition* condition)
         (*sly-db-restarts* (compute-restarts condition))
         (*sly-db-quit-restart* (and *sly-db-quit-restart*
-                                  (find-restart *sly-db-quit-restart*)))
+                                    (find-restart *sly-db-quit-restart*)))
         (*package* (or (and (boundp '*buffer-package*)
                             (symbol-value '*buffer-package*))
                        *package*))
@@ -2455,24 +2447,24 @@ after Emacs causes a restart to be invoked."
 (defun sly-db-loop (level)
   (unwind-protect
        (loop
-        (with-simple-restart (abort "Return to sly-db level ~D." level)
-          (send-to-emacs
-           (list* :debug (current-thread-id) level
-                  (debugger-info-for-emacs 0 *sly-db-initial-frames*)))
-          (send-to-emacs
-           (list :debug-activate (current-thread-id) level))
-          (loop
-           (handler-case
-               (destructure-case (wait-for-event
-                                  `(or (:emacs-rex . _)
-                                       (:emacs-channel-send . _)
-                                       (:sly-db-return ,(1+ level))))
-                 ((:emacs-rex &rest args) (apply #'eval-for-emacs args))
-                 ((:emacs-channel-send channel (selector &rest args))
-                  (channel-send channel selector args))
-                 ((:sly-db-return _) (declare (ignore _)) (return nil)))
-             (sly-db-condition (c)
-               (handle-sly-db-condition c))))))
+          (with-simple-restart (abort "Return to sly-db level ~D." level)
+            (send-to-emacs
+             (list* :debug (current-thread-id) level
+                    (debugger-info-for-emacs 0 *sly-db-initial-frames*)))
+            (send-to-emacs
+             (list :debug-activate (current-thread-id) level))
+            (loop
+               (handler-case
+                   (destructure-case (wait-for-event
+                                      `(or (:emacs-rex . _)
+                                           (:emacs-channel-send . _)
+                                           (:sly-db-return ,(1+ level))))
+                     ((:emacs-rex &rest args) (apply #'eval-for-emacs args))
+                     ((:emacs-channel-send channel (selector &rest args))
+                      (channel-send channel selector args))
+                     ((:sly-db-return _) (declare (ignore _)) (return nil)))
+                 (sly-db-condition (c)
+                   (handle-sly-db-condition c))))))
     (send-to-emacs `(:debug-return
                      ,(current-thread-id) ,level ,*sly-db-stepping-p*))
     (wait-for-event `(:sly-db-return ,(1+ level)) t) ; clean event-queue
@@ -2501,11 +2493,11 @@ conditions are simply reported."
             (print-condition condition stream))
         (serious-condition (c)
           (ignore-errors
-            (with-standard-io-syntax
-              (let ((*print-readably* nil))
-                (format stream "~&Error (~a) printing the following condition: " (type-of c))
-                (print-unreadable-object (condition stream :type t
-                                                    :identity t))))))))))
+           (with-standard-io-syntax
+             (let ((*print-readably* nil))
+               (format stream "~&Error (~a) printing the following condition: " (type-of c))
+               (print-unreadable-object (condition stream :type t
+                                                          :identity t))))))))))
 
 (defun %condition-message (condition)
   (string-trim #(#\newline #\space #\tab)
@@ -2539,14 +2531,14 @@ dynamically bound by contribs when invoking the debugger.")
 format suitable for Emacs."
   (let ((*print-right-margin* most-positive-fixnum))
     (loop for restart in *sly-db-restarts* collect
-          (list (format nil "~:[~;*~]~a"
-                        (eq restart *sly-db-quit-restart*)
-                        (restart-name restart))
-                (with-output-to-string (stream)
-                  (without-printing-errors (:object restart
-                                            :stream stream
-                                            :msg "<<error printing restart>>")
-                    (princ restart stream)))))))
+                                           (list (format nil "~:[~;*~]~a"
+                                                         (eq restart *sly-db-quit-restart*)
+                                                         (restart-name restart))
+                                                 (with-output-to-string (stream)
+                                                   (without-printing-errors (:object restart
+                                                                             :stream stream
+                                                                             :msg "<<error printing restart>>")
+                                                     (princ restart stream)))))))
 
 ;;;;; SLY-DB entry points
 
@@ -2565,10 +2557,10 @@ from Emacs; FRAME is a string representation of an implementation's
 frame."
   (loop for frame in (compute-backtrace start end)
         for i from start collect
-        (list* i (frame-to-string frame)
-               (ecase (frame-restartable-p frame)
-                 ((nil) nil)
-                 ((t) `((:restartable t)))))))
+                         (list* i (frame-to-string frame)
+                                (ecase (frame-restartable-p frame)
+                                  ((nil) nil)
+                                  ((t) `((:restartable t)))))))
 
 (defun frame-to-string (frame)
   (with-string-stream (stream :length (* (or *print-lines* 1)
@@ -2648,7 +2640,7 @@ Operation was KERNEL::DIVISION, operands (1 0).\"
 (defun coerce-to-condition (datum args)
   (etypecase datum
     (string (make-condition 'simple-error :format-control datum
-                            :format-arguments args))
+                                          :format-arguments args))
     (symbol (apply #'make-condition datum args))))
 
 (defslyfun simple-break (&optional (datum "Interrupt from Emacs") &rest args)
@@ -2703,11 +2695,11 @@ TAGS has is a list of strings."
 (defun frame-locals-for-emacs (index)
   (with-bindings *backtrace-printer-bindings*
     (loop for var in (frame-locals index) collect
-          (destructuring-bind (&key name id value) var
-            (list :name (let ((*package* (or (frame-package index) *package*)))
-                          (prin1-to-string name))
-                  :id id
-                  :value (slynk-pprint-to-line value *print-right-margin*))))))
+                                          (destructuring-bind (&key name id value) var
+                                            (list :name (let ((*package* (or (frame-package index) *package*)))
+                                                          (prin1-to-string name))
+                                                  :id id
+                                                  :value (slynk-pprint-to-line value *print-right-margin*))))))
 
 (defslyfun sly-db-disassemble (index)
   (with-output-to-string (*standard-output*)
@@ -2780,7 +2772,7 @@ The time is measured in seconds."
   (let ((notes '()))
     (multiple-value-bind (result seconds)
         (handler-bind ((compiler-condition
-                        (lambda (c) (push (make-compiler-note c) notes))))
+                         (lambda (c) (push (make-compiler-note c) notes))))
           (measure-time-interval
            (lambda ()
              ;; To report location of error-signaling toplevel forms
@@ -2798,7 +2790,7 @@ The time is measured in seconds."
                                    :faslfile faslfile))))))
 
 (defun slynk-compile-file* (pathname load-p &rest options &key policy
-                                                      &allow-other-keys)
+                                                            &allow-other-keys)
   (multiple-value-bind (output-pathname warnings? failure?)
       (slynk-compile-file pathname
                           (fasl-pathname pathname options)
@@ -2822,10 +2814,10 @@ Record compiler notes signalled as `compiler-condition's."
              (*compile-verbose* t))
          (loop for hook in *compile-file-for-emacs-hook*
                do
-               (multiple-value-bind (tried success load? output-pathname)
-                   (apply hook pathname load-p options)
-                 (when tried
-                   (return (values success load? output-pathname))))))))))
+                  (multiple-value-bind (tried success load? output-pathname)
+                      (apply hook pathname load-p options)
+                    (when tried
+                      (return (values success load? output-pathname))))))))))
 
 ;; FIXME: now that *compile-file-for-emacs-hook* is there this is
 ;; redundant and confusing.
@@ -2871,15 +2863,15 @@ Record compiler notes signalled as `compiler-condition's."
   "Compile STRINGS (exerpted from BUFFER at POSITION).
 Record compiler notes signalled as `compiler-condition's."
   (loop for (string buffer package position filename) in strings collect
-        (collect-notes
-         (lambda ()
-           (with-buffer-syntax (package)
-             (let ((*compile-print* t) (*compile-verbose* nil))
-               (slynk-compile-string string
-                                     :buffer buffer
-                                     :position position
-                                     :filename filename
-                                     :policy policy)))))))
+                                                                 (collect-notes
+                                                                  (lambda ()
+                                                                    (with-buffer-syntax (package)
+                                                                      (let ((*compile-print* t) (*compile-verbose* nil))
+                                                                        (slynk-compile-string string
+                                                                                              :buffer buffer
+                                                                                              :position position
+                                                                                              :filename filename
+                                                                                              :policy policy)))))))
 
 (defun file-newer-p (new-file old-file)
   "Returns true if NEW-FILE is newer than OLD-FILE."
@@ -3014,9 +3006,9 @@ designator. Returns a list of all modules available."
 
 (defun expand-repeatedly (expander form)
   (loop
-    (multiple-value-bind (expansion expanded?) (funcall expander form)
-      (unless expanded? (return expansion))
-      (setq form expansion))))
+     (multiple-value-bind (expansion expanded?) (funcall expander form)
+       (unless expanded? (return expansion))
+       (setq form expansion))))
 
 (defslyfun slynk-format-string-expand (string)
   (apply-macro-expander #'format-string-expand string))
@@ -3542,7 +3534,7 @@ Return nil if there's no previous object."
     (to-string (eval `(let ((* ',obj) (- ',form)
                             . ,(loop for (var . val) in context
                                      unless (constantp var) collect
-                                     `(,var ',val)))
+                                       `(,var ',val)))
                         (declare (ignorable . ,ignorable))
                         ,form)))))
 
@@ -3631,9 +3623,9 @@ Return nil if there's no previous object."
 
 (defun inspect-list-aux (list)
   (loop for i from 0  for rest on list  while (consp rest)  append
-        (if (listp (cdr rest))
-            (label-value-line i (car rest))
-            (label-value-line* (i (car rest)) (:tail (cdr rest))))))
+                                                            (if (listp (cdr rest))
+                                                                (label-value-line i (car rest))
+                                                                (label-value-line* (i (car rest)) (:tail (cdr rest))))))
 
 (defun safe-length (list)
   "Similar to `list-length', but avoid errors on improper lists.
@@ -3682,7 +3674,7 @@ Return NIL if LIST is circular."
            `((:value ,key) " = " (:value ,value)
              " " (:action "[remove entry]"
                           ,(let ((key key))
-                                (lambda () (remhash key ht))))
+                             (lambda () (remhash key ht))))
              (:newline))))))
 
 ;;;;; Arrays
@@ -3866,10 +3858,10 @@ after each command.")
 (defun indentation-cache-loop (connection)
   (with-connection (connection)
     (loop
-      (restart-case
-          (handle-indentation-cache-request connection (receive))
-        (abort ()
-          :report "Return to the indentation cache request handling loop.")))))
+       (restart-case
+           (handle-indentation-cache-request connection (receive))
+         (abort ()
+           :report "Return to the indentation cache request handling loop.")))))
 
 (defun handle-indentation-cache-request (connection request)
   (destructure-case request
@@ -3918,7 +3910,7 @@ belonging to PACKAGE."
              (do-all-symbols (symbol)
                (consider symbol)))
             ((package-name package) ; don't try to iterate over a
-                                    ; deleted package.
+                                        ; deleted package.
              (do-symbols (symbol package)
                (when (eq (symbol-package symbol) package)
                  (consider symbol)))))
@@ -3933,7 +3925,7 @@ belonging to PACKAGE."
   (let ((string (string symbol)))
     (loop for p in (list-all-packages)
           when (eq symbol (find-symbol string p))
-          collect p)))
+            collect p)))
 
 (defun cl-symbol-p (symbol)
   "Is SYMBOL a symbol in the COMMON-LISP package?"

@@ -5,10 +5,6 @@
 
 (in-package :slynk-apropos)
 
-(defun excluded-from-searches-p (symbol)
-  "Tell if SYMBOL should be excluded from \"apropos\" or completion."
-  (some (lambda (fn) (funcall fn symbol)) *exclude-symbol-functions*))
-
 (defslyfun apropos-list-for-emacs  (name &optional external-only
                                          case-sensitive package)
   "Make an apropos search for Emacs.
@@ -23,7 +19,31 @@ The result is a list of property lists."
     ;; listing will only omit package qualifier iff the user specified
     ;; PACKAGE.
     (let ((*buffer-package* (or package
-                                slynk::*slynk-io-package*)))
+                                slynk::*slynk-io-package*))
+          (symbol-name-fn
+            (if package
+                (lambda (symbol) (string symbol))
+                (lambda (symbol)
+                  (concatenate 'string
+                               (package-name (symbol-package symbol))
+                               ":"
+                               (symbol-name symbol)))))
+          (matcher (funcall *preferred-apropos-matcher*
+                            pattern
+                            case-sensitive
+                            symbol-name-fn))
+          (seen (make-hash-table))
+          result)
+
+      (do-all-symbols (sym)
+        (multiple-value-bind (bounds score)
+            (funcall matcher sym)
+          (declare (ignore score))
+          (unless (gethash sym seen)
+            (when bounds
+              (push `(,sym :bounds ,bounds )  result))
+            (setf (gethash sym seen) t))))
+      
       (loop for (symbol . extra)
               in (sort (remove-duplicates
                         (apropos-symbols name external-only case-sensitive package)
@@ -73,79 +93,49 @@ that symbols accessible in the current package go first."
                      (string< (package-name px) (package-name py)))))))))
 
 (defun make-cl-ppcre-matcher (pattern case-sensitive symbol-name-fn)
-  (let ((matcher (funcall (read-from-string "cl-ppcre:create-scanner")
-                          pattern
-                          :case-insensitive-mode (not case-sensitive))))
-    (lambda (symbol)
-      (funcall (read-from-string "cl-ppcre:scan")
-               matcher
-               (funcall symbol-name-fn symbol)))))
+  (if (not (every #'alpha-char-p pattern))
+      (cond ((find-package :cl-ppcre)
+             (background-message "Using CL-PPCRE for apropos on regexp \"~a\"" pattern)
+
+             (let ((matcher (funcall (read-from-string "cl-ppcre:create-scanner")
+                                     pattern
+                                     :case-insensitive-mode (not case-sensitive))))
+               (lambda (symbol)
+                 (multiple-value-bind (beg end)
+                     (funcall (read-from-string "cl-ppcre:scan")
+                              matcher
+                              (funcall symbol-name-fn symbol))
+                   (when beg `((,beg ,end)))))))
+            (t
+             (background-message "Using plain apropos. Load CL-PPCRE to enable regexps")
+             (make-plain-matcher pattern case-sensitive symbol-name-fn)))
+      (make-plain-matcher pattern case-sensitive symbol-name-fn)))
 
 (defun make-plain-matcher (pattern case-sensitive symbol-name-fn)
   (let ((chr= (if case-sensitive #'char= #'char-equal)))
     (lambda (symbol)
-      (let((beg (search pattern
-                        (funcall symbol-name-fn symbol)
-                        :test chr=)))
+      (let ((beg (search pattern
+                         (funcall symbol-name-fn symbol)
+                         :test chr=)))
         (when beg
-          (values beg (+ beg (length pattern))))))))
+          `((,beg ,(+ beg (length pattern)))))))))
 
-(defparameter *try-cl-ppcre-for-apropos* t
-  "If non-NIL, maybe try CL-PPCRE for apropos requests.
-CL-PPCRE must be loaded. This option has no effect if the
-MAKE-APROPOS-MATCHER interface has been implemented.")
+(defun make-flex-matcher (pattern case-sensitive symbol-name-fn)
+  (let ((chr= (if case-sensitive #'char= #'char-equal)))
+    (lambda (symbol)
+      (slynk-completion:flex-matches
+       pattern (funcall symbol-name-fn symbol) symbol chr=))))
+
+(defparameter *preferred-apropos-matcher* #'make-flex-matcher
+  "Preferred matcher for apropos searches.
+Value is a function of three arguments , PATTERN, CASE-SENSITIVE and
+SYMBOL-NAME-FN that should return a function, called MATCHER of one
+argument, a SYMBOL.  MATCHER should return non-nil if PATTERN somehow
+matches the result of applying SYMBOL-NAME-FN to SYMBOL, according to
+CASE-SENSITIVE.  The non-nil return value can be a list of integer or
+a list of lists of integers.")
 
 (defun apropos-symbols (pattern external-only case-sensitive package)
   "Search for symbols matching PATTERN."
-  (let* ((packages (or package (remove (find-package :keyword)
-                                       (list-all-packages))))
-         (symbol-name-fn
-           (lambda (symbol)
-             (cond ((not package)
-                    ;; include qualifier in search if user didn't pass
-                    ;; PACKAGE.
-                    (concatenate 'string
-                                 (package-name (symbol-package symbol))
-                                 (if (symbol-external-p symbol) ":" "::")
-                                 (symbol-name symbol)))
-                   (t
-                    (string symbol)))))
-         (interface-unimplemented-p
-           (find 'slynk-backend:make-apropos-matcher
-                 slynk-backend::*unimplemented-interfaces*))
-         (attempt-cl-ppcre (and *try-cl-ppcre-for-apropos*
-                                (not (every #'alpha-char-p pattern))))
-         (cl-ppcre-matcher (and attempt-cl-ppcre
-                                (find-package :cl-ppcre)
-                                (ignore-errors
-                                 (make-cl-ppcre-matcher pattern case-sensitive symbol-name-fn))))
-         (matcher (cond ((and interface-unimplemented-p
-                              attempt-cl-ppcre
-                              cl-ppcre-matcher)
-                         ;; Use regexp apropos we guess the user has
-                         ;; requested it and if it is possible.
-                         ;;
-                         (background-message "Using CL-PPCRE for apropos on regexp \"~a\"" pattern)
-                         cl-ppcre-matcher)
-                        (interface-unimplemented-p
-                         ;; Use plain apropos otherwise
-                         ;; 
-                         (when attempt-cl-ppcre
-                           (if (not (find-package :cl-ppcre))
-                               (background-message "Using plain apropos. Load CL-PPCRE to enable regexps")
-                               (background-message "Not a valid CL-PPCRE regexp, so using plain apropos")))
-                         (make-plain-matcher pattern case-sensitive symbol-name-fn))
-                        (t
-                         (slynk-backend:make-apropos-matcher pattern
-                                                             symbol-name-fn
-                                                             case-sensitive)))))
-    (with-package-iterator (next packages :external :internal)
-      (loop for (morep symbol) = (multiple-value-list (next))
-            while morep
-            for (match end) = (and (not (excluded-from-searches-p symbol))
-                                   (or (not external-only)
-                                       (symbol-external-p symbol))
-                                   (symbol-package symbol)
-                                   (multiple-value-list (funcall matcher symbol)))
-            when match
-              collect `(,symbol ,@(when end `(:bounds ((,match ,end)))))))))
+  (declare (ignore external-only))
+  )
