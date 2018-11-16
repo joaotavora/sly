@@ -688,7 +688,7 @@ recent entry that is discarded."
           (when (and (cl-plusp (length string))
                      (eq (process-status sly-buffer-connection) 'open))
             (sly-mrepl--insert-output string)))
-      (sly-warning "No channel in process %s, probaly torn down" process))))
+      (sly-warning "No channel in process %s, probably torn down" process))))
 
 (defun sly-mrepl--open-dedicated-stream (channel port coding-system)
   (let* ((name (format "sly-dds-%s-%s"
