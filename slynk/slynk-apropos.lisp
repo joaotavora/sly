@@ -6,6 +6,15 @@
 
 (in-package :slynk-apropos)
 
+(defparameter *preferred-apropos-matcher* 'make-flex-matcher
+  "Preferred matcher for apropos searches.
+Value is a function of three arguments , PATTERN, CASE-SENSITIVE and
+SYMBOL-NAME-FN that should return a function, called MATCHER of one
+argument, a SYMBOL.  MATCHER should return non-nil if PATTERN somehow
+matches the result of applying SYMBOL-NAME-FN to SYMBOL, according to
+CASE-SENSITIVE.  The non-nil return value can be a list of integer or
+a list of lists of integers.")
+
 (defslyfun apropos-list-for-emacs  (pattern &optional external-only
                                             case-sensitive package)
   "Make an apropos search for Emacs.
@@ -141,13 +150,4 @@ that symbols accessible in the current package go first."
         (lambda (symbol)
           (slynk-completion:flex-matches
            pattern (funcall symbol-name-fn symbol) symbol chr=)))))
-
-(defparameter *preferred-apropos-matcher* 'make-flex-matcher
-  "Preferred matcher for apropos searches.
-Value is a function of three arguments , PATTERN, CASE-SENSITIVE and
-SYMBOL-NAME-FN that should return a function, called MATCHER of one
-argument, a SYMBOL.  MATCHER should return non-nil if PATTERN somehow
-matches the result of applying SYMBOL-NAME-FN to SYMBOL, according to
-CASE-SENSITIVE.  The non-nil return value can be a list of integer or
-a list of lists of integers.")
 
