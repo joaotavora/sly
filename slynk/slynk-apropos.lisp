@@ -64,7 +64,7 @@ The result is a list of property lists."
             do (remf extra :external-p)
                (setf (getf extra :flex-score)
                      (format nil "~2$%"
-                             (* 100 (getf extra :flex-score)))) apropos
+                             (* 100 (getf extra :flex-score))))
             when short
               collect (append short extra)))))
 
