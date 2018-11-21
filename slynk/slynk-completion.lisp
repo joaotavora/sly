@@ -13,7 +13,8 @@
    #:keywords-matching
    #:accessible-matching
    #:qualified-matching
-   #:get-completions))
+   #:get-completions
+   #:flex-matches))
 
 ;; for testing package-local nicknames
 #+sbcl
@@ -229,7 +230,7 @@ string is a 33% match and just '(1) is a 11% match."
                             while b
                             collect (expt (- b a 1) *flex-score-falloff*))))))))
 
-(defun flex-matches (pattern string symbol)
+(defun flex-matches (pattern string symbol char-test)
   "Return non-NIL if PATTERN flex-matches STRING.
 In case of a match, return two values:
 
@@ -245,7 +246,8 @@ A floating-point score. Higher scores for better matches."
          (indexes (loop for char across pattern
                         for from = 0 then (1+ pos)
                         for pos = (loop for i from from below strlen
-                                        when (char= (aref string i) char)
+                                        when (funcall char-test
+                                                      (aref string i) char)
                                           return i)
                         unless pos
                           return nil
@@ -259,7 +261,7 @@ A floating-point score. Higher scores for better matches."
 A match is a list (STRING SYMBOL INDEXES SCORE).
 Return non-nil if match was collected, nil otherwise."
   (multiple-value-bind (indexes score)
-      (flex-matches pattern string symbol)
+      (flex-matches pattern string symbol #'char=)
     (when indexes
       (funcall collector
                (list string

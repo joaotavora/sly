@@ -888,14 +888,6 @@ about internal symbols most times. As the spec says:
 If PACKAGE is not specified, the home package of SYMBOL is used."
   (eq (symbol-status symbol package) :external))
 
-(defun baroque-symbol-name-p (symbol)
-  (or (> (length (symbol-name symbol)) 60)))
-
-(defparameter *exclude-symbol-functions*
-  '(baroque-symbol-name-p)
-  "Functions excluding symbols from completion.
-Holds a list of boolean predicates of a single argument, a symbol")
-
 
 ;;;; TCP Server
 

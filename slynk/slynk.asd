@@ -59,8 +59,8 @@
    (:file "slynk-match")
    (:file "slynk-rpc")
    (:file "slynk")
-   (:file "slynk-apropos")
-   (:file "slynk-completion")))
+   (:file "slynk-completion")
+   (:file "slynk-apropos")))
 
 (defsystem :slynk/util
   :depends-on (:slynk)
