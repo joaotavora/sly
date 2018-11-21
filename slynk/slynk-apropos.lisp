@@ -57,7 +57,7 @@ The result is a list of property lists."
                                  (not (eq package (symbol-package sym)))))
                   (push `(,sym :bounds ,bounds
                                ,@(and score `(:flex-score ,score))
-                               :external-p external)
+                               :external-p ,external)
                         result))))
             (setf (gethash sym seen) t))))
       (loop for (symbol . extra)
@@ -70,10 +70,12 @@ The result is a list of property lists."
                                (present-symbol-before-p (car x) (car y))))))
             for short = (briefly-describe-symbol-for-emacs
                          symbol (getf extra :external-p))
+            for score = (getf extra :flex-score)
+            when score
+              do (setf (getf extra :flex-score)
+                       (format nil "~2$%"
+                               (* 100 score)))
             do (remf extra :external-p)
-               (setf (getf extra :flex-score)
-                     (format nil "~2$%"
-                             (* 100 (getf extra :flex-score))))
             when short
               collect (append short extra)))))
 
