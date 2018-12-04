@@ -42,7 +42,19 @@
    (buffer :initform (make-string 8000))
    (fill-pointer :initform 0)
    (column :initform 0)
-   (lock :initform (make-lock :name "buffer write lock"))))
+   (lock :initform (make-lock :name "buffer write lock"))
+   (flush-thread :initarg :flush-thread
+                 :initform nil
+                 :accessor flush-thread)
+   (flush-scheduled :initarg :flush-scheduled
+                    :initform nil
+                    :accessor flush-scheduled)))
+
+(defun maybe-schedule-flush (stream)
+  (when (and (flush-thread stream)
+             (not (flush-scheduled stream)))
+    (setf (flush-scheduled stream) t)
+    (send (flush-thread stream) t)))
 
 (defmacro with-sly-output-stream (stream &body body)
   `(with-slots (lock output-fn buffer fill-pointer column) ,stream
@@ -54,10 +66,10 @@
     (incf fill-pointer)
     (incf column)
     (when (char= #\newline char)
-      (setf column 0)
-      (finish-output stream))
-    (when (= fill-pointer (length buffer))
-      (finish-output stream)))
+      (setf column 0))
+    (if (= fill-pointer (length buffer))
+        (finish-output stream)
+        (maybe-schedule-flush stream)))
   char)
 
 (defmethod stream-write-string ((stream sly-output-stream) string
@@ -72,12 +84,13 @@
         (stream-finish-output stream))
       (cond ((< count len)
              (replace buffer string :start1 fill-pointer
-                      :start2 start :end2 end)
-             (incf fill-pointer count))
+                                    :start2 start :end2 end)
+             (incf fill-pointer count)
+             (maybe-schedule-flush stream))
             (t
              (funcall output-fn (subseq string start end))))
       (let ((last-newline (position #\newline string :from-end t
-                                    :start start :end end)))
+                                                     :start start :end end)))
         (setf column (if last-newline
                          (- end last-newline 1)
                          (+ column count))))))
@@ -90,8 +103,23 @@
   (with-sly-output-stream stream
     (unless (zerop fill-pointer)
       (funcall output-fn (subseq buffer 0 fill-pointer))
-      (setf fill-pointer 0)))
+      (setf fill-pointer 0))
+    (setf (flush-scheduled stream) nil))
   nil)
+
+#+(and sbcl sb-thread)
+(defmethod stream-force-output :around ((stream sly-output-stream))
+  ;; Workaround for deadlocks between the world-lock and auto-flush-thread
+  ;; buffer write lock.
+  ;;
+  ;; Another alternative would be to grab the world-lock here, but that's less
+  ;; future-proof, and could introduce other lock-ordering issues in the
+  ;; future.
+  (handler-case
+      (sb-sys:with-deadline (:seconds 0.1)
+        (call-next-method))
+    (sb-sys:deadline-timeout ()
+      nil)))
 
 (defmethod stream-force-output ((stream sly-output-stream))
   (stream-finish-output stream))
@@ -163,6 +191,14 @@
 
 
 ;;;
+
+(defimplementation make-auto-flush-thread (stream)
+  (if (typep stream 'sly-output-stream)
+      (setf (flush-thread stream)
+            (spawn (lambda () (auto-flush-loop stream 0.08 t))
+                   :name "auto-flush-thread"))
+      (spawn (lambda () (auto-flush-loop stream *auto-flush-interval*))
+             :name "auto-flush-thread")))
 
 (defimplementation make-output-stream (write-string)
   (make-instance 'sly-output-stream :output-fn write-string))

@@ -315,7 +315,7 @@ The default is nil, as this feature can be a security risk."
   :type '(boolean)
   :group 'sly-lisp)
 
-(defcustom sly-lisp-host "127.0.0.1"
+(defcustom sly-lisp-host "localhost"
   "The default hostname (or IP address) to connect to."
   :type 'string
   :group 'sly-lisp)
@@ -6671,7 +6671,8 @@ position of point in the current buffer."
   (sly-eval-describe `(slynk:describe-inspectee)))
 
 (defun sly-inspector-eval (string)
-  "Eval an expression in the context of the inspected object."
+  "Eval an expression in the context of the inspected object.
+The `*' variable will be bound to the inspected object."
   (interactive (list (sly-read-from-minibuffer "Inspector eval: ")))
   (sly-eval-with-transcript `(slynk:inspector-eval ,string)))
 

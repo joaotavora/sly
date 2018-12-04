@@ -143,13 +143,15 @@ Return nil if nothing appropriate is available."
                                       :directory (butlast
                                                   (pathname-directory this-file)
                                                   1)
-                                      :defaults this-file))
-     (let ((seq (make-array 200 :element-type 'character :initial-element #\null)))
-       (read-sequence seq s :end 200)
-       (let* ((beg (search ";; Version:" seq))
-              (end (position #\NewLine seq :start beg))
-              (middle (position #\Space seq :from-end t :end end)))
-         (subseq seq (1+ middle) end))))))
+                                      :defaults this-file
+                                      :if-does-not-exist nil))
+     (when s
+       (let ((seq (make-array 200 :element-type 'character :initial-element #\null)))
+         (read-sequence seq s :end 200)
+         (let* ((beg (search ";; Version:" seq))
+                (end (position #\NewLine seq :start beg))
+                (middle (position #\Space seq :from-end t :end end)))
+           (subseq seq (1+ middle) end)))))))
 
 (defun default-fasl-dir ()
   (merge-pathnames

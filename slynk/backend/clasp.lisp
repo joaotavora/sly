@@ -13,6 +13,7 @@
 
 (in-package slynk-clasp)
 
+#+(or)
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (setq slynk::*log-output* (open "/tmp/slime.log" :direction :output))
   (setq slynk:*log-events* t))
@@ -40,11 +41,12 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (import-slynk-mop-symbols
    :clos
-   `(:eql-specializer
-     :eql-specializer-object
-     :generic-function-declarations
-     :specializer-direct-methods
-     ,@(unless (fboundp 'clos:compute-applicable-methods-using-classes)
+   nil
+   #+(or)`(:eql-specializer
+           :eql-specializer-object
+           :generic-function-declarations
+           :specializer-direct-methods
+           ,@(unless (fboundp 'clos:compute-applicable-methods-using-classes)
                '(:compute-applicable-methods-using-classes)))))
 
 (defimplementation gray-package-name ()
@@ -59,6 +61,7 @@
   ;; ECLs slynk implementation says that CLOS is not thread safe and
   ;; I use ECLs CLOS implementation - this is a worry for the future.
   ;; nil or  :spawn
+  ;; nil
   :spawn
 #|  #+threads :spawn
   #-threads nil
@@ -463,26 +466,29 @@
 
 (defimplementation call-with-debugging-environment (debugger-loop-fn)
   (declare (type function debugger-loop-fn))
-  (let* ((*ihs-top* (or #+#.(slynk-backend:with-symbol '*stack-top-hint* 'core)
-                        core:*stack-top-hint*
-                        (ihs-top)))
+  (let* ((*ihs-top* 0)
          (*ihs-current* *ihs-top*)
 #+frs         (*frs-base* (or (sch-frs-base *frs-top* *ihs-base*) (1+ (frs-top))))
 #+frs         (*frs-top* (frs-top))
          (*tpl-level* (1+ *tpl-level*))
-         (*backtrace* (loop for ihs from 0 below *ihs-top*
-                            collect (list (si::ihs-fun ihs)
-                                          (si::ihs-env ihs)
-                                          ihs))))
+         (*backtrace* (core::common-lisp-backtrace-frames
+                       :gather-start-trigger
+                       (lambda (frame)
+                         (let ((print-name (core::backtrace-frame-print-name frame)))
+                           (and (symbolp print-name)
+                                (eq print-name 'core::universal-error-handler))))
+                       :gather-all-frames nil)))
     (declare (special *ihs-current*))
-#+frs    (loop for f from *frs-base* until *frs-top*
-          do (let ((i (- (si::frs-ihs f) *ihs-base* 1)))
-               (when (plusp i)
-                 (let* ((x (elt *backtrace* i))
-                        (name (si::frs-tag f)))
-                   (unless (si::fixnump name)
-                     (push name (third x)))))))
-    (setf *backtrace* (nreverse *backtrace*))
+    ;;#+(or)
+    (progn
+      (format ext:+process-standard-output+ "--------------- call-with-debugging-environment -----------~%")
+      (format ext:+process-standard-output+ "(length *backtrace*) -> ~a ~%" (length *backtrace*))
+      (format ext:+process-standard-output+ "Raw backtrace length: ~a ~%" (length (core:clib-backtrace-as-list)))
+      (format ext:+process-standard-output+ "Common Lisp backtrace frames length: ~a ~%" (length (core::common-lisp-backtrace-frames)))
+      (loop for f in (core::common-lisp-backtrace-frames)
+            for id from 0
+            do (progn
+                 (format ext:+process-standard-output+ "Frame ~a:   (~a ~a)~%" id (core::backtrace-frame-print-name f) (core::backtrace-frame-arguments f)))))
     (set-break-env)
     (set-current-ihs)
     (let ((*ihs-base* *ihs-top*))
@@ -494,26 +500,29 @@
                (min end (length *backtrace*)))))
 
 (defun frame-name (frame)
-  (let ((x (first frame)))
+  (let ((x (core::backtrace-frame-function-name frame)))
     (if (symbolp x)
       x
       (function-name x))))
 
 (defun frame-function (frame-number)
-  (let ((x (first (elt *backtrace* frame-number))))
+  (let ((x (core::backtrace-frame-function-name (elt *backtrace* frame-number))))
     (etypecase x
       (symbol
        (and (fboundp x)
             (fdefinition x)))
+      (cons
+       (if (eq (car x) 'cl:setf)
+           (fdefinition x)
+           nil))
       (function
        x))))
 
 (defimplementation print-frame (frame stream)
-  (format stream "(~s~{ ~s~})" (function-name (first frame))
-          #+#.(slynk-backend:with-symbol 'ihs-arguments 'core)
-          (coerce (core:ihs-arguments (third frame)) 'list)
-          #-#.(slynk-backend:with-symbol 'ihs-arguments 'core)
-          nil))
+  (if (core::backtrace-frame-arguments frame)
+      (format stream "(~a~{ ~s~})" (core::backtrace-frame-print-name frame)
+              (coerce (core::backtrace-frame-arguments frame) 'list))
+      (format stream "~a" (core::backtrace-frame-print-name frame))))
 
 (defimplementation frame-source-location (frame-number)
   (source-location (frame-function frame-number)))
@@ -527,36 +536,46 @@
 
 (defimplementation frame-locals (frame-number)
   (let* ((frame (elt *backtrace* frame-number))
-         (env (second frame))
+         (env nil) ; no env yet
          (locals (loop for x = env then (core:get-parent-environment x)
                        while x
                        nconc (loop for name across (core:environment-debug-names x)
                                    for value across (core:environment-debug-values x)
                                    collect (list :name name :id 0 :value value)))))
     (nconc
-     (loop for arg across (core:ihs-arguments (third frame))
+     (loop for arg across (core::backtrace-frame-arguments frame)
            for i from 0
-           collect (list :name (intern (format nil "ARG~d" i) #.*package*)
+           collect (list :name (intern (format nil "ARG~d" i) :cl-user)
                          :id 0
                          :value arg))
      locals)))
 
 (defimplementation frame-var-value (frame-number var-number)
   (let* ((frame (elt *backtrace* frame-number))
-         (env (second frame))
-         (args (core:ihs-arguments (third frame))))
+         (env nil)
+         (args (core::backtrace-frame-arguments frame)))
     (if (< var-number (length args))
         (svref args var-number)
         (elt (frame-locals frame-number) var-number))))
 
-#+clasp-working
 (defimplementation disassemble-frame (frame-number)
   (let ((fun (frame-function frame-number)))
     (disassemble fun)))
 
 (defimplementation eval-in-frame (form frame-number)
-  (let ((env (second (elt *backtrace* frame-number))))
-    (core:compile-form-and-eval-with-env form env)))
+  (let* ((frame (elt *backtrace* frame-number))
+         (raw-arg-values (coerce (core::backtrace-frame-arguments frame) 'list)))
+    (if (and (= (length raw-arg-values) 2) (core:vaslistp (car raw-arg-values)))
+        (let* ((arg-values (core:list-from-va-list (car raw-arg-values)))
+               (bindings (append (loop for i from 0 for value in arg-values collect `(,(intern (core:bformat nil "ARG%d" i) :cl-user) ',value))
+                                 (list (list (intern "NEXT-METHODS" :cl-user) (cadr raw-arg-values))))))
+          (eval
+           `(let (,@bindings) ,form)))
+        (let* ((arg-values raw-arg-values)
+               (bindings (loop for i from 0 for value in arg-values collect `(,(intern (core:bformat nil "ARG%d" i) :cl-user) ',value))))
+          (eval
+           `(let (,@bindings) ,form))))))
+
 
 #+clasp-working
 (defimplementation gdb-initial-commands ()

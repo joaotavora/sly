@@ -897,7 +897,7 @@ If PACKAGE is not specified, the home package of SYMBOL is used."
   "Default value of :dont-close argument to start-server and
   create-server.")
 
-(defparameter *loopback-interface* "127.0.0.1")
+(defparameter *loopback-interface* "localhost")
 
 (defun start-server (port-file &key (style *communication-style*)
                                     (dont-close *dont-close*))
@@ -917,7 +917,7 @@ If DONT-CLOSE is true then the listen socket will accept multiple
 connections, otherwise it will be closed after the first.
 
 Optionally, an INTERFACE could be specified and swank will bind
-the PORT on this interface. By default, interface is 127.0.0.1."
+the PORT on this interface. By default, interface is \"localhost\"."
   (let ((*loopback-interface* (or interface
                                   *loopback-interface*)))
     (setup-server port #'simple-announce-function
@@ -984,13 +984,11 @@ first."
   (create-server :port port :style style :dont-close dont-close))
 
 (defun accept-connections (socket style dont-close)
-  (let ((client (unwind-protect
-                     (accept-connection socket :external-format nil
-                                               :buffering t)
-                  (unless dont-close
-                    (close-socket socket)))))
-    (authenticate-client client)
-    (serve-requests (make-connection socket client style))
+  (unwind-protect
+       (let ((client (accept-connection socket :external-format nil
+                                               :buffering t)))
+         (authenticate-client client)
+         (serve-requests (make-connection socket client style)))
     (unless dont-close
       (send-to-sentinel `(:stop-server :socket ,socket)))))
 
@@ -1189,16 +1187,6 @@ point the thread terminates and CHANNEL is closed."
   (let ((*emacs-connection* connection))
     (with-panic-handler (connection)
       (loop (dispatch-event connection (receive))))))
-
-(defvar *auto-flush-interval* 0.2)
-
-(defun auto-flush-loop (stream)
-  (loop
-   (when (not (and (open-stream-p stream)
-                   (output-stream-p stream)))
-     (return nil))
-   (force-output stream)
-   (sleep *auto-flush-interval*)))
 
 (defgeneric thread-for-evaluation (connection id)
   (:documentation "Find or create a thread to evaluate the next request.")
