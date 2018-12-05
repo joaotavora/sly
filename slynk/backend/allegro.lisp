@@ -274,9 +274,11 @@
                      (loop for i from (excl::ldb-code-index code) downto 0
                       for bpt = (aref debug-info i)
                       for start = (excl::ldb-code-start-char bpt)
-                      when (and start (numberp start)) return start)))
-         (src-file (and func
-                        (excl:source-file func))))
+                      when start
+                        return (if (listp start)
+                                   (first start)
+                                   start)))
+         (src-file (and func (excl:source-file func))))
     (cond (start
            (buffer-or-file-location src-file start))
           (func
@@ -416,9 +418,12 @@
     (cond (location-available
            (values (excl::source-context-pathname context)
                    (when-let (start-char (excl::source-context-start-char context))
-                     (1+ (if (listp start-char) ; HACK
-                             (first start-char)
-                             start-char)))))
+                     (let ((position (if (listp start-char) ; HACK
+                                         (first start-char)
+                                         start-char)))
+                       (if (typep condition 'excl::compiler-free-reference-warning)
+                           position
+                           (1+ position))))))
           ((typep condition 'reader-error)
            (let ((pos  (car (last (slot-value condition 'excl::format-arguments))))
                  (file (pathname (stream-error-stream condition))))
