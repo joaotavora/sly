@@ -863,7 +863,7 @@ forward keywords to OPERATOR."
                 (cons (car args) determiners))
         (call-next-method))))
 
-(defmethod extra-keywords ((operator symbol) &rest args)
+(defmethod extra-keywords ((operator symbol) args)
   (declare (ignore args))
   (multiple-value-or
    (let ((extra-keyword-arglist (get operator :slynk-extra-keywords)))
