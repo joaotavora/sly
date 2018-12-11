@@ -277,7 +277,7 @@
                       when start
                         return (if (listp start)
                                    (first start)
-                                   start)))
+                                   start))))
          (src-file (and func (excl:source-file func))))
     (cond (start
            (buffer-or-file-location src-file start))
