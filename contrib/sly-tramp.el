@@ -86,8 +86,11 @@ The functions created here expect your tramp-default-method or
                 (username (or username (user-login-name))))
     (list (concat "^" machine-instance "$")
           (lambda (emacs-filename)
-            (tramp-file-name-localname
-             (tramp-dissect-file-name emacs-filename)))
+            (cond
+              ((tramp-file-name-p emacs-filename)
+               (tramp-file-name-localname
+                (tramp-dissect-file-name emacs-filename)))
+              (t emacs-filename)))
           `(lambda (lisp-filename)
              (sly-make-tramp-file-name
               ,username
