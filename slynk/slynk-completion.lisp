@@ -8,7 +8,8 @@
   (:export
    #:flex-completions
    #:simple-completions
-   #:flex-matches))
+   #:flex-matches
+   #:*completion-sort-predicate*))
 
 ;; for testing package-local nicknames
 #+sbcl
@@ -263,11 +264,19 @@ Return non-nil if match was collected, nil otherwise."
                      indexes
                      score)))))
 
+(defparameter *completion-sort-predicate* nil
+  "If non-nil, use this function to sort completions.
+Value is a function of two symbols A and B that should return non-nil
+if A should sort before B.  Leave to nil to sort by completion
+score.")
+
 (defun sort-by-score (matches)
   "Sort MATCHES by SCORE, highest score first.
 
 Matches are produced by COLLECT-IF-MATCHES (which see)."
-  (sort matches #'> :key #'fourth))
+  (if *completion-sort-predicate*
+      (sort matches *completion-sort-predicate* :key #'second)
+      (sort matches #'> :key #'fourth)))
 
 (defun keywords-matching (pattern)
   "Find keyword symbols flex-matching PATTERN.
