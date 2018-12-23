@@ -7,7 +7,8 @@
   (:use #:cl #:slynk-api)
   (:export
    #:flex-completions
-   #:simple-completions))
+   #:simple-completions
+   #:flex-matches))
 
 ;; for testing package-local nicknames
 #+sbcl
@@ -19,7 +20,7 @@
 
 
 ;;; Simple completion
-;;; 
+;;;
 (defslyfun simple-completions (prefix package)
   "Return a list of completions for the string PREFIX."
   (let ((strings (all-simple-completions prefix package)))
@@ -149,13 +150,13 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 
 (defparameter *more-qualified-matches* t
   "If non-nil, \"foo\" more likely completes to \"bar:foo\".
- Specifically this assigns a \"foo\" on \"bar:foo\" a
- higher-than-usual score, as if the package qualifier \"bar\" was
- shorter.")
+Specifically this assigns a \"foo\" on \"bar:foo\" a
+higher-than-usual score, as if the package qualifier \"bar\" was
+shorter.")
 
-(defun flex-score (string indexes &key pattern symbol)
+(defun flex-score (string indexes pattern symbol)
   "Score the match of STRING as given by INDEXES.
-  INDEXES as calculated by FLEX-MATCHES."
+INDEXES as calculated by FLEX-MATCHES."
   (declare (ignore symbol))
   (let* ((first-pattern-colon (and pattern
                                    (position #\: pattern)))
@@ -205,13 +206,13 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 
 (defun flex-score-1 (string-length indexes)
   "Does the real work of FLEX-SCORE.
-  Given that INDEXES is a list of integer position of characters in a
-  string of length STRING-LENGTH, say how well these characters
-  represent that STRING. There is a non-linear falloff with the
-  distances between the indexes, according to *FLEX-SCORE-FALLOFF*. If
-  that value is 2, for example, the indices '(0 1 2) on a 3-long
-  string of is a perfect (100% match,) while '(0 2) on that same
-  string is a 33% match and just '(1) is a 11% match."
+Given that INDEXES is a list of integer position of characters in a
+string of length STRING-LENGTH, say how well these characters
+represent that STRING. There is a non-linear falloff with the
+distances between the indexes, according to *FLEX-SCORE-FALLOFF*. If
+that value is 2, for example, the indices '(0 1 2) on a 3-long
+string of is a perfect (100% match,) while '(0 2) on that same
+string is a 33% match and just '(1) is a 11% match."
   (float
    (/ (length indexes)
       (* string-length
@@ -223,30 +224,38 @@ Returns two values: \(A B C\) and \(1 2 3\)."
                             while b
                             collect (expt (- b a 1) *flex-score-falloff*))))))))
 
-(defun flex-matches (pattern string symbol)
+(defun flex-matches (pattern string symbol char-test)
   "Return non-NIL if PATTERN flex-matches STRING.
-  In case of a match, return two values:
+In case of a match, return two values:
 
-  A list of non-negative integers which are the indexes of the
-  characters in PATTERN as found consecutively in STRING. This list
-  measures in length the number of characters in PATTERN.
+A list of non-negative integers which are the indexes of the
+characters in PATTERN as found consecutively in STRING. This list
+measures in length the number of characters in PATTERN.
 
-  A floating-point score. Higher scores for better matches."
-  (let ((indexes (loop for char across pattern
-                       for from = 0 then (1+ pos)
-                       for pos = (position char string :start from :test #'char-equal)
-                       unless pos
-                         return nil
-                       collect pos)))
+A floating-point score. Higher scores for better matches."
+  (declare (optimize (speed 3) (safety 0))
+           (type simple-string string)
+           (type simple-string pattern))
+  (let* ((strlen (length string))
+         (indexes (loop for char across pattern
+                        for from = 0 then (1+ pos)
+                        for pos = (loop for i from from below strlen
+                                        when (funcall char-test
+                                                      (aref string i) char)
+                                          return i)
+                        unless pos
+                          return nil
+                        collect pos)))
     (values indexes
             (and indexes
-                 (flex-score string indexes :pattern pattern :symbol symbol)))))
+                 (flex-score string indexes pattern symbol)))))
 
 (defun collect-if-matches (collector pattern string symbol)
   "Make and collect a match with COLLECTOR if PATTERN matches STRING.
-  A match is a list (STRING SYMBOL INDEXES SCORE)."
+A match is a list (STRING SYMBOL INDEXES SCORE).
+Return non-nil if match was collected, nil otherwise."
   (multiple-value-bind (indexes score)
-      (flex-matches pattern string symbol)
+      (flex-matches pattern string symbol #'char=)
     (when indexes
       (funcall collector
                (list string
@@ -257,40 +266,51 @@ Returns two values: \(A B C\) and \(1 2 3\)."
 (defun sort-by-score (matches)
   "Sort MATCHES by SCORE, highest score first.
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (sort matches #'> :key #'fourth))
 
 (defun keywords-matching (pattern)
   "Find keyword symbols flex-matching PATTERN.
-  Return an unsorted list of matches.
+Return an unsorted list of matches.
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
          (do-symbols (s +keyword-package+)
-           (collect-if-matches #'collect pattern (format nil ":~a" (symbol-name s)) s)))))
+           (collect-if-matches #'collect pattern (concatenate 'simple-string ":"
+                                                              (symbol-name s))
+                               s)))))
 
 (defun accessible-matching (pattern package)
   "Find symbols flex-matching PATTERN accessible without package-qualification.
-  Return an unsorted list of matches.
+Return an unsorted list of matches.
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (and (not (find #\: pattern))
        (collecting (collect)
-         (do-symbols (s package)
-           (collect-if-matches #'collect pattern (symbol-name s) s)))))
+         (let ((collected (make-hash-table)))
+           (do-symbols (s package)
+             ;; XXX: since DO-SYMBOLS may visit a symbol more than
+             ;; once. Read similar note apropos DO-ALL-SYMBOLS in
+             ;; QUALIFIED-MATCHING for how we do it.
+             (collect-if-matches
+              (lambda (thing)
+                (unless (gethash s collected)
+                  (setf (gethash s collected) t)
+                  (funcall #'collect thing)))
+              pattern (symbol-name s) s))))))
 
 (defun qualified-matching (pattern home-package)
   "Find package-qualified symbols flex-matching PATTERN.
-  Return, as two values, a set of matches for external symbols,
-  package-qualified using one colon, and another one for internal
-  symbols, package-qualified using two colons.
+Return, as two values, a set of matches for external symbols,
+package-qualified using one colon, and another one for internal
+symbols, package-qualified using two colons.
 
-  The matches in the two sets are not guaranteed to be in their final
-  order, i.e. they are not sorted (except for the fact that
-  qualifications with shorter package nicknames are tried first).
+The matches in the two sets are not guaranteed to be in their final
+order, i.e. they are not sorted (except for the fact that
+qualifications with shorter package nicknames are tried first).
 
-  Matches are produced by COLLECT-IF-MATCHES (which see)."
+Matches are produced by COLLECT-IF-MATCHES (which see)."
   (let* ((first-colon (position #\: pattern))
          (starts-with-colon (and first-colon (zerop first-colon)))
          (two-colons (and first-colon (< (1+ first-colon) (length pattern))
@@ -298,68 +318,98 @@ Returns two values: \(A B C\) and \(1 2 3\)."
     (if (and starts-with-colon
              (not two-colons))
         (values nil nil)
-      (let* ((package-local-nicknames
-               (slynk-backend:package-local-nicknames home-package))
-             (nicknames-by-package
-               (let ((ret (make-hash-table)))
-                 (loop for (short . full) in
-                       package-local-nicknames
-                       do (push short (gethash (find-package full)
-                                               ret)))
-                 ret)))
-        (collecting (collect-external collect-internal)
-          (loop
-            with use-list = (package-use-list home-package)
-            for package in (remove +keyword-package+ (list-all-packages))
-            for sorted-nicknames = (and (or first-colon
-                                            (not (eq package home-package)))
-                                        (sort (append
-                                               (gethash package nicknames-by-package)
-                                               (package-nicknames package)
-                                               (list (package-name package)))
-                                              #'<
-                                              :key #'length))
-            for seen = (make-hash-table)
-            when sorted-nicknames
-              do (do-symbols (s package)
-                   (unless (gethash s seen)
-                     (setf (gethash s seen) t)
-                     (let ((status (nth-value 1 (find-symbol (symbol-name s) package))))
-                       (cond ((and (eq status :external)
-                                   (or first-colon
-                                       (not (member (symbol-package s) use-list))))
-                              (loop for nickname in sorted-nicknames
-                                    do (collect-if-matches #'collect-external
-                                                           pattern
-                                                           (format nil "~a:~a"
-                                                                   nickname
-                                                                   (symbol-name s))
-                                                           s)))
-                             ((and two-colons
-                                   (eq status :internal))
-                              (loop for nickname in sorted-nicknames
-                                    do (collect-if-matches #'collect-internal
-                                                           pattern
-                                                           (format nil "~a::~a"
-                                                                   nickname
-                                                                   (symbol-name s))
-                                                           s)))))))))))))
+        (let* ((package-local-nicknames
+                 (slynk-backend:package-local-nicknames home-package))
+               (package-local-nicknames-by-package
+                 (let ((ret (make-hash-table)))
+                   (loop for (short . full) in
+                         package-local-nicknames
+                         do (push short (gethash (find-package full)
+                                                 ret)))
+                   ret))
+               (nicknames-by-package (make-hash-table)))
+          (flet ((sorted-nicknames (package)
+                   (or (gethash package nicknames-by-package)
+                       (setf (gethash package nicknames-by-package)
+                             (sort (append
+                                    (gethash package package-local-nicknames-by-package)
+                                    (package-nicknames package)
+                                    (list (package-name package)))
+                                   #'<
+                                   :key #'length)))))
+            (collecting (collect-external collect-internal)
+              (cond
+                (two-colons
+                 (let ((collected (make-hash-table)))
+                   (do-all-symbols (s)
+                     (loop
+                       with package = (symbol-package s)
+                       for nickname in (sorted-nicknames package)
+                       do (collect-if-matches
+                           (lambda (thing)
+                             ;; XXX: since DO-ALL-SYMBOLS may visit
+                             ;; a symbol more than once, we want to
+                             ;; avoid double collections.  But
+                             ;; instead of marking every traversed
+                             ;; symbol in a hash table, we mark just
+                             ;; those collected.  We do pay an added
+                             ;; price of checking matching duplicate
+                             ;; symbols, but the much smaller hash
+                             ;; table pays off when benchmarked,
+                             ;; because the number of collections is
+                             ;; generally much smaller than the
+                             ;; total number of symbols.
+                             (unless (gethash s collected)
+                               (setf (gethash s collected) t)
+                               (funcall #'collect-internal thing)))
+                           pattern
+                           (concatenate 'simple-string
+                                        nickname
+                                        "::"
+                                        (symbol-name s))
+                           s)))))
+                (t
+                 (loop
+                   with use-list = (package-use-list home-package)
+                   for package in (remove +keyword-package+ (list-all-packages))
+                   for sorted-nicknames
+                     = (and (not (eq package home-package))
+                            (sorted-nicknames package))
+                   do (when sorted-nicknames
+                        (do-external-symbols (s package)
+                          ;;; XXX: This condition is slightly
+                          ;;; opinionated.  It says, for example, that
+                          ;;; you never want to complete "c:del" to
+                          ;;; "cl:delete" or "common-lisp:delete" in
+                          ;;; packages that use :CL (a very common
+                          ;;; case).
+                          (when (or first-colon
+                                    (not (member (symbol-package s) use-list)))
+                            (loop for nickname in sorted-nicknames
+                                  do (collect-if-matches #'collect-external
+                                                         pattern
+                                                         (concatenate 'simple-string
+                                                                      nickname
+                                                                      ":"
+                                                                      (symbol-name s))
+                                                         s))))))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
-  Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
-  \(STRING SCORE CHUNKS CLASSIFICATION-STRING)."
+Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
+\(STRING SCORE CHUNKS CLASSIFICATION-STRING)."
   (when (plusp (length pattern))
     (list (loop
             with package = (guess-buffer-package package-name)
+            with upcasepat = (string-upcase pattern)
             for (string symbol indexes score)
               in
               (loop with (external internal)
-                      = (multiple-value-list (qualified-matching pattern package))
+                      = (multiple-value-list (qualified-matching upcasepat package))
                     for e in (append (sort-by-score
-                                      (keywords-matching pattern))
+                                      (keywords-matching upcasepat))
                                      (sort-by-score
-                                      (append (accessible-matching pattern package)
+                                      (append (accessible-matching upcasepat package)
                                               external))
                                      (sort-by-score
                                       internal))

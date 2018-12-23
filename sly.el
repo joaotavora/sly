@@ -315,7 +315,7 @@ The default is nil, as this feature can be a security risk."
   :type '(boolean)
   :group 'sly-lisp)
 
-(defcustom sly-lisp-host "127.0.0.1"
+(defcustom sly-lisp-host "localhost"
   "The default hostname (or IP address) to connect to."
   :type 'string
   :group 'sly-lisp)
@@ -2029,15 +2029,65 @@ This is automatically synchronized from Lisp.")
                           :key #'sly-connection-name :test #'equal)
            finally (cl-return name)))
 
-(defun sly-connection-close-hook (process)
-  (when (eq process sly-default-connection)
+(defun sly-select-new-default-connection (conn)
+  "If dead CONN was the default connection, select a new one."
+  (when (eq conn sly-default-connection)
     (when sly-net-processes
       (sly-select-connection (car sly-net-processes))
       (sly-message "Default connection closed; default is now #%S (%S)"
                    (sly-connection-number)
                    (sly-connection-name)))))
 
-(add-hook 'sly-net-process-close-hooks 'sly-connection-close-hook)
+(defcustom sly-keep-buffers-on-connection-close '(:mrepl)
+  "List of buffers to keep around after a connection closes."
+  :group 'sly-mode
+  :type '(repeat
+          (choice
+           (const :tag "Debugger" :db)
+           (const :tag "Repl" :mrepl)
+           (const :tag "Ispector" :inspector)
+           (const :tag "Stickers replay" :stickers-replay)
+           (const :tag "Error" :error)
+           (const :tag "Source" :source)
+           (const :tag "Compilation" :compilation)
+           (const :tag "Apropos" :apropos)
+           (const :tag "Xref" :xref)
+           (const :tag "Macroexpansion" :macroexpansion)
+           (symbol :tag "Other"))))
+
+(defun sly-kill-stale-connection-buffers (conn) ;
+  "If CONN had some stale buffers, kill them.
+Respect `sly-keep-buffers-on-connection-close'."
+  (let ((buffer-list (buffer-list))
+        (matchers
+         (mapcar
+          (lambda (type)
+            (format ".*%s.*$"
+                    ;; XXX: this is synched with `sly-buffer-name'.
+                    (regexp-quote (format "*sly-%s"
+                                          (downcase (substring (symbol-name type)
+                                                               1))))))
+          (cl-set-difference '(:db
+                               :mrepl
+                               :inspector
+                               :stickers-replay
+                               :error
+                               :source
+                               :compilation
+                               :apropos
+                               :xref
+                               :macroexpansion)
+                             sly-keep-buffers-on-connection-close))))
+    (cl-loop for buffer in buffer-list
+             when (and (cl-some (lambda (matcher)
+                                  (string-match matcher (buffer-name buffer)))
+                                matchers)
+                       (with-current-buffer buffer
+                         (eq sly-buffer-connection conn)))
+             do (kill-buffer buffer))))
+
+(add-hook 'sly-net-process-close-hooks 'sly-select-new-default-connection)
+(add-hook 'sly-net-process-close-hooks 'sly-kill-stale-connection-buffers 'append)
 
 ;;;;; Commands on connections
 
@@ -2335,8 +2385,11 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
          ((:abort _condition)
           (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
        (cond (cancel-on-input
-              (while-no-input (while t (accept-process-output nil 30)))
-              (setq cancelled-on-input t)
+              (unwind-protect
+                  (let ((inhibit-quit t))
+                    (while-no-input
+                      (while t (accept-process-output nil 0.1))))
+                (setq cancelled-on-input t))
               (funcall check-conn))
              (t
               (while t
@@ -2522,8 +2575,12 @@ Debugged requests are ignored."
           ((:invalid-channel channel-id reason)
            (error "Invalid remote channel %s: %s" channel-id reason))))))
 
+(defvar sly--send-last-command nil
+  "Value of `this-command' at time of last `sly-send' call.")
+
 (defun sly-send (sexp)
   "Send SEXP directly over the wire on the current connection."
+  (setq sly--send-last-command this-command)
   (sly-net-send sexp (sly-connection)))
 
 (defun sly-reset ()
@@ -2644,7 +2701,8 @@ Debugged requests are ignored."
   (let ((print-length 20)
         (print-level 6)
         (pp-escape-newlines t))
-    (pp event buffer)))
+    ;; HACK workaround for gh#183
+    (condition-case _oops (pp event buffer) (error (print event buffer)))))
 
 (defun sly--events-buffer (process)
   "Return or create the event log buffer."
@@ -4419,8 +4477,8 @@ With M-- (negative) prefix arg, prompt for package only. "
          (t
           (list (sly-read-from-minibuffer "Apropos external symbols: ") t nil nil))))
   (sly-eval-async
-      `(slynk:apropos-list-for-emacs ,string ,only-external-p
-                                     ,case-sensitive-p ',package)
+      `(slynk-apropos:apropos-list-for-emacs ,string ,only-external-p
+                                             ,case-sensitive-p ',package)
     (sly-rcurry #'sly-show-apropos string package
                 (sly-apropos-summary string case-sensitive-p
                                      package only-external-p))))
@@ -4488,21 +4546,21 @@ TODO"
           (car designator)))
 
 (defun sly-apropos-insert-symbol (designator item bounds package-designator-searched-p)
-  (let ((start (point))
-        (label (sly-apropos-designator-string designator)))
+  (let ((label (sly-apropos-designator-string designator)))
     (sly--make-text-button label nil
                            'face 'sly-apropos-symbol
                            'part-args (list item nil)
                            'part-label "Symbol"
                            :type 'sly-apropos-symbol)
-    (insert label)
-    (when bounds
-      (let* ((offset (if package-designator-searched-p
-                         0
-                       (length (sly--package-designator-prefix designator))))
-             (ov (make-overlay (+ start offset (cl-first bounds))
-                               (+ start offset (cl-second bounds)))))
-        (overlay-put ov 'face 'highlight)))))
+    (cl-loop
+     with offset = (if package-designator-searched-p
+                       0
+                     (length (sly--package-designator-prefix designator)))
+     for bound in bounds
+     for (start end) = (if (listp bound) bound (list bound (1+ bound)))
+     do
+     (put-text-property (+ start offset) (+ end offset) 'face 'highlight label)
+     finally (insert label))))
 
 (defun sly-print-apropos (plists package-designator-searched-p)
   (cl-loop
@@ -5309,32 +5367,16 @@ Full list of frame-specific commands:
 
 ;;;;; SLY-DB buffer creation & update
 
-(defcustom sly-db-focus-debugger 'repl
-  "Control how debugger windows are displayed.
-ALWAYS: the debugger window is always focused.
-NEVER: the debugger window is never focused.
-REPL: only at the REPL."
-  :group 'sly-debugger
-  :type '(choice (const always)
-                 (const never)
-                 (const repl)))
+(defcustom sly-db-focus-debugger 'auto
+  "Control if debugger window gets focus immediately.
 
-(defun sly-db--should-focus-debugger-p (thread)
-  "Decide whether to select the debugger window.
-Behavior depends on the current value of
-`sly-db-focus-debugger'."
-  (cl-ecase sly-db-focus-debugger
-    (always t)
-    (never nil)
-    (repl
-     (let* ((conn (sly-current-connection))
-            (win (selected-window))
-            (buf (window-buffer win)))
-       (with-current-buffer buf
-         (and (eq major-mode 'sly-mrepl-mode)
-              (eq conn sly-buffer-connection)
-              (or (eq t sly-current-thread)
-                  (eq sly-current-thread thread))))))))
+If nil, the window is never focused automatically; if the symbol
+`auto', the window is only focused if the user has performed no
+other commands in the meantime (i.e. he/she is expecting a
+possible debugger); any other non-nil value means to always
+automatically focus the debugger window."
+  :group 'sly-debugger
+  :type '(choice (const always) (const never) (const auto)))
 
 (defun sly-filter-buffers (predicate)
   "Return a list of where PREDICATE returns true.
@@ -5409,7 +5451,9 @@ Also mark the window as a debugger window."
   (let* ((action '(sly-db--display-in-prev-sly-db-window))
          (buffer (current-buffer))
          (win
-          (if (sly-db--should-focus-debugger-p thread)
+          (if (cond ((eq sly-db-focus-debugger 'auto)
+                     (eq sly--send-last-command last-command))
+                    (t sly-db-focus-debugger))
               (progn
                 (pop-to-buffer buffer action)
                 (selected-window))
@@ -6627,7 +6671,8 @@ position of point in the current buffer."
   (sly-eval-describe `(slynk:describe-inspectee)))
 
 (defun sly-inspector-eval (string)
-  "Eval an expression in the context of the inspected object."
+  "Eval an expression in the context of the inspected object.
+The `*' variable will be bound to the inspected object."
   (interactive (list (sly-read-from-minibuffer "Inspector eval: ")))
   (sly-eval-with-transcript `(slynk:inspector-eval ,string)))
 

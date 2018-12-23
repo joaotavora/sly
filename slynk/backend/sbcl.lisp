@@ -541,7 +541,13 @@ information."
                       (sb-c:compiler-error  :error)
                       (reader-error         :read-error)
                       (error                :error)
-                      #+#.(slynk-backend:with-symbol redefinition-warning 
+                      #+#.(slynk-backend:with-symbol early-deprecation-warning sb-ext)
+                      (sb-ext::early-deprecation-warning :early-deprecation-warning)
+                      #+#.(slynk-backend:with-symbol late-deprecation-warning sb-ext)
+                      (sb-ext::late-deprecation-warning :late-deprecation-warning)
+                      #+#.(slynk-backend:with-symbol final-deprecation-warning sb-ext)
+                      (sb-ext::final-deprecation-warning :final-deprecation-warning)
+                      #+#.(slynk-backend:with-symbol redefinition-warning
                             sb-kernel)
                       (sb-kernel:redefinition-warning
                        :redefinition)
@@ -1234,7 +1240,9 @@ stack."
           while f collect f)))
 
 (defimplementation print-frame (frame stream)
-  (sb-debug::print-frame-call frame stream))
+  (sb-debug::print-frame-call frame stream
+                              :allow-other-keys t
+                              :emergency-best-effort t))
 
 (defimplementation frame-restartable-p (frame)
   #+#.(slynk-sbcl::sbcl-with-restart-frame)
@@ -1776,33 +1784,7 @@ stack."
 
     (defimplementation find-registered (name)
       (sb-thread:with-mutex (mutex)
-        (cdr (assoc name alist)))))
-
-  ;; Workaround for deadlocks between the world-lock and auto-flush-thread
-  ;; buffer write lock.
-  ;;
-  ;; Another alternative would be to grab the world-lock here, but that's less
-  ;; future-proof, and could introduce other lock-ordering issues in the
-  ;; future.
-  ;;
-  ;; In an ideal world we would just have an :AROUND method on
-  ;; SLY-OUTPUT-STREAM, and be done, but that class doesn't exist when this
-  ;; file is loaded -- so first we need a dummy definition that will be
-  ;; overridden by slynk-gray.lisp.
-  #.(unless (find-package 'slynk-gray) (make-package 'slynk-gray) nil)
-  (eval-when (:load-toplevel :execute)
-    (unless (find-package 'slynk-gray) (make-package 'slynk-gray) nil))
-  (defclass slynk-gray::sly-output-stream
-      (sb-gray:fundamental-character-output-stream)
-    ())
-  (defmethod sb-gray:stream-force-output
-      :around ((stream slynk-gray::sly-output-stream))
-    (handler-case
-        (sb-sys:with-deadline (:seconds 0.1)
-          (call-next-method))
-      (sb-sys:deadline-timeout ()
-        nil)))
-  )
+        (cdr (assoc name alist))))))
 
 (defimplementation quit-lisp ()
   #+#.(slynk-backend:with-symbol 'exit 'sb-ext)

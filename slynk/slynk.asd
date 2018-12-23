@@ -59,9 +59,11 @@
    (:file "slynk-match")
    (:file "slynk-rpc")
    (:file "slynk")
-   (:file "slynk-completion")))
+   (:file "slynk-completion")
+   (:file "slynk-apropos")))
 
 (defsystem :slynk/util
+  :depends-on (:slynk)
   :components ((:file "slynk-util")))
 
 (defmethod perform :after ((o load-op) (c (eql (find-system :slynk))))

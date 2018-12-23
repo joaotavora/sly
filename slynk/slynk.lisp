@@ -26,8 +26,7 @@
            ;;#:inspect-slot-for-emacs
            #:authenticate-client
            #:*loopback-interface*
-           #:*buffer-readtable*
-           #:*exclude-symbol-functions*)
+           #:*buffer-readtable*)
   ;; These are user-configurable variables:
   (:export #:*communication-style*
            #:*dont-close*
@@ -889,18 +888,6 @@ about internal symbols most times. As the spec says:
 If PACKAGE is not specified, the home package of SYMBOL is used."
   (eq (symbol-status symbol package) :external))
 
-(defun baroque-symbol-name-p (symbol)
-  (or (> (length (symbol-name symbol)) 60)))
-
-(defparameter *exclude-symbol-functions*
-  '(baroque-symbol-name-p)
-  "Functions excluding symbols from completion.
-Holds a list of boolean predicates of a single argument, a symbol")
-
-(defun excluded-from-searches-p (symbol)
-  "Tell if SYMBOL should be excluded from \"apropos\" or completion."
-  (some (lambda (fn) (funcall fn symbol)) *exclude-symbol-functions*))
-
 
 ;;;; TCP Server
 
@@ -910,7 +897,7 @@ Holds a list of boolean predicates of a single argument, a symbol")
   "Default value of :dont-close argument to start-server and
   create-server.")
 
-(defparameter *loopback-interface* "127.0.0.1")
+(defparameter *loopback-interface* "localhost")
 
 (defun start-server (port-file &key (style *communication-style*)
                                     (dont-close *dont-close*))
@@ -930,7 +917,7 @@ If DONT-CLOSE is true then the listen socket will accept multiple
 connections, otherwise it will be closed after the first.
 
 Optionally, an INTERFACE could be specified and swank will bind
-the PORT on this interface. By default, interface is 127.0.0.1."
+the PORT on this interface. By default, interface is \"localhost\"."
   (let ((*loopback-interface* (or interface
                                   *loopback-interface*)))
     (setup-server port #'simple-announce-function
@@ -997,13 +984,11 @@ first."
   (create-server :port port :style style :dont-close dont-close))
 
 (defun accept-connections (socket style dont-close)
-  (let ((client (unwind-protect
-                     (accept-connection socket :external-format nil
-                                               :buffering t)
-                  (unless dont-close
-                    (close-socket socket)))))
-    (authenticate-client client)
-    (serve-requests (make-connection socket client style))
+  (unwind-protect
+       (let ((client (accept-connection socket :external-format nil
+                                               :buffering t)))
+         (authenticate-client client)
+         (serve-requests (make-connection socket client style)))
     (unless dont-close
       (send-to-sentinel `(:stop-server :socket ,socket)))))
 
@@ -1202,16 +1187,6 @@ point the thread terminates and CHANNEL is closed."
   (let ((*emacs-connection* connection))
     (with-panic-handler (connection)
       (loop (dispatch-event connection (receive))))))
-
-(defvar *auto-flush-interval* 0.2)
-
-(defun auto-flush-loop (stream)
-  (loop
-   (when (not (and (open-stream-p stream)
-                   (output-stream-p stream)))
-     (return nil))
-   (force-output stream)
-   (sleep *auto-flush-interval*)))
 
 (defgeneric thread-for-evaluation (connection id)
   (:documentation "Find or create a thread to evaluate the next request.")
@@ -3037,58 +3012,12 @@ designator. Returns a list of all modules available."
 
 (defslyfun operator-arglist (name package)
   (ignore-errors
-    (let ((args (arglist (parse-symbol name (guess-buffer-package package)))))
-      (cond ((eq args :not-available) nil)
-	    (t (princ-to-string (cons name args)))))))
+   (let ((args (arglist (parse-symbol name (guess-buffer-package package)))))
+     (cond ((eq args :not-available) nil)
+           (t (princ-to-string (cons name args)))))))
 
 
 ;;;; Documentation
-
-(defslyfun apropos-list-for-emacs  (name &optional external-only
-                                         case-sensitive package)
-  "Make an apropos search for Emacs.
-The result is a list of property lists."
-  (let ((package (if package
-                     (or (parse-package package)
-                         (error "No such package: ~S" package)))))
-    ;; The MAPCAN will filter all uninteresting symbols, i.e. those
-    ;; who cannot be meaningfully described.
-    ;;
-    ;; *BUFFER-PACKAGE* is exceptionally set so that the symbol
-    ;; listing will only omit package qualifier iff the user specified
-    ;; PACKAGE.
-    (let ((*buffer-package* (or package
-                                *slynk-io-package*)))
-      (loop for (symbol . extra)
-              in (sort (remove-duplicates
-                        (apropos-symbols name external-only case-sensitive package)
-                        :key #'first)
-                       #'present-symbol-before-p
-                       :key #'first)
-            for short = (briefly-describe-symbol-for-emacs symbol)
-            when short
-              collect (append short extra)))))
-
-(defun briefly-describe-symbol-for-emacs (symbol)
-  "Return a property list describing SYMBOL.
-Like `describe-symbol-for-emacs' but with at most one line per item."
-  (flet ((first-line (string)
-           (let ((pos (position #\newline string)))
-             (if (null pos) string (subseq string 0 pos)))))
-    (let ((desc (map-if #'stringp #'first-line
-                        (describe-symbol-for-emacs symbol))))
-      (if desc
-          `(:designator ,(list (symbol-name symbol)
-                               (let ((package (symbol-package symbol)))
-                                 (and package
-                                      (package-name package)))
-                               (symbol-external-p symbol))
-                        ,@desc
-                        ,@(let ((arglist (and (fboundp symbol)
-                                              (arglist symbol))))
-                            (when (and arglist
-                                       (not (eq arglist :not-available)))
-                              `(:arglist ,(princ-to-string arglist)))))))))
 
 (defun map-if (test fn &rest lists)
   "Like (mapcar FN . LISTS) but only call FN on objects satisfying TEST.
@@ -3104,101 +3033,6 @@ wrapped in a list."
   (lambda (x)
     (let ((y (funcall f x)))
       (and y (list y)))))
-
-(defun present-symbol-before-p (x y)
-  "Return true if X belongs before Y in a printed summary of symbols.
-Sorted alphabetically by package name and then symbol name, except
-that symbols accessible in the current package go first."
-  (declare (type symbol x y))
-  (flet ((accessible (s)
-           ;; Test breaks on NIL for package that does not inherit it
-           (eq (find-symbol (symbol-name s) *buffer-package*) s)))
-    (let ((ax (accessible x)) (ay (accessible y)))
-      (cond ((and ax ay) (string< (symbol-name x) (symbol-name y)))
-            (ax t)
-            (ay nil)
-            (t (let ((px (symbol-package x)) (py (symbol-package y)))
-                 (if (eq px py)
-                     (string< (symbol-name x) (symbol-name y))
-                     (string< (package-name px) (package-name py)))))))))
-
-(defun make-cl-ppcre-matcher (pattern case-sensitive symbol-name-fn)
-  (let ((matcher (funcall (read-from-string "cl-ppcre:create-scanner")
-                          pattern
-                          :case-insensitive-mode (not case-sensitive))))
-    (lambda (symbol)
-      (funcall (read-from-string "cl-ppcre:scan")
-               matcher
-               (funcall symbol-name-fn symbol)))))
-
-(defun make-plain-matcher (pattern case-sensitive symbol-name-fn)
-  (let ((chr= (if case-sensitive #'char= #'char-equal)))
-    (lambda (symbol)
-      (let((beg (search pattern
-                        (funcall symbol-name-fn symbol)
-                        :test chr=)))
-        (when beg
-          (values beg (+ beg (length pattern))))))))
-
-(defparameter *try-cl-ppcre-for-apropos* t
-  "If non-NIL, maybe try CL-PPCRE for apropos requests.
-CL-PPCRE must be loaded. This option has no effect if the
-MAKE-APROPOS-MATCHER interface has been implemented.")
-
-(defun apropos-symbols (pattern external-only case-sensitive package)
-  "Search for symbols matching PATTERN."
-  (let* ((packages (or package (remove (find-package :keyword)
-                                       (list-all-packages))))
-         (symbol-name-fn
-           (lambda (symbol)
-             (cond ((not package)
-                    ;; include qualifier in search if user didn't pass
-                    ;; PACKAGE.
-                    (concatenate 'string
-                                 (package-name (symbol-package symbol))
-                                 (if (symbol-external-p symbol) ":" "::")
-                                 (symbol-name symbol)))
-                   (t
-                    (string symbol)))))
-         (interface-unimplemented-p
-           (find 'slynk-backend:make-apropos-matcher
-                 slynk-backend::*unimplemented-interfaces*))
-         (attempt-cl-ppcre (and *try-cl-ppcre-for-apropos*
-                                (not (every #'alpha-char-p pattern))))
-         (cl-ppcre-matcher (and attempt-cl-ppcre
-                                (find-package :cl-ppcre)
-                                (ignore-errors
-                                 (make-cl-ppcre-matcher pattern case-sensitive symbol-name-fn))))
-         (matcher (cond ((and interface-unimplemented-p
-                              attempt-cl-ppcre
-                              cl-ppcre-matcher)
-                         ;; Use regexp apropos we guess the user has
-                         ;; requested it and if it is possible.
-                         ;;
-                         (background-message "Using CL-PPCRE for apropos on regexp \"~a\"" pattern)
-                         cl-ppcre-matcher)
-                        (interface-unimplemented-p
-                         ;; Use plain apropos otherwise
-                         ;; 
-                         (when attempt-cl-ppcre
-                           (if (not (find-package :cl-ppcre))
-                               (background-message "Using plain apropos. Load CL-PPCRE to enable regexps")
-                               (background-message "Not a valid CL-PPCRE regexp, so using plain apropos")))
-                         (make-plain-matcher pattern case-sensitive symbol-name-fn))
-                        (t
-                         (slynk-backend:make-apropos-matcher pattern
-                                                             symbol-name-fn
-                                                             case-sensitive)))))
-    (with-package-iterator (next packages :external :internal)
-      (loop for (morep symbol) = (multiple-value-list (next))
-            while morep
-            for (match end) = (and (not (excluded-from-searches-p symbol))
-                                   (or (not external-only)
-                                       (symbol-external-p symbol))
-                                   (symbol-package symbol)
-                                   (multiple-value-list (funcall matcher symbol)))
-            when match
-              collect `(,symbol ,@(when end `(:bounds (,match ,end))))))))
 
 (defun call-with-describe-settings (fn)
   (let ((*print-readably* nil))
@@ -3358,7 +3192,16 @@ If non-nil, called with two arguments SPEC and TRACED-P." )
     (do-find (string-left-trim *find-definitions-left-trim* name))
     (do-find (string-left-trim *find-definitions-left-trim*
                                (string-right-trim
-                                *find-definitions-right-trim* name)))))
+                                *find-definitions-right-trim* name)))
+    ;; Not exactly robust
+    (when (and (eql (search "(setf " name :test #'char-equal) 0)
+               (char= (char name (1- (length name))) #\)))
+      (multiple-value-bind (symbol found)
+          (with-buffer-syntax ()
+            (parse-symbol (subseq name (length "(setf ")
+                                  (1- (length name)))))
+        (when found
+          (values `(setf ,symbol) t))))))
 
 (defslyfun find-definitions-for-emacs (name)
   "Return a list ((DSPEC LOCATION) ...) of definitions for NAME.
@@ -3822,7 +3665,7 @@ Return NIL if LIST is circular."
    (let ((content (hash-table-to-alist ht)))
      (cond ((every (lambda (x) (typep (first x) '(or string symbol))) content)
             (setf content (sort content 'string< :key #'first)))
-           ((every (lambda (x) (typep (first x) 'number)) content)
+           ((every (lambda (x) (typep (first x) 'real)) content)
             (setf content (sort content '< :key #'first))))
      (loop for (key . value) in content appending
            `((:value ,key) " = " (:value ,value)
@@ -4244,6 +4087,10 @@ Collisions are caused because package information is ignored."
                #:+keyword-package+
                #:guess-package
                #:guess-buffer-package
+               #:*exclude-symbol-functions*
+               #:*buffer-package*
+               #:*slynk-io-package*
+               #:parse-package
                ;; symbols
                ;;
                #:tokenize-symbol
@@ -4255,7 +4102,11 @@ Collisions are caused because package information is ignored."
                ;;
                #:slynk-pprint
                #:slynk-pprint-values
-               #:slynk-pprint-to-line)))
+               #:slynk-pprint-to-line
+               ;;
+               ;;
+               #:background-message
+               #:map-if)))
     (loop for sym in api
           for slynk-api-sym = (intern (string sym) :slynk-api)
           for slynk-sym = (intern (string sym) :slynk)

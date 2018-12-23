@@ -163,7 +163,7 @@ COMPLETIONS is a list of propertized strings."
 COMPLETIONS is a list of propertized strings."
   (cl-loop with (completions _) =
            (sly--completion-request-completions pattern 'slynk-completion:flex-completions)
-           for (completion score chunks classification) in completions
+           for (completion score chunks classification suggestion) in completions
            do
            (cl-loop for (pos substring) in chunks
                     do (put-text-property pos (+ pos
@@ -175,13 +175,15 @@ COMPLETIONS is a list of propertized strings."
                     finally (put-text-property 0 (length completion)
                                                'sly-completion-chunks chunks-2
                                                completion))
-           (put-text-property 0
-                              (length completion)
-                              'sly--annotation
-                              (format "%s %5.2f%%"
-                                      classification
-                                      (* score 100))
-                              completion)
+           (add-text-properties 0
+                                (length completion)
+                                `(sly--annotation
+                                  ,(format "%s %5.2f%%"
+                                           classification
+                                           (* score 100))
+                                  sly--suggestion
+                                  ,suggestion)
+                                completion)
 
            collect completion into formatted
            finally return (list formatted nil)))
@@ -258,6 +260,12 @@ ANNOTATION) describing each completion possibility."
     (list beg end
           (sly--completion-function-wrapper fn)
           :annotation-function #'sly-completion-annotation
+          :exit-function (lambda (obj _status)
+                           (sly--when-let (suggestion
+                                           (get-text-property 0 'sly--suggestion
+                                                              obj))
+                             (delete-region (- (point) (length obj)) (point))
+                             (insert suggestion)))
           :company-docsig
           (lambda (obj)
             (sly--responsive-eval (arglist `(slynk:operator-arglist
@@ -594,10 +602,9 @@ Intended to go into `completion-at-point-functions'"
 (defun sly-next-completion (n &optional errorp)
   (interactive "p")
   (with-current-buffer (sly-buffer-name :completions)
-    (unless (zerop n)
-      (when (overlay-buffer sly--completion-in-region-overlay)
-        (goto-char (overlay-start sly--completion-in-region-overlay)))
-      (forward-line n))
+    (when (overlay-buffer sly--completion-in-region-overlay)
+      (goto-char (overlay-start sly--completion-in-region-overlay)))
+    (forward-line n)
     (let* ((end (and (get-text-property (point) 'sly--completion)
                      (save-excursion
                        (skip-syntax-forward "^\s")
@@ -609,7 +616,7 @@ Intended to go into `completion-at-point-functions'"
       (if (and beg end)
           (progn
             (move-overlay sly--completion-in-region-overlay
-                        beg end)
+                          beg end)
             (let ((win (get-buffer-window (current-buffer) 0)))
               (when win
                 (with-selected-window win
@@ -678,6 +685,8 @@ Intended to go into `completion-at-point-functions'"
          (sly-buffer-connection (sly-connection)))
      ,@body))
 
+(defvar sly-minibuffer-setup-hook nil)
+
 (defun sly-read-from-minibuffer (prompt &optional initial-value history allow-empty keymap)
   "Read a string from the minibuffer, prompting with PROMPT.
 If INITIAL-VALUE is non-nil, it is inserted into the minibuffer
@@ -685,6 +694,10 @@ before reading input.  The result is a string (\"\" if no input
 was given and ALLOW-EMPTY is non-nil)."
   (sly--with-sly-minibuffer
    (cl-loop
+    with minibuffer-setup-hook = (cons
+                                  (lambda ()
+                                    (run-hooks 'sly-minibuffer-setup-hook))
+                                  minibuffer-setup-hook)
     for i from 0
     for read = (read-from-minibuffer
                 (concat "[sly] " (when (cl-plusp i)

@@ -61,6 +61,9 @@ publish: sly.html
 sly.pdf: $(TEXI)
 	texi2pdf $<
 
+sly-refcard.pdf: sly-refcard.tex
+	texi2pdf $<
+
 install: install-info
 
 uninstall: uninstall-info
@@ -77,9 +80,9 @@ contributors.texi: Makefile texinfo-tabulate.awk
 	git log --format='%aN' | \
 	sort | \
 	uniq -c | \
-	sort -nr| \
-	sed -e 's/^[^A-Z]*//' | \
-	awk -f texinfo-tabulate.awk \
+	LC_ALL=C sort -nr | \
+	sed -e 's/^[^A-Z]*//; /^$$/d' | \
+	LC_ALL=C awk -f texinfo-tabulate.awk \
 	> $@
 
 #.INTERMEDIATE: contributors.texi
@@ -116,4 +119,5 @@ clean:
 	rm -f sly.kys sly.log sly.pg sly.tmp sly.toc sly.tp
 	rm -f sly.vr sly.vrs
 	rm -f sly.info sly.pdf sly.dvi sly.ps sly.html
+	rm -f sly-refcard.pdf sly-refcard.log sly-refcard.aux
 	rm -rf html html.tgz

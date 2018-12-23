@@ -551,25 +551,17 @@ makes this happen.
 Where should we start though, if we know very little about this project?
 Well, a good point to start is always the @emph{apropos} functionality,
 which is a @code{grep} of sorts, but symbolic rather than purely
-textual.  So if we want to hack on @SLY{}'s ``flex-completion'', a
-reasonable search string is probably @code{sly.*flex}.  So we
+textual.  So if we want to hack on @SLY{}'s ``flex-completion'', so we
 type @kbd{C-c C-d C-z} (the shortcut for @kbd{M-x sly-apropos-all}) and
-then type in that search string at the prompt, followed by @kbd{enter}
+then type in ``slyflex'' at the prompt, followed by @kbd{enter}
 or @kbd{return} (abbreviated @code{RET} or @kbd{C-m}).
 
-Notice that we’ve just entered a @emph{regular-expression} in
-@SLY{}'s @emph{apropos} prompt, something that a regular
-Lisp @emph{apropos} search doesn’t allow.  @SLY{} does, but there's a
-quirk: it needs access to a regular expression library, so by now you
-may or may not have results in a @code{*sly-apropos*} buffer!  If you
-don’t, @SLY{} will advise you to load the (very popular) @code{cl-ppcre}
-regular expression system.  Assuming you
-have @uref{https://www.quicklisp.org/beta/,Quicklisp} (you @emph{do}
-know about Quicklisp, right?) that's a matter of
-typing @code{(ql:quickload :cl-ppcre) RET} in the REPL, waiting some
-brief moments, and then trying the @kbd{C-c C-d C-z} apropos search
-again. If everything goes to plan, @SLY{} should now present all Lisp
-symbols that match the @code{sly.*flex} regular expression.
+Notice that we’ve just entered a @emph{fuzzy} or @emph{flex} search
+string in @SLY{}'s @emph{apropos} prompt, something that a regular
+Lisp @emph{apropos} search doesn’t allow.  You could also have searched
+by regular expression (see the @code{*PREFERRED-APROPOS-MATCHER*}
+variable).  Anyway, @SLY{} should now present all Lisp symbols matching
+your search pattern, with the better matches sorted at the top.
 
 @*@image{images/tutorial-2,350pt}@*
 
@@ -820,10 +812,6 @@ fresh buffer.
 Edit the value of a setf-able form in a new buffer @file{*Edit <form>*}.
 The value is inserted into a temporary buffer for editing and then set
 in Lisp when committed with @kbd{C-c C-c}.
-
-@kbditem{C-x M-e, sly-eval-last-expression-display-output}
-Display the output buffer and evaluate the expression preceding point.
-This is useful if the expression writes something to the output stream.
 
 @kbditem{C-c C-u, sly-undefine-function}
 Undefine the function, with @code{fmakunbound}, for the symbol at
@@ -1188,7 +1176,7 @@ the @code{*sly-xref} buffer.
 @kbditem{C-c C-c, sly-recompile-xref}
 Recompile definition at point.
 
-@kbditem{C-c C-c, sly-recompile-all-xrefs}
+@kbditem{C-c C-k, sly-recompile-all-xrefs}
 Recompile all definitions.
 
 @end table
@@ -1890,7 +1878,8 @@ value. If point is on an action then call that action.
 Describe the slot at point.
 
 @kbditem{e, sly-inspector-eval}
-Evaluate an expression in the context of the inspected object.
+Evaluate an expression in the context of the inspected object. The
+variable @code{*} will be bound to the inspected object.
 
 @kbditem{v, sly-inspector-toggle-verbose}
 Toggle between verbose and terse mode. Default is determined by
@@ -2469,6 +2458,13 @@ use @code{emacs-mule-unix} as coding system.  GNU Emacs has often
 nicer fonts for the latter encoding.  (Different encodings can be used
 for different Lisps, see @ref{Multiple Lisps}.)
 
+@item sly-keep-buffers-on-connection-close
+This variable holds a list of keywords indicating @SLY{} buffer types
+that should be kept around when a connection closes.  For example, if
+the variable's value includes @code{:mrepl} (which is the default),
+@REPL{} buffer is kept around while all other stale buffers (debugger,
+inspector, etc..) are automatically killed.
+
 @end table
 
 @node Hooks
@@ -2681,12 +2677,11 @@ whenever you evaluate an integer.
 1451404675 ; => 1451404675 (15:57:55 on Tuesday, 12/29/2015 (GMT+0), 31 bits, #x5682AD83)
 @end example
 
-@item SLYNK:*EXCLUDE-SYMBOL-FUNCTIONS*
-This variable holds a list of functions used for excluding certain
-symbols from functionality like \"apropos\"" listings (see
-@pxref{Documentation}) or @pxref{Completion} listings. By default, it
-contains a single function that excludes symbols with names so long
-and contorted they wouldn't fit properly in the completions window.
+@item SLYNK-APROPOS:*PREFERRED-APROPOS-MATCHER*
+This variable holds a function used for performing apropos searches. It
+defaults to @code{SLYNK-APROPOS:MAKE-FLEX-MATCHER}, but can also be set
+to @code{SLYNK-APROPOS:MAKE-CL-PPCRE-MATCHER} (to use a regex-able
+matcher) or @code{SLYNK-APROPOS:MAKE-PLAIN-MATCHER}, for example.
 
 @item SLYNK:*LOG-EVENTS*
 Setting this variable to @code{t} causes all protocol messages
@@ -2795,7 +2790,7 @@ remote machine. Assumind a @acronym{UNIX} command-line, this can be
 done with:
 
 @example
-ssh -L4005:127.0.0.1:4005 youruser@@remote.example.com
+ssh -L4005:localhost:4005 youruser@@remote.example.com
 @end example
 
 This incantation creates a SSH tunnel between the port 4005 on our
@@ -2813,9 +2808,9 @@ M-x sly-connect RET RET
 @end example
 
 The @kbd{RET RET} sequence just means that we want to use the default
-host (@code{127.0.0.1}) and the default port (@code{4005}). Even
+host (@code{localhost}) and the default port (@code{4005}). Even
 though we're connecting to a remote machine the SSH tunnel fools Emacs
-into thinking it's actually @code{127.0.0.1}.
+into thinking it's actually @code{localhost}.
 
 @node Setting up pathname translations
 @subsection Setting up pathname translations

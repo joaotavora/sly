@@ -3,11 +3,14 @@
 ;; sly-mrepl or M-x sly-mrepl-new create new REPL buffers.
 ;;
 (require 'sly)
+(require 'sly-autodoc)
 (require 'cl-lib)
 (require 'comint)
+
 (define-sly-contrib sly-mrepl
   "Multiple REPLs."
   (:license "GPL")
+  (:sly-dependencies sly-autodoc)
   (:slynk-dependencies slynk/mrepl)
   (:on-load
    ;; Define a new "part action" for the `sly-part' buttons and change
@@ -685,7 +688,7 @@ recent entry that is discarded."
           (when (and (cl-plusp (length string))
                      (eq (process-status sly-buffer-connection) 'open))
             (sly-mrepl--insert-output string)))
-      (sly-warning "No channel in process %s, probaly torn down" process))))
+      (sly-warning "No channel in process %s, probably torn down" process))))
 
 (defun sly-mrepl--open-dedicated-stream (channel port coding-system)
   (let* ((name (format "sly-dds-%s-%s"
@@ -735,11 +738,11 @@ REPL is the REPL buffer to return the objects to."
   (insert (format
            "%s"
            `(,spec
-             ,@(cl-loop for o in results
+             ,@(cl-loop for (_object j constant) in results
                         for i from 0
-                        collect (make-symbol (format "#v%d:%d"
-                                                     (cadr o)
-                                                     i)))))))
+                        collect
+                        (or constant
+                            (make-symbol (format "#v%d:%d" j i))))))))
 
 (defun sly-mrepl--assert-mrepl ()
   (unless (eq major-mode 'sly-mrepl-mode)
@@ -836,13 +839,14 @@ Completion performed by `completion-at-point' or
 `company-complete'.  If there's no symbol at the point, show the
 arglist for the most recently enclosed macro or function."
   (interactive "P")
-  (let ((pos (point)))
+  (let ((pos (point))
+        (fn (if (bound-and-true-p company-mode)
+                'company-complete
+              'completion-at-point)))
     (indent-for-tab-command arg)
     (when (= pos (point))
       (cond ((save-excursion (re-search-backward "[^() \n\t\r]+\\=" nil t))
-             (if (bound-and-true-p company-mode)
-                 (funcall 'company-complete)
-               (completion-at-point)))
+             (funcall fn))
             ((memq (char-before) '(?\t ?\ ))
              (sly-show-arglist))))))
 
@@ -1272,19 +1276,21 @@ a list of result buttons thus highlighted"
                          (or (and m3 (string-to-number m3))
                              (and (not m2)
                                   'all)))))
-    (when match
+    (if (null match)
+        (set (make-local-variable 'sly-autodoc-preamble) nil)
       (let ((buttons (sly-mrepl-highlight-results entry-idx value-idx))
             (overlay
              (or sly-mrepl--backreference-overlay
                  (set (make-local-variable 'sly-mrepl--backreference-overlay)
                       (make-overlay 0 0))))
-            (message-log-max nil))
+            (message-log-max nil)
+            (message-text))
         (move-overlay sly-mrepl--backreference-overlay
                       (match-beginning 0) (match-end 0))
         (cond
          ((null buttons)
           (overlay-put overlay 'face 'font-lock-warning-face)
-          (sly-message "No history references for backreference `%s'" m0))
+          (setq message-text (format "No history references for backreference `%s'" m0)))
          ((and buttons
                entry-idx
                value-idx)
@@ -1310,14 +1316,16 @@ a list of result buttons thus highlighted"
                          "...")
                         'face
                         'sly-action-face)))
-            (sly-message "%s" (format "%s%s" prefix hint))))
+            (setq message-text (format "%s" (format "%s%s" prefix hint)))))
          (buttons
-          (sly-message "Ambiguous backreference `%s', %s values possible"
-                       m0 (length buttons))
+          (setq message-text (format "Ambiguous backreference `%s', %s values possible"
+                                     m0 (length buttons)))
           (overlay-put overlay 'face 'font-lock-warning-face))
          (t
           (overlay-put overlay 'face 'font-lock-warning-face)
-          (sly-message "Invalid backreference `%s'" m0)))))))
+          (setq message-text (format "Invalid backreference `%s'" m0))))
+        (sly-message message-text)
+        (set (make-local-variable 'sly-autodoc-preamble) message-text)))))
 
 
 ;;;; Menu
