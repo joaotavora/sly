@@ -2362,17 +2362,10 @@ or nil if nothing suitable can be found.")
 ;;; that `throw's its result up to a `catch' and then enter a loop of
 ;;; handling I/O until that happens.
 
-(defun sly-eval (sexp &optional package
-                      cancel-on-input
-                      cancel-on-input-retval
-                      cancel-on-input-sit-for)
+(defun sly-eval (sexp &optional package cancel-on-input cancel-on-input-retval)
   "Evaluate SEXP in Slynk's PACKAGE and return the result.
 If CANCEL-ON-INPUT cancel the request immediately if the user
-wants to input, and return CANCEL-ON-INPUT-RETVAL.  If
-CANCEL-ON-INPUT-SIT-FOR in non-nil, it is an amount in seconds
-to wait before issuing the input-cancellable request.  If user
-input arrives during that time, the request is not sent at
-all (and CANCEL-ON-INPUT-RETVAL is returned)."
+wants to input, and return CANCEL-ON-INPUT-RETVAL."
   (when (null package) (setq package (sly-current-package)))
   (let* ((catch-tag (make-symbol (format "sly-result-%d"
                                          (1+ (sly-continuation-counter)))))
@@ -2381,33 +2374,28 @@ all (and CANCEL-ON-INPUT-RETVAL is returned)."
           (lambda ()
             (unless (eq (process-status (sly-connection)) 'open)
               (error "Lisp connection closed unexpectedly")))))
-    (cond
-     ((and cancel-on-input-sit-for
-           (not (sit-for cancel-on-input-sit-for)))
-      cancel-on-input-retval)
-     (t
-      (apply
-       #'funcall
-       (catch catch-tag
-         (sly-rex ()
-             (sexp package)
-           ((:ok value)
-            (unless cancelled-on-input
-              (throw catch-tag (list #'identity value))))
-           ((:abort _condition)
-            (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
-         (cond (cancel-on-input
-                (let ((inhibit-quit t))
-                  (unwind-protect
-                      (while (sit-for 30))
-                    (setq cancelled-on-input t
-                          quit-flag nil)))
-                (funcall check-conn))
-               (t
-                (while t
-                  (funcall check-conn)
-                  (accept-process-output nil 30))))
-         (list #'identity cancel-on-input-retval)))))))
+    (apply
+     #'funcall
+     (catch catch-tag
+       (sly-rex ()
+           (sexp package)
+         ((:ok value)
+          (unless cancelled-on-input
+            (throw catch-tag (list #'identity value))))
+         ((:abort _condition)
+          (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
+       (cond (cancel-on-input
+              (let ((inhibit-quit t))
+                (unwind-protect
+                    (while (sit-for 30))
+                  (setq cancelled-on-input t
+                        quit-flag nil)))
+              (funcall check-conn))
+             (t
+              (while t
+                (funcall check-conn)
+                (accept-process-output nil 30))))
+       (list #'identity cancel-on-input-retval)))))
 
 (defun sly-eval-async (sexp &optional cont package env)
   "Evaluate SEXP on the superior Lisp and call CONT with the result.

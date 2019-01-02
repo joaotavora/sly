@@ -114,17 +114,14 @@ collected from the Slynk server."
 (cl-defmacro sly--responsive-eval ((var sexp
                                         &optional
                                         package
-                                        input-arrived-retval
-                                        sit-for) &rest body)
+                                        input-arrived-retval) &rest body)
   "Use `sly-eval' on SEXP, PACKAGE, bind to VAR, run BODY.
-If user input arrives in the meantime, return
-INPUT-ARRIVED-RETVAL immediately.  If SIT-FOR is non nil,
-`sit-for' this amount of time before even sending the request.
-If input arrives in the meantime, return INPUT-ARRIVED-RETVAL."
+If user input arrives in the meantime return INPUT-ARRIVED-RETVAL
+immediately."
   (declare (indent 1) (debug (sexp &rest form)))
   (let ((sym (make-symbol "sly--responsive-eval")))
     `(let* ((,sym (make-symbol "sly--responsive-eval-unique"))
-            (,var (sly-eval ,sexp ,package t ,sym ,sit-for)))
+            (,var (sly-eval ,sexp ,package t ,sym)))
        (if (eq ,var ,sym)
            ,input-arrived-retval
          ,@body))))
@@ -271,13 +268,13 @@ ANNOTATION) describing each completion possibility."
                              (insert suggestion)))
           :company-docsig
           (lambda (obj)
-            (sly--responsive-eval (arglist `(slynk:operator-arglist
-                                             ,(substring-no-properties obj)
-                                             ,(sly-current-package))
-                                           nil nil 0.1)
-              (or (and arglist
-                       (sly-autodoc--fontify arglist))
-                  "no autodoc information")))
+            (when (sit-for 0.1)
+              (sly--responsive-eval (arglist `(slynk:operator-arglist
+                                               ,(substring-no-properties obj)
+                                               ,(sly-current-package)))
+                (or (and arglist
+                         (sly-autodoc--fontify arglist))
+                    "no autodoc information"))))
           :company-no-cache t
           :company-doc-buffer
           (lambda (obj)
