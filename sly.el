@@ -3928,7 +3928,7 @@ the function name is prompted. METHOD can be nil, or one of
 popped, respectively, in the current window, a new window, or a
 new frame."
   (interactive (list (or (and (not current-prefix-arg)
-                              (sly-symbol-at-point))
+                              (sly-symbol-at-point t))
                          (sly-read-symbol-name "Edit Definition of: "))))
   ;; The hooks might search for a name in a different manner, so don't
   ;; ask the user if it's missing before the hooks are run
@@ -7306,13 +7306,14 @@ The returned bounds are either nil or non-empty."
                 (cdr bounds)))
         bounds)))
 
-(defun sly-symbol-at-point ()
+(defun sly-symbol-at-point (&optional interactive)
   "Return the name of the symbol at point, otherwise nil."
   ;; (thing-at-point 'symbol) returns "" in empty buffers
   (let ((bounds (sly-bounds-of-symbol-at-point)))
-    (if bounds
-        (buffer-substring-no-properties (car bounds)
-                                        (cdr bounds)))))
+    (when bounds
+      (let ((beg (car bounds)) (end (cdr bounds)))
+        (when interactive (sly-flash-region beg end))
+        (buffer-substring-no-properties beg end)))))
 
 (defun sly-bounds-of-sexp-at-point (&optional interactive)
   "Return the bounds sexp near point as a pair (or nil).
