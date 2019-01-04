@@ -475,6 +475,9 @@
                :message (format nil "Undefined function referenced: ~S" 
                                 fname)
                :location (make-location (list :file file)
+                                        #+(version>= 9 0)
+                                        (list :offset 1 pos)
+                                        #-(version>= 9 0)
                                         (list :position (1+ pos)))))))))
 
 (defimplementation call-with-compilation-hooks (function)
