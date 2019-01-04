@@ -600,6 +600,7 @@ interactive command.\".")
   "Minor mode for all read-only SLY buffers"
   nil nil nil
   (sly-mode 1)
+  (sly-interactive-buttons-mode 1)
   (setq buffer-read-only t))
 
 
@@ -5351,8 +5352,7 @@ Full list of frame-specific commands:
   (sly-set-truncate-lines)
   ;; Make original sly-connection "sticky" for SLY-DB commands in this buffer
   (setq sly-buffer-connection (sly-connection))
-  (setq buffer-read-only t)
-  (sly-mode 1))
+  (sly-popup-buffer-mode))
 
 ;; Keys 0-9 are shortcuts to invoke particular restarts.
 (dotimes (number 10)

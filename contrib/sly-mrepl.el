@@ -180,6 +180,9 @@ for output printed to the REPL (not for evaluation results)")
   (set-syntax-table lisp-mode-syntax-table)
   (set-keymap-parent sly-mrepl-mode-map nil)
 
+  ;; The REPL buffer has interactive text buttons
+  (sly-interactive-buttons-mode 1)
+
   ;; Add hooks to isearch-mode placed strategically after the ones
   ;; set by comint.el itself.
   ;;
