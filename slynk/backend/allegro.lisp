@@ -433,9 +433,18 @@
            (let ((loc (getf (slot-value condition 'excl::plist) :loc)))
              (when loc
                (destructuring-bind (file . pos) loc
-                 (let ((start (if (consp pos) ; 8.2 and newer
-                                  (car pos)
-                                  pos)))
+                 (let ((start
+                         (if (consp pos)
+                             ;; FIXME: report this bug to Franz.  See
+                             ;; the commit message for recipe
+                             #+(version>= 10 1)
+                             (if (typep
+                                  condition
+                                  'excl::compiler-inconsistent-name-usage-warning)
+                                 (second pos) (first pos))
+                             #-(version>= 10 1)
+                             (first pos)
+                             pos)))
                    (values file start)))))))))
 
 (defun compiler-warning-location (condition)
