@@ -5352,7 +5352,9 @@ Full list of frame-specific commands:
   (sly-set-truncate-lines)
   ;; Make original sly-connection "sticky" for SLY-DB commands in this buffer
   (setq sly-buffer-connection (sly-connection))
-  (sly-popup-buffer-mode))
+  (setq buffer-read-only t)
+  (sly-mode 1)
+  (sly-interactive-buttons-mode 1))
 
 ;; Keys 0-9 are shortcuts to invoke particular restarts.
 (dotimes (number 10)
