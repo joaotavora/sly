@@ -2396,7 +2396,7 @@ to managing multiple Lisp connections (@pxref{Multiple connections}).
 A keymap for functionality available in the @SLY{} buffers dedicated
 to inspecting Lisp objects (@pxref{Inspector}).
 
-@item sly-repl-mode-map
+@item sly-mrepl-mode-map
 
 A keymap for functionality available in @SLY{}’s REPL buffers
 (@pxref{REPL}).
