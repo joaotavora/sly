@@ -278,13 +278,14 @@ ANNOTATION) describing each completion possibility."
           :company-no-cache t
           :company-doc-buffer
           (lambda (obj)
-            (sly--responsive-eval (doc `(slynk:describe-symbol
-                                         ,(substring-no-properties obj)))
-              (when doc
-                (with-current-buffer (get-buffer-create " *sly-completion doc*")
-                  (erase-buffer)
-                  (insert doc)
-                  (current-buffer)))))
+            (when (sit-for 0.1)
+              (sly--responsive-eval (doc `(slynk:describe-symbol
+                                           ,(substring-no-properties obj)))
+                (when doc
+                  (with-current-buffer (get-buffer-create " *sly-completion doc*")
+                    (erase-buffer)
+                    (insert doc)
+                    (current-buffer))))))
           :company-require-match 'never
           :company-match
           (lambda (obj)
