@@ -720,11 +720,12 @@ symbol at point, or if QUERY is non-nil."
   (let ((sym-at-point (sly-symbol-at-point)))
     (cond ((or current-prefix-arg query (not sym-at-point))
            (sly--with-sly-minibuffer 
-            (completing-read prompt
-                             (sly--completion-function-wrapper sly-complete-symbol-function)
-                             nil
-                             nil
-                             sym-at-point)))
+            (let ((icomplete-mode nil))
+              (completing-read prompt
+                               (sly--completion-function-wrapper sly-complete-symbol-function)
+                               nil
+                               nil
+                               sym-at-point))))
           (t sym-at-point))))
 
 
