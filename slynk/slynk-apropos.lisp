@@ -6,7 +6,7 @@
 
 (in-package :slynk-apropos)
 
-(defparameter *preferred-apropos-matcher* 'make-flex-matcher
+(defparameter *preferred-apropos-matcher* 'make-cl-ppcre-matcher
   "Preferred matcher for apropos searches.
 Value is a function of three arguments , PATTERN, CASE-SENSITIVE and
 SYMBOL-NAME-FN that should return a function, called MATCHER of one
