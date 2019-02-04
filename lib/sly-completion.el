@@ -207,6 +207,12 @@ ANNOTATION) describing each completion possibility."
 		  (car new))
 	  (cadr new))))
 
+;; TODO: this `basic' completion style is actually a `backend'
+;; completion style, meaning a completion style where the filtering is
+;; done entirely by the backend.
+(add-to-list 'completion-category-defaults
+             '(sly-completion (styles . (basic))))
+
 (defun sly--completion-function-wrapper (fn)
   (let (cached-result cached-arg)
     (lambda (string pred command)
@@ -224,8 +230,9 @@ ANNOTATION) describing each completion possibility."
            t)
           (;; metadata request
            ;;
-           metadata (list 'metadata
-                          (cons 'display-sort-function #'identity)))
+           metadata `(metadata
+                      . ((display-sort-function . identity)
+                         (category . sly-completion))))
           ;; all completions
           ;;
           ((t)
