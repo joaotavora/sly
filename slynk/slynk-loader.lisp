@@ -134,24 +134,20 @@ operating system, and hardware architecture."
   (> (file-write-date new-file) (file-write-date old-file)))
 
 (defun sly-version-string ()
-  ;; Duplicate in slynk.lisp, who uses it to negotiate versions
-  ;; between sly/slynk. We use it to figure out where to put fasls.
   "Return a string identifying the SLY version.
 Return nil if nothing appropriate is available."
-  (ignore-errors
-   (with-open-file (s (make-pathname :name "sly" :type "el"
+  (let ((this-file #.(or *compile-file-truename* *load-truename*)))
+    (with-open-file (s (make-pathname :name "sly" :type "el"
                                       :directory (butlast
                                                   (pathname-directory this-file)
                                                   1)
-                                      :defaults this-file
-                                      :if-does-not-exist nil))
-     (when s
-       (let ((seq (make-array 200 :element-type 'character :initial-element #\null)))
-         (read-sequence seq s :end 200)
-         (let* ((beg (search ";; Version:" seq))
-                (end (position #\NewLine seq :start beg))
-                (middle (position #\Space seq :from-end t :end end)))
-           (subseq seq (1+ middle) end)))))))
+                                      :defaults this-file))
+      (let ((seq (make-array 200 :element-type 'character :initial-element #\null)))
+        (read-sequence seq s :end 200)
+        (let* ((beg (search ";; Version:" seq))
+               (end (position #\NewLine seq :start beg))
+               (middle (position #\Space seq :from-end t :end end)))
+          (subseq seq (1+ middle) end))))))
 
 (defun default-fasl-dir ()
   (merge-pathnames
@@ -159,7 +155,11 @@ Return nil if nothing appropriate is available."
     :directory `(:relative ".sly" "fasl"
                  ,@(if (sly-version-string) (list (sly-version-string)))
                  ,(unique-dir-name)))
-   (user-homedir-pathname)))
+   (let ((uhp (user-homedir-pathname)))
+     (make-pathname
+      :directory (or (pathname-directory uhp)
+                     '(:absolute))
+      :defaults uhp))))
 
 (defvar *fasl-directory* (default-fasl-dir)
   "The directory where fasl files should be placed.")
