@@ -2014,6 +2014,7 @@ This is automatically synchronized from Lisp.")
 
 (defun sly-check-version (version conn)
   (or (equal version sly-protocol-version)
+      (null sly-protocol-version)
       sly-ignore-protocol-mismatches
       (sly-y-or-n-p
        (format "Versions differ: %s (sly) vs. %s (slynk). Continue? "
