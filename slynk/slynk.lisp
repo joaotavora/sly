@@ -2959,8 +2959,9 @@ designator. Returns a list of all modules available."
 
 (defun apply-macro-expander (expander string)
   (with-buffer-syntax ()
-    (with-bindings *macroexpand-printer-bindings*
-      (prin1-to-string (funcall expander (from-string string))))))
+    (let ((expansion (funcall expander (from-string string))))
+      (with-bindings *macroexpand-printer-bindings*
+        (prin1-to-string expansion)))))
 
 (defslyfun slynk-macroexpand-1 (string)
   (apply-macro-expander #'macroexpand-1 string))
