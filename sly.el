@@ -222,8 +222,8 @@ If FILE is passed use that instead to discover the version."
                    ";;[[:space:]]*Version:[[:space:]]*\\(.*\\)$" nil t)
                   (match-string 1)))))
       (if interactive
-          (sly-message "SLY %s" version)
-        version))))
+          (sly-message "SLY %s" version))
+        version)))
 
 (defvar sly-protocol-version nil)
 
