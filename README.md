@@ -100,6 +100,14 @@ $ sbcl
 Now in Emacs you can do `sly-connect` and give it the host and the 4008 port as
 a destination.
 
+Additional Contribs
+-------------------
+
+* https://github.com/joaotavora/sly-quicklisp
+* https://github.com/joaotavora/sly-named-readtables
+* https://github.com/mmgeorge/sly-asdf
+* https://github.com/40ants/sly-package-inferred
+
 License
 -------
 
