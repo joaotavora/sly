@@ -344,7 +344,8 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
                    (do-all-symbols (s)
                      (loop
                        with package = (symbol-package s)
-                       for nickname in (sorted-nicknames package)
+                       for nickname in (and package ; gh#226
+                                            (sorted-nicknames package))
                        do (collect-if-matches
                            (lambda (thing)
                              ;; XXX: since DO-ALL-SYMBOLS may visit
