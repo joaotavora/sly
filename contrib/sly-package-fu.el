@@ -46,7 +46,7 @@ use `sly-export-symbol-representation-function'.")
   "Save the package file after each automatic modification")
 
 (defvar sly-defpackage-regexp
-  "^(\\(cl:\\|common-lisp:\\)?defpackage\\>[ \t']*")
+  "^(\\(cl:\\|common-lisp:\\|uiop:\\|\\uiop/package:\\)?\\(defpackage\\|define-package\\)\\>[ \t']*")
 
 (defun sly-find-package-definition-rpc (package)
   (sly-eval `(slynk:find-definition-for-thing
