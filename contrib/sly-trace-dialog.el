@@ -10,7 +10,7 @@
 (require 'cl-lib)
 
 (define-sly-contrib sly-trace-dialog
-  "Provide an interfactive trace dialog buffer for managing and
+  "Provide an interactive trace dialog buffer for managing and
 inspecting details of traced functions. Invoke this dialog with C-c T."
   (:authors "João Távora <joaotavora@gmail.com>")
   (:license "GPL")
