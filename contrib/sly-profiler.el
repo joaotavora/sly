@@ -15,7 +15,7 @@ inspecting details of timing functions. Invoke this dialog with C-c Y."
   (:on-load (add-hook 'sly-mode-hook 'sly-profiler-enable))
   (:on-unload (remove-hook 'sly-mode-hook 'sly-profiler-enable)))
 
-
+
 ;;;; Modes and mode maps
 ;;;
 (defvar sly-profiler-mode-map
@@ -42,7 +42,7 @@ inspecting details of timing functions. Invoke this dialog with C-c Y."
 
 (defun sly-profiler-enable () (sly-profiler-shortcut-mode 1))
 
-
+
 ;;;; Helpers
 ;;;
 (defun sly-profiler--get-buffer ()
@@ -71,7 +71,7 @@ inspecting details of timing functions. Invoke this dialog with C-c Y."
     (let ((standard-output (current-buffer)))
       (cl-loop for spec in timing-specs
                do (princ spec) (terpri)))))
-
+
 ;;;; Interactive functions
 ;;;
 ;; (defun sly-profiler-fetch-specs ()
@@ -128,7 +128,7 @@ and fetch a first batch of timings."
                           :select t)
     (when refresh (sly-profiler-fetch-timings))))
 
-
+
 ;;;; Menu
 ;;;
 (easy-menu-define sly-profiler--shortcut-menu nil

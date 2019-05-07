@@ -31,7 +31,7 @@
     nil
     ))
 
-
+
 ;;; UTF8
 
 (defimplementation string-to-utf8 (string)
@@ -116,7 +116,7 @@
                 :default)))
 
 
-
+
 ;;;; Unix signals
 
 (defimplementation install-sigint-handler (handler)
@@ -159,7 +159,7 @@
          ;;(mk-ext:quit :verbose t)
          ))
 
-
+
 ;;;; Compilation
 
 (defvar *buffer-name* nil)
@@ -293,7 +293,7 @@
       (when (probe-file file) (delete-file file))
       (when (probe-file output-truename) (delete-file output-truename)))))
 
-
+
 ;;;; Documentation
 
 (defun grovel-docstring-for-arglist (name type)

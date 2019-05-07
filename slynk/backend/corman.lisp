@@ -495,7 +495,7 @@
 		  append (label-value-line (elt template (+ 6 (* i 5)))
 					   (cl::uref o (+ 2 i))))))))
 
-
+
 ;;; Threads
 
 (require 'threads)
@@ -564,7 +564,7 @@
 	 (return (pop (mailbox.queue mbox)))))
      (sleep 0.1))))
 
-
+
 ;;; This is probably not good, but it WFM
 (in-package :common-lisp)
 

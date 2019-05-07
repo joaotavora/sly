@@ -146,7 +146,7 @@
                            ((nil :none) :none)
                            ((:line) :line))))
 
-
+
 ;; The SIGIO stuff should probably be removed as it's unlikey that
 ;; anybody uses it.
 #-win32
@@ -190,7 +190,7 @@
       (sb-sys:invalidate-descriptor fd))
     (close socket)))
 
-
+
 (defimplementation add-fd-handler (socket fun)
   (let ((fd (socket-fd socket))
         (handler nil))
@@ -356,7 +356,7 @@
             (return (sb-bsd-sockets:socket-accept socket))
           (sb-bsd-sockets:interrupted-error ()))))
 
-
+
 ;;;; Support for SBCL syntax
 
 ;;; SBCL's source code is riddled with #! reader macros.  Also symbols
@@ -1131,7 +1131,7 @@ Return a list of the form (NAME LOCATION)."
 (defimplementation macroexpand-all (form &optional env)
   (sb-cltl2:macroexpand-all form env))
 
-
+
 ;;; Debugging
 
 ;;; Notice that SB-EXT:*INVOKE-DEBUGGER-HOOK* is slightly stronger
@@ -1537,7 +1537,7 @@ stack."
   (let ((sb-int:*print-condition-references* nil))
     (princ condition stream)))
 
-
+
 ;;;; Profiling
 
 (defimplementation profile (fname)
@@ -1564,7 +1564,7 @@ stack."
   (declare (ignore callers methods))
   (eval `(sb-profile:profile ,(package-name (find-package package)))))
 
-
+
 ;;;; Inspector
 
 (defmethod emacs-inspect ((o t))
@@ -1633,7 +1633,7 @@ stack."
               (:initial-methods (sb-pcl::generic-function-initial-methods o))
               )))
 
-
+
 ;;;; Multiprocessing
 
 #+(and sb-thread
@@ -1797,7 +1797,7 @@ stack."
     (sb-ext:quit)))
 
 
-
+
 ;;Trace implementations
 ;;In SBCL, we have:
 ;; (trace <name>)
@@ -1959,7 +1959,7 @@ stack."
 
 (pushnew 'deinit-log-output sb-ext:*save-hooks*)
 
-
+
 ;;;; wrap interface implementation
 
 (defimplementation wrap (spec indicator &key before after replace)

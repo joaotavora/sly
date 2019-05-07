@@ -1309,7 +1309,7 @@ If you copy the HyperSpec to another location, customize the variable
 	("Missing and Additional FORMAT Arguments" (22 3 10 2))
 	("Additional FORMAT Parameters" (22 3 10 3))))
 
-
+
 ;;;; Glossary
 
 (defvar common-lisp-hyperspec-glossary-function 'common-lisp-glossary-6.0
@@ -2100,7 +2100,7 @@ If you copy the HyperSpec to another location, customize the variable
 	      "9"))
 	  (subst-char-in-string ?\  ?_ string)))
 
-
+
 ;;;; Issuex
 
 ;; FIXME: the issuex stuff is not used

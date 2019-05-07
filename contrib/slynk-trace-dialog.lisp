@@ -48,7 +48,7 @@ program.")
 
 (defvar *unfinished-traces* '())
 
-
+
 ;;;; `trace-entry' model
 ;;;;
 (defvar *traces* (make-array 1000 :fill-pointer 0
@@ -107,7 +107,7 @@ program.")
   (setf (gethash (slynk-backend:current-thread) *current-trace-by-thread*)
         trace))
 
-
+
 ;;;; Helpers
 ;;;;
 (defun describe-trace-for-emacs (trace)
@@ -121,7 +121,7 @@ program.")
            for i from 0
            collect (list i (present-for-emacs retval #'slynk-pprint-to-line)))))
 
-
+
 ;;;; slyfuns
 ;;;;
 (defslyfun trace-format (format-spec &rest format-args)
@@ -263,7 +263,7 @@ program.")
 
 
 
-
+
 ;;;; Hook onto emacs
 ;;;;
 (setq slynk:*after-toggle-trace-hook*
@@ -283,7 +283,7 @@ program.")
 (unless (boundp 'slynk::*inspector-history*)
   (slynk::reset-inspector))
 
-
+
 ;;;; Instrumentation
 ;;;;
 (defmacro instrument (x &optional (id (gensym "EXPLICIT-INSTRUMENT-")) )

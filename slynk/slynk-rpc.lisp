@@ -21,7 +21,7 @@
 
 (in-package :slynk-rpc)
 
-
+
 ;;;;; Input
 
 (define-condition slynk-reader-error (reader-error)
@@ -144,7 +144,7 @@ to NIL in her ~/.swankrc. Generally best left alone.")
              (read-from-string
               (maybe-convert-package-designator string))))))))
 
-
+
 ;;;;; Output
 
 (defun write-message (message package stream)
@@ -194,7 +194,7 @@ to NIL in her ~/.swankrc. Generally best left alone.")
           (*read-default-float-format* 'double-float))
       (prin1-to-string (switch-to-double-floats object)))))
 
-
+
 #| TEST/DEMO:
 
 (defparameter *transport*

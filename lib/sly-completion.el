@@ -28,7 +28,7 @@
 (require 'comint)
 (require 'sly-messages "lib/sly-messages")
 
-
+
 ;;; Forward declarations (later replace with a `sly-common' lib)
 ;;;
 (defvar sly-current-thread)
@@ -57,7 +57,7 @@
 
 (declare-function with-displayed-buffer-window "window")
 
-
+
 ;;; Backward compatibility shim for emacs < 25.
 ;;;
 (eval-when-compile
@@ -99,7 +99,7 @@ displays the buffer specified by BUFFER-OR-NAME before running BODY."
                    ,value)))))))))
 
 
-
+
 ;;; Customization
 ;;;
 (defcustom sly-complete-symbol-function 'sly-flex-completions
@@ -126,7 +126,7 @@ immediately."
            ,input-arrived-retval
          ,@body))))
 
-
+
 ;;; Completion calculation
 ;;;
 (defun sly--completion-request-completions (pattern slyfun)
@@ -327,7 +327,7 @@ Intended to go into `completion-at-point-functions'"
 (defun sly-complete-filename-maybe ()
   (when (nth 3 (syntax-ppss)) (comint-filename-completion)))
 
-
+
 ;;; Set `completion-at-point-functions' and a few other tricks
 ;;;
 (defun sly--completion-setup-target-buffer ()
@@ -355,7 +355,7 @@ Intended to go into `completion-at-point-functions'"
 
 (add-hook 'sly-mode-hook 'sly--completion-setup-target-buffer)
 
-
+
 ;;; TODO: Most of the stuff emulates `completion--in-region' and its
 ;;; callees in Emacs's minibuffer.el
 ;;; 
@@ -668,7 +668,7 @@ Intended to go into `completion-at-point-functions'"
   (keyboard-quit))
 
 
-
+
 ;;;; Minibuffer reading
 
 (defvar sly-minibuffer-map

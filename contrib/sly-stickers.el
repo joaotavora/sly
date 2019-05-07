@@ -119,7 +119,7 @@
               (remove-hook 'sly-db-extras-hooks 'sly-stickers--handle-break)))
 
 
-
+
 ;;;; Bookeeping for local stickers
 ;;;;
 (defvar sly-stickers--counter 0)
@@ -134,7 +134,7 @@
 (defun sly-stickers--reset-zombies () (setq sly-stickers--zombie-sticker-ids nil))
 
 
-
+
 ;;;; Sticker display and UI logic
 ;;;;
 (defgroup sly-stickers nil
@@ -658,7 +658,7 @@ the reason why the sticker couldn't be found"
           (otherwise
            (funcall otherwise "Can't find sticker (probably deleted!)")))))
 
-
+
 ;;;; Recordings
 ;;;;
 (cl-defstruct (sly-stickers--recording
@@ -700,7 +700,7 @@ veryfying `sly-stickers--recording-void-p' is created."
            exited-non-locally-p)))
       recording)))
 
-
+
 ;;;; Replaying sticker recordings
 ;;;;
 (defvar sly-stickers--replay-help nil)
@@ -1123,7 +1123,7 @@ in the `nth' sense, the HOWMANYth recording survives."
     (when (eq major-mode 'sly-stickers--replay-mode)
       (sly-stickers-replay-refresh 0 t t))))
 
-
+
 ;;;; Breaking stickers
 (defun sly-stickers--handle-break (extra)
   (sly-dcase extra
@@ -1149,7 +1149,7 @@ in the `nth' sense, the HOWMANYth recording survives."
   (let ((break-p (sly-eval '(slynk-stickers:toggle-break-on-stickers))))
     (sly-message "Breaking on stickers is %s" (if break-p "ON" "OFF"))))
 
-
+
 ;;;; Functions for examining recordings
 ;;;;
 
@@ -1193,7 +1193,7 @@ in the `nth' sense, the HOWMANYth recording survives."
    `(slynk-stickers:inspect-sticker-recording
      ,(sly-stickers--recording-id recording)
      ,vindex)))
-
+
 ;;;; Sticker-aware compilation
 ;;;;
 
@@ -1319,7 +1319,7 @@ Intented to be placed in `sly-compilation-finished-hook'"
             (cl-reduce #'+ unsuccessful :key (lambda (x) (length (cdr x))))
             (length unsuccessful))))))))
 
-
+
 ;;;; Menu
 ;;;;
 

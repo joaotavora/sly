@@ -11,7 +11,7 @@
 
 (in-package slynk-scl)
 
-
+
 
 ;;; slynk-mop
 
@@ -20,7 +20,7 @@
 (defun slynk-mop:slot-definition-documentation (slot)
   (documentation slot t))
 
-
+
 ;;;; TCP server
 ;;;
 ;;; SCL only supports the :spawn communication style.
@@ -106,13 +106,13 @@
                  #\?)
            stream))))
 
-
+
 ;;;; Stream handling
 
 (defimplementation gray-package-name ()
   "EXT")
 
-
+
 ;;;; Compilation Commands
 
 (defvar *previous-compiler-condition* nil
@@ -170,7 +170,7 @@
                         :emacs-buffer-offset ,position
                         :emacs-buffer-string ,string))))))
 
-
+
 ;;;;; Trapping notes
 ;;;
 ;;; We intercept conditions from the compiler and resignal them as
@@ -278,7 +278,7 @@
 (defun unix-truename (pathname)
   (ext:unix-namestring (truename pathname)))
 
-
+
 
 ;;; TODO
 (defimplementation who-calls (name) nil)
@@ -288,7 +288,7 @@
 (defimplementation who-specializes (symbol) nil)
 (defimplementation who-macroexpands (name) nil)
 
-
+
 ;;;; Find callers and callees
 ;;;
 ;;; Find callers and callees by looking at the constant pool of
@@ -410,7 +410,7 @@
                     (function-location fn)))
             fns)))
 
-
+
 ;;;; Resolving source locations
 ;;;
 ;;; Our mission here is to "resolve" references to code locations into
@@ -563,7 +563,7 @@
   (with-input-from-string (s string)
     (code-location-stream-position code-location s)))
 
-
+
 ;;;; Finding definitions
 
 ;;; There are a great many different types of definition for us to
@@ -854,7 +854,7 @@ Signal an error if no constructor can be found."
   (maybe-make-definition (ext:info :function :ir1-convert name)
                          'c:def-ir1-translator name))
 
-
+
 ;;;; Documentation.
 
 (defimplementation describe-symbol-for-emacs (symbol)
@@ -992,7 +992,7 @@ Signal an error if no constructor can be found."
     (values (debug-function-arglist (di::function-debug-function fn))
             (kernel:%function-arglist (kernel:%function-self fn)))))
 
-
+
 ;;;; Miscellaneous.
 
 (defimplementation macroexpand-all (form &optional env)
@@ -1024,7 +1024,7 @@ Signal an error if no constructor can be found."
 ;;; source-path-{stream,file,string,etc}-position moved into 
 ;;; slynk-source-path-parser
 
-
+
 ;;;; Debugging
 
 (defvar *sly-db-stack-top*)
@@ -1362,7 +1362,7 @@ LRA  =  ~X~%" (mapcar #'fixnum
       (di::bogus-debug-function
        (format t "~%[Disassembling bogus frames not implemented]")))))
 
-
+
 ;;;; Inspecting
 
 (defconstant +lowtag-symbols+ 
@@ -1541,7 +1541,7 @@ The `symbol-value' of each element is a type tag.")
     (alien::alien-record-type (inspect-alien-record alien))
     (alien::alien-pointer-type (inspect-alien-pointer alien))
     (t (scl-inspect alien))))
-
+
 ;;;; Profiling
 (defimplementation profile (fname)
   (eval `(profile:profile ,fname)))
@@ -1568,7 +1568,7 @@ The `symbol-value' of each element is a type tag.")
                        :callers-p callers
                        #+nil :methods #+nil methods))
 
-
+
 ;;;; Multiprocessing
 
 (defimplementation spawn (fn &key name)
@@ -1669,11 +1669,11 @@ The `symbol-value' of each element is a type tag.")
      (mp:process-wait-with-timeout
       "Mailbox read wait" 0.5 (lambda () (some test (mailbox-queue mbox)))))))
 
-
+
 
 (defimplementation emacs-connected ())
 
-
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;Trace implementations
 ;; In SCL, we have:

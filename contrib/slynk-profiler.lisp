@@ -143,7 +143,7 @@
 (defslyfun untime-all ()
   (mapcar #'untime-spec (timed-specs)))
 
-
+
 ;;;; Reporting to emacs
 ;;;
 (defun describe-timing-for-emacs (timed-spec)

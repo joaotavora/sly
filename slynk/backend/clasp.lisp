@@ -52,7 +52,7 @@
 (defimplementation gray-package-name ()
   "GRAY")
 
-
+
 ;;;; TCP Server
 
 (defimplementation preferred-communication-style ()
@@ -137,7 +137,7 @@
                   nil
                   :default)))
 
-
+
 ;;;; Unix Integration
 
 ;;; If CLASP is built with thread support, it'll spawn a helper thread
@@ -182,7 +182,7 @@
 (defimplementation quit-lisp ()
   (core:quit))
 
-
+
 
 ;;; Instead of busy waiting with communication-style NIL, use select()
 ;;; on the sockets' streams.
@@ -224,7 +224,7 @@
             (if ready (return ready))
             (sleep 0.1))))))
 
-
+
 ;;;; Compilation
 
 (defvar *buffer-name* nil)
@@ -322,7 +322,7 @@
           (when fasl-file
             (delete-file fasl-file)))
         (not failure-p)))))
-
+
 ;;;; Documentation
 
 (defimplementation arglist (name)
@@ -389,7 +389,7 @@
   (or (subtypep nil symbol)
       (not (eq (type-specifier-arglist symbol) :not-available))))
 
-
+
 ;;; Debugging
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -593,13 +593,13 @@
 (defimplementation command-line-args ()
   (loop for n from 0 below (si:argc) collect (si:argv n)))
 
-
+
 ;;;; Inspector
 
 ;;; FIXME: Would be nice if it was possible to inspect objects
 ;;; implemented in C.
 
-
+
 ;;;; Definitions
 
 (defun make-file-location (file file-position)
@@ -637,7 +637,7 @@
   (or (source-location object)
       (make-error-location "Source definition of ~S not found." object)))
 
-
+
 ;;;; Profiling
 
 #+profile
@@ -668,7 +668,7 @@
   (eval `(profile:profile ,(package-name (find-package package)))))
 ) ; #+profile (progn ...
 
-
+
 ;;;; Threads
 
 #+threads

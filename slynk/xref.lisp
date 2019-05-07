@@ -34,7 +34,7 @@
 ;;;
 ;;; See general license below.
 ;;;
-
+
 ;;; ****************************************************************
 ;;; General License Agreement and Lack of Warranty *****************
 ;;; ****************************************************************
@@ -97,7 +97,7 @@
 ;;; notification about major updates, bug fixes, and additions to the lisp
 ;;; utilities collection. The mailing list is intended to have low traffic.
 ;;;
-
+
 ;;; ********************************
 ;;; Change Log *********************
 ;;; ********************************
@@ -142,7 +142,7 @@
 ;;; 20-SEP-93 mk    Added fix from Peter Norvig to allow Xref to xref itself.
 ;;;                 The arg to macro-function must be a symbol.
 ;;;  7-APR-12 heller  Break lines at 80 columns.
-
+
 ;;; ********************************
 ;;; To Do **************************
 ;;; ********************************
@@ -199,7 +199,7 @@
 ;;; depth.
 ;;; 
 ;;; (&OPTIONAL &REST &KEY &AUX &BODY &WHOLE &ALLOW-OTHER-KEYS &ENVIRONMENT)
-
+
 ;;; ********************************
 ;;; Notes **************************
 ;;; ********************************
@@ -227,7 +227,7 @@
 ;;;       HP Common Lisp (same as Lucid?)
 ;;;       Procyon Common Lisp
 
-
+
 ;;; ****************************************************************
 ;;; Documentation **************************************************
 ;;; ****************************************************************
@@ -294,7 +294,7 @@
 ;;; a manner similar to that in which the core Lisp grammar was specified.
 ;;;
 
-
+
 ;;; ********************************
 ;;; User Guide *********************
 ;;; ********************************
@@ -562,7 +562,7 @@
 ;;;    a function is defined or called.
 ;;;
 ;;;    XREF runs best when compiled.
-
+
 ;;; ********************************
 ;;; References *********************
 ;;; ********************************
@@ -575,7 +575,7 @@
 ;;;   User's Guide to Symbolics Computers, Volume 1, Cambridge, MA, July 1986
 ;;;   Genera 7.0, pp 183-185.
 ;;;   
-
+
 ;;; ********************************
 ;;; Example ************************
 ;;; ********************************
@@ -654,7 +654,7 @@ Rooted calling trees:
               NODE-WIDTH
               NODE-HEIGHT
 |#
-
+
 ;;; ****************************************************************
 ;;; List Callers ***************************************************
 ;;; ****************************************************************
@@ -1230,7 +1230,7 @@ Rooted calling trees:
 			    (car in-optionals))
 			(values t parent environment)))))))))
 
-
+
 ;;; ********************************
 ;;; Misc Utilities *****************
 ;;; ********************************
@@ -1299,7 +1299,7 @@ Rooted calling trees:
 			 x y))
 	     *setters-database*)))
 
-
+
 ;;; ********************************
 ;;; Print Caller Trees *************
 ;;; ********************************
@@ -1485,7 +1485,7 @@ Rooted calling trees:
       (format t "~&Cyclic calling trees:")
       (print-indented-tree cycles 2))))
 
-
+
 ;;; ********************************
 ;;; Interface to PSGraph ***********
 ;;; ********************************
@@ -1572,7 +1572,7 @@ Rooted calling trees:
 
 |#
 
-
+
 ;;; ****************************************************************
 ;;; Cross Referencing Patterns for Common Lisp *********************
 ;;; ****************************************************************

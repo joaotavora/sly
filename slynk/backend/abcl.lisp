@@ -325,7 +325,7 @@
     (:class
      (describe (find-class symbol)))))
 
-
+
 ;;;; Debugger
 
 ;; Copied from slynk-sbcl.lisp.

@@ -23,7 +23,7 @@
 ;;     Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
 ;;     MA 02111-1307, USA.
 
-
+
 ;;;; Tests
 (require 'sly)
 (require 'ert nil t)
@@ -192,7 +192,7 @@ conditions (assertions)."
                   (string `(concat "Check failed: " ,check))
                   (symbol `(concat "Check failed: " ,(symbol-name check)))))))
 
-
+
 ;;;;; Test case definitions
 (defun sly-check-top-level () ;(&optional _test-name)
   (accept-process-output nil 0.001)
@@ -1298,7 +1298,7 @@ Reconnect afterwards."
                               (not (member hook sly-connected-hook)))
                             5))))
 
-
+
 ;;;; SLY-loading tests that launch separate Emacsen
 ;;;;
 (defvar sly-test-check-repl-forms
@@ -1415,7 +1415,7 @@ Reconnect afterwards."
                 (die "Expected SLY to be loaded with slynk-loader.lisp"))
               ,@sly-test-check-repl-forms)))
 
-
+
 ;;; xref recompilation
 ;;;
 (defun sly-test--eval-now (string)
@@ -1469,7 +1469,7 @@ Reconnect afterwards."
       (when xref-buffer
         (kill-buffer xref-buffer)))))
 
-
+
 ;;; window management after M-.
 ;;;
 (cl-defmacro sly-test--with-find-definition-window-checker (fn

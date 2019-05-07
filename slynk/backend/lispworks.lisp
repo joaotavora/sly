@@ -536,7 +536,7 @@ Return NIL if the symbol is unbound."
     (loop for (dspec location) in locations
           collect (list dspec (make-dspec-location dspec location)))))
 
-
+
 ;;; Compilation 
 
 (defmacro with-slynk-compilation-unit ((location &rest options) &body body)
@@ -1016,7 +1016,7 @@ function names like \(SETF GET)."
 
 (defun slynk-sym (name) (find-symbol (string name) :slynk))
       
-
+
 ;;;; Weak hashtables
 
 (defimplementation make-weak-key-hash-table (&rest args)

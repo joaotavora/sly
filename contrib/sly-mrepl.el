@@ -64,7 +64,7 @@
    (remove-hook 'sly-connected-hook 'sly-mrepl-on-connection)
    (remove-hook 'sly-net-process-close-hooks 'sly-mrepl--teardown-repls)))
 
-
+
 ;; User-visible variables
 ;;
 (defvar sly-mrepl-mode-hook nil
@@ -120,7 +120,7 @@ for output printed to the REPL (not for evaluation results)")
   "Face for the regular MREPL prompt."
   :group 'sly-mode-faces)
 
-
+
 ;; Internal variables
 ;;
 (defvar sly-mrepl--remote-channel nil)
@@ -135,7 +135,7 @@ for output printed to the REPL (not for evaluation results)")
 (defvar sly-mrepl--history-separator "####\n")
 (defvar sly-mrepl--dirty-history nil)
 
-
+
 ;; Major mode
 ;;
 (define-derived-mode sly-mrepl-mode comint-mode "mrepl"
@@ -193,7 +193,7 @@ for output printed to the REPL (not for evaluation results)")
   ;;
   (add-hook 'post-command-hook 'sly-mrepl--highlight-backreferences-maybe t t))
 
-
+
 ;;; Channel methods
 (sly-define-channel-type listener)
 
@@ -248,7 +248,7 @@ for output printed to the REPL (not for evaluation results)")
       (erase-buffer)
       (sly-mrepl--insert-note "Cleared REPL history"))))
 
-
+
 ;;; Button type
 ;;;
 (define-button-type 'sly-mrepl-part :supertype 'sly-part
@@ -270,7 +270,7 @@ for output printed to the REPL (not for evaluation results)")
                                                     ,value-idx)))
   'sly-mrepl-copy-part-to-repl 'sly-mrepl--copy-part-to-repl)
 
-
+
 ;;; Internal functions
 ;;;
 (defun sly-mrepl--buffer-name (connection &optional handle)
@@ -751,7 +751,7 @@ REPL is the REPL buffer to return the objects to."
   (unless (eq major-mode 'sly-mrepl-mode)
     (sly-error "Not in a mREPL buffer")))
 
-
+
 ;;; ELI-like history (and a bugfix)
 ;;;
 ;;;
@@ -833,7 +833,7 @@ history entry navigated to."
     (setq sly-mrepl--eli-input-overlay nil))
   (sly-mrepl--keep-eli-input-maybe))
 
-
+
 ;;; Interactive commands
 ;;;
 (defun sly-mrepl-indent-and-complete-symbol (arg)
@@ -1099,7 +1099,7 @@ Doesn't clear input history."
            and return nil)
   (sly-message "Cleared last output"))
 
-
+
 ;;; "External" non-interactive functions for plugging into
 ;;; other parts of SLY
 ;;;
@@ -1148,7 +1148,7 @@ Doesn't clear input history."
       (let ((ppss (parse-partial-sexp mark (point))))
         (or (nth 3 ppss) (nth 4 ppss))))))
 
-
+
 ;;; The comma shortcut
 ;;;
 (defun sly-mrepl-reset-shortcut (key-sequence)
@@ -1214,7 +1214,7 @@ When setting this variable outside of the Customize interface,
                        (cdr (assoc string sly-mrepl-shortcut-alist)))))
     (call-interactively command)))
 
-
+
 ;;; Backreference highlighting
 ;;;
 (defvar sly-mrepl--backreference-overlays nil
@@ -1330,7 +1330,7 @@ a list of result buttons thus highlighted"
         (sly-message message-text)
         (set (make-local-variable 'sly-autodoc-preamble) message-text)))))
 
-
+
 ;;;; Menu
 ;;;;
 (easy-menu-define sly-mrepl--shortcut-menu nil
@@ -1355,7 +1355,7 @@ a list of result buttons thus highlighted"
       [ " Clear REPL" sly-mrepl-clear-repl ,C ]
       [ " Clear last output" sly-mrepl-clear-recent-output ,C ])))
 
-
+
 (defvar sly-mrepl--debug-overlays nil)
 
 (defun sly-mrepl--debug (&rest ignored)
@@ -1386,7 +1386,7 @@ a list of result buttons thus highlighted"
   (remove-hook 'after-change-functions 'sly-mrepl--debug 'local)
   (remove-hook 'post-command-hook 'sly-mrepl--debug 'local))
 
-
+
 ;;; A hack for Emacs Bug#32014  (Sly gh#165)
 ;;;
 (when (version<= "26.1" emacs-version)
@@ -1406,7 +1406,7 @@ a list of result buttons thus highlighted"
          (apply args))))
    '((name . sly-workaround-for-emacs-bug-32014))))
 
-
+
 ;;; Sylvesters
 ;;;
 (defvar  sly-mrepl--sylvesters

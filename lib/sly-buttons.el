@@ -158,7 +158,7 @@
   (sly-button-flash button)
   (sly-message (button-get button 'part-label)))
 
-
+
 ;;; Overlay-button specifics
 ;;;
 (defun sly-button--overlays-in (beg end &optional filter)
@@ -200,7 +200,7 @@
   (or (overlay-get overlay 'priority) 0))
 
 
-
+
 ;;; Button navigation
 ;;;
 (defvar sly-button--next-search-id 0)

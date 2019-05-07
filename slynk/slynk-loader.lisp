@@ -303,7 +303,7 @@ global variabes in SLYNK."
   (init :setup nil)
   (funcall (q "slynk-backend:save-image") filename))
 
-
+
 ;;;;;; Simple *require-module* function for asdf-loader.lisp.
 
 

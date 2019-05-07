@@ -18,7 +18,7 @@
 
 (in-package :slynk-completion)
 
-
+
 ;;; Simple completion
 ;;;
 (defslyfun simple-completions (prefix package)
@@ -84,7 +84,7 @@ Returns a list of completions with package qualifiers if needed."
 
 
 
-
+
 ;;; Fancy "flex" completion
 ;;;
 (defmacro collecting ((&rest collectors) &body body) ; lifted from uiop

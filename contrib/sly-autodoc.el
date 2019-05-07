@@ -23,7 +23,7 @@
   :type 'integer
   :group 'sly-ui)
 
-
+
 
 (defun sly-arglist (name)
   "Show the argument list for NAME."
@@ -60,7 +60,7 @@
 
 (eldoc-add-command 'sly-autodoc-space)
 
-
+
 ;;;; Autodoc cache
 
 (defvar sly-autodoc--cache-last-context nil)
@@ -76,7 +76,7 @@
   (setq sly-autodoc--cache-last-context context)
   (setq sly-autodoc--cache-last-autodoc autodoc))
 
-
+
 ;;;; Formatting autodoc
 
 (defsubst sly-autodoc--canonicalize-whitespace (string)
@@ -115,7 +115,7 @@
                                   highlight)))
     (buffer-substring (point-min) (point-max))))
 
-
+
 ;;;; Autodocs (automatic context-sensitive help)
 
 (defun sly-autodoc (&optional force-multiline)
@@ -166,7 +166,7 @@ If it's not in the cache, the cache will be updated asynchronously."
       (when (eldoc-display-message-p)
 	(eldoc-message (format "%s" (sly-autodoc--format doc multilinep)))))))
 
-
+
 ;;; Minor mode definition
 (defvar sly-autodoc-mode-map
   (let ((map (make-sparse-keymap)))

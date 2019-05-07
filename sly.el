@@ -234,7 +234,7 @@ If FILE is passed use that instead to discover the version."
       (eval-when-compile (sly-version nil (or load-file-name
                                               byte-compile-current-file))))
 
-
+
 ;;;; Customize groups
 ;;
 ;;;;; sly
@@ -451,7 +451,7 @@ PROPERTIES specifies any default face properties."
   (local-name     "local variable names")
   (catch-tag      "catch tags"))
 
-
+
 ;;;;; Key bindings
 (defvar sly-doc-map
   (let ((map (make-sparse-keymap)))
@@ -569,7 +569,7 @@ interactive command.\".")
     (define-key map (kbd "q") 'quit-window)
     map))
 
-
+
 ;;;; Minor modes
 
 ;;;;; sly-mode
@@ -603,7 +603,7 @@ interactive command.\".")
   (sly-interactive-buttons-mode 1)
   (setq buffer-read-only t))
 
-
+
 ;;;;;; Mode-Line
 (defface sly-mode-line
   '((t (:inherit font-lock-constant-face
@@ -715,7 +715,7 @@ that returns one such construct.")
 (add-to-list 'mode-line-misc-info
              `(sly-mode (" [" sly--mode-line-format "] ")))
 
-
+
 ;;;; Framework'ey bits
 ;;;
 ;;; This section contains some standard SLY idioms: basic macros,
@@ -901,7 +901,7 @@ Assumes all insertions are made at point."
   "Like `sly-curry' but ARGS on the right are applied."
   (lambda (&rest more) (apply fun (append more args))))
 
-
+
 ;;;;; Temporary popup buffers
 
 ;; keep compiler quiet
@@ -989,7 +989,7 @@ macroexpansion time.
   "Translate the Lisp filename FILENAME to an Emacs filename."
   (funcall sly-from-lisp-filename-function filename))
 
-
+
 ;;;; Starting SLY
 ;;;
 ;;; This section covers starting an inferior-lisp, compiling and
@@ -1494,7 +1494,7 @@ The default condition handler for timer functions (see
   (eval (nth (random (length sly-words-of-encouragement))
              sly-words-of-encouragement)))
 
-
+
 ;;;; Networking
 ;;;
 ;;; This section covers the low-level networking: establishing
@@ -1730,7 +1730,7 @@ This is more compatible with the CL reader."
         print-level)
     (prin1-to-string sexp)))
 
-
+
 ;;;; Connections
 ;;;
 ;;; "Connections" are the high-level Emacs<->Lisp networking concept.
@@ -2229,7 +2229,7 @@ Return nil if there's no process object for the connection."
        (or (not (sly-busy-p))
            (not sly-inhibit-pipelining))))
 
-
+
 ;;;; Communication protocol
 
 ;;;;; Emacs Lisp programming interface
@@ -2757,7 +2757,7 @@ With prefix argument, prompt for MODE"
   (interactive (list (sly-current-connection)))
   (setf (sly-rex-continuations process) nil))
 
-
+
 ;;;;; Cleanup after a quit
 
 (defun sly-restart-inferior-lisp ()
@@ -2781,7 +2781,7 @@ Also rearrange windows."
                                           buffer)
                           args)))
 
-
+
 ;;;; Compilation and the creation of compiler-note annotations
 
 (defvar sly-highlight-compiler-notes t
@@ -2995,7 +2995,7 @@ ASK asks the user."
         (sly-remove-notes (point-min) (point-max))
         (mapc #'sly--add-in-buffer-note notes)))))
 
-
+
 ;;;;; Recompilation.
 
 ;; FIXME: This whole idea is questionable since it depends so
@@ -3024,7 +3024,7 @@ ASK asks the user."
         ',sly-compilation-policy)
     cont))
 
-
+
 ;;;;; Compiler notes list
 
 (defun sly-one-line-ify (string)
@@ -3202,7 +3202,7 @@ This is quite an expensive operation so use carefully."
   (cl-subseq (symbol-name severity) 1))
 
 
-
+
 ;;;;; Adding a single compiler note
 ;;;;;
 (defun sly-choose-overlay-region (note)
@@ -3294,7 +3294,7 @@ first element of the source-path redundant."
           (beginning-of-sexp))
       (error (goto-char origin)))))
 
-
+
 ;; FIXME: really fix this mess
 ;; FIXME: the check shouln't be done here anyway but by M-. itself.
 
@@ -3419,7 +3419,7 @@ you should check twice before modifying.")
   (sly-check-location-filename-sanity
    (buffer-file-name (get-buffer buffer-name))))
 
-
+
 
 (defun sly-goto-location-buffer (buffer)
   (sly-dcase buffer
@@ -3709,7 +3709,7 @@ thus also honour `sly-xref--popup-method'."
         (beginning-of-sexp)))
     (point)))
 
-
+
 ;;;;; Incremental search
 ;;
 ;; Search for the longest match of a string in either direction.
@@ -3757,7 +3757,7 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
                                   (goto-char (match-beginning 0))
                                   (- (match-end 0) (match-beginning 0)))))))
 
-
+
 ;;;;; Visiting and navigating the overlays of compiler notes
 (defun sly-note-button-p (button)
   (eq (button-type button) 'sly-in-buffer-note))
@@ -3860,7 +3860,7 @@ For insertion in the `compilation-mode' buffer"
   (sly--make-text-button label nil :type 'sly-compilation-note-group 'sly-notes-group notes)
   label)
 
-
+
 ;;;; Basic arglisting
 ;;;;
 (defun sly-show-arglist ()
@@ -3875,7 +3875,7 @@ For insertion in the `compilation-mode' buffer"
           (when arglist
             (sly-message "%s" arglist)))))))
 
-
+
 ;;;; Edit definition
 
 (defun sly-push-definition-stack ()
@@ -4023,7 +4023,7 @@ FILE-ALIST is an alist of the form ((FILENAME . (XREF ...)) ...)."
 
 (add-hook 'sly-mode-hook 'sly-setup-first-change-hook)
 
-
+
 ;;;; Eval for Lisp
 
 (defun sly-eval-for-lisp (thread tag form-string)
@@ -4067,7 +4067,7 @@ FILE-ALIST is an alist of the form ((FILENAME . (XREF ...)) ...)."
     (error (concat "sly-eval-in-emacs disabled for security."
                    "Set sly-enable-evaluate-in-emacs true to enable it."))))
 
-
+
 ;;;; `ED'
 
 (defvar sly-ed-frame nil
@@ -4123,7 +4123,7 @@ the display stuff that we neither need nor want."
                     (sly-read-from-minibuffer prompt initial-value t)
                   (quit nil))))
     (sly-dispatch-event `(:emacs-return ,thread ,tag ,answer))))
-
+
 ;;;; Interactive evaluation.
 
 (defun sly-interactive-eval (string)
@@ -4325,7 +4325,7 @@ in Lisp when committed with \\[sly-edit-value-commit]."
           (lambda (_)
             (with-current-buffer buffer
               (quit-window t))))))))
-
+
 ;;;; Tracing
 
 (defun sly-untrace-all ()
@@ -4339,7 +4339,7 @@ in Lisp when committed with \\[sly-edit-value-commit]."
                       "(Un)trace: " (sly-symbol-at-point))))
   (sly-message "%s" (sly-eval `(slynk:slynk-toggle-trace ,spec))))
 
-
+
 
 (defun sly-disassemble-symbol (symbol-name)
   "Display the disassembly for SYMBOL-NAME."
@@ -4401,7 +4401,7 @@ Return whatever slynk:set-default-directory returns."
   (interactive)
   (sly-message "Directory %s" (sly-eval `(slynk:default-directory))))
 
-
+
 ;;;; Documentation
 
 (defvar sly-documentation-lookup-function
@@ -4639,7 +4639,7 @@ TODO"
                                 nil t))))
   (info (if node (format "(%s)%s" file node) file)))
 
-
+
 ;;;; XREF: cross-referencing
 
 (defvar sly-xref-mode-map
@@ -4676,7 +4676,7 @@ The most important commands:
   (let ((next-line-add-newlines nil))
     (forward-line 1)))
 
-
+
 ;;;;; XREF results buffer and window management
 
 (cl-defmacro sly-with-xref-buffer ((_xref-type _symbol &optional package)
@@ -4755,7 +4755,7 @@ METHOD is used to set `sly-xref--popup-method', which see."
            (goto-char (point-min))
            (current-buffer)))))
 
-
+
 ;;;;; XREF commands
 
 (defun sly-who-calls (symbol)
@@ -4841,7 +4841,7 @@ METHOD is used to set `sly-xref--popup-method', which see."
                           collect (cons (sly-xref-type key) val))
                  types symbol (sly-current-package)))))
 
-
+
 ;;;;; XREF navigation
 
 (defun sly-xref-location-at-point ()
@@ -4966,7 +4966,7 @@ If PROP-VALUE-FN is non-nil use it to extract PROP's value."
                                     ((nil) :failure)
                                     (t     result))))))))
 
-
+
 ;;;; Macroexpansion
 
 (defvar sly-macroexpansion-minor-mode-map
@@ -5138,7 +5138,7 @@ string to expand.
   (sly-eval-macroexpand 'slynk:slynk-format-string-expand
                         string))
 
-
+
 ;;;; Subprocess control
 
 (defun sly-interrupt ()
@@ -5214,7 +5214,7 @@ process associated with CONNECTION."
     (sly-net-close process "Quitting lisp")
     (sly-message "Connection closed.")))
 
-
+
 ;;;; Debugger (SLY-DB)
 
 (defvar sly-db-hook nil
@@ -5225,7 +5225,7 @@ process associated with CONNECTION."
   :group 'sly-debugger
   :type 'integer)
 
-
+
 ;;;;; Local variables in the debugger buffer
 
 ;; Small helper.
@@ -5264,7 +5264,7 @@ process associated with CONNECTION."
        (sly-add-face ',facename ,var)
        ,var)))
 
-
+
 ;;;;; sly-db-mode
 
 (defvar sly-db-mode-syntax-table
@@ -5367,7 +5367,7 @@ Full list of frame-specific commands:
              (sly-db-invoke-restart ,number)))
     (define-key sly-db-mode-map (number-to-string number) fname)))
 
-
+
 ;;;;; SLY-DB buffer creation & update
 
 (defcustom sly-db-focus-debugger 'auto
@@ -5556,7 +5556,7 @@ sufficiently initialized, and this function does nothing."
       (when (not sly-db-level)
         (quit-window t)))))
 
-
+
 ;;;;;; SLY-DB buffer insertion
 
 (defun sly-db-insert-condition (condition)
@@ -5748,7 +5748,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
            'keymap sly-db-frame-map
            'nearby-frame-button (button-at (- (point) 2))))))
 
-
+
 ;;;;;; SLY-DB examining text props
 (defun sly-db--goto-last-visible-frame ()
   (goto-char (point-max))
@@ -5760,7 +5760,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
   (interactive)
   (goto-char sly-db-backtrace-start-marker))
 
-
+
 ;;;;; SLY-DB commands
 (defun sly-db-cycle ()
   "Cycle between restart list and backtrace."
@@ -5791,7 +5791,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
         (sly-db-insert-frames (sly-eval `(slynk:backtrace ,(1+ last) nil))
                               nil)))))
 
-
+
 ;;;;;; SLY-DB show source
 (defun sly-db-show-frame-source (frame-number)
   "Highlight FRAME-NUMBER's expression in a source code buffer."
@@ -5806,7 +5806,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
         (t
          (sly--display-source-location source-location))))))
 
-
+
 ;;;;;; SLY-DB toggle details
 (define-button-type 'sly-db-local-variable :supertype 'sly-part
   'sly-button-inspect
@@ -5914,7 +5914,7 @@ The details include local variable bindings and CATCH-tags."
     (lambda (result)
       (sly-show-description result nil))))
 
-
+
 ;;;;;; SLY-DB eval and inspect
 
 (defun sly-db-eval-in-frame (frame-number string package)
@@ -5959,7 +5959,7 @@ The details include local variable bindings and CATCH-tags."
   (interactive)
   (sly-eval-describe `(slynk:sdlb-print-condition)))
 
-
+
 ;;;;;; SLY-DB movement
 
 (defun sly-db-down (arg)
@@ -6004,7 +6004,7 @@ The details include local variable bindings and CATCH-tags."
   (interactive "p")
   (sly-db-sugar-move 'sly-db-down arg))
 
-
+
 ;;;;;; SLY-DB restarts
 
 (defun sly-db-quit ()
@@ -6156,7 +6156,7 @@ was called originally."
   (sly-eval-async `(slynk:toggle-break-on-signals)
     (lambda (msg) (sly-message "%s" msg))))
 
-
+
 ;;;;;; SLY-DB recompilation commands
 
 (defun sly-db-recompile-frame-source (frame-number &optional raw-prefix-arg)
@@ -6174,7 +6174,7 @@ was called originally."
            (let ((sly-compilation-policy policy))
              (sly-recompile-location source-location))))))))
 
-
+
 ;;;; Thread control panel
 
 (defvar sly-threads-buffer-timer nil)
@@ -6292,7 +6292,7 @@ was called originally."
                              (nth i sly-threads-table-properties))))
     (sly-insert-table rows header line-props col-props)))
 
-
+
 ;;;;; Major mode
 (defvar sly-thread-control-mode-map
   (let ((map (make-sparse-keymap)))
@@ -6349,7 +6349,7 @@ was called originally."
   (let ((id (get-text-property (point) 'thread-index)))
     (sly-eval-async `(slynk:debug-nth-thread ,id))))
 
-
+
 ;;;;; Connection listing
 
 (defvar sly-connection-list-mode-map
@@ -6437,7 +6437,7 @@ was called originally."
     (sly-update-connection-list)))
 
 
-
+
 ;;;; Inspector
 
 (defgroup sly-inspector nil
@@ -6755,7 +6755,7 @@ The `*' variable will be bound to the inspected object."
              (list (append i2 i1) l2 s2 e1))
             (t (error "Invalid chunks"))))))
 
-
+
 ;;;; Indentation
 
 (defun sly-update-indentation ()
@@ -6799,7 +6799,7 @@ is setup, unless the user already set one explicitly."
       (run-hook-with-args 'sly-indentation-update-hooks
                           symbol indent packages))))
 
-
+
 ;;;; Contrib modules
 
 (defun sly-contrib--load-slynk-dependencies ()
@@ -6956,7 +6956,7 @@ if/when you fix the error" (cl-third n))))
   (sly--contrib-safe name
     (funcall (sly-contrib--disable (sly-contrib--find-contrib name)))))
 
-
+
 ;;;;; Pull-down menu
 (easy-menu-define sly-menu sly-mode-map "SLY"
   (let ((C '(sly-connected-p)))
@@ -7054,7 +7054,7 @@ if/when you fix the error" (cl-third n))))
       [ "Fetch all parts" sly-inspector-fetch-all ,C ]
       [ "Quit" sly-inspector-quit ,C ])))
 
-
+
 ;;;; Utilities (no not Paul Graham style)
 
 ;;; FIXME: this looks almost sly `sly-alistify', perhaps the two
@@ -7369,7 +7369,7 @@ can be found."
                t)))
           (t t))))
 
-
+
 ;;;; sly.el in pretty colors
 
 (cl-loop for sym in (list 'sly-def-connection-var

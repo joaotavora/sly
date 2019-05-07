@@ -342,7 +342,7 @@ form to the atom at point, or nil if we're in front of a tlf."
                    (goto-char outer-pos)))))
     source-path))
 
-
+
 ;;; Compile hotspots
 ;;; 
 (sly-byte-compile-hotspots

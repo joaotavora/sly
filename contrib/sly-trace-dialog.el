@@ -19,7 +19,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
             (define-key sly-selector-map (kbd "T") 'sly-trace-dialog))
   (:on-unload (remove-hook 'sly-mode-hook 'sly-trace-dialogn-shortcut-mode)))
 
-
+
 ;;;; Variables
 ;;;
 (defvar sly-trace-dialog-flash t
@@ -33,7 +33,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 
 (defvar sly-trace-dialog--collapse-chars (cons "-" "+"))
 
-
+
 ;;;; Local trace entry model
 (defvar sly-trace-dialog--traces nil)
 
@@ -55,7 +55,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 (defun sly-trace-dialog--find-trace (id)
   (gethash id sly-trace-dialog--traces))
 
-
+
 ;;;; Modes and mode maps
 ;;;
 (defvar sly-trace-dialog-mode-map
@@ -135,7 +135,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
   (unless (derived-mode-p 'sly-trace-dialog-mode)
     (error "Not a SLY Trace Dialog buffer")))
 
-
+
 ;;;; Helper functions
 ;;;
 (defmacro sly-trace-dialog--insert-and-overlay (string overlay)
@@ -258,7 +258,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
     (delete-char 1)
     (insert char)))
 
-
+
 ;;;; Handlers for the *trace-dialog* buffer
 ;;;
 (defun sly-trace-dialog--open-specs (traced-specs)
@@ -337,7 +337,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
                      (setq sly-trace-dialog--stop-fetching t)))))
       (insert "\n\n"))))
 
-
+
 ;;;; Rendering traces
 ;;;
 
@@ -634,7 +634,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
                                     results
                                     recurse))))))))
 
-
+
 ;;;; Interactive functions
 ;;;
 (defun sly-trace-dialog-fetch-specs ()

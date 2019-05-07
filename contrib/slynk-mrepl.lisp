@@ -19,7 +19,7 @@
            #:describe-entry))
 (in-package :slynk-mrepl)
 
-
+
 ;;; MREPL models
 (defclass mrepl (channel listener)
   ((remote-id   :initarg  :remote-id :accessor mrepl-remote-id)
@@ -42,7 +42,7 @@
 (defmethod initialize-instance :before ((r mrepl) &key)
   (setf (slot-value r 'slynk::in) (make-mrepl-input-stream r)))
 
-
+
 ;;; Helpers
 ;;;
 (defvar *history* nil)
@@ -282,7 +282,7 @@ Set this to NIL to turn this feature off.")
         (setf tag old-tag)
         (set-mode repl old-mode)))))
 
-
+
 ;;; Channel methods
 ;;;
 (define-channel-method :inspect-object ((r mrepl) entry-idx value-idx)
@@ -317,7 +317,7 @@ Set this to NIL to turn this feature off.")
     (send-to-remote-channel (mrepl-remote-id r) `(:clear-repl-history))
     (send-prompt r)))
 
-
+
 ;;; slyfuns
 ;;;
 (defslyfun create-mrepl (remote-id)
@@ -400,7 +400,7 @@ list."
     (slynk::slynk-pprint
      (list (mrepl-get-object-from-history entry-idx value-idx)))))
 
-
+
 ;;; "Slave" slyfuns.
 ;;;
 ;;; These are slyfuns intented to be called as the SLAVE-SLYFUN
@@ -437,7 +437,7 @@ list."
     (guess-and-set-package package-name))
   (values (package-name *package*) (slynk-backend:default-directory)))
 
-
+
 ;;;; Dedicated stream
 ;;;;
 (defvar *use-dedicated-output-stream* t
@@ -509,7 +509,7 @@ deliver output to Emacs."
       (when socket
         (slynk-backend:close-socket socket)))))
 
-
+
 ;;;; Globally redirect IO to Emacs
 ;;;
 ;;; This code handles redirection of the standard I/O streams

@@ -10,7 +10,7 @@
    (define-key sly-selector-map (kbd "s") 'sly-scratch))
   (:license "GPL"))
 
-
+
 ;;; Code
 
 (defvar sly-scratch-mode-map

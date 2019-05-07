@@ -76,7 +76,7 @@
         (sb-ext:*on-package-variance* '(:warn t)))
     (call-next-method)))
 
-
+
 ;;; Contrib systems (should probably go into their own file one day)
 ;;;
 (defsystem :slynk/arglists

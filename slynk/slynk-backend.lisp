@@ -118,7 +118,7 @@
 
 (in-package slynk-backend)
 
-
+
 ;;;; Metacode
 
 (defparameter *debug-slynk-backend* nil
@@ -229,7 +229,7 @@ This will be used like so:
   (defpackage foo
     (:import-from #.(gray-package-name) . #.*gray-stream-symbols*)")
 
-
+
 ;;;; Utilities
 
 (defmacro with-struct ((conc-name &rest names) obj &body body)
@@ -274,7 +274,7 @@ form suitable for testing with #+."
            (find-symbol (string name) package))
       (find-symbol (string alt-name) alt-package)))
 
-
+
 ;;;; UFT8
 
 (deftype octet () '(unsigned-byte 8))
@@ -453,7 +453,7 @@ units, but other Lisps return the number of codepoints. The sly
 protocol wants string lengths in terms of codepoints."
   (length string))
 
-
+
 ;;;; TCP server
 
 (definterface create-socket (host port &key backlog)
@@ -511,7 +511,7 @@ This is intended for setting up extra context, e.g. to discover
 that the calling thread is the one that interacts with Emacs."
    nil)
 
-
+
 ;;;; Unix signals
 
 (defconstant +sigint+ 2)
@@ -567,7 +567,7 @@ This is thin wrapper around exec(3).")
   "Return a list of strings as passed by the OS."
   nil)
 
-
+
 ;; pathnames are sooo useless
 
 (definterface filename-to-pathname (filename)
@@ -590,7 +590,7 @@ This is used to resolve filenames without directory component."
   (setf *default-pathname-defaults* (truename (merge-pathnames directory)))
   (default-directory))
 
-
+
 (definterface call-with-syntax-hooks (fn)
   "Call FN with hooks to handle special syntax."
   (funcall fn))
@@ -599,7 +599,7 @@ This is used to resolve filenames without directory component."
   "Return a suitable initial value for SLYNK:*READTABLE-ALIST*."
   '())
 
-
+
 ;;;; Packages
 
 (definterface package-local-nicknames (package)
@@ -614,7 +614,7 @@ Return NIL if local nicknames are not implemented or if there is no
 such package."
   (cdr (assoc name (package-local-nicknames base-package) :test #'string-equal)))
 
-
+
 ;;;; Compilation
 
 (definterface call-with-compilation-hooks (func)
@@ -738,7 +738,7 @@ Return nil if the file contains no special markers."
                               str :start p)))
         (find-external-format (subseq str p end))))))
 
-
+
 ;;;; Streams
 
 (definterface make-output-stream (write-string)
@@ -766,7 +766,7 @@ The stream calls READ-STRING when input is needed.")
   (spawn (lambda () (auto-flush-loop stream *auto-flush-interval* nil))
          :name "auto-flush-thread"))
 
-
+
 ;;;; Documentation
 
 (definterface arglist (name)
@@ -920,7 +920,7 @@ return non-nil values, which may be pairs of indexes to highlight in
 the symbol designation's string.")
 
 
-
+
 ;;;; Debugging
 
 (definterface install-debugger-globally (function)
@@ -1093,7 +1093,7 @@ false otherwise. "
   "Stop single-stepping temporarily, but resume it once the current function
 returns.")
 
-
+
 ;;;; Definition finding
 
 (defstruct (location (:type list)
@@ -1162,7 +1162,7 @@ unmodified text to improve the precision of source locations."
   nil)
 
 
-
+
 ;;;; XREF
 
 (definterface who-calls (function-name)
@@ -1222,7 +1222,7 @@ The return value is as for WHO-CALLS.")
   "List the functions called by FUNCTION-NAME.
 See LIST-CALLERS for a description of the return value.")
 
-
+
 ;;;; Profiling
 
 ;;; The following functions define a minimal profiling interface.
@@ -1259,7 +1259,7 @@ When called with arguments :METHODS T, profile all methods of all
 generic functions having names in the given package.  Generic functions
 themselves, that is, their dispatch functions, are left alone.")
 
-
+
 ;;;; Trace
 
 (definterface toggle-trace (spec)
@@ -1272,7 +1272,7 @@ SPEC can be:
  (:labels TOPLEVEL LOCAL)
  (:flet TOPLEVEL LOCAL) ")
 
-
+
 ;;;; Inspector
 
 (defgeneric emacs-inspect (object)
@@ -1329,7 +1329,7 @@ If NEWLINE is non-NIL a `(:newline)' is added to the result."
   (declare (ignore object))
   "N/A")
 
-
+
 ;;;; Multithreading
 ;;;
 ;;; The default implementations are sufficient for non-multiprocessing
@@ -1469,7 +1469,7 @@ return nil.
 
 Return :interrupt if an interrupt occurs while waiting.")
 
-
+
 ;;;;  Locks
 
 ;; Please use locks only in slynk-gray.lisp.  Locks are too low-level
@@ -1488,7 +1488,7 @@ but that thread may hold it more than once."
             (type function function))
    (funcall function))
 
-
+
 ;;;; Weak datastructures
 
 (definterface make-weak-key-hash-table (&rest args)
@@ -1504,7 +1504,7 @@ but that thread may hold it more than once."
   (declare (ignore hashtable))
   nil)
 
-
+
 ;;;; Floating point
 
 (definterface float-nan-p (float)
@@ -1525,7 +1525,7 @@ but that thread may hold it more than once."
           float
           most-positive-long-float)))
 
-
+
 ;;;; Character names
 
 (definterface character-completion-set (prefix matchp)
@@ -1588,7 +1588,7 @@ COMPLETION-FUNCTION, if non-nil, should be called after saving the image.")
   (setf (symbol-value (find-symbol "*LOG-OUTPUT*" 'slynk))
         nil))
 
-
+
 ;;;; Wrapping
 
 (definterface wrap (spec indicator &key before after replace)

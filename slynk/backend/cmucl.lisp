@@ -39,7 +39,7 @@
   (let ((ef (load-time-value (stream::find-external-format :utf-8) t)))
     (stream:octets-to-string octets :external-format ef)))
 
-
+
 ;;;; TCP server
 ;;;
 ;;; In CMUCL we support all communication styles. By default we use
@@ -239,13 +239,13 @@ specific functions.")
     (values (sys:make-fd-stream in :input t :buffering :none)
             (sys:make-fd-stream out :output t :buffering :none))))
 
-
+
 ;;;; Stream handling
 
 (defimplementation gray-package-name ()
   "EXT")
 
-
+
 ;;;; Compilation Commands
 
 (defvar *previous-compiler-condition* nil
@@ -304,7 +304,7 @@ NIL if we aren't compiling from a buffer.")
                                                 source-info)))
           (not failurep))))))
 
-
+
 ;;;;; Trapping notes
 ;;;
 ;;; We intercept conditions from the compiler and resignal them as
@@ -418,7 +418,7 @@ Return a `location' record, or (:error REASON) on failure."
 (defun unix-truename (pathname)
   (ext:unix-namestring (truename pathname)))
 
-
+
 ;;;; XREF
 ;;;
 ;;; Cross-reference support is based on the standard CMUCL `XREF'
@@ -491,7 +491,7 @@ This is a workaround for a CMUCL bug: XREF records are cumulative."
                                  :test #'equalp)))
                  db)))))
 
-
+
 ;;;; Find callers and callees
 ;;;
 ;;; Find callers and callees by looking at the constant pool of
@@ -582,7 +582,7 @@ This is a workaround for a CMUCL bug: XREF records are cumulative."
 
 ;; (test-list-callers 100)
 
-
+
 ;;;; Resolving source locations
 ;;;
 ;;; Our mission here is to "resolve" references to code locations into
@@ -741,7 +741,7 @@ See CODE-LOCATION-STREAM-POSITION."
   (with-input-from-string (s string)
     (code-location-stream-position code-location s 0)))
 
-
+
 ;;;; Finding definitions
 
 ;;; There are a great many different types of definition for us to
@@ -1171,7 +1171,7 @@ NAME can any valid function name (e.g, (setf car))."
                                 (find-symbol (string 'vm-support-routine) 'c)
                                 name))))
 
-
+
 ;;;; Documentation.
 
 (defimplementation describe-symbol-for-emacs (symbol)
@@ -1392,7 +1392,7 @@ A utility for debugging DEBUG-FUNCTION-ARGLIST."
               (push '&allow-other-keys arglist)))
           (nreverse arglist))))))
 
-
+
 ;;;; Miscellaneous.
 
 (defimplementation macroexpand-all (form &optional env)
@@ -1426,7 +1426,7 @@ A utility for debugging DEBUG-FUNCTION-ARGLIST."
 ;;; source-path-{stream,file,string,etc}-position moved into 
 ;;; slynk-source-path-parser
 
-
+
 ;;;; Debugging
 
 (defvar *sly-db-stack-top*)
@@ -1921,7 +1921,7 @@ Try to create a informative message."
 (defun whitespacep (char)
   (member char '(#\space #\newline)))
 
-
+
 ;;;; Inspecting
 
 (defconstant +lowtag-symbols+
@@ -2116,7 +2116,7 @@ The `symbol-value' of each element is a type tag.")
                         (cons (kernel:dsd-name slot)
                               (funcall (kernel:dsd-accessor slot) obj))))))))
 
-
+
 ;;;; Profiling
 (defimplementation profile (fname)
   (eval `(profile:profile ,fname)))
@@ -2143,7 +2143,7 @@ The `symbol-value' of each element is a type tag.")
                        :callers-p callers
                        :methods methods))
 
-
+
 ;;;; Multiprocessing
 
 #+mp
@@ -2229,7 +2229,7 @@ The `symbol-value' of each element is a type tag.")
   ) ;; #+mp
 
 
-
+
 ;;;; GC hooks
 ;;;
 ;;; Display GC messages in the echo area to avoid cluttering the

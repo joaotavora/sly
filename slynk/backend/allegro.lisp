@@ -30,7 +30,7 @@
 (defun slynk-mop:slot-definition-documentation (slot)
   (documentation slot t))
 
-
+
 ;;;; UTF8
 
 (define-symbol-macro utf8-ef 
@@ -45,7 +45,7 @@
 (defimplementation utf8-to-string (u)
   (excl:octets-to-string u :external-format utf8-ef))
 
-
+
 ;;;; TCP Server
 
 (defimplementation preferred-communication-style ()
@@ -974,7 +974,7 @@ to do this, this factors in the length of the inserted header itself."
 (defimplementation quit-lisp ()
   (excl:exit 0 :quiet t))
 
-
+
 ;;Trace implementations
 ;;In Allegro 7.0, we have:
 ;; (trace <name>)
@@ -1030,7 +1030,7 @@ to do this, this factors in the length of the inserted header itself."
         (t
          fspec)))
 
-
+
 ;;;; Weak hashtables
 
 (defimplementation make-weak-key-hash-table (&rest args)
@@ -1044,7 +1044,7 @@ to do this, this factors in the length of the inserted header itself."
         ((eq (excl:hash-table-values hashtable) :weak) :value)))
 
 
-
+
 ;;;; Character names
 
 (defimplementation character-completion-set (prefix matchp)
@@ -1052,7 +1052,7 @@ to do this, this factors in the length of the inserted header itself."
        when (funcall matchp prefix name)
        collect (string-capitalize name)))
 
-
+
 ;;;; wrap interface implementation
 
 (defimplementation wrap (spec indicator &key before after replace)

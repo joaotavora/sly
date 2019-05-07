@@ -75,7 +75,7 @@
 
 (in-package :slynk)
 
-
+
 ;;;; Top-level variables, constants, macros
 
 (defconstant cl-package (find-package :cl)
@@ -158,7 +158,7 @@ must always be supplied. This way the :TYPE slot option need not
 include some arbitrary initial value like NIL."
   (error "A required &KEY or &OPTIONAL argument was not supplied."))
 
-
+
 ;;;; Hooks
 ;;;
 ;;; We use Emacs-like `add-hook' and `run-hook' utilities to support
@@ -190,7 +190,7 @@ Backend code should treat the connection structure as opaque.")
 (defvar *after-init-hook* '()
   "Hook run after user init files are loaded.")
 
-
+
 ;;;; Connections
 ;;;
 ;;; Connection structures represent the network connections between
@@ -338,7 +338,7 @@ to T unless you want to debug slynk internals.")
   (declare (ignore connection))
   (emacs-connected))
 
-
+
 ;;;; Utilities
 
 ;; stolen from Hunchentoot
@@ -350,7 +350,7 @@ documentation string."
      (setf (documentation ',name 'variable) ,doc-string)
      ',name))
 
-
+
 ;;;;; Logging
 
 (defvar *slynk-io-package*
@@ -443,7 +443,7 @@ Useful for low level debugging."
 (defun ascii-char-p (c)
   (<= (char-code c) 127))
 
-
+
 ;;;;; Helper macros
 
 (defmacro destructure-case (value &body patterns)
@@ -472,7 +472,7 @@ corresponding values in the CDR of VALUE."
                `((t (error "destructure-case failed: ~S" ,tmp))))))))
 
 
-
+
 ;;; Channels
 
 (defmacro channels () `(connection-channels *emacs-connection*))
@@ -536,7 +536,7 @@ corresponding values in the CDR of VALUE."
 (defun send-to-remote-channel (channel-id msg)
   (send-to-emacs `(:channel-send ,channel-id ,msg)))
 
-
+
 ;;; Listeners
 (defclass listener ()
   ((out :initarg :out :type stream :reader listener-out)
@@ -604,7 +604,7 @@ corresponding values in the CDR of VALUE."
   ;; here.
   (setf (listeners) (delete l (listeners))))
 
-
+
 ;;;; Interrupt handling
 
 ;; Usually we'd like to enter the debugger when an interrupt happens.
@@ -716,7 +716,7 @@ corresponding values in the CDR of VALUE."
                       `(,getter ,',var))))
          ,@body))))
 
-
+
 ;;;;; Sentinel
 ;;;
 ;;; The sentinel thread manages some global lists.
@@ -793,7 +793,7 @@ recently established one."
     (register-thread 'sentinel nil)
     (throw 'exit-sentinel nil)))
 
-
+
 ;;;;; Misc
 
 (defun use-threads-p ()
@@ -806,7 +806,7 @@ recently established one."
 (defun ensure-list (thing)
   (if (listp thing) thing (list thing)))
 
-
+
 ;;;;; Symbols
 
 ;; FIXME: this docstring is more confusing than helpful.
@@ -888,7 +888,7 @@ about internal symbols most times. As the spec says:
 If PACKAGE is not specified, the home package of SYMBOL is used."
   (eq (symbol-status symbol package) :external))
 
-
+
 ;;;; TCP Server
 
 (defvar *communication-style* (preferred-communication-style))
@@ -1043,7 +1043,7 @@ if the file doesn't exist; otherwise the first line of the file."
     (format *log-output* "~&;; Slynk started at port: ~D.~%" port)
     (force-output *log-output*)))
 
-
+
 ;;;;; Event Decoding/Encoding
 
 (defun decode-message (stream)
@@ -1063,7 +1063,7 @@ if the file doesn't exist; otherwise the first line of the file."
     (handler-bind ((error #'signal-slynk-error))
       (write-message message *slynk-io-package* stream))))
 
-
+
 ;;;;; Event Processing
 
 (defvar *sly-db-quit-restart* nil
@@ -1287,7 +1287,7 @@ point the thread terminates and CHANNEL is closed."
                                      ,(safe-condition-message condition))
                      (current-socket-io)))))
 
-
+
 (defun send-event (thread event)
   (log-event "send-event: ~s ~s~%" thread event)
   (let ((c *emacs-connection*))
@@ -1319,7 +1319,7 @@ point the thread terminates and CHANNEL is closed."
             (*send-counter* send-counter))
         (apply fn args)))))
 
-
+
 ;;;;;; Flow control
 
 ;; After sending N (usually 100) messages we slow down and ping Emacs
@@ -1339,7 +1339,7 @@ point the thread terminates and CHANNEL is closed."
     (send-to-emacs `(:ping ,(current-thread-id) ,tag))
     (wait-for-event pattern)))
 
-
+
 (defun wait-for-event (pattern &optional timeout)
   "Scan the event queue for PATTERN and return the event.
 If TIMEOUT is NIL wait until a matching event is enqued.
@@ -1398,7 +1398,7 @@ event was found."
         (t (error "Invalid pattern: ~S" pattern))))
 
 
-
+
 (defun spawn-threads-for-connection (connection)
   (setf (mconn.control-thread connection)
         (spawn (lambda () (control-thread connection))
@@ -1538,7 +1538,7 @@ event was found."
                 (write-char c str)))
       (end-of-file () (error 'end-of-repl-input :stream stream)))))
 
-
+
 
 (defvar *sly-features* nil
   "The feature list that has been sent to Emacs.")
@@ -1676,7 +1676,7 @@ VERSION: the protocol version"
 (defslyfun toggle-debug-on-slynk-error ()
   (setf (debug-on-slynk-error) (not (debug-on-slynk-error))))
 
-
+
 ;;;; Reading and printing
 
 (defvar-unbound *buffer-package*
@@ -1896,7 +1896,7 @@ Return nil if no package matches."
                          :test #'string=)))
         *readtable*)))
 
-
+
 ;;;; Evaluation
 
 (defvar *pending-continuations* '()
@@ -2220,7 +2220,7 @@ MAP -- rewrite the chars in STRING according to this alist."
                   (t (write-char c stream)))))
     (write-char #\" stream)))
 
-
+
 ;;;; Prompt
 
 ;; FIXME: do we really need 45 lines of code just to figure out the
@@ -2273,7 +2273,7 @@ N.B. this is not an actual package name or nickname."
                                    shortest)
               finally (return shortest)))
 
-
+
 
 (defslyfun ed-in-emacs (&optional what)
   "Edit WHAT in Emacs.
@@ -2361,7 +2361,7 @@ at least SECONDS."
              (t (sleep (/ (- end now)
                           internal-time-units-per-second))))))))
 
-
+
 ;;;; Debugger
 
 (defun invoke-sly-debugger (condition)
@@ -2725,7 +2725,7 @@ and no continue restart available.")))))
 (defslyfun sdlb-print-condition ()
   (princ-to-string *slynk-debugger-condition*))
 
-
+
 ;;;; Compilation Commands.
 
 (defstruct (compilation-result (:type list))
@@ -2880,13 +2880,13 @@ Record compiler notes signalled as `compiler-condition's."
               (or (not loadp)
                   (load (compile-file-pathname pathname)))))))))
 
-
+
 ;;;; Loading
 
 (defslyfun load-file (filename)
   (to-string (load (filename-to-pathname filename))))
 
-
+
 ;;;;; slynk-require
 
 (defvar *module-loading-method* (find-if #'find-package '(:slynk-loader :asdf))
@@ -2944,7 +2944,7 @@ designator. Returns a list of all modules available."
   (dolist (path paths)
     (funcall #'add-to-load-path *module-loading-method* (pathname path))))
 
-
+
 ;;;; Macroexpansion
 
 (defvar *macroexpand-printer-bindings*
@@ -3008,7 +3008,7 @@ designator. Returns a list of all modules available."
       (let ((*print-readably* nil))
         (disassemble (eval (read-from-string form)))))))
 
-
+
 ;;;; Simple arglist display
 
 (defslyfun operator-arglist (name package)
@@ -3017,7 +3017,7 @@ designator. Returns a list of all modules available."
      (cond ((eq args :not-available) nil)
            (t (princ-to-string (cons name args)))))))
 
-
+
 ;;;; Documentation
 
 (defun map-if (test fn &rest lists)
@@ -3082,7 +3082,7 @@ wrapped in a list."
                         fdoc))))
           (format nil "No such symbol, ~a." symbol-name)))))
 
-
+
 ;;;; Package Commands
 
 (defslyfun list-all-package-names (&optional nicknames)
@@ -3093,7 +3093,7 @@ Include the nicknames if NICKNAMES is true."
               (mapcan #'package-names (list-all-packages))
               (mapcar #'package-name  (list-all-packages)))))
 
-
+
 ;;;; Tracing
 
 ;; Use eval for the sake of portability...
@@ -3130,7 +3130,7 @@ If non-nil, called with two arguments SPEC and TRACED-P." )
 (defslyfun untrace-all ()
   (untrace))
 
-
+
 ;;;; Undefing
 
 (defslyfun undefine-function (fname-string)
@@ -3251,7 +3251,7 @@ DSPEC is a string and LOCATION a source location. NAME is a string."
   (destructuring-bind (name loc) xref
     (list (to-string name) loc)))
 
-
+
 ;;;;; Lazy lists
 
 (defstruct (lcons (:constructor %lcons (car %cdr))
@@ -3297,7 +3297,7 @@ DSPEC is a string and LOCATION a source location. NAME is a string."
 (defun iline (label value)
   `(:line ,label ,value))
 
-
+
 ;;;; Inspecting
 (defvar-unbound *current-inspector*
     "Current inspector, bound by EVAL-FOR-INSPECTOR, maybe to nil.")
@@ -3711,7 +3711,7 @@ Return NIL if LIST is circular."
        `("In the current readtable ("
          (:value ,*readtable*) ") it is a macro character: "
          (:value ,(get-macro-character char))))))
-
+
 ;;;; Thread listing
 
 (defvar *thread-list* ()
@@ -3773,7 +3773,7 @@ The server port is written to PORT-FILE-NAME."
   (interrupt-thread (nth-thread index)
                     (lambda ()
                       (start-server port-file-name :style nil))))
-
+
 ;;;; Class browser
 
 (defun mop-helper (class-name fn)
@@ -3795,7 +3795,7 @@ The server port is written to PORT-FILE-NAME."
       (:superclasses
        (mop-helper symbol #'slynk-mop:class-direct-superclasses)))))
 
-
+
 ;;;; Automatically synchronized state
 ;;;
 ;;; Here we add hooks to push updates of relevant information to
@@ -3816,7 +3816,7 @@ The server port is written to PORT-FILE-NAME."
 
 (add-hook *pre-reply-hook* 'sync-features-to-emacs)
 
-
+
 ;;;;; Indentation of macros
 ;;;
 ;;; This code decides how macros should be indented (based on their
@@ -3996,7 +3996,7 @@ Collisions are caused because package information is ignored."
 #-clasp
 (add-hook *pre-reply-hook* 'sync-indentation-to-emacs)
 
-
+
 ;;;; Testing
 
 (defslyfun io-speed-test (&optional (n 1000) (m 1))
@@ -4026,7 +4026,7 @@ Collisions are caused because package information is ignored."
       (force-output stream)
       (background-message "flow-control-test: ~d" i))))
 
-
+
 ;;;; The "official" API
 
 (defpackage :slynk-api (:use))
@@ -4115,7 +4115,7 @@ Collisions are caused because package information is ignored."
              (import slynk-sym :slynk-api)
              (export slynk-sym :slynk-api))))
 
-
+
 ;;;; INIT, as called from the slynk-loader.lisp and ASDF's loaders
 ;;;;
 (defvar *loaded-user-init-file* nil

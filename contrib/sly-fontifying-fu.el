@@ -181,7 +181,7 @@ position, or nil."
                            (point)))))
     (cl-values (or (/= beg orig-beg) (/= end orig-end)) beg end)))
 
-
+
 (defun sly-activate-font-lock-magic ()
   (font-lock-add-keywords
    'lisp-mode
@@ -192,7 +192,7 @@ position, or nil."
                 (add-hook 'font-lock-extend-region-functions
                           'sly-extend-region-for-font-lock t t))))
 
-
+
 ;;; Compile hotspots
 ;;; 
 (sly-byte-compile-hotspots

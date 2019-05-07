@@ -57,7 +57,7 @@
 (defimplementation gray-package-name ()
   "GRAY")
 
-
+
 ;;;; UTF8
 
 ;;; Convert the string STRING to a (simple-array (unsigned-byte 8)).
@@ -68,7 +68,7 @@
 ;;;
 ;;;   utf8-to-string (octets)
 
-
+
 ;;;; TCP Server
 
 (defun resolve-hostname (name)
@@ -149,7 +149,7 @@
 ;;;
 ;;;   emacs-connected ()
 
-
+
 ;;;; Unix Integration
 
 (defimplementation getpid ()
@@ -220,7 +220,7 @@
 (defimplementation command-line-args ()
   (ext:command-args))
 
-
+
 ;;;; pathnames
 
 ;;; Return a pathname for FILENAME.
@@ -240,7 +240,7 @@
   (ext:chdir (namestring directory)) ; adapts *DEFAULT-PATHNAME-DEFAULTS*.
   (default-directory))
 
-
+
 ;;; Call FN with hooks to handle special syntax. Can we use it for
 ;;; `ffi:c-inline' to be handled as C/C++ code?
 ;;;
@@ -250,14 +250,14 @@
 ;;;
 ;;;   default-readtable-alist
 
-
+
 ;;;; Packages
 
 #+package-local-nicknames
 (defimplementation package-local-nicknames (package)
   (ext:package-local-nicknames package))
 
-
+
 ;;;; Compilation
 
 (defvar *buffer-name* nil)
@@ -375,7 +375,7 @@
 ;;;
 ;;;   guess-external-format
 
-
+
 ;;;; Streams
 
 ;;; Implemented in `gray'
@@ -383,7 +383,7 @@
 ;;;   make-output-stream
 ;;;   make-input-stream
 
-
+
 ;;;; Documentation
 
 (defimplementation arglist (name)
@@ -431,7 +431,7 @@
     (:class (documentation name 'class))
     (t nil)))
 
-
+
 ;;;; Debugging
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -633,7 +633,7 @@
 ;;; sldb-step-next
 ;;; sldb-step-out
 
-
+
 ;;;; Definition finding
 
 (defvar +TAGS+ (namestring
@@ -784,7 +784,7 @@
 
 ;;; buffer-first-change
 
-
+
 ;;;; XREF
 
 ;;; who-calls
@@ -797,7 +797,7 @@
 ;;; list-callers
 ;;; list-callees
 
-
+
 ;;;; Profiling
 
 ;;; XXX: use monitor.lisp (ccl,clisp)
@@ -830,7 +830,7 @@
   (eval `(profile:profile ,(package-name (find-package package)))))
 ) ; #+profile (progn ...
 
-
+
 ;;;; Trace
 
 ;;; Toggle tracing of the function(s) given with SPEC.
@@ -844,7 +844,7 @@
 ;;;
 ;;;   toggle-trace (spec)
 
-
+
 ;;;; Inspector
 
 ;;; FIXME: Would be nice if it was possible to inspect objects
@@ -856,7 +856,7 @@
 ;;; Return a string describing the primitive type of object.
 ;;;   describe-primitive-type (object)
 
-
+
 ;;;; Multithreading
 
 ;;; Not needed in ECL
@@ -1038,7 +1038,7 @@
             (if ready (return ready))
             (sleep 0.1))))))
 
-
+
 ;;;; Locks
 
 #+threads
@@ -1049,7 +1049,7 @@
   (declare (type function function))
   (mp:with-lock (lock) (funcall function)))
 
-
+
 ;;;; Weak datastructures
 
 ;;; XXX: this should work but causes SLIME REPL hang at some point of time. May
@@ -1065,14 +1065,14 @@
   (defimplementation hash-table-weakness (hashtable)
     (ext:hash-table-weakness hashtable)))
 
-
+
 ;;;; Character names
 
 ;;; Default implementation is fine.
 ;;;
 ;;;   character-completion-set (prefix matchp)
 
-
+
 ;;;; Heap dumps
 
 ;;; Doesn't apply to ECL.
@@ -1080,7 +1080,7 @@
 ;;;   save-image (filename &optional restart-function)
 ;;;   background-save-image (filename &key restart-function completion-function)
 
-
+
 ;;;; Wrapping
 
 ;;; Intercept future calls to SPEC and surround them in callbacks.

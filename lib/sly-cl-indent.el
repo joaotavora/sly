@@ -189,13 +189,13 @@ If non-nil, alignment is done with the first parameter
   :type 'boolean
   :group 'lisp-indent)
 
-
+
 (defvar lisp-indent-defun-method '(4 &lambda &body)
   "Defun-like indentation method.
 This applies when the value of the `common-lisp-indent-function' property
 is set to `defun'.")
 
-
+
 ;;;; Named styles.
 ;;;;
 ;;;; -*- common-lisp-style: foo -*-
@@ -551,7 +551,7 @@ none has been specified."
       (common-lisp-set-style style))))
 (add-hook 'lisp-mode-hook 'common-lisp-lisp-mode-hook)
 
-
+
 ;;;; The indentation specs are stored at three levels. In order of priority:
 ;;;;
 ;;;; 1. Indentation as set by current style, from the indentation table
@@ -632,7 +632,7 @@ given point. Defaults to `common-lisp-guess-current-package'.")
     (if (and (consp method) (eq 'as (car method)))
         (common-lisp-get-indentation (cadr method))
       method)))
-
+
 ;;;; LOOP indentation, the simple version
 
 (defun common-lisp-loop-type (loop-start)
@@ -1283,7 +1283,7 @@ environment\\|more\
                                 (t
                                  (funcall tem path state indent-point
                                           sexp-column normal-indent))))))))))))
-
+
 (defun lisp-indent-tagbody (path state indent-point sexp-column normal-indent)
   (if (not (null (cdr path)))
       normal-indent
@@ -1712,7 +1712,7 @@ Cause subsequent clauses to be indented.")
       nil
     (current-column)))
 
-
+
 ;;;; Indentation specs for standard symbols, and a few semistandard ones.
 (defun common-lisp-init-standard-indentation ()
   (let ((l '((block 1)

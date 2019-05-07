@@ -132,7 +132,7 @@ empty string."
                        args)))
     (y-or-n-p prompt)))
 
-
+
 ;;; Flashing the region
 ;;;
 (defvar sly-flash-inhibit nil

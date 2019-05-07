@@ -189,7 +189,7 @@
        (when (< index (length buffer))
          (prog1 (aref buffer index) (incf index)))))))
 
-
+
 ;;;
 
 (defimplementation make-auto-flush-thread (stream)
