@@ -1187,7 +1187,9 @@ When setting this variable outside of the Customize interface,
     ("disconnect all" . sly-disconnect-all)
     ("restart lisp" . sly-restart-inferior-lisp)
     ("set package" . sly-mrepl-set-package)
+    ("in-package" . sly-mrepl-set-package)
     ("set directory" . sly-mrepl-set-directory)
+    ("cd" . sly-mrepl-set-directory)
     ("clear repl" . sly-mrepl-clear-repl)))
 
 (defun sly-mrepl-set-package ()
