@@ -1184,15 +1184,16 @@ When setting this variable outside of the Customize interface,
 (defvar sly-mrepl-shortcut-alist
   ;; keep this alist ordered by the key value, in order to make it easier to see
   ;; the identifying prefixes and keep them short
-  '(("cd" . sly-mrepl-set-directory)
-    ("clear repl" . sly-mrepl-clear-repl)
-    ("disconnect" . sly-disconnect)
+  '(("cd"             . sly-mrepl-set-directory)
+    ("clear repl"     . sly-mrepl-clear-repl)
+    ("disconnect"     . sly-disconnect)
     ("disconnect all" . sly-disconnect-all)
-    ("in-package" . sly-mrepl-set-package)
-    ("restart lisp" . sly-restart-inferior-lisp)
-    ("sayoonara" . sly-quit-lisp)
-    ("set directory" . sly-mrepl-set-directory)
-    ("set package" . sly-mrepl-set-package)))
+    ("in-package"     . sly-mrepl-set-package)
+    ("restart lisp"   . sly-restart-inferior-lisp)
+    ("sayoonara"      . sly-quit-lisp)
+    ("set directory"  . sly-mrepl-set-directory)
+    ("set package"    . sly-mrepl-set-package)))
+
 
 (defun sly-mrepl-set-package ()
   (interactive)
