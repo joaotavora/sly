@@ -154,10 +154,9 @@ Specifically this assigns a \"foo\" on \"bar:foo\" a
 higher-than-usual score, as if the package qualifier \"bar\" was
 shorter.")
 
-(defun flex-score (string indexes pattern symbol)
+(defun flex-score (string indexes pattern)
   "Score the match of STRING as given by INDEXES.
 INDEXES as calculated by FLEX-MATCHES."
-  (declare (ignore symbol))
   (let* ((first-pattern-colon (and pattern
                                    (position #\: pattern)))
          (index-of-first-pattern-colon (and first-pattern-colon
@@ -222,9 +221,11 @@ string is a 33% match and just '(1) is a 11% match."
                                            ,@indexes
                                            ,string-length)
                             while b
-                            collect (expt (- b a 1) *flex-score-falloff*))))))))
+                            unless (zerop (- b a 1))
+                              sum (expt 1 *flex-score-falloff*) into holes
+                              and sum (- b a 1) into hole-length)))))))
 
-(defun flex-matches (pattern string symbol char-test)
+(defun flex-matches (pattern string char-test)
   "Return non-NIL if PATTERN flex-matches STRING.
 In case of a match, return two values:
 
@@ -248,14 +249,14 @@ A floating-point score. Higher scores for better matches."
                         collect pos)))
     (values indexes
             (and indexes
-                 (flex-score string indexes pattern symbol)))))
+                 (flex-score string indexes pattern)))))
 
 (defun collect-if-matches (collector pattern string symbol)
   "Make and collect a match with COLLECTOR if PATTERN matches STRING.
 A match is a list (STRING SYMBOL INDEXES SCORE).
 Return non-nil if match was collected, nil otherwise."
   (multiple-value-bind (indexes score)
-      (flex-matches pattern string symbol #'char=)
+      (flex-matches pattern string #'char=)
     (when indexes
       (funcall collector
                (list string
