@@ -2364,6 +2364,9 @@ or nil if nothing suitable can be found.")
 ;;; that `throw's its result up to a `catch' and then enter a loop of
 ;;; handling I/O until that happens.
 
+(defvar sly-stack-eval-tags nil
+  "List of stack-tags of continuations waiting on the stack.")
+
 (defun sly-eval (sexp &optional package cancel-on-input cancel-on-input-retval)
   "Evaluate SEXP in Slynk's PACKAGE and return the result.
 If CANCEL-ON-INPUT cancel the request immediately if the user
@@ -2371,6 +2374,7 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
   (when (null package) (setq package (sly-current-package)))
   (let* ((catch-tag (make-symbol (format "sly-result-%d"
                                          (1+ (sly-continuation-counter)))))
+         (sly-stack-eval-tags (cons catch-tag sly-stack-eval-tags))
          (cancelled-on-input nil)
          (check-conn
           (lambda ()
@@ -2383,6 +2387,9 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
            (sexp package)
          ((:ok value)
           (unless cancelled-on-input
+            (unless (member catch-tag sly-stack-eval-tags)
+              (error "Reply to canceled synchronous eval request tag=%S sexp=%S"
+                     catch-tag sexp))
             (throw catch-tag (list #'identity value))))
          ((:abort _condition)
           (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
@@ -5502,7 +5509,10 @@ pending Emacs continuations."
               (insert "[No backtrace]")))
           (run-hooks 'sly-db-hook)
           (set-syntax-table lisp-mode-syntax-table)))
-      (sly-recenter (point-min) 'allow-moving-point))))
+      (sly-recenter (point-min) 'allow-moving-point)
+      (when sly-stack-eval-tags
+        (sly-message "Entering recursive edit..")
+        (recursive-edit)))))
 
 (defun sly-db--display-in-prev-sly-db-window (buffer _alist)
   (let ((window
