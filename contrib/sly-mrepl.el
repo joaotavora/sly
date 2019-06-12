@@ -1215,11 +1215,15 @@ When setting this variable outside of the Customize interface,
                                       (mapcar #'car sly-mrepl-shortcut-alist)
                                       nil
                                       'require-match))
-         (command (and string
-                       (cdr (assoc string sly-mrepl-shortcut-alist)))))
+         (item (and string (assoc string sly-mrepl-shortcut-alist)))
+         (command (cdr item)))
+    ;; Move the most recently used shortcut to the head of the shortcut list
+    (setf sly-mrepl-shortcut-alist
+          (cons item
+                (cl-remove item sly-mrepl-shortcut-alist)))
     (call-interactively command)))
 
-
+
 ;;; Backreference highlighting
 ;;;
 (defvar sly-mrepl--backreference-overlays nil
