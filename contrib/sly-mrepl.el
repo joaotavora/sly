@@ -1194,6 +1194,7 @@ When setting this variable outside of the Customize interface,
     ("set directory"  . sly-mrepl-set-directory)
     ("set package"    . sly-mrepl-set-package)))
 
+(defvar sly-mrepl-history nil "History of `sly-mrepl-shortcut' commands.")
 
 (defun sly-mrepl-set-package ()
   (interactive)
@@ -1214,16 +1215,13 @@ When setting this variable outside of the Customize interface,
   (let* ((string (sly-completing-read "Command: "
                                       (mapcar #'car sly-mrepl-shortcut-alist)
                                       nil
-                                      'require-match))
-         (item (and string (assoc string sly-mrepl-shortcut-alist)))
-         (command (cdr item)))
-    ;; Move the most recently used shortcut to the head of the shortcut list
-    (setf sly-mrepl-shortcut-alist
-          (cons item
-                (cl-remove item sly-mrepl-shortcut-alist)))
+                                      'require-match nil 'sly-mrepl-history
+                                      (car sly-mrepl-history)))
+         (command (and string
+                       (cdr (assoc string sly-mrepl-shortcut-alist)))))
     (call-interactively command)))
 
-
+
 ;;; Backreference highlighting
 ;;;
 (defvar sly-mrepl--backreference-overlays nil
