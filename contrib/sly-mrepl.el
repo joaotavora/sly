@@ -1151,6 +1151,8 @@ Doesn't clear input history."
 
 ;;; The comma shortcut
 ;;;
+(defvar sly-mrepl-shortcut-history nil "History for sly-mrepl-shortcut.")
+
 (defun sly-mrepl-reset-shortcut (key-sequence)
   "Set `sly-mrepl-shortcut' and reset REPL keymap accordingly."
   (interactive "kNew shortcut key sequence? ")
@@ -1213,8 +1215,9 @@ When setting this variable outside of the Customize interface,
   (interactive)
   (let* ((string (sly-completing-read "Command: "
                                       (mapcar #'car sly-mrepl-shortcut-alist)
-                                      nil
-                                      'require-match))
+                                      nil 'require-match nil
+                                      'sly-mrepl-shortcut-history
+                                      (car sly-mrepl-shortcut-history)))
          (command (and string
                        (cdr (assoc string sly-mrepl-shortcut-alist)))))
     (call-interactively command)))
