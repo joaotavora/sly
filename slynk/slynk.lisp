@@ -2014,8 +2014,10 @@ same as that variable.")
                 number extra-presentations)
         (format nil "~A" number))))
 
-(defun echo-for-emacs (values)
-  "Format VALUES in a way suitable to be echoed in the SLY client"
+(defun echo-for-emacs (values &optional (fn #'slynk-pprint))
+  "Format VALUES in a way suitable to be echoed in the SLY client.
+May insert newlines between each of VALUES.  Considers
+*ECHO-NUMBER-ALIST*."
   (let ((*print-readably* nil))
     (cond ((null values) "; No value")
           ((and (numberp (car values))
@@ -2023,7 +2025,7 @@ same as that variable.")
            (present-number-considering-alist (car values) *echo-number-alist*))
           (t
            (let ((strings (loop for v in values
-                                collect (slynk-pprint-to-line v))))
+                                collect (funcall fn v))))
              (if (some #'(lambda (s) (find #\Newline s))
                        strings)
                  (format nil "~{~a~^~%~}" strings)
@@ -2097,18 +2099,19 @@ Used by pprint-eval.")
   "Pretty print OBJECT to STREAM using *SLYNK-PPRINT-BINDINGS*.
 If STREAM is nil, use a string"
   (with-bindings *slynk-pprint-bindings*
-    ;; a failsafe for *PRINT-LENGTH*: if it's NIL and *PRINT-CIRCLE*
-    ;; is also nil we could be in trouble printing circular lists, for example.
-    ;; 
-    (let ((*print-length* (if (and (not *print-circle*)
-                                   (not *print-length*))
-                              512
-                              *print-length*)))
+    ;; a failsafe for *PRINT-LENGTH* and *PRINT-LEVEL*: if they're NIL
+    ;; and *PRINT-CIRCLE* is also nil we could be in trouble printing
+    ;; recursive structures.
+    ;;
+    (let ((*print-length* (or *print-length*
+                              (and (not *print-circle*) 512)))
+          (*print-level* (or *print-level*
+                              (and (not *print-circle*) 20))))
       (without-printing-errors (:object object :stream stream)
         (if stream
             (write object :stream stream :pretty t :escape t)
             (with-output-to-string (s)
-              (slynk-pprint object :stream s)))))))
+              (write object :stream s :pretty t :escape t)))))))
 
 (defun slynk-pprint-values (values &key (stream nil))
   "Pretty print each of VALUES to STREAM using *SLYNK-PPRINT-BINDINGS*.
@@ -2130,11 +2133,10 @@ If STREAM is nil, use a string"
                  (with-output-to-string (s)
                    (print-all s))))))))
 
-(defun slynk-pprint-to-line (object &optional width)
+(defun slynk-pprint-to-line (object)
   "Print OBJECT to a single line at most. Return the string."
   (let ((*slynk-pprint-bindings*
-          `((*print-right-margin* . ,(or width 512))
-            (*print-lines* . 1)
+          `((*print-lines* . 1)
             ,@*slynk-pprint-bindings*)))
     (slynk-pprint object)))
 
@@ -2681,13 +2683,15 @@ TAGS has is a list of strings."
         (mapcar #'to-string (frame-catch-tags index))))
 
 (defun frame-locals-for-emacs (index)
-  (with-bindings *backtrace-printer-bindings*
-    (loop for var in (frame-locals index) collect
-          (destructuring-bind (&key name id value) var
-            (list :name (let ((*package* (or (frame-package index) *package*)))
-                          (prin1-to-string name))
-                  :id id
-                  :value (slynk-pprint-to-line value *print-right-margin*))))))
+  (loop for var in (frame-locals index)
+        collect
+        (destructuring-bind (&key name id value) var
+          (list :name (let ((*package* (or (frame-package index) *package*)))
+                        (prin1-to-string name))
+                :id id
+                :value
+                (let ((*slynk-pprint-bindings* *backtrace-printer-bindings*))
+                  (slynk-pprint value))))))
 
 (defslyfun sly-db-disassemble (index)
   (with-output-to-string (*standard-output*)
