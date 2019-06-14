@@ -950,7 +950,10 @@ handle to distinguish the new buffer from the existing."
     ;; the new REPL will see them.
     (sly-mrepl--save-all-histories)
     (let* ((local (sly-make-channel sly-listener-channel-methods))
-           (buffer (pop-to-buffer name)))
+           (buffer (pop-to-buffer name))
+           (default-directory (if (file-readable-p default-directory)
+                                   default-directory
+                                (expand-file-name "~/"))))
       (with-current-buffer buffer
         (sly-mrepl-mode)
         (when (and (not existing)
