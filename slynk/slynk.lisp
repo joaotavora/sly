@@ -2127,7 +2127,7 @@ If STREAM is nil, use a string"
     (with-bindings *slynk-pprint-bindings*
       (cond ((null values)
              (format stream "; No value"))
-            (t
+            (tq
              (if stream
                  (print-all stream)
                  (with-output-to-string (s)
@@ -2137,6 +2137,7 @@ If STREAM is nil, use a string"
   "Print OBJECT to a single line at most. Return the string."
   (let ((*slynk-pprint-bindings*
           `((*print-lines* . 1)
+            (*print-right-margin* . 512)
             ,@*slynk-pprint-bindings*)))
     (slynk-pprint object)))
 
