@@ -2127,7 +2127,7 @@ If STREAM is nil, use a string"
     (with-bindings *slynk-pprint-bindings*
       (cond ((null values)
              (format stream "; No value"))
-            (tq
+            (t
              (if stream
                  (print-all stream)
                  (with-output-to-string (s)
