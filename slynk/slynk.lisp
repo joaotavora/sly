@@ -485,7 +485,8 @@ corresponding values in the CDR of VALUE."
            :reader channel-thread)
    (name   :initarg :name   :initform nil)))
 
-(defmethod initialize-instance :after ((ch channel) &key)
+(defmethod shared-initialize :after ((ch channel) slot-names &key)
+  (declare (ignore slot-names))
   ;; FIXME: slightly fugly, but I need this to be able to name the
   ;; thread according to the channel's id.
   ;;

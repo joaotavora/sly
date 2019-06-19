@@ -657,17 +657,26 @@ Return the current redirection target, or nil"
         (flush-listener-streams l)))
     *target-listener-for-redirection*))
 
-(defmethod close-channel :before ((r mrepl))
+(defmethod close-channel :around ((r mrepl))
   (with-slots (mode remote-id) r
-    (unless (eq mode :teardown)
-      (send-to-remote-channel remote-id `(:server-side-repl-close))))
-    ;; If this channel was the redirection target.
-    (close-listener r)
-    (when (eq r *target-listener-for-redirection*)
-      (setq *target-listener-for-redirection* nil)
-      (maybe-redirect-global-io (default-connection))
-      (unless *target-listener-for-redirection*
-        (revert-global-io-redirection)
-        (format *standard-output* "~&; Reverted global IO direction~%")))))
+    ;; checking for *DEBUGGER-HOOK* is a hacky way to discover if
+    ;; we're closing the connection.
+    (cond ((or (eq mode :teardown) (null *debugger-hook*))
+           (close-listener r)
+           ;; If this channel was the redirection target.
+           (when (eq r *target-listener-for-redirection*)
+             (setq *target-listener-for-redirection* nil)
+             (maybe-redirect-global-io (default-connection))
+             (unless *target-listener-for-redirection*
+               (revert-global-io-redirection)
+               (format *standard-output* "~&; Reverted global IO direction~%")))
+           (call-next-method))
+          (t
+           (format
+            *standard-output*
+            "; Restarting REPL thread after probably manual killed.")
+           (reinitialize-instance r)
+           (send-to-remote-channel remote-id `(:server-side-restart ,(channel-thread-id r)))
+           (flush-listener-streams r)))))
 
 (provide :slynk/mrepl)

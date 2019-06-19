@@ -248,9 +248,10 @@ for output printed to the REPL (not for evaluation results)")
       (erase-buffer)
       (sly-mrepl--insert-note "Cleared REPL history"))))
 
-(sly-define-channel-method listener :server-side-repl-close ()
+(sly-define-channel-method listener :server-side-restart (new-thread-id)
   (with-current-buffer (sly-channel-get self 'buffer)
-    (sly-mrepl--teardown "Server side close" 'dont-signal-server)))
+    (sly-message "Server side REPL restart")
+    (setq sly-current-thread new-thread-id)))
 
 
 ;;; Button type
