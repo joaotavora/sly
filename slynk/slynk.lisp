@@ -1118,18 +1118,19 @@ point the thread terminates and CHANNEL is closed."
   (slynk-backend:spawn
    (lambda ()
      (with-connection (connection)
-       (destructure-case
-        (slynk-backend:receive)
-        ((:serve-channel c)
-         (assert (eq c channel))
-         (loop
-           (with-top-level-restart (connection
-                                    (drop-unprocessed-events channel))
-             
-             (when (eq (process-requests nil)
-                       'listener-teardown)
-               (return))))))
-       (close-channel channel)))
+       (unwind-protect
+            (progn
+              (destructure-case
+                  (slynk-backend:receive)
+                ((:serve-channel c)
+                 (assert (eq c channel))
+                 (loop
+                   (with-top-level-restart (connection
+                                            (drop-unprocessed-events channel))
+                     (when (eq (process-requests nil)
+                               'listener-teardown)
+                       (return)))))))
+         (close-channel channel))))
    :name (with-slots (id name) channel
            (format nil "sly-channel-~a-~a" id name))))
 

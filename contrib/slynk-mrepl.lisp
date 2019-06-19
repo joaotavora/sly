@@ -658,13 +658,16 @@ Return the current redirection target, or nil"
     *target-listener-for-redirection*))
 
 (defmethod close-channel :before ((r mrepl))
-  ;; If this channel was the redirection target.
-  (close-listener r)
-  (when (eq r *target-listener-for-redirection*)
-    (setq *target-listener-for-redirection* nil)
-    (maybe-redirect-global-io (default-connection))
-    (unless *target-listener-for-redirection*
-      (revert-global-io-redirection)
-      (format *standard-output* "~&; Reverted global IO direction~%"))))
+  (with-slots (mode remote-id) r
+    (unless (eq mode :teardown)
+      (send-to-remote-channel remote-id `(:server-side-repl-close))))
+    ;; If this channel was the redirection target.
+    (close-listener r)
+    (when (eq r *target-listener-for-redirection*)
+      (setq *target-listener-for-redirection* nil)
+      (maybe-redirect-global-io (default-connection))
+      (unless *target-listener-for-redirection*
+        (revert-global-io-redirection)
+        (format *standard-output* "~&; Reverted global IO direction~%")))))
 
 (provide :slynk/mrepl)

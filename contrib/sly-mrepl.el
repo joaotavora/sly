@@ -248,6 +248,10 @@ for output printed to the REPL (not for evaluation results)")
       (erase-buffer)
       (sly-mrepl--insert-note "Cleared REPL history"))))
 
+(sly-define-channel-method listener :server-side-repl-close ()
+  (with-current-buffer (sly-channel-get self 'buffer)
+    (sly-mrepl--teardown "Server side close" 'dont-signal-server)))
+
 
 ;;; Button type
 ;;;
@@ -657,7 +661,7 @@ recent entry that is discarded."
                         sly-mrepl--dirty-history)
                (sly-mrepl--merge-and-save-history)))))
 
-(defun sly-mrepl--teardown (&optional reason)
+(defun sly-mrepl--teardown (&optional reason dont-signal-server)
   (remove-hook 'kill-buffer-hook 'sly-mrepl--teardown t)
   (let ((inhibit-read-only t))
     (goto-char (point-max))
@@ -673,11 +677,12 @@ recent entry that is discarded."
     (kill-buffer (process-buffer sly-mrepl--dedicated-stream)))
   (sly-close-channel sly-mrepl--local-channel)
   ;; signal lisp that we're closingq
-  (ignore-errors
-    ;; uses `sly-connection', which falls back to
-    ;; `sly-buffer-connection'. If that is closed it's probably
-    ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
-    (sly-mrepl--send `(:teardown)))
+  (unless dont-signal-server
+    (ignore-errors
+      ;; uses `sly-connection', which falls back to
+      ;; `sly-buffer-connection'. If that is closed it's probably
+      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
+      (sly-mrepl--send `(:teardown))))
   (set (make-local-variable 'sly-mrepl--remote-channel) nil)
   (when (sly-mrepl--process)
     (delete-process (sly-mrepl--process))))
