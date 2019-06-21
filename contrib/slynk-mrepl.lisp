@@ -657,7 +657,7 @@ Return the current redirection target, or nil"
         (flush-listener-streams l)))
     *target-listener-for-redirection*))
 
-(defmethod close-channel :around ((r mrepl))
+(defmethod close-channel :around ((r mrepl) &key force)
   (with-slots (mode remote-id) r
     ;; checking for *DEBUGGER-HOOK* is a hacky way to discover if
     ;; we're closing the connection.
