@@ -273,6 +273,8 @@ Set this to NIL to turn this feature off.")
 (defun read-input (repl)
   (with-slots (mode tag remote-id) repl
     (flush-listener-streams repl)
+    (assert (eq mode :eval) nil
+            "Cannot read input from an REPL already in ~a mode" mode)
     (let ((old-mode mode)
           (old-tag tag))
       (setf tag (cons nil nil))

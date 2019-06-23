@@ -125,8 +125,10 @@ for output printed to the REPL (not for evaluation results)")
 ;;
 (defvar sly-mrepl--remote-channel nil)
 (defvar sly-mrepl--local-channel nil)
-(defvar sly-mrepl--read-mark nil)
-(defvar sly-mrepl--output-mark nil)
+(defvar sly-mrepl--read-mark nil
+  "A cons of two values (READ-MARK SAVED-INPUT)")
+(defvar sly-mrepl--output-mark nil
+  "Where output goes.  Should always trail `sly-mrepl--mark'.")
 (defvar sly-mrepl--dedicated-stream nil)
 (defvar sly-mrepl--last-prompt-overlay nil)
 (defvar sly-mrepl--pending-output nil
@@ -215,25 +217,45 @@ for output printed to the REPL (not for evaluation results)")
     (sly-mrepl--accept-process-output)
     (let ((inhibit-read-only t))
       (cl-ecase mode
-        (:read (setq sly-mrepl--read-mark (point))
-               (add-text-properties (1- (point)) (point)
+        (:read (add-text-properties (1- (point)) (point)
                                     `(rear-nonsticky t))
-               (sly-mrepl--ensure-newline)
-               (sly-mrepl--catch-up)
-               (sly-message "Listener waiting for input to read and by the way %s" (sly-mrepl--busy-p)))
+               (if (sly-mrepl--busy-p)
+                   (setq sly-mrepl--read-mark
+                         (list (point-marker)))
+                 (let ((saved-input (buffer-substring (sly-mrepl--mark) (point-max))))
+                   (delete-region (sly-mrepl--mark) (point-max))
+                   (sly-mrepl--catch-up)
+                   (sly-mrepl--insert-note "Reading from extra-REPL CL:READ")
+                   (sly-mrepl--ensure-newline)
+                   (setq sly-mrepl--read-mark
+                         (cons
+                          (point-marker)
+                          saved-input))))
+               (sly-message "%s waiting for input to read" (buffer-name))
+               (if (not (eq (window-buffer (selected-window)) (current-buffer)))
+                   (pop-to-buffer (current-buffer))))
         (:eval (if sly-mrepl--read-mark
-                   (add-text-properties (1- sly-mrepl--read-mark) (point)
-                                        `(face bold read-only t))
+                   (add-text-properties (1- (car sly-mrepl--read-mark))
+                                           (point)
+                                           `(face bold read-only t))
                  (sly-warning "Expected `sly-mrepl--read-mark' to be set!"))
-               (setq sly-mrepl--read-mark nil)
                (when sly-mrepl--pending-output
                  (sly-mrepl--insert-output "\n"))
-               (sly-message "Listener waiting for sexps to eval"))))))
+               (sly-message "Listener waiting for sexps to eval")
+               (when (and (cdr sly-mrepl--read-mark)
+                          sly-mrepl--last-prompt)
+                 (apply #'sly-mrepl--insert-prompt (butlast sly-mrepl--last-prompt))
+                 (goto-char (sly-mrepl--mark))
+                 (insert (cdr sly-mrepl--read-mark)))
+               (setq sly-mrepl--read-mark nil))))))
+
+(defvar sly-mrepl--last-prompt nil)
 
 (sly-define-channel-method listener :prompt (package prompt
                                                      error-level
                                                      &optional condition)
   (with-current-buffer (sly-channel-get self 'buffer)
+    (setq sly-mrepl--last-prompt (list package prompt error-level condition))
     (sly-mrepl--insert-prompt package prompt error-level condition)))
 
 (sly-define-channel-method listener :open-dedicated-output-stream
