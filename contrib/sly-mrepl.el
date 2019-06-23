@@ -125,7 +125,7 @@ for output printed to the REPL (not for evaluation results)")
 ;;
 (defvar sly-mrepl--remote-channel nil)
 (defvar sly-mrepl--local-channel nil)
-(defvar sly-mrepl--read-mode nil)
+(defvar sly-mrepl--read-mark nil)
 (defvar sly-mrepl--output-mark nil)
 (defvar sly-mrepl--dedicated-stream nil)
 (defvar sly-mrepl--last-prompt-overlay nil)
@@ -151,7 +151,7 @@ for output printed to the REPL (not for evaluation results)")
                 (comint-prompt-read-only t)
                 (comint-process-echoes nil)
                 (indent-line-function lisp-indent-line)
-                (sly-mrepl--read-mode nil)
+                (sly-mrepl--read-mark nil)
                 (sly-mrepl--pending-output nil)
                 (sly-mrepl--output-mark ,(point-marker))
                 (sly-mrepl--last-prompt-overlay ,(make-overlay 0 0 nil nil))
@@ -215,16 +215,17 @@ for output printed to the REPL (not for evaluation results)")
     (sly-mrepl--accept-process-output)
     (let ((inhibit-read-only t))
       (cl-ecase mode
-        (:read (setq sly-mrepl--read-mode (point))
+        (:read (setq sly-mrepl--read-mark (point))
                (add-text-properties (1- (point)) (point)
                                     `(rear-nonsticky t))
-               (sly-message "Listener waiting for input to read"))
-        (:eval (if sly-mrepl--read-mode
-                   (add-text-properties (1- sly-mrepl--read-mode) (point)
-                                        `(face bold read-only t))
-                 (sly-warning "Expected `sly-mrepl--read-mode' to be set!"))
+               (sly-mrepl--ensure-newline)
                (sly-mrepl--catch-up)
-               (setq sly-mrepl--read-mode nil)
+               (sly-message "Listener waiting for input to read and by the way %s" (sly-mrepl--busy-p)))
+        (:eval (if sly-mrepl--read-mark
+                   (add-text-properties (1- sly-mrepl--read-mark) (point)
+                                        `(face bold read-only t))
+                 (sly-warning "Expected `sly-mrepl--read-mark' to be set!"))
+               (setq sly-mrepl--read-mark nil)
                (when sly-mrepl--pending-output
                  (sly-mrepl--insert-output "\n"))
                (sly-message "Listener waiting for sexps to eval"))))))
@@ -296,8 +297,7 @@ for output printed to the REPL (not for evaluation results)")
 (defun sly-mrepl--mark ()
   "Returns a marker to the end of the last prompt."
   (let ((proc (sly-mrepl--process)))
-    (unless proc
-      (user-error "Sorry, can't do anything in this disconnected REPL"))
+    (unless proc (sly-user-error "Not in a connected REPL"))
     (process-mark proc)))
 
 (defun sly-mrepl--safe-mark ()
@@ -361,7 +361,7 @@ In that case, moving a sexp backward does nothing."
        (get-char-property pos 'sly-mrepl-break-output)))
 
 (defun sly-mrepl--insert-output (string &optional face nofilters)
-  (cond ((and (not sly-mrepl--read-mode) string)
+  (cond ((and (not sly-mrepl--read-mark) string)
          (let ((inhibit-read-only t)
                (start (marker-position sly-mrepl--output-mark))
                (face (or face
@@ -554,8 +554,8 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
                 (sly-mrepl--make-result-button result idx))))))
 
 (defun sly-mrepl--catch-up ()
-  (when (> (sly-mrepl--mark) sly-mrepl--output-mark)
-    (set-marker sly-mrepl--output-mark (sly-mrepl--mark))))
+  "Synchronize the output mark with the REPL process mark."
+  (set-marker sly-mrepl--output-mark (sly-mrepl--mark)))
 
 (defun sly-mrepl--input-sender (_proc string)
   (sly-mrepl--send-string (substring-no-properties string)))
@@ -867,20 +867,21 @@ arglist for the most recently enclosed macro or function."
              "No local live process, cannot use this REPL")
   (accept-process-output)
   (cond ((and
-          (not sly-mrepl--read-mode)
+          (not sly-mrepl--read-mark)
           (sly-mrepl--busy-p))
          (sly-message "REPL is busy"))
-        ((and (not sly-mrepl--read-mode)
+        ((and (not sly-mrepl--read-mark)
               (or (sly-input-complete-p (sly-mrepl--mark) (point-max))
                   end-of-input))
          (sly-mrepl--send-input-sexp)
          (sly-mrepl--catch-up))
-        (sly-mrepl--read-mode
+        (sly-mrepl--read-mark
          (unless end-of-input
            (goto-char (point-max))
            (newline))
          (let ((comint-input-filter (lambda (_s) nil)))
-           (comint-send-input 'no-newline)))
+           (comint-send-input 'no-newline))
+         (sly-mrepl--catch-up))
         (t
          (newline-and-indent)
          (sly-message "Input not complete"))))
