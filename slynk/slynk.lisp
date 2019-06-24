@@ -514,7 +514,7 @@ corresponding values in the CDR of VALUE."
 (defun channel-thread-id (channel)
   (slynk-backend:thread-id (channel-thread channel)))
 
-(defmethod close-channel (channel)
+(defmethod close-channel (channel &key)
   (let ((probe (find-channel (channel-id channel))))
     (cond (probe (setf (channels) (delete probe (channels))))
           (t (error "Can't close invalid channel: ~a" channel)))))
@@ -1119,17 +1119,16 @@ point the thread terminates and CHANNEL is closed."
    (lambda ()
      (with-connection (connection)
        (unwind-protect
-            (progn
-              (destructure-case
-                  (slynk-backend:receive)
-                ((:serve-channel c)
-                 (assert (eq c channel))
-                 (loop
-                   (with-top-level-restart (connection
-                                            (drop-unprocessed-events channel))
-                     (when (eq (process-requests nil)
-                               'listener-teardown)
-                       (return)))))))
+            (destructure-case
+                (slynk-backend:receive)
+              ((:serve-channel c)
+               (assert (eq c channel))
+               (loop
+                 (with-top-level-restart (connection
+                                          (drop-unprocessed-events channel))
+                   (when (eq (process-requests nil)
+                             'listener-teardown)
+                     (return))))))
          (close-channel channel))))
    :name (with-slots (id name) channel
            (format nil "sly-channel-~a-~a" id name))))
@@ -1148,7 +1147,7 @@ point the thread terminates and CHANNEL is closed."
             (escape-non-ascii (safe-condition-message condition)))
     (let ((*emacs-connection* c))
       (format *log-output* "~&;; closing ~a channels~%" (length (connection-channels c)))
-      (mapc #'close-channel (connection-channels c))
+      (mapc #'(lambda (c) (close-channel c :force t)) (connection-channels c))
       (format *log-output* "~&;; closing ~a listeners~%" (length (connection-listeners c)))
       (mapc #'close-listener (connection-listeners c)))
     (stop-serving-requests c)

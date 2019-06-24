@@ -669,9 +669,9 @@ Return the current redirection target, or nil"
         (flush-listener-streams l)))
     *target-listener-for-redirection*))
 
-(defmethod close-channel :before ((r mrepl))
+(defmethod close-channel :before ((r mrepl) &key force)
   (with-slots (mode remote-id) r
-    (unless (eq mode :teardown)
+    (unless (or force (eq mode :teardown))
       (send-to-remote-channel remote-id `(:server-side-repl-close)))
     ;; If this channel was the redirection target.
     (close-listener r)
@@ -680,6 +680,6 @@ Return the current redirection target, or nil"
       (maybe-redirect-global-io (default-connection))
       (unless *target-listener-for-redirection*
         (revert-global-io-redirection)
-        (format *standard-output* "~&; Reverted global IO direction~%")))))
+        (format slynk:*log-output* "~&; Reverted global IO direction~%")))))
 
 (provide :slynk/mrepl)
