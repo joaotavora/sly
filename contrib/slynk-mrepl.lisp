@@ -272,6 +272,10 @@ Set this to NIL to turn this feature off.")
 
 (defun read-input (repl)
   (with-slots (mode tag remote-id) repl
+    (assert (eq (channel-thread-id repl)
+                (slynk-backend:thread-id (slynk-backend:current-thread)))
+            nil
+            "Extra-REPL read requests aren't supported")
     (flush-listener-streams repl)
     (let ((old-mode mode)
           (old-tag tag))
@@ -304,6 +308,9 @@ Set this to NIL to turn this feature off.")
   ;; slynk.lisp's :teardown method should suffice.
   ;;
   (setf (mrepl-mode r) :teardown)
+  (format
+   *standard-output*
+   "; REPL mode is now ~a.~%" (mrepl-mode r))
   (call-next-method))
 
 (define-channel-method :clear-repl-history ((r mrepl))
