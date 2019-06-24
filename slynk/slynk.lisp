@@ -485,8 +485,7 @@ corresponding values in the CDR of VALUE."
            :reader channel-thread)
    (name   :initarg :name   :initform nil)))
 
-(defmethod shared-initialize :after ((ch channel) slot-names &key)
-  (declare (ignore slot-names))
+(defmethod initialize-instance :after ((ch channel) &key)
   ;; FIXME: slightly fugly, but I need this to be able to name the
   ;; thread according to the channel's id.
   ;;
@@ -515,7 +514,7 @@ corresponding values in the CDR of VALUE."
 (defun channel-thread-id (channel)
   (slynk-backend:thread-id (channel-thread channel)))
 
-(defmethod close-channel (channel &key)
+(defmethod close-channel (channel)
   (let ((probe (find-channel (channel-id channel))))
     (cond (probe (setf (channels) (delete probe (channels))))
           (t (error "Can't close invalid channel: ~a" channel)))))
@@ -1149,7 +1148,7 @@ point the thread terminates and CHANNEL is closed."
             (escape-non-ascii (safe-condition-message condition)))
     (let ((*emacs-connection* c))
       (format *log-output* "~&;; closing ~a channels~%" (length (connection-channels c)))
-      (mapc (lambda (c) (close-channel c :force t)) (connection-channels c))
+      (mapc #'close-channel (connection-channels c))
       (format *log-output* "~&;; closing ~a listeners~%" (length (connection-listeners c)))
       (mapc #'close-listener (connection-listeners c)))
     (stop-serving-requests c)
