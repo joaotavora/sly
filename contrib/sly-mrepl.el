@@ -219,14 +219,15 @@ for output printed to the REPL (not for evaluation results)")
                (add-text-properties (1- (point)) (point)
                                     `(rear-nonsticky t))
                (sly-message "Listener waiting for input to read"))
-        (:eval (if sly-mrepl--read-mark
-                   (add-text-properties (1- sly-mrepl--read-mark) (point)
-                                        `(face bold read-only t))
-                 (sly-warning "Expected `sly-mrepl--read-mark' to be set!"))
-               (setq sly-mrepl--read-mark nil)
-               (when sly-mrepl--pending-output
-                 (sly-mrepl--insert-output "\n"))
-               (sly-message "Listener waiting for sexps to eval"))))))
+        (:finished-reading
+         (if sly-mrepl--read-mark
+             (add-text-properties (1- sly-mrepl--read-mark) (point)
+                                  `(face bold read-only t))
+           (sly-warning "Expected `sly-mrepl--read-mark' to be set!"))
+         (setq sly-mrepl--read-mark nil)
+         (when sly-mrepl--pending-output
+           (sly-mrepl--insert-output "\n"))
+         (sly-message "Listener waiting for sexps to eval"))))))
 
 (sly-define-channel-method listener :prompt (package prompt
                                                      error-level

@@ -24,7 +24,6 @@
 (defclass mrepl (channel listener)
   ((remote-id   :initarg  :remote-id :accessor mrepl-remote-id)
    (mode        :initform :eval   :accessor mrepl-mode)
-   (tag         :initform nil)
    (pending-errors :initform nil :accessor mrepl-pending-errors))
   (:documentation "A listener implemented in terms of a channel.")
   (:default-initargs
@@ -169,6 +168,7 @@ Set this to NIL to turn this feature off.")
   (let ((aborted t)
         (results)
         (errored))
+    (setf (mrepl-mode repl) :busy)
     (unwind-protect
          (let* ((previous-hook *debugger-hook*)
                 (*debugger-hook* (lambda (condition hook)
@@ -203,7 +203,8 @@ Set this to NIL to turn this feature off.")
                  (send-to-remote-channel
                   (mrepl-remote-id repl)
                   `(:write-values ,(make-results results)))))
-          (send-prompt repl))))))
+          (send-prompt repl)
+          (setf (mrepl-mode repl) :eval))))))
 
 (defun prompt-arguments (repl condition)
   `(,(package-name *package*)
@@ -217,11 +218,6 @@ Set this to NIL to turn this feature off.")
 (defun send-prompt (repl &optional condition)
   (send-to-remote-channel (mrepl-remote-id repl)
                           `(:prompt ,@(prompt-arguments repl condition))))
-
-(defun mrepl-read (repl string)
-  (with-slots (tag) repl
-    (assert tag)
-    (throw tag string)))
 
 (defun mrepl-eval-1 (repl string)
   "In REPL's environment, READ and EVAL forms in STRING."
@@ -264,27 +260,35 @@ Set this to NIL to turn this feature off.")
         (setf (cdr (assoc '*package* (slot-value repl 'slynk::env)))
               *package*)))))
 
-(defun set-mode (repl new-mode)
+(defun set-external-mode (repl new-mode)
   (with-slots (mode remote-id) repl
     (unless (eq mode new-mode)
       (send-to-remote-channel remote-id `(:set-read-mode ,new-mode)))
     (setf mode new-mode)))
 
 (defun read-input (repl)
-  (with-slots (mode tag remote-id) repl
-    (assert (eq (channel-thread-id repl)
-                (slynk-backend:thread-id (slynk-backend:current-thread)))
-            nil
-            "Extra-REPL read requests aren't supported")
-    (flush-listener-streams repl)
-    (let ((old-mode mode)
-          (old-tag tag))
-      (setf tag (cons nil nil))
-      (set-mode repl :read)
+  (with-slots (mode remote-id) repl
+    ;; shouldn't happen with slynk-gray.lisp, they use locks
+    (assert (not (eq mode :read)) nil "Cannot pipeline READs")
+    (let ((tid (slynk-backend:thread-id (slynk-backend:current-thread)))
+          (old-mode mode))
       (unwind-protect
-           (catch tag (process-requests nil))
-        (setf tag old-tag)
-        (set-mode repl old-mode)))))
+           (cond ((and (eq (channel-thread-id repl) tid)
+                       (eq mode :busy))
+                  (flush-listener-streams repl)
+                  (set-external-mode repl :read)
+                  (unwind-protect
+                      (catch 'mrepl-read (process-requests nil))
+                    (set-external-mode repl :finished-reading)))
+                 (t
+                  (setf mode :read)
+                  (with-output-to-string (s)
+                    (format s
+                            (or (slynk::read-from-minibuffer-in-emacs
+                                 (format nil "Input for thread ~a? " tid))
+                                (error "READ for thread ~a interrupted" tid)))
+                    (terpri s))))
+        (setf mode old-mode)))))
 
 
 ;;; Channel methods
@@ -298,10 +302,11 @@ Set this to NIL to turn this feature off.")
          (mrepl-get-object-from-history entry-idx value-idx))))))
 
 (define-channel-method :process ((c mrepl) string)
-  (ecase (mrepl-mode c)
-    (:eval (mrepl-eval c string))
-    (:read (mrepl-read c string))
-    (:drop)))
+  (with-slots (mode) c
+    (case mode
+      (:eval (mrepl-eval c string))
+      (:read (throw 'mrepl-read string))
+      (:drop))))
 
 (define-channel-method :teardown ((r mrepl))
   ;; FIXME: this should be a `:before' spec and closing the channel in
