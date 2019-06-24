@@ -667,7 +667,7 @@ Return the current redirection target, or nil"
 (defmethod close-channel :before ((r mrepl))
   (with-slots (mode remote-id) r
     (unless (eq mode :teardown)
-      (send-to-remote-channel remote-id `(:server-side-repl-close))))
+      (send-to-remote-channel remote-id `(:server-side-repl-close)))
     ;; If this channel was the redirection target.
     (close-listener r)
     (when (eq r *target-listener-for-redirection*)
