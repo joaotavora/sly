@@ -1114,7 +1114,15 @@ Doesn't clear input history."
 (defun sly-inspector-copy-part-to-repl (number)
   "Evaluate the inspector slot at point via the REPL (to set `*')."
   (sly-mrepl--save-and-copy-for-repl
-   `(slynk:inspector-nth-part-or-lose ,number)
+   ;; FIXME: Using SLYNK:EVAL-FOR-INSPECTOR here repeats logic from
+   ;; sly.el's `sly-eval-for-inspector', but we can't use that here
+   ;; because we're already using `sly-mrepl--save-and-copy-for-repl'.
+   ;; Investigate if these functions could maybe be macros instead.
+   `(slynk:eval-for-inspector
+     ,sly--this-inspector-name
+     nil
+     'slynk:inspector-nth-part-or-lose
+     ,number)
    :before (format "Returning inspector slot %s" number)))
 
 (defun sly-db-copy-part-to-repl (frame-id var-id)
