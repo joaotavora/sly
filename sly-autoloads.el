@@ -1,4 +1,4 @@
-;;; sly-autoloads.el --- autoload definitions for SLY
+;;; sly-autoloads.el --- autoload definitions for SLY -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 2007  Helmut Eller
 
@@ -13,6 +13,9 @@
 ;; JT@14/01/09: FIXME: This file should be auto-generated with autoload cookies.
 
 ;;; Code:
+
+(add-to-list 'load-path (directory-file-name
+                         (or (file-name-directory #$) (car load-path))))
 
 (autoload 'sly "sly"
   "Start a Lisp subprocess and connect to its Slynk server." t)
@@ -51,6 +54,3 @@ replace `slime-lisp-mode-hook' with `sly-editing-mode'."))
 (provide 'sly-autoloads)
 
 ;;; sly-autoloads.el ends here
-;; Local Variables:
-;; no-byte-compile: t
-;; End:
