@@ -313,9 +313,6 @@ Set this to NIL to turn this feature off.")
   ;; slynk.lisp's :teardown method should suffice.
   ;;
   (setf (mrepl-mode r) :teardown)
-  (format
-   *standard-output*
-   "; REPL mode is now ~a.~%" (mrepl-mode r))
   (call-next-method))
 
 (define-channel-method :clear-repl-history ((r mrepl))
