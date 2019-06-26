@@ -5,6 +5,7 @@
 (defpackage :slynk-mrepl
   (:use :cl :slynk-api)
   (:import-from :slynk
+                #:*globally-redirect-io*
                 #:*use-dedicated-output-stream*
                 #:*dedicated-output-stream-port*
                 #:*dedicated-output-stream-buffering*)

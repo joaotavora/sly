@@ -48,6 +48,7 @@
            ;; These are exceptions: they are defined later in
            ;; slynk-mrepl.lisp
            ;;
+           #:*globally-redirect-io*
            #:*use-dedicated-output-stream*
            #:*dedicated-output-stream-port*
            #:*dedicated-output-stream-buffering*
