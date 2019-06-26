@@ -450,7 +450,7 @@ list."
 
 ;;;; Dedicated stream
 ;;;;
-(defvar *use-dedicated-output-stream* t
+(defvar *use-dedicated-output-stream* :started-from-emacs
   "When T, dedicate a second stream for sending output to Emacs.")
 
 (defvar *dedicated-output-stream-port* 0
@@ -462,8 +462,13 @@ list."
 Be advised that some Lisp backends don't support this.
 Valid values are nil, t, :line.")
 
+(defun use-dedicated-output-stream-p ()
+  (case *use-dedicated-output-stream*
+    (:started-from-emacs slynk-api:*m-x-sly-from-emacs*)
+    (t *use-dedicated-output-stream*)))
+
 (defun make-mrepl-output-stream (remote-id)
-  (or (and *use-dedicated-output-stream*
+  (or (and (use-dedicated-output-stream-p)
            (open-dedicated-output-stream remote-id))
       (slynk-backend:make-output-stream
        (make-thread-bindings-aware-lambda
@@ -497,25 +502,31 @@ deliver output to Emacs."
              (slynk:authenticate-client dedicated)
              (slynk-backend:close-socket socket)
              (setf socket nil)
-             ;; See github issue #21: Only sbcl and cmucl apparently
-             ;; respect :LINE as a buffering type, hence this reader
-             ;; conditional. This could/should be a definterface, but
-             ;; looks harmless enough...
-             ;;
-             #+(or sbcl cmucl)
-             dedicated
-             ;; ...on other implementations we make a relaying gray
-             ;; stream that is guaranteed to use line buffering for
-             ;; WRITE-SEQUENCE. That stream writes to the dedicated
-             ;; socket whenever it sees fit.
-             ;;
-             #-(or sbcl cmucl)
-             (if (eq *dedicated-output-stream-buffering* :line)
-                 (slynk-backend:make-output-stream
-                  (lambda (string)
-                    (write-sequence string dedicated)
-                    (force-output dedicated)))
-                 dedicated)))
+             (let ((result
+                     ;; See github issue #21: Only sbcl and cmucl apparently
+                     ;; respect :LINE as a buffering type, hence this reader
+                     ;; conditional. This could/should be a definterface, but
+                     ;; looks harmless enough...
+                     ;;
+                     #+(or sbcl cmucl)
+                     dedicated
+                     ;; ...on other implementations we make a relaying gray
+                     ;; stream that is guaranteed to use line buffering for
+                     ;; WRITE-SEQUENCE. That stream writes to the dedicated
+                     ;; socket whenever it sees fit.
+                     ;;
+                     #-(or sbcl cmucl)
+                     (if (eq *dedicated-output-stream-buffering* :line)
+                         (slynk-backend:make-output-stream
+                          (lambda (string)
+                            (write-sequence string dedicated)
+                            (force-output dedicated)))
+                         dedicated)))
+               (prog1 result
+                 (format result
+                         "~&; Dedicated output stream setup (port ~a)~%"
+                         port)
+                 (force-output result)))))
       (when socket
         (slynk-backend:close-socket socket)))))
 
