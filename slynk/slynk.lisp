@@ -91,6 +91,9 @@
 (defvar *slynk-debug-p* t
   "When true, print extra debugging information.")
 
+(defvar *m-x-sly-from-emacs* nil
+  "Bound to non-nil in START-SERVER.")
+
 (defvar *backtrace-pprint-dispatch-table*
   (let ((table (copy-pprint-dispatch nil)))
     (flet ((print-string (stream string)
@@ -900,10 +903,12 @@ If PACKAGE is not specified, the home package of SYMBOL is used."
 
 (defparameter *loopback-interface* "localhost")
 
-(defun start-server (port-file &key (style *communication-style*)
-                                    (dont-close *dont-close*))
+(defun start-server (port-file
+                     &key (style *communication-style*)
+                       (dont-close *dont-close*))
   "Start the server and write the listen port number to PORT-FILE.
 This is the entry point for Emacs."
+  (setq *m-x-sly-from-emacs* t)
   (setup-server 0
                 (lambda (port) (announce-server-port port-file port))
                 style dont-close nil))
@@ -4038,6 +4043,7 @@ Collisions are caused because package information is ignored."
 (defpackage :slynk-api (:use))
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (let ((api '(#:*emacs-connection*
+               #:*m-x-sly-from-emacs*
                #:default-connection
                ;;
                #:channel

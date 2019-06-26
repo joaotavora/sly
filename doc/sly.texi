@@ -1717,9 +1717,7 @@ The characters printed to the standard Lisp streams
 @code{*standard-output*}, @code{*error-output*} and
 @code{*trace-output*} printed, perhaps @emph{asynchronously},
 from others threads, for instance. This feature is optional and
-controlled by the variable @code{SLYNK:*GLOBALLY-REDIRECT-IO*}. Also
-note that secondary @REPL{}s (started with @kbd{sly-mrepl-new}) don’t
-receive this output.
+controlled by the variable @code{SLYNK:*GLOBALLY-REDIRECT-IO*}. 
 @end itemize
 
 @noindent
@@ -1729,13 +1727,24 @@ the way Slynk transmits @REPL{} output to @SLY{}.
 @table @code
 @item @code{SLYNK:*GLOBALLY-REDIRECT-IO*}
 
-When true this causes the standard streams (@code{*standard-output*},
-etc) to be globally redirected to the @REPL{} in Emacs. When
-@code{NIL} (the default) these streams are only temporarily redirected
-to Emacs using dynamic bindings while handling requests. Note that
-@code{*standard-input*} is currently never globally redirected into
-Emacs, because it can interact badly with the Lisp's native @REPL{} by
-having it try to read from the Emacs one.
+This variable controls the global redirection of the the standard
+streams (@code{*standard-output*}, etc) to the @REPL{} in Emacs. The
+default value is @code{:started-from-emacs}, which means that
+redirection should only take place upon @code{M-x sly} invocations.
+When @code{t} global redirection happens even for sessions started with
+@code{M-x sly-connect}, meaning output may be diverted from whereever
+you started the Lisp server originally.
+
+When @code{NIL} these streams are only temporarily redirected to Emacs
+using dynamic bindings while handling requests, meaning you only see
+output caused by the commands you issued to the REPL.
+
+Note that @code{*standard-input*} is currently never globally redirected
+into Emacs, because it can interact badly with the Lisp's native @REPL{}
+by having it try to read from the Emacs one.
+
+Also note that secondary @REPL{}s (those started with
+@kbd{sly-mrepl-new}) don’t receive any redirected output.
 
 @item @code{SLYNK:*USE-DEDICATED-OUTPUT-STREAM*}
 

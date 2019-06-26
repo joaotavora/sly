@@ -543,8 +543,11 @@ deliver output to Emacs."
 ;;; *CURRENT-STANDARD-INPUT*, etc. We never shadow the "current"
 ;;; variables, so they can always be assigned to affect a global
 ;;; change.
-(defparameter *globally-redirect-io* t
-  "When non-nil globally redirect all standard streams to Emacs.")
+(defvar *globally-redirect-io* :started-from-emacs
+  "If non-nil, attempt to globally redirect standard streams to Emacs.
+If the value is :STARTED-FROM-EMACS, do it only if the Slynk server
+was started from SLYNK:START-SERVER, which is called from Emacs by M-x
+sly.")
 
 (defvar *saved-global-streams* '()
   "A plist to save and restore redirected stream objects.
@@ -650,12 +653,17 @@ Assigns *CURRENT-<STREAM>* for all standard streams."
     (set (prefixed-var '#:current stream-var)
          (getf *saved-global-streams* stream-var))))
 
+(defun globally-redirect-io-p ()
+  (case *globally-redirect-io*
+    (:started-from-emacs slynk-api:*m-x-sly-from-emacs*)
+    (t *globally-redirect-io*)))
+
 (defun maybe-redirect-global-io (connection)
   "Consider globally redirecting output to CONNECTION's listener.
 
 Return the current redirection target, or nil"
   (let ((l (default-listener connection)))
-    (when (and *globally-redirect-io*
+    (when (and (globally-redirect-io-p)
                (null *target-listener-for-redirection*)
                l)
       (unless *saved-global-streams*
