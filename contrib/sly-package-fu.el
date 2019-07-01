@@ -48,6 +48,8 @@ use `sly-export-symbol-representation-function'.")
 (defvar sly-defpackage-regexp
   "^(\\(cl:\\|common-lisp:\\|uiop:\\|\\uiop/package:\\)?\\(defpackage\\|define-package\\)\\>[ \t']*")
 
+(put 'uiop:define-package 'common-lisp-indent-function '(as defpackage))
+
 (defun sly-find-package-definition-rpc (package)
   (sly-eval `(slynk:find-definition-for-thing
                 (slynk::guess-package ,package))))
