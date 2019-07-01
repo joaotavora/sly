@@ -48,6 +48,7 @@
            ;; These are exceptions: they are defined later in
            ;; slynk-mrepl.lisp
            ;;
+           #:*globally-redirect-io*
            #:*use-dedicated-output-stream*
            #:*dedicated-output-stream-port*
            #:*dedicated-output-stream-buffering*
@@ -89,6 +90,9 @@
 
 (defvar *slynk-debug-p* t
   "When true, print extra debugging information.")
+
+(defvar *m-x-sly-from-emacs* nil
+  "Bound to non-nil in START-SERVER.")
 
 (defvar *backtrace-pprint-dispatch-table*
   (let ((table (copy-pprint-dispatch nil)))
@@ -514,7 +518,7 @@ corresponding values in the CDR of VALUE."
 (defun channel-thread-id (channel)
   (slynk-backend:thread-id (channel-thread channel)))
 
-(defmethod close-channel (channel)
+(defmethod close-channel (channel &key)
   (let ((probe (find-channel (channel-id channel))))
     (cond (probe (setf (channels) (delete probe (channels))))
           (t (error "Can't close invalid channel: ~a" channel)))))
@@ -899,10 +903,12 @@ If PACKAGE is not specified, the home package of SYMBOL is used."
 
 (defparameter *loopback-interface* "localhost")
 
-(defun start-server (port-file &key (style *communication-style*)
-                                    (dont-close *dont-close*))
+(defun start-server (port-file
+                     &key (style *communication-style*)
+                       (dont-close *dont-close*))
   "Start the server and write the listen port number to PORT-FILE.
 This is the entry point for Emacs."
+  (setq *m-x-sly-from-emacs* t)
   (setup-server 0
                 (lambda (port) (announce-server-port port-file port))
                 style dont-close nil))
@@ -1118,18 +1124,18 @@ point the thread terminates and CHANNEL is closed."
   (slynk-backend:spawn
    (lambda ()
      (with-connection (connection)
-       (destructure-case
-        (slynk-backend:receive)
-        ((:serve-channel c)
-         (assert (eq c channel))
-         (loop
-           (with-top-level-restart (connection
-                                    (drop-unprocessed-events channel))
-             
-             (when (eq (process-requests nil)
-                       'listener-teardown)
-               (return))))))
-       (close-channel channel)))
+       (unwind-protect
+            (destructure-case
+                (slynk-backend:receive)
+              ((:serve-channel c)
+               (assert (eq c channel))
+               (loop
+                 (with-top-level-restart (connection
+                                          (drop-unprocessed-events channel))
+                   (when (eq (process-requests nil)
+                             'listener-teardown)
+                     (return))))))
+         (close-channel channel))))
    :name (with-slots (id name) channel
            (format nil "sly-channel-~a-~a" id name))))
 
@@ -1147,7 +1153,7 @@ point the thread terminates and CHANNEL is closed."
             (escape-non-ascii (safe-condition-message condition)))
     (let ((*emacs-connection* c))
       (format *log-output* "~&;; closing ~a channels~%" (length (connection-channels c)))
-      (mapc #'close-channel (connection-channels c))
+      (mapc #'(lambda (c) (close-channel c :force t)) (connection-channels c))
       (format *log-output* "~&;; closing ~a listeners~%" (length (connection-listeners c)))
       (mapc #'close-listener (connection-listeners c)))
     (stop-serving-requests c)
@@ -2014,8 +2020,10 @@ same as that variable.")
                 number extra-presentations)
         (format nil "~A" number))))
 
-(defun echo-for-emacs (values)
-  "Format VALUES in a way suitable to be echoed in the SLY client"
+(defun echo-for-emacs (values &optional (fn #'slynk-pprint))
+  "Format VALUES in a way suitable to be echoed in the SLY client.
+May insert newlines between each of VALUES.  Considers
+*ECHO-NUMBER-ALIST*."
   (let ((*print-readably* nil))
     (cond ((null values) "; No value")
           ((and (numberp (car values))
@@ -2023,7 +2031,7 @@ same as that variable.")
            (present-number-considering-alist (car values) *echo-number-alist*))
           (t
            (let ((strings (loop for v in values
-                                collect (slynk-pprint-to-line v))))
+                                collect (funcall fn v))))
              (if (some #'(lambda (s) (find #\Newline s))
                        strings)
                  (format nil "~{~a~^~%~}" strings)
@@ -2097,18 +2105,19 @@ Used by pprint-eval.")
   "Pretty print OBJECT to STREAM using *SLYNK-PPRINT-BINDINGS*.
 If STREAM is nil, use a string"
   (with-bindings *slynk-pprint-bindings*
-    ;; a failsafe for *PRINT-LENGTH*: if it's NIL and *PRINT-CIRCLE*
-    ;; is also nil we could be in trouble printing circular lists, for example.
-    ;; 
-    (let ((*print-length* (if (and (not *print-circle*)
-                                   (not *print-length*))
-                              512
-                              *print-length*)))
+    ;; a failsafe for *PRINT-LENGTH* and *PRINT-LEVEL*: if they're NIL
+    ;; and *PRINT-CIRCLE* is also nil we could be in trouble printing
+    ;; recursive structures.
+    ;;
+    (let ((*print-length* (or *print-length*
+                              (and (not *print-circle*) 512)))
+          (*print-level* (or *print-level*
+                              (and (not *print-circle*) 20))))
       (without-printing-errors (:object object :stream stream)
         (if stream
             (write object :stream stream :pretty t :escape t)
             (with-output-to-string (s)
-              (slynk-pprint object :stream s)))))))
+              (write object :stream s :pretty t :escape t)))))))
 
 (defun slynk-pprint-values (values &key (stream nil))
   "Pretty print each of VALUES to STREAM using *SLYNK-PPRINT-BINDINGS*.
@@ -2130,11 +2139,11 @@ If STREAM is nil, use a string"
                  (with-output-to-string (s)
                    (print-all s))))))))
 
-(defun slynk-pprint-to-line (object &optional width)
+(defun slynk-pprint-to-line (object)
   "Print OBJECT to a single line at most. Return the string."
   (let ((*slynk-pprint-bindings*
-          `((*print-right-margin* . ,(or width 512))
-            (*print-lines* . 1)
+          `((*print-lines* . 1)
+            (*print-right-margin* . 512)
             ,@*slynk-pprint-bindings*)))
     (slynk-pprint object)))
 
@@ -2681,13 +2690,15 @@ TAGS has is a list of strings."
         (mapcar #'to-string (frame-catch-tags index))))
 
 (defun frame-locals-for-emacs (index)
-  (with-bindings *backtrace-printer-bindings*
-    (loop for var in (frame-locals index) collect
-          (destructuring-bind (&key name id value) var
-            (list :name (let ((*package* (or (frame-package index) *package*)))
-                          (prin1-to-string name))
-                  :id id
-                  :value (slynk-pprint-to-line value *print-right-margin*))))))
+  (loop for var in (frame-locals index)
+        collect
+        (destructuring-bind (&key name id value) var
+          (list :name (let ((*package* (or (frame-package index) *package*)))
+                        (prin1-to-string name))
+                :id id
+                :value
+                (let ((*slynk-pprint-bindings* *backtrace-printer-bindings*))
+                  (slynk-pprint value))))))
 
 (defslyfun sly-db-disassemble (index)
   (with-output-to-string (*standard-output*)
@@ -2959,8 +2970,9 @@ designator. Returns a list of all modules available."
 
 (defun apply-macro-expander (expander string)
   (with-buffer-syntax ()
-    (with-bindings *macroexpand-printer-bindings*
-      (prin1-to-string (funcall expander (from-string string))))))
+    (let ((expansion (funcall expander (from-string string))))
+      (with-bindings *macroexpand-printer-bindings*
+        (prin1-to-string expansion)))))
 
 (defslyfun slynk-macroexpand-1 (string)
   (apply-macro-expander #'macroexpand-1 string))
@@ -4031,6 +4043,7 @@ Collisions are caused because package information is ignored."
 (defpackage :slynk-api (:use))
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (let ((api '(#:*emacs-connection*
+               #:*m-x-sly-from-emacs*
                #:default-connection
                ;;
                #:channel

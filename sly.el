@@ -600,6 +600,7 @@ interactive command.\".")
   "Minor mode for all read-only SLY buffers"
   nil nil nil
   (sly-mode 1)
+  (sly-interactive-buttons-mode 1)
   (setq buffer-read-only t))
 
 
@@ -2013,6 +2014,7 @@ This is automatically synchronized from Lisp.")
 
 (defun sly-check-version (version conn)
   (or (equal version sly-protocol-version)
+      (null sly-protocol-version)
       sly-ignore-protocol-mismatches
       (sly-y-or-n-p
        (format "Versions differ: %s (sly) vs. %s (slynk). Continue? "
@@ -2362,6 +2364,9 @@ or nil if nothing suitable can be found.")
 ;;; that `throw's its result up to a `catch' and then enter a loop of
 ;;; handling I/O until that happens.
 
+(defvar sly-stack-eval-tags nil
+  "List of stack-tags of continuations waiting on the stack.")
+
 (defun sly-eval (sexp &optional package cancel-on-input cancel-on-input-retval)
   "Evaluate SEXP in Slynk's PACKAGE and return the result.
 If CANCEL-ON-INPUT cancel the request immediately if the user
@@ -2369,6 +2374,7 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
   (when (null package) (setq package (sly-current-package)))
   (let* ((catch-tag (make-symbol (format "sly-result-%d"
                                          (1+ (sly-continuation-counter)))))
+         (sly-stack-eval-tags (cons catch-tag sly-stack-eval-tags))
          (cancelled-on-input nil)
          (check-conn
           (lambda ()
@@ -2381,15 +2387,18 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
            (sexp package)
          ((:ok value)
           (unless cancelled-on-input
+            (unless (member catch-tag sly-stack-eval-tags)
+              (error "Reply to canceled synchronous eval request tag=%S sexp=%S"
+                     catch-tag sexp))
             (throw catch-tag (list #'identity value))))
          ((:abort _condition)
           (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
        (cond (cancel-on-input
-              (unwind-protect
-                  (let ((inhibit-quit t))
-                    (while-no-input
-                      (while t (accept-process-output nil 0.1))))
-                (setq cancelled-on-input t))
+              (let ((inhibit-quit t))
+                (unwind-protect
+                    (while (sit-for 30))
+                  (setq cancelled-on-input t
+                        quit-flag nil)))
               (funcall check-conn))
              (t
               (while t
@@ -3491,15 +3500,16 @@ you should check twice before modifying.")
   ;; Return the number of \r\n eol markers that we need to cross when
   ;; moving N chars forward.  N is the number of chars but \r\n are
   ;; counted as 2 separate chars.
-  (cl-case (coding-system-eol-type buffer-file-coding-system)
-    ((1)
-     (save-excursion
-       (cl-do ((pos (+ (point) n))
-               (count 0 (1+ count)))
-           ((>= (point) pos) (1- count))
-         (forward-line)
-         (cl-decf pos))))
-    (t 0)))
+  (if (zerop n) 0
+    (cl-case (coding-system-eol-type buffer-file-coding-system)
+      ((1)
+       (save-excursion
+         (cl-do ((pos (+ (point) n))
+                 (count 0 (1+ count)))
+             ((>= (point) pos) (1- count))
+           (forward-line)
+           (cl-decf pos))))
+      (t 0))))
 
 (defun sly-search-method-location (name specializers qualifiers)
   ;; Look for a sequence of words (def<something> method name
@@ -3916,7 +3926,7 @@ the function name is prompted. METHOD can be nil, or one of
 popped, respectively, in the current window, a new window, or a
 new frame."
   (interactive (list (or (and (not current-prefix-arg)
-                              (sly-symbol-at-point))
+                              (sly-symbol-at-point t))
                          (sly-read-symbol-name "Edit Definition of: "))))
   ;; The hooks might search for a name in a different manner, so don't
   ;; ask the user if it's missing before the hooks are run
@@ -5352,7 +5362,8 @@ Full list of frame-specific commands:
   ;; Make original sly-connection "sticky" for SLY-DB commands in this buffer
   (setq sly-buffer-connection (sly-connection))
   (setq buffer-read-only t)
-  (sly-mode 1))
+  (sly-mode 1)
+  (sly-interactive-buttons-mode 1))
 
 ;; Keys 0-9 are shortcuts to invoke particular restarts.
 (dotimes (number 10)
@@ -5499,7 +5510,10 @@ pending Emacs continuations."
               (insert "[No backtrace]")))
           (run-hooks 'sly-db-hook)
           (set-syntax-table lisp-mode-syntax-table)))
-      (sly-recenter (point-min) 'allow-moving-point))))
+      (sly-recenter (point-min) 'allow-moving-point)
+      (when sly-stack-eval-tags
+        (sly-message "Entering recursive edit..")
+        (recursive-edit)))))
 
 (defun sly-db--display-in-prev-sly-db-window (buffer _alist)
   (let ((window
@@ -7294,13 +7308,14 @@ The returned bounds are either nil or non-empty."
                 (cdr bounds)))
         bounds)))
 
-(defun sly-symbol-at-point ()
+(defun sly-symbol-at-point (&optional interactive)
   "Return the name of the symbol at point, otherwise nil."
   ;; (thing-at-point 'symbol) returns "" in empty buffers
   (let ((bounds (sly-bounds-of-symbol-at-point)))
-    (if bounds
-        (buffer-substring-no-properties (car bounds)
-                                        (cdr bounds)))))
+    (when bounds
+      (let ((beg (car bounds)) (end (cdr bounds)))
+        (when interactive (sly-flash-region beg end))
+        (buffer-substring-no-properties beg end)))))
 
 (defun sly-bounds-of-sexp-at-point (&optional interactive)
   "Return the bounds sexp near point as a pair (or nil).

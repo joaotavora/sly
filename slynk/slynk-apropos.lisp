@@ -6,7 +6,7 @@
 
 (in-package :slynk-apropos)
 
-(defparameter *preferred-apropos-matcher* 'make-flex-matcher
+(defparameter *preferred-apropos-matcher* 'make-cl-ppcre-matcher
   "Preferred matcher for apropos searches.
 Value is a function of three arguments , PATTERN, CASE-SENSITIVE and
 SYMBOL-NAME-FN that should return a function, called MATCHER of one
@@ -30,27 +30,23 @@ The result is a list of property lists."
     ;; PACKAGE.
     (let* ((*buffer-package* (or package
                                  slynk::*slynk-io-package*))
-           (symbol-name-fn
-             (if package
-                 (lambda (symbol) (string symbol))
-                 (lambda (symbol)
-                   (concatenate 'string
-                                (package-name (symbol-package symbol))
-                                ":"
-                                (symbol-name symbol)))))
            (matcher (funcall *preferred-apropos-matcher*
                              pattern
-                             case-sensitive
-                             symbol-name-fn))
+                             case-sensitive))
            (seen (make-hash-table))
            result)
 
       (do-all-symbols (sym)
-        (multiple-value-bind (bounds score)
-            (funcall matcher sym)
-          (unless (gethash sym seen)
-            (when bounds
-              (let ((external (symbol-external-p sym)))
+        (let ((external (symbol-external-p sym)))
+          (multiple-value-bind (bounds score)
+              (funcall matcher (if package
+                                   (string sym)
+                                   (concatenate 'string
+                                                (package-name (symbol-package sym))
+                                                (if external ":" "::")
+                                                (symbol-name sym))))
+            (unless (gethash sym seen)
+              (when bounds
                 (unless (or (and external-only
                                  (not external))
                             (and package
@@ -58,8 +54,8 @@ The result is a list of property lists."
                   (push `(,sym :bounds ,bounds
                                ,@(and score `(:flex-score ,score))
                                :external-p ,external)
-                        result))))
-            (setf (gethash sym seen) t))))
+                        result)))
+              (setf (gethash sym seen) t)))))
       (loop for (symbol . extra)
               in (sort result
                        (lambda (x y)
@@ -117,7 +113,7 @@ that symbols accessible in the current package go first."
                      (string< (symbol-name x) (symbol-name y))
                      (string< (package-name px) (package-name py)))))))))
 
-(defun make-cl-ppcre-matcher (pattern case-sensitive symbol-name-fn)
+(defun make-cl-ppcre-matcher (pattern case-sensitive)
   (if (not (every #'alpha-char-p pattern))
       (cond ((find-package :cl-ppcre)
              (background-message "Using CL-PPCRE for apropos on regexp \"~a\"" pattern)
@@ -125,31 +121,31 @@ that symbols accessible in the current package go first."
              (let ((matcher (funcall (read-from-string "cl-ppcre:create-scanner")
                                      pattern
                                      :case-insensitive-mode (not case-sensitive))))
-               (lambda (symbol)
+               (lambda (symbol-name)
                  (multiple-value-bind (beg end)
                      (funcall (read-from-string "cl-ppcre:scan")
                               matcher
-                              (funcall symbol-name-fn symbol))
+                              symbol-name)
                    (when beg `((,beg ,end)))))))
             (t
              (background-message "Using plain apropos. Load CL-PPCRE to enable regexps")
-             (make-plain-matcher pattern case-sensitive symbol-name-fn)))
-      (make-plain-matcher pattern case-sensitive symbol-name-fn)))
+             (make-plain-matcher pattern case-sensitive)))
+      (make-plain-matcher pattern case-sensitive)))
 
-(defun make-plain-matcher (pattern case-sensitive symbol-name-fn)
+(defun make-plain-matcher (pattern case-sensitive)
   (let ((chr= (if case-sensitive #'char= #'char-equal)))
-    (lambda (symbol)
+    (lambda (symbol-name)
       (let ((beg (search pattern
-                         (funcall symbol-name-fn symbol)
+                         symbol-name
                          :test chr=)))
         (when beg
           `((,beg ,(+ beg (length pattern)))))))))
 
-(defun make-flex-matcher (pattern case-sensitive symbol-name-fn)
+(defun make-flex-matcher (pattern case-sensitive)
   (if (zerop (length pattern))
-      (make-plain-matcher pattern case-sensitive symbol-name-fn)
+      (make-plain-matcher pattern case-sensitive)
       (let ((chr= (if case-sensitive #'char= #'char-equal)))
-        (lambda (symbol)
+        (lambda (symbol-name)
           (slynk-completion:flex-matches
-           pattern (funcall symbol-name-fn symbol) symbol chr=)))))
+           pattern symbol-name chr=)))))
 

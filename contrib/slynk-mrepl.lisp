@@ -5,6 +5,7 @@
 (defpackage :slynk-mrepl
   (:use :cl :slynk-api)
   (:import-from :slynk
+                #:*globally-redirect-io*
                 #:*use-dedicated-output-stream*
                 #:*dedicated-output-stream-port*
                 #:*dedicated-output-stream-buffering*)
@@ -24,7 +25,6 @@
 (defclass mrepl (channel listener)
   ((remote-id   :initarg  :remote-id :accessor mrepl-remote-id)
    (mode        :initform :eval   :accessor mrepl-mode)
-   (tag         :initform nil)
    (pending-errors :initform nil :accessor mrepl-pending-errors))
   (:documentation "A listener implemented in terms of a channel.")
   (:default-initargs
@@ -169,6 +169,7 @@ Set this to NIL to turn this feature off.")
   (let ((aborted t)
         (results)
         (errored))
+    (setf (mrepl-mode repl) :busy)
     (unwind-protect
          (let* ((previous-hook *debugger-hook*)
                 (*debugger-hook* (lambda (condition hook)
@@ -203,7 +204,8 @@ Set this to NIL to turn this feature off.")
                  (send-to-remote-channel
                   (mrepl-remote-id repl)
                   `(:write-values ,(make-results results)))))
-          (send-prompt repl))))))
+          (send-prompt repl)
+          (setf (mrepl-mode repl) :eval))))))
 
 (defun prompt-arguments (repl condition)
   `(,(package-name *package*)
@@ -217,11 +219,6 @@ Set this to NIL to turn this feature off.")
 (defun send-prompt (repl &optional condition)
   (send-to-remote-channel (mrepl-remote-id repl)
                           `(:prompt ,@(prompt-arguments repl condition))))
-
-(defun mrepl-read (repl string)
-  (with-slots (tag) repl
-    (assert tag)
-    (throw tag string)))
 
 (defun mrepl-eval-1 (repl string)
   "In REPL's environment, READ and EVAL forms in STRING."
@@ -264,23 +261,35 @@ Set this to NIL to turn this feature off.")
         (setf (cdr (assoc '*package* (slot-value repl 'slynk::env)))
               *package*)))))
 
-(defun set-mode (repl new-mode)
+(defun set-external-mode (repl new-mode)
   (with-slots (mode remote-id) repl
     (unless (eq mode new-mode)
       (send-to-remote-channel remote-id `(:set-read-mode ,new-mode)))
     (setf mode new-mode)))
 
 (defun read-input (repl)
-  (with-slots (mode tag remote-id) repl
-    (flush-listener-streams repl)
-    (let ((old-mode mode)
-          (old-tag tag))
-      (setf tag (cons nil nil))
-      (set-mode repl :read)
+  (with-slots (mode remote-id) repl
+    ;; shouldn't happen with slynk-gray.lisp, they use locks
+    (assert (not (eq mode :read)) nil "Cannot pipeline READs")
+    (let ((tid (slynk-backend:thread-id (slynk-backend:current-thread)))
+          (old-mode mode))
       (unwind-protect
-           (catch tag (process-requests nil))
-        (setf tag old-tag)
-        (set-mode repl old-mode)))))
+           (cond ((and (eq (channel-thread-id repl) tid)
+                       (eq mode :busy))
+                  (flush-listener-streams repl)
+                  (set-external-mode repl :read)
+                  (unwind-protect
+                      (catch 'mrepl-read (process-requests nil))
+                    (set-external-mode repl :finished-reading)))
+                 (t
+                  (setf mode :read)
+                  (with-output-to-string (s)
+                    (format s
+                            (or (slynk::read-from-minibuffer-in-emacs
+                                 (format nil "Input for thread ~a? " tid))
+                                (error "READ for thread ~a interrupted" tid)))
+                    (terpri s))))
+        (setf mode old-mode)))))
 
 
 ;;; Channel methods
@@ -294,10 +303,11 @@ Set this to NIL to turn this feature off.")
          (mrepl-get-object-from-history entry-idx value-idx))))))
 
 (define-channel-method :process ((c mrepl) string)
-  (ecase (mrepl-mode c)
-    (:eval (mrepl-eval c string))
-    (:read (mrepl-read c string))
-    (:drop)))
+  (with-slots (mode) c
+    (case mode
+      (:eval (mrepl-eval c string))
+      (:read (throw 'mrepl-read string))
+      (:drop))))
 
 (define-channel-method :teardown ((r mrepl))
   ;; FIXME: this should be a `:before' spec and closing the channel in
@@ -440,7 +450,7 @@ list."
 
 ;;;; Dedicated stream
 ;;;;
-(defvar *use-dedicated-output-stream* t
+(defvar *use-dedicated-output-stream* :started-from-emacs
   "When T, dedicate a second stream for sending output to Emacs.")
 
 (defvar *dedicated-output-stream-port* 0
@@ -452,8 +462,13 @@ list."
 Be advised that some Lisp backends don't support this.
 Valid values are nil, t, :line.")
 
+(defun use-dedicated-output-stream-p ()
+  (case *use-dedicated-output-stream*
+    (:started-from-emacs slynk-api:*m-x-sly-from-emacs*)
+    (t *use-dedicated-output-stream*)))
+
 (defun make-mrepl-output-stream (remote-id)
-  (or (and *use-dedicated-output-stream*
+  (or (and (use-dedicated-output-stream-p)
            (open-dedicated-output-stream remote-id))
       (slynk-backend:make-output-stream
        (make-thread-bindings-aware-lambda
@@ -487,25 +502,31 @@ deliver output to Emacs."
              (slynk:authenticate-client dedicated)
              (slynk-backend:close-socket socket)
              (setf socket nil)
-             ;; See github issue #21: Only sbcl and cmucl apparently
-             ;; respect :LINE as a buffering type, hence this reader
-             ;; conditional. This could/should be a definterface, but
-             ;; looks harmless enough...
-             ;;
-             #+(or sbcl cmucl)
-             dedicated
-             ;; ...on other implementations we make a relaying gray
-             ;; stream that is guaranteed to use line buffering for
-             ;; WRITE-SEQUENCE. That stream writes to the dedicated
-             ;; socket whenever it sees fit.
-             ;;
-             #-(or sbcl cmucl)
-             (if (eq *dedicated-output-stream-buffering* :line)
-                 (slynk-backend:make-output-stream
-                  (lambda (string)
-                    (write-sequence string dedicated)
-                    (force-output dedicated)))
-                 dedicated)))
+             (let ((result
+                     ;; See github issue #21: Only sbcl and cmucl apparently
+                     ;; respect :LINE as a buffering type, hence this reader
+                     ;; conditional. This could/should be a definterface, but
+                     ;; looks harmless enough...
+                     ;;
+                     #+(or sbcl cmucl)
+                     dedicated
+                     ;; ...on other implementations we make a relaying gray
+                     ;; stream that is guaranteed to use line buffering for
+                     ;; WRITE-SEQUENCE. That stream writes to the dedicated
+                     ;; socket whenever it sees fit.
+                     ;;
+                     #-(or sbcl cmucl)
+                     (if (eq *dedicated-output-stream-buffering* :line)
+                         (slynk-backend:make-output-stream
+                          (lambda (string)
+                            (write-sequence string dedicated)
+                            (force-output dedicated)))
+                         dedicated)))
+               (prog1 result
+                 (format result
+                         "~&; Dedicated output stream setup (port ~a)~%"
+                         port)
+                 (force-output result)))))
       (when socket
         (slynk-backend:close-socket socket)))))
 
@@ -533,8 +554,11 @@ deliver output to Emacs."
 ;;; *CURRENT-STANDARD-INPUT*, etc. We never shadow the "current"
 ;;; variables, so they can always be assigned to affect a global
 ;;; change.
-(defparameter *globally-redirect-io* t
-  "When non-nil globally redirect all standard streams to Emacs.")
+(defvar *globally-redirect-io* :started-from-emacs
+  "If non-nil, attempt to globally redirect standard streams to Emacs.
+If the value is :STARTED-FROM-EMACS, do it only if the Slynk server
+was started from SLYNK:START-SERVER, which is called from Emacs by M-x
+sly.")
 
 (defvar *saved-global-streams* '()
   "A plist to save and restore redirected stream objects.
@@ -640,12 +664,17 @@ Assigns *CURRENT-<STREAM>* for all standard streams."
     (set (prefixed-var '#:current stream-var)
          (getf *saved-global-streams* stream-var))))
 
+(defun globally-redirect-io-p ()
+  (case *globally-redirect-io*
+    (:started-from-emacs slynk-api:*m-x-sly-from-emacs*)
+    (t *globally-redirect-io*)))
+
 (defun maybe-redirect-global-io (connection)
   "Consider globally redirecting output to CONNECTION's listener.
 
 Return the current redirection target, or nil"
   (let ((l (default-listener connection)))
-    (when (and *globally-redirect-io*
+    (when (and (globally-redirect-io-p)
                (null *target-listener-for-redirection*)
                l)
       (unless *saved-global-streams*
@@ -657,14 +686,17 @@ Return the current redirection target, or nil"
         (flush-listener-streams l)))
     *target-listener-for-redirection*))
 
-(defmethod close-channel :before ((r mrepl))
-  ;; If this channel was the redirection target.
-  (close-listener r)
-  (when (eq r *target-listener-for-redirection*)
-    (setq *target-listener-for-redirection* nil)
-    (maybe-redirect-global-io (default-connection))
-    (unless *target-listener-for-redirection*
-      (revert-global-io-redirection)
-      (format *standard-output* "~&; Reverted global IO direction~%"))))
+(defmethod close-channel :before ((r mrepl) &key force)
+  (with-slots (mode remote-id) r
+    (unless (or force (eq mode :teardown))
+      (send-to-remote-channel remote-id `(:server-side-repl-close)))
+    ;; If this channel was the redirection target.
+    (close-listener r)
+    (when (eq r *target-listener-for-redirection*)
+      (setq *target-listener-for-redirection* nil)
+      (maybe-redirect-global-io (default-connection))
+      (unless *target-listener-for-redirection*
+        (revert-global-io-redirection)
+        (format slynk:*log-output* "~&; Reverted global IO direction~%")))))
 
 (provide :slynk/mrepl)

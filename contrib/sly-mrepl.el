@@ -125,7 +125,7 @@ for output printed to the REPL (not for evaluation results)")
 ;;
 (defvar sly-mrepl--remote-channel nil)
 (defvar sly-mrepl--local-channel nil)
-(defvar sly-mrepl--read-mode nil)
+(defvar sly-mrepl--read-mark nil)
 (defvar sly-mrepl--output-mark nil)
 (defvar sly-mrepl--dedicated-stream nil)
 (defvar sly-mrepl--last-prompt-overlay nil)
@@ -151,7 +151,7 @@ for output printed to the REPL (not for evaluation results)")
                 (comint-prompt-read-only t)
                 (comint-process-echoes nil)
                 (indent-line-function lisp-indent-line)
-                (sly-mrepl--read-mode nil)
+                (sly-mrepl--read-mark nil)
                 (sly-mrepl--pending-output nil)
                 (sly-mrepl--output-mark ,(point-marker))
                 (sly-mrepl--last-prompt-overlay ,(make-overlay 0 0 nil nil))
@@ -179,6 +179,9 @@ for output printed to the REPL (not for evaluation results)")
   ;;(set (make-local-variable 'comint-get-old-input) 'ielm-get-old-input)
   (set-syntax-table lisp-mode-syntax-table)
   (set-keymap-parent sly-mrepl-mode-map nil)
+
+  ;; The REPL buffer has interactive text buttons
+  (sly-interactive-buttons-mode 1)
 
   ;; Add hooks to isearch-mode placed strategically after the ones
   ;; set by comint.el itself.
@@ -212,19 +215,19 @@ for output printed to the REPL (not for evaluation results)")
     (sly-mrepl--accept-process-output)
     (let ((inhibit-read-only t))
       (cl-ecase mode
-        (:read (setq sly-mrepl--read-mode (point))
+        (:read (setq sly-mrepl--read-mark (point))
                (add-text-properties (1- (point)) (point)
                                     `(rear-nonsticky t))
                (sly-message "Listener waiting for input to read"))
-        (:eval (if sly-mrepl--read-mode
-                   (add-text-properties (1- sly-mrepl--read-mode) (point)
-                                        `(face bold read-only t))
-                 (sly-warning "Expected `sly-mrepl--read-mode' to be set!"))
-               (sly-mrepl--catch-up)
-               (setq sly-mrepl--read-mode nil)
-               (when sly-mrepl--pending-output
-                 (sly-mrepl--insert-output "\n"))
-               (sly-message "Listener waiting for sexps to eval"))))))
+        (:finished-reading
+         (if sly-mrepl--read-mark
+             (add-text-properties (1- sly-mrepl--read-mark) (point)
+                                  `(face bold read-only t))
+           (sly-warning "Expected `sly-mrepl--read-mark' to be set!"))
+         (setq sly-mrepl--read-mark nil)
+         (when sly-mrepl--pending-output
+           (sly-mrepl--insert-output "\n"))
+         (sly-message "Listener waiting for sexps to eval"))))))
 
 (sly-define-channel-method listener :prompt (package prompt
                                                      error-level
@@ -244,6 +247,10 @@ for output printed to the REPL (not for evaluation results)")
     (let ((inhibit-read-only t))
       (erase-buffer)
       (sly-mrepl--insert-note "Cleared REPL history"))))
+
+(sly-define-channel-method listener :server-side-repl-close ()
+  (with-current-buffer (sly-channel-get self 'buffer)
+    (sly-mrepl--teardown "Server side close" 'dont-signal-server)))
 
 
 ;;; Button type
@@ -288,8 +295,7 @@ for output printed to the REPL (not for evaluation results)")
 (defun sly-mrepl--mark ()
   "Returns a marker to the end of the last prompt."
   (let ((proc (sly-mrepl--process)))
-    (unless proc
-      (user-error "Sorry, can't do anything in this disconnected REPL"))
+    (unless proc (sly-user-error "Not in a connected REPL"))
     (process-mark proc)))
 
 (defun sly-mrepl--safe-mark ()
@@ -353,7 +359,7 @@ In that case, moving a sexp backward does nothing."
        (get-char-property pos 'sly-mrepl-break-output)))
 
 (defun sly-mrepl--insert-output (string &optional face nofilters)
-  (cond ((and (not sly-mrepl--read-mode) string)
+  (cond ((and (not sly-mrepl--read-mark) string)
          (let ((inhibit-read-only t)
                (start (marker-position sly-mrepl--output-mark))
                (face (or face
@@ -546,8 +552,8 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
                 (sly-mrepl--make-result-button result idx))))))
 
 (defun sly-mrepl--catch-up ()
-  (when (> (sly-mrepl--mark) sly-mrepl--output-mark)
-    (set-marker sly-mrepl--output-mark (sly-mrepl--mark))))
+  "Synchronize the output mark with the REPL process mark."
+  (set-marker sly-mrepl--output-mark (sly-mrepl--mark)))
 
 (defun sly-mrepl--input-sender (_proc string)
   (sly-mrepl--send-string (substring-no-properties string)))
@@ -654,7 +660,7 @@ recent entry that is discarded."
                         sly-mrepl--dirty-history)
                (sly-mrepl--merge-and-save-history)))))
 
-(defun sly-mrepl--teardown (&optional reason)
+(defun sly-mrepl--teardown (&optional reason dont-signal-server)
   (remove-hook 'kill-buffer-hook 'sly-mrepl--teardown t)
   (let ((inhibit-read-only t))
     (goto-char (point-max))
@@ -670,11 +676,12 @@ recent entry that is discarded."
     (kill-buffer (process-buffer sly-mrepl--dedicated-stream)))
   (sly-close-channel sly-mrepl--local-channel)
   ;; signal lisp that we're closingq
-  (ignore-errors
-    ;; uses `sly-connection', which falls back to
-    ;; `sly-buffer-connection'. If that is closed it's probably
-    ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
-    (sly-mrepl--send `(:teardown)))
+  (unless dont-signal-server
+    (ignore-errors
+      ;; uses `sly-connection', which falls back to
+      ;; `sly-buffer-connection'. If that is closed it's probably
+      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
+      (sly-mrepl--send `(:teardown))))
   (set (make-local-variable 'sly-mrepl--remote-channel) nil)
   (when (sly-mrepl--process)
     (delete-process (sly-mrepl--process))))
@@ -858,20 +865,21 @@ arglist for the most recently enclosed macro or function."
              "No local live process, cannot use this REPL")
   (accept-process-output)
   (cond ((and
-          (not sly-mrepl--read-mode)
+          (not sly-mrepl--read-mark)
           (sly-mrepl--busy-p))
          (sly-message "REPL is busy"))
-        ((and (not sly-mrepl--read-mode)
+        ((and (not sly-mrepl--read-mark)
               (or (sly-input-complete-p (sly-mrepl--mark) (point-max))
                   end-of-input))
          (sly-mrepl--send-input-sexp)
          (sly-mrepl--catch-up))
-        (sly-mrepl--read-mode
+        (sly-mrepl--read-mark
          (unless end-of-input
            (goto-char (point-max))
            (newline))
          (let ((comint-input-filter (lambda (_s) nil)))
-           (comint-send-input 'no-newline)))
+           (comint-send-input 'no-newline))
+         (sly-mrepl--catch-up))
         (t
          (newline-and-indent)
          (sly-message "Input not complete"))))
@@ -947,7 +955,10 @@ handle to distinguish the new buffer from the existing."
     ;; the new REPL will see them.
     (sly-mrepl--save-all-histories)
     (let* ((local (sly-make-channel sly-listener-channel-methods))
-           (buffer (pop-to-buffer name)))
+           (buffer (pop-to-buffer name))
+           (default-directory (if (file-readable-p default-directory)
+                                   default-directory
+                                (expand-file-name "~/"))))
       (with-current-buffer buffer
         (sly-mrepl-mode)
         (when (and (not existing)
@@ -1103,7 +1114,15 @@ Doesn't clear input history."
 (defun sly-inspector-copy-part-to-repl (number)
   "Evaluate the inspector slot at point via the REPL (to set `*')."
   (sly-mrepl--save-and-copy-for-repl
-   `(slynk:inspector-nth-part-or-lose ,number)
+   ;; FIXME: Using SLYNK:EVAL-FOR-INSPECTOR here repeats logic from
+   ;; sly.el's `sly-eval-for-inspector', but we can't use that here
+   ;; because we're already using `sly-mrepl--save-and-copy-for-repl'.
+   ;; Investigate if these functions could maybe be macros instead.
+   `(slynk:eval-for-inspector
+     ,sly--this-inspector-name
+     nil
+     'slynk:inspector-nth-part-or-lose
+     ,number)
    :before (format "Returning inspector slot %s" number)))
 
 (defun sly-db-copy-part-to-repl (frame-id var-id)
@@ -1148,6 +1167,8 @@ Doesn't clear input history."
 
 ;;; The comma shortcut
 ;;;
+(defvar sly-mrepl-shortcut-history nil "History for sly-mrepl-shortcut.")
+
 (defun sly-mrepl-reset-shortcut (key-sequence)
   "Set `sly-mrepl-shortcut' and reset REPL keymap accordingly."
   (interactive "kNew shortcut key sequence? ")
@@ -1179,13 +1200,18 @@ When setting this variable outside of the Customize interface,
                       (search-backward "`" (sly-mrepl--mark) 'noerror)))))))
 
 (defvar sly-mrepl-shortcut-alist
-  '(("sayoonara" . sly-quit-lisp)
-    ("disconnect" . sly-disconnect)
+  ;; keep this alist ordered by the key value, in order to make it easier to see
+  ;; the identifying prefixes and keep them short
+  '(("cd"             . sly-mrepl-set-directory)
+    ("clear repl"     . sly-mrepl-clear-repl)
+    ("disconnect"     . sly-disconnect)
     ("disconnect all" . sly-disconnect-all)
-    ("restart lisp" . sly-restart-inferior-lisp)
-    ("set package" . sly-mrepl-set-package)
-    ("set directory" . sly-mrepl-set-directory)
-    ("clear repl" . sly-mrepl-clear-repl)))
+    ("in-package"     . sly-mrepl-set-package)
+    ("restart lisp"   . sly-restart-inferior-lisp)
+    ("sayoonara"      . sly-quit-lisp)
+    ("set directory"  . sly-mrepl-set-directory)
+    ("set package"    . sly-mrepl-set-package)))
+
 
 (defun sly-mrepl-set-package ()
   (interactive)
@@ -1205,8 +1231,9 @@ When setting this variable outside of the Customize interface,
   (interactive)
   (let* ((string (sly-completing-read "Command: "
                                       (mapcar #'car sly-mrepl-shortcut-alist)
-                                      nil
-                                      'require-match))
+                                      nil 'require-match nil
+                                      'sly-mrepl-shortcut-history
+                                      (car sly-mrepl-shortcut-history)))
          (command (and string
                        (cdr (assoc string sly-mrepl-shortcut-alist)))))
     (call-interactively command)))

@@ -1717,9 +1717,7 @@ The characters printed to the standard Lisp streams
 @code{*standard-output*}, @code{*error-output*} and
 @code{*trace-output*} printed, perhaps @emph{asynchronously},
 from others threads, for instance. This feature is optional and
-controlled by the variable @code{SLYNK:*GLOBALLY-REDIRECT-IO*}. Also
-note that secondary @REPL{}s (started with @kbd{sly-mrepl-new}) don’t
-receive this output.
+controlled by the variable @code{SLYNK:*GLOBALLY-REDIRECT-IO*}. 
 @end itemize
 
 @noindent
@@ -1729,27 +1727,42 @@ the way Slynk transmits @REPL{} output to @SLY{}.
 @table @code
 @item @code{SLYNK:*GLOBALLY-REDIRECT-IO*}
 
-When true this causes the standard streams (@code{*standard-output*},
-etc) to be globally redirected to the @REPL{} in Emacs. When
-@code{NIL} (the default) these streams are only temporarily redirected
-to Emacs using dynamic bindings while handling requests. Note that
-@code{*standard-input*} is currently never globally redirected into
-Emacs, because it can interact badly with the Lisp's native @REPL{} by
-having it try to read from the Emacs one.
+This variable controls the global redirection of the the standard
+streams (@code{*standard-output*}, etc) to the @REPL{} in Emacs. The
+default value is @code{:started-from-emacs}, which means that
+redirection should only take place upon @code{M-x sly} invocations.
+When @code{t}, global redirection happens even for sessions started with
+@code{M-x sly-connect}, meaning output may be diverted from whereever
+you started the Lisp server originally.
+
+When @code{NIL} these streams are only temporarily redirected to Emacs
+using dynamic bindings while handling requests, meaning you only see
+output caused by the commands you issued to the REPL.
+
+Note that @code{*standard-input*} is currently never globally redirected
+into Emacs, because it can interact badly with the Lisp's native @REPL{}
+by having it try to read from the Emacs one.
+
+Also note that secondary @REPL{}s (those started with
+@kbd{sly-mrepl-new}) don’t receive any redirected output.
 
 @item @code{SLYNK:*USE-DEDICATED-OUTPUT-STREAM*}
 
-This variable controls whether to use a more efficient mechanism for
-sending printed output from Lisp to Emacs.
+This variable controls whether to use a separate socket solely for Lisp
+to send printed output to Emacs through, which is more efficient than
+sending the output in protocol messages to Emacs.
 
-When @code{t}, the default, a separate socket is established solely
-for Lisp to send printed output to Emacs through, which is faster than
-sending the output in protocol-messages to Emacs.
+The default value is @code{:started-from-emacs}, which means that the
+socket should only be establihed upon @code{M-x sly} invocations.  When
+@code{t}, it's established even for sessions started with @code{M-x
+sly-connect}.  When @code{NIL} usual protocol messages are used for
+sending input to the @REPL{}.
 
 Notice that using a dedicated output stream makes it more difficult to
 communicate to a Lisp running on a remote host via SSH
-(@pxref{Connecting to a remote Lisp}), so it might be a good idea to
-set this variable to @code{nil} when doing so.
+(@pxref{Connecting to a remote Lisp}).  If you connect via @code{M-x
+sly-connect}, the default @code{:started-from-emacs} value should ensure
+this isn't a problem.
 
 @item @code{SLYNK:*DEDICATED-OUTPUT-STREAM-PORT*}
 
@@ -2396,7 +2409,7 @@ to managing multiple Lisp connections (@pxref{Multiple connections}).
 A keymap for functionality available in the @SLY{} buffers dedicated
 to inspecting Lisp objects (@pxref{Inspector}).
 
-@item sly-repl-mode-map
+@item sly-mrepl-mode-map
 
 A keymap for functionality available in @SLY{}’s REPL buffers
 (@pxref{REPL}).

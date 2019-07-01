@@ -46,7 +46,7 @@ use `sly-export-symbol-representation-function'.")
   "Save the package file after each automatic modification")
 
 (defvar sly-defpackage-regexp
-  "^(\\(cl:\\|common-lisp:\\)?defpackage\\>[ \t']*")
+  "^(\\(cl:\\|common-lisp:\\|uiop:\\|\\uiop/package:\\)?\\(defpackage\\|define-package\\)\\>[ \t']*")
 
 (defun sly-find-package-definition-rpc (package)
   (sly-eval `(slynk:find-definition-for-thing
@@ -303,8 +303,10 @@ belonging to the current buffer-package. With prefix-arg, remove
 the symbol again. Additionally performs an EXPORT/UNEXPORT of the
 symbol in the Lisp image if possible."
   (interactive)
-  (let ((package (sly-current-package))
-	(symbol (sly-symbol-at-point)))
+  (let* ((symbol (sly-symbol-at-point))
+         (package (or (and (string-match "^\\([^:]+\\):.*" symbol)
+                           (match-string 1 symbol))
+                      (sly-current-package))))
     (unless symbol (error "No symbol at point."))
     (cond (current-prefix-arg
            (let* ((attempt (sly-frob-defpackage-form package :unexport symbol))

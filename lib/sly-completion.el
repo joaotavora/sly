@@ -207,6 +207,13 @@ ANNOTATION) describing each completion possibility."
 		  (car new))
 	  (cadr new))))
 
+;; TODO: this `basic' completion style is actually a `backend'
+;; completion style, meaning a completion style where the filtering is
+;; done entirely by the backend.
+(when (boundp 'completion-category-defaults)
+  (add-to-list 'completion-category-defaults
+               '(sly-completion (styles . (basic)))))
+
 (defun sly--completion-function-wrapper (fn)
   (let (cached-result cached-arg)
     (lambda (string pred command)
@@ -224,8 +231,9 @@ ANNOTATION) describing each completion possibility."
            t)
           (;; metadata request
            ;;
-           metadata (list 'metadata
-                          (cons 'display-sort-function #'identity)))
+           metadata `(metadata
+                      . ((display-sort-function . identity)
+                         (category . sly-completion))))
           ;; all completions
           ;;
           ((t)
@@ -268,22 +276,24 @@ ANNOTATION) describing each completion possibility."
                              (insert suggestion)))
           :company-docsig
           (lambda (obj)
-            (sly--responsive-eval (arglist `(slynk:operator-arglist
-                                             ,(substring-no-properties obj)
-                                             ,(sly-current-package)))
-              (or (and arglist
-                       (sly-autodoc--fontify arglist))
-                  "no autodoc information")))
+            (when (sit-for 0.1)
+              (sly--responsive-eval (arglist `(slynk:operator-arglist
+                                               ,(substring-no-properties obj)
+                                               ,(sly-current-package)))
+                (or (and arglist
+                         (sly-autodoc--fontify arglist))
+                    "no autodoc information"))))
           :company-no-cache t
           :company-doc-buffer
           (lambda (obj)
-            (sly--responsive-eval (doc `(slynk:describe-symbol
-                                         ,(substring-no-properties obj)))
-              (when doc
-                (with-current-buffer (get-buffer-create " *sly-completion doc*")
-                  (erase-buffer)
-                  (insert doc)
-                  (current-buffer)))))
+            (when (sit-for 0.1)
+              (sly--responsive-eval (doc `(slynk:describe-symbol
+                                           ,(substring-no-properties obj)))
+                (when doc
+                  (with-current-buffer (get-buffer-create " *sly-completion doc*")
+                    (erase-buffer)
+                    (insert doc)
+                    (current-buffer))))))
           :company-require-match 'never
           :company-match
           (lambda (obj)
@@ -718,11 +728,13 @@ symbol at point, or if QUERY is non-nil."
   (let ((sym-at-point (sly-symbol-at-point)))
     (cond ((or current-prefix-arg query (not sym-at-point))
            (sly--with-sly-minibuffer 
-            (completing-read prompt
-                             (sly--completion-function-wrapper sly-complete-symbol-function)
-                             nil
-                             nil
-                             sym-at-point)))
+            (let ((icomplete-mode nil)
+		  (completing-read-function #'completing-read-default))
+              (completing-read prompt
+                               (sly--completion-function-wrapper sly-complete-symbol-function)
+                               nil
+                               nil
+                               sym-at-point))))
           (t sym-at-point))))
 
 

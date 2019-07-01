@@ -303,6 +303,16 @@ or leave at `identity' to visit every `sly-button' in the buffer.'")
   (interactive "p")
   (sly-button-forward (- n)))
 
+(define-minor-mode sly-interactive-buttons-mode
+  "Minor mode where text property SLY buttons exist"
+  nil nil nil
+  ;; Prevent strings copied from SLY buffers and yanked to source
+  ;; buffers to land with misleading `sly-' properties.
+  (when (fboundp 'add-function)
+    (add-function :filter-return (local 'filter-buffer-substring-function)
+                  #'substring-no-properties
+                  '((name . sly-remove-string-properties)))))
+
 (provide 'sly-buttons)
 
 ;;; sly-buttons.el ends here

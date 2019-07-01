@@ -246,15 +246,15 @@ same Lisp image must ensure that the `sly-retro` contrib is not in
 ### Slynk-loading method
 
 In SLIME, `M-x slime` immediately tells the Lisp process started by
-Emacs to use SLIME's own `slynk-loader.lisp` program to compile and
+Emacs to use SLIME's own `swank-loader.lisp` program to compile and
 load all possibly available lisp under its directory (including
-contrib's) before the Slynk server is created with
-`SLYNK:CREATE-SERVER`.
+contrib's) before the Swank server is created with
+`SWANK:CREATE-SERVER`.
 
 In SLY, the elisp variable `sly-init-function` is set to
 `sly-init-using-asdf` by default, meaning that `M-x sly` will try to
-load Slynk via `ASDF:LOAD-SYSTEM`. But this will load only Slynk and
-no contribs.
+load Slynk (the SLY equivalent to Swank) via `ASDF:LOAD-SYSTEM`. But 
+this will load only Slynk and no contribs.
 
 Slynk contribs are also represented as ASDF systems. Internally the
 function `sly-contrib--load-slynk-dependencies` will ask Slynk to put
@@ -291,7 +291,7 @@ regular `:emacs-rex` RPC calls in that they directly invoke a remote
 method but expect no reply.
 
 In `slynk-mrepl.lisp`, the `mrepl` class multiple inherits from
-`swank:channel` and `swank:listener`. The first takes care of
+`slynk:channel` and `slynk:listener`. The first takes care of
 channel-based communication and the second has the REPL-specific
 context.
 
