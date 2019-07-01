@@ -29,6 +29,35 @@
 (require 'sly-messages "lib/sly-messages")
 
 
+;;; Something to move to minibuffer.el, maybe
+
+;;; Backend completion
+
+;; This "completion style" delegates all the work to the completion
+;; table which is then free to implement its own completion style.
+;; Typically this is used to take advantage of some external tool which
+;; already has its own completion system and doesn't give you efficient
+;; access to the prefix completion needed by other completion styles.
+
+(add-to-list 'completion-styles-alist
+             '(backend
+               completion-backend-try-completion
+               completion-backend-all-completions
+               "Ad-hoc completion style provided by the completion table"))
+
+(defun completion--backend-call (op string table pred point)
+  (when (functionp table)
+    (let ((res (funcall table string pred (cons op point))))
+      (when (eq op (car-safe res))
+        (cdr res)))))
+
+(defun completion-backend-try-completion (string table pred point)
+  (completion--backend-call 'try-completion string table pred point))
+
+(defun completion-backend-all-completions (string table pred point)
+  (completion--backend-call 'all-completions string table pred point))
+
+
 ;;; Forward declarations (later replace with a `sly-common' lib)
 ;;;
 (defvar sly-current-thread)
@@ -136,15 +165,12 @@ SLYFUN takes two arguments, a pattern and a package."
     (sly--responsive-eval
         (completions `(,slyfun ,(substring-no-properties pattern)
                                ',(sly-current-package)))
-      (or completions
-          (progn
-	    (when (not (current-message))
-	      (sly-message "No completions for %S" pattern))
-	    nil)))))
+      completions)))
 
 (defun sly-simple-completions (prefix)
-  "Return (COMPLETIONS NIL) where COMPLETIONS complete the PREFIX.
-COMPLETIONS is a list of propertized strings."
+  "Return (COMPLETIONS COMMON) where COMPLETIONS complete the PREFIX.
+COMPLETIONS is a list of propertized strings.
+COMMON a string, the common prefix."
   (cl-loop with first-difference-pos = (length prefix)
            with (completions common) =
            (sly--completion-request-completions prefix 'slynk-completion:simple-completions)
@@ -212,51 +238,43 @@ ANNOTATION) describing each completion possibility."
 ;; done entirely by the backend.
 (when (boundp 'completion-category-defaults)
   (add-to-list 'completion-category-defaults
-               '(sly-completion (styles . (basic)))))
+               '(sly-completion (styles . (backend)))))
 
 (defun sly--completion-function-wrapper (fn)
-  (let (cached-result cached-arg)
-    (lambda (string pred command)
-      (cl-flet ((all ()
-                     (cl-first
-                      (if (and cached-arg
-                               (string= cached-arg string))
-                          cached-result
-                        (setq cached-arg string
-                              cached-result (funcall fn string))))))
-        (cl-case command
-          (;; identify this as super-special sly-completion
-           ;;
-           sly--identify
-           t)
-          (;; metadata request
-           ;;
-           metadata `(metadata
-                      . ((display-sort-function . identity)
-                         (category . sly-completion))))
+  (let ((cache (make-hash-table :test #'equal)))
+    (lambda (string pred action)
+      (cl-labels ((all
+                   ()
+                   (let ((probe (gethash string cache :missing)))
+                     (if (eq probe :missing)
+                         (puthash string (funcall fn string) cache)
+                       probe)))
+                  (try ()
+                       (let ((all (all)))
+                         (and (car all)
+                              (if (and (null (cdr (car all)))
+                                       (string= string (caar all)))
+                                  t
+                                string)))))
+        (pcase action
+          ;; identify this to the custom `sly--completion-in-region-function'
+          (`sly--identify t)
+          ;; identify this to other UI's
+          (`metadata '(metadata
+                       (display-sort-function . identity)
+                       (category . sly-completion)))
           ;; all completions
-          ;;
-          ((t)
-           (all))
+          (`t (car (all)))
           ;; try completion
-          ;;
-          ((nil)
-           (let ((all (all)))
-             (if (and all
-                      (null (cdr all)))
-                 (if (string-prefix-p string (car all))
-                     t
-                   string)
-               (and all
-                    string))))
+          (`nil (try))
+          (`(try-completion . ,point)
+           (cons 'try-completion (cons string point)))
+          (`(all-completions . ,_point) (cons 'all-completions (car (all))))
+          (`(boundaries . ,thing)
+           (completion-boundaries string (all) pred thing))
+
           ;; boundaries or any other value
-          ;;
-          (t
-           (if (and (consp command)
-                    (eq (car command) 'boundaries))
-               (completion-boundaries string (all) pred (cdr command))
-             ;; (sly-error "Unrecognized completion command %s" command)
-             nil)))))))
+          (_ nil))))))
 
 ;; This duplicates a function in sly-parse.el
 (defun sly--completion-inside-string-or-comment-p ()
@@ -330,30 +348,21 @@ Intended to go into `completion-at-point-functions'"
 
 ;;; Set `completion-at-point-functions' and a few other tricks
 ;;;
-(defun sly--completion-setup-target-buffer ()
-  (cl-loop for (var . value) in `(;; This one can be customized by a SLY user in `sly-mode-hook'
-                                  ;;
-                                  (completion-at-point-functions . (sly-complete-filename-maybe
-                                                                    sly-complete-symbol))
-                                  ;; A custom function for `completion-in-region-function'
-                                  ;;
-                                  (completion-in-region-function . sly--completion-in-region-function)
-                                  ;; Support emacs 24.3
-                                  ;;
-                                  ,@(when (version< emacs-version "24.4")
-                                      `((completion-list-insert-choice-function
-					 .
-					 (lambda (beg end newtext)
-					   (goto-char beg)
-					   (delete-region beg end)
-					   (insert newtext)))
-					(completion-in-region-functions
-                                         .
-                                         (,(lambda (_next &rest args)
-                                             (apply #'sly--completion-in-region-function args)))))))
-           do (set (make-local-variable var) value)))
+(defun sly--setup-completion ()
+  ;; This one can be customized by a SLY user in `sly-mode-hook'
+  ;;
+  (setq-local completion-at-point-functions '(sly-complete-filename-maybe
+                                              sly-complete-symbol))
+  (add-function :around (local 'completion-in-region-function)
+                (lambda (oldfun &rest args)
+                  (if sly-symbol-completion-mode
+                      (apply #'sly--completion-in-region-function args)
+                    (apply oldfun args)))
+                '((name . sly--setup-completion))))
 
-(add-hook 'sly-mode-hook 'sly--completion-setup-target-buffer)
+(define-minor-mode sly-symbol-completion-mode "Fancy SLY UI for Lisp symbols" t)
+
+(add-hook 'sly-mode-hook 'sly--setup-completion)
 
 
 ;;; TODO: Most of the stuff emulates `completion--in-region' and its
@@ -393,7 +402,7 @@ Intended to go into `completion-at-point-functions'"
                (sly--completion-pop-up-completions-buffer pattern all)
                (sly-temp-message 0 2 "Not unique")
                (sly--completion-transient-mode 1)))
-            (t
+            ((> (length pattern) 0)
              (sly-temp-message 0 2 "No completions for %s" pattern)))))
    (t
     (funcall (default-value 'completion-in-region-function)
@@ -686,16 +695,18 @@ Intended to go into `completion-at-point-functions'"
   "History list of symbols read from the minibuffer.")
 
 (defmacro sly--with-sly-minibuffer (&rest body)
-  `(let ((minibuffer-setup-hook
-          (cons (lambda ()
-                  (set-syntax-table lisp-mode-syntax-table)
-                  (sly--completion-setup-target-buffer))
-                minibuffer-setup-hook))
-         (sly-buffer-package (sly-current-package))
-         (sly-buffer-connection (sly-connection)))
+  `(let* ((minibuffer-setup-hook
+           (cons (lambda ()
+                   (set-syntax-table lisp-mode-syntax-table)
+                   (sly--setup-completion))
+                 minibuffer-setup-hook))
+          (sly-buffer-package (sly-current-package))
+          (sly-buffer-connection (sly-connection)))
      ,@body))
 
-(defvar sly-minibuffer-setup-hook nil)
+(defvar sly-minibuffer-setup-hook nil
+  "Setup SLY-specific minibuffer reads.
+Used mostly (only?) by `sly-autodoc-mode'.")
 
 (defun sly-read-from-minibuffer (prompt &optional initial-value history allow-empty keymap)
   "Read a string from the minibuffer, prompting with PROMPT.
@@ -725,18 +736,16 @@ was given and ALLOW-EMPTY is non-nil)."
   "Either read a symbol name or choose the one at point.
 The user is prompted if a prefix argument is in effect, if there is no
 symbol at point, or if QUERY is non-nil."
-  (let ((sym-at-point (sly-symbol-at-point)))
+  (let* ((sym-at-point (sly-symbol-at-point))
+         (wrapper (sly--completion-function-wrapper sly-complete-symbol-function))
+         (do-it (lambda () (completing-read prompt wrapper nil nil sym-at-point))))
     (cond ((or current-prefix-arg query (not sym-at-point))
-           (sly--with-sly-minibuffer 
-            (let ((icomplete-mode nil)
-		  (completing-read-function #'completing-read-default))
-              (completing-read prompt
-                               (sly--completion-function-wrapper sly-complete-symbol-function)
-                               nil
-                               nil
-                               sym-at-point))))
+           (cond (sly-symbol-completion-mode
+                  (let ((icomplete-mode nil)
+                        (completing-read-function #'completing-read-default))
+                    (sly--with-sly-minibuffer (funcall do-it))))
+                 (t (funcall do-it))))
           (t sym-at-point))))
-
 
 (provide 'sly-completion)
 ;;; sly-completion.el ends here
