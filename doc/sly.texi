@@ -39,7 +39,7 @@ This file has been placed in the public domain.
 @title @value{TITLE}
 @sp 10
 @example
-          _____    __   __  __        
+          _____    __   __  __
          / ___/   / /   \ \/ /               |\      _,,,---,,_
          \__ \   / /     \  /                /,`.-'`'    -.  ;-;;,_
         ___/ /  / /___   / /                |,4-  ) )-,_..;\ (  `'-'
@@ -417,7 +417,7 @@ that a Slynk server is running on some local or remote host, and
 listening on a given port. @kbd{M-x sly-connect} prompts the user for
 these values, and upon connection the @REPL{} is established.
 
-@node Basic customization 
+@node Basic customization
 @section Basic customization
 
 A big part of Emacs, and Emacs’s extensions, are its near-infinite
@@ -570,13 +570,13 @@ symbol @code{SLY-COMPLETIONS:FLEX-COMPLETIONS}.  We’ll be presented with
 a context menu with options for describing the symbol, inspecting it, or
 navigating to its source definition.  In general, the Lisp-side objects
 that SLY presents --- symbols, CLOS objects, function calls, etc... ---
-are right-clickable buttons with a such a context menu
+are right-clickable buttons with such a context menu
 (@pxref{Interactive objects}).  For now, let’s navigate to the source
 definition of the symbol by choosing ``Go To source'' from the menu.  We
 could also have just pressed @kbd{M-.} on the symbol, of course.
 
 From the Lisp source buffer that we landed on (probably
-@file{sly-completion.lisp}), let’s @emph{trace} the newly found function
+@file{slynk-completion.lisp}), let’s @emph{trace} the newly found function
 @code{SLY-COMPLETIONS:FLEX-COMPLETIONS}.  However, instead of using the
 regular @code{CL:TRACE}, we’ll use @SLY{}’s Trace Dialog functionality.
 This is how we set it up:
@@ -606,7 +606,7 @@ typing @kbd{TAB}. We should see a window popup including the desired
 completion @code{destructuring-bind} (it should also be the top
 match). Of course, we could now select some completion from the list,
 but instead let's just type @kbd{C-g} to dismiss
-the @code{*sly-completions*} window, since what we wanted to test
+the @code{*sly-completions*} window, since  we wanted to test
 completion, not write any actual @code{destructuring-bind} expression.
 
 Remember the traced functions in the Trace Dialog?  Let’s see if we got
@@ -638,7 +638,7 @@ The call may look strange, though:
 (12 13 14 26 27 28 29)
 SLYNK-COMPLETION> (slynk-completion::flex-score #v1:0 #v1:1 #v1:2)
 0.003030303 (0.30303028%)
-SLYNK-COMPLETION> 
+SLYNK-COMPLETION>
 @end example
 
 @*@image{images/tutorial-4,350pt}@*
@@ -650,12 +650,12 @@ These are the @code{#v4:0} and @code{#v4:1} bits seen at the command
 prompt.  Let’s go ahead and put the cursor on them (or hover the mouse).
 See how this makes them highlight the corresponding object a few lines
 above in the buffer?  Later, you can also try typing ``#v'' at the REPL
-to incrementally write your own backreferences.  
+to incrementally write your own backreferences.
 
 For one final demonstration, let’s now suppose say we are still
-intrigued by how that function works internally. So let's navigate to
+intrigued by how that function (@code{FLEX-SCORE}) works internally. So let's navigate to
 its definition using @kbd{M-.} again (or just open
-the @file{sly-completion.lisp} buffer that you probably still have
+the @file{slynk-completion.lisp} buffer that you probably still have
 open). The function’s code might look like this:
 
 @example
@@ -691,7 +691,7 @@ open parenthesis of that line (the opening parenthesis of the expression
 @code{(- b a 1)}) and press @kbd{C-c C-s C-s};
 
 @item
-now do the same for the symbol @code{indexes} a couple of lines above; 
+now do the same for the symbol @code{indexes} a couple of lines above;
 
 @item
 again, the same for the expressions @code{(loop...)},
@@ -714,7 +714,7 @@ visiting.  This is something not strictly necessary here but generally
 convenient when hacking on a system, becasue you can now call functions
 from the file you came from without package-qualification.
 
-Now, to re-run newly the instrumented function, by calling it with the
+Now, to re-run the newly instrumented function, by calling it with the
 same arguments.  No need to type all that again, because this REPL
 supports reverse history i-search, remember?  So just type the
 binding @kbd{C-r} and then type something like @kbd{scor} to search
@@ -1282,7 +1282,7 @@ will appear listing actions that you can take on that object.
 
 Depending on the mode, different actions may be active for different
 types of objects. Actions can also be invoked using keybindings active
-only when the cursor is on the button. 
+only when the cursor is on the button.
 
 @table @kbd
 
@@ -1405,13 +1405,13 @@ the ``connection list'' buffer:
 
 @table @kbd
 @kbditem{C-c C-x c, sly-list-connections}
-Pop up a buffer listing the established connections. 
+Pop up a buffer listing the established connections.
 
 @kbditem{C-c C-x n, sly-next-connection}
 Switch to the next Lisp connection by cycling through all connections.
 
 @kbditem{C-c C-x p, sly-prev-connection}
-Switch to the previous Lisp connection by cycling through all connections.  
+Switch to the previous Lisp connection by cycling through all connections.
 
 @end table
 
@@ -1808,7 +1808,7 @@ CL-USER> (list #v0:1 #v0:2)
 (B C)
 CL-USER> (append #v1:0 #v2:0)
 (A B C)
-CL-USER> 
+CL-USER>
 @end example
 
 @noindent
@@ -1818,7 +1818,7 @@ it worth considering:
 
 @itemize @bullet
 @item
-Backreference annotation and highlighting 
+Backreference annotation and highlighting
 
 As soon as the @SLY{} @REPL{} detects that you have pressed @code{#v},
 all the @REPL{} results that can possibly be referenced are
@@ -2057,7 +2057,7 @@ Attach debugger (e.g. gdb) to the current lisp process.
 
 The @SLY{} Trace Dialog, in package @code{sly-trace-dialog}, is a
 tracing facility, similar to Common Lisp's @code{trace}, but
-interactive rather than purely textual. 
+interactive rather than purely textual.
 
 You use it just like you would regular @code{trace}: after tracing a
 function, calling it causes interesting information about that
@@ -2636,7 +2636,7 @@ when SLY presents them in its interface.
 
 The difference between the two functions is that
 @code{*PRESENT-NUMBER-ALIST*}, if non-nil,
-overrides @code{*ECHO-NUMBER-ALIST*} in the context of the @REPL, Trace
+overrides @code{*ECHO-NUMBER-ALIST*} in the context of the @REPL{}, Trace
 Dialog and Stickers (see @ref{REPL}, @ref{Trace Dialog} and
 @ref{Stickers}), while the latter is used for commands like @kbd{C-x
 C-e} or the inspector (see @ref{Evaluation}, @ref{Inspector}).
@@ -2644,8 +2644,8 @@ C-e} or the inspector (see @ref{Evaluation}, @ref{Inspector}).
 If in doubt, use @code{*ECHO-NUMBER-ALIST*}.
 
 Both variables have the same structure: each element in the alistn takes
-the form @var{(TYPE . FUNCTIONS)}, where @var{TYPE} is a type designator
-and @var{FUNCTIONS} is a list of function designators for displaying
+the form @code{(TYPE . FUNCTIONS)}, where @code{TYPE} is a type designator
+and @code{FUNCTIONS} is a list of function designators for displaying
 that number in SLY. Each function takes the number as a single argument
 and returns a string, or nil, if that particular representation is to be
 disregarded.
@@ -2913,7 +2913,7 @@ To make @SLY{} connect to your lisp whenever you open a lisp file
 just add this to your @file{~/.emacs} or
 @file{~/.emacs.d/init.el} (@pxref{Emacs Init File}):
 
-@example 
+@example
 (add-hook 'sly-mode-hook
           (lambda ()
             (unless (sly-connected-p)
@@ -3078,7 +3078,7 @@ Rhodes of @acronym{SBCL}, Gary Byers of OpenMCL, and Martin Simmons of
 LispWorks. Thanks also to Alain Picard and Memetrics for funding
 Martin's initial work on the LispWorks backend!
 
-@node Key Index 
+@node Key Index
 @unnumbered Key (Character) Index
 @printindex ky
 
