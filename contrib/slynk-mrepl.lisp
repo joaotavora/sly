@@ -204,8 +204,7 @@ Set this to NIL to turn this feature off.")
                  (send-to-remote-channel
                   (mrepl-remote-id repl)
                   `(:write-values ,(make-results results)))))
-          (send-prompt repl)
-          (setf (mrepl-mode repl) :eval))))))
+          (send-prompt repl))))))
 
 (defun prompt-arguments (repl condition)
   `(,(package-name *package*)
@@ -218,7 +217,8 @@ Set this to NIL to turn this feature off.")
 
 (defun send-prompt (repl &optional condition)
   (send-to-remote-channel (mrepl-remote-id repl)
-                          `(:prompt ,@(prompt-arguments repl condition))))
+                          `(:prompt ,@(prompt-arguments repl condition)))
+  (setf (mrepl-mode repl) :eval))
 
 (defun mrepl-eval-1 (repl string)
   "In REPL's environment, READ and EVAL forms in STRING."
