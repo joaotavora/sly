@@ -27,7 +27,7 @@ it:
   REPL;
 * Modern [flex-style completion](#company-flex-completion).  Much snappier when
   using [company][14], and no plugin required;
-* Cleanly ASDF-loaded be default, including contribs, which are enabled
+* Cleanly ASDF-loaded by default, including contribs, which are enabled
   out-of-the-box;
 * Multiple inspectors;
 * Support for [NAMED-READTABLES][11], [macrostep.el][12] and [quicklisp][13]
