@@ -983,7 +983,15 @@ macroexpansion time.
 
 (defun sly-to-lisp-filename (filename)
   "Translate the string FILENAME to a Lisp filename."
-  (funcall sly-to-lisp-filename-function filename))
+  (let ((filename (copy-sequence filename)))
+    ;; We need to remove properties from filename
+    ;; because it text with properties will
+    ;; have wrong syntax when translated into a
+    ;; Common Lisp's form.
+    (set-text-properties 0 (length filename)
+                         nil
+                         filename)
+    (funcall sly-to-lisp-filename-function filename)))
 
 (defun sly-from-lisp-filename (filename)
   "Translate the Lisp filename FILENAME to an Emacs filename."
