@@ -207,8 +207,8 @@
 ;; Use a temp file rather than in-core compilation in order to handle
 ;; eval-when's as compile-time.
 (defimplementation slynk-compile-string (string &key buffer position filename
-                                         policy)
-  (declare (ignore policy))
+                                                line column policy)
+  (declare (ignore line column policy))
   (with-compilation-hooks ()
     (let ((temp-file-name (ccl:temp-pathname))
           (ccl:*save-source-locations* t))

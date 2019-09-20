@@ -691,8 +691,8 @@ Execute BODY with NAME's function slot set to FUNCTION."
                          (not (load fasl-file)))))))))
 
 (defimplementation slynk-compile-string (string &key buffer position filename
-                                         policy)
-  (declare (ignore filename policy))
+                                                line column policy)
+  (declare (ignore filename line column policy))
   (with-compilation-hooks ()
     (let ((*buffer-name* buffer)
           (*buffer-offset* position))

@@ -583,9 +583,9 @@ to do this, this factors in the length of the inserted header itself."
        (not failure?)))))
 
 (defimplementation slynk-compile-string (string &key buffer position filename
-                                         policy)
-  (declare (ignore policy))
-  (handler-case 
+                                                line column policy)
+  (declare (ignore line column policy))
+  (handler-case
       (with-compilation-hooks ()
         (let ((*buffer-name* buffer)
               (*buffer-start-position* position)
