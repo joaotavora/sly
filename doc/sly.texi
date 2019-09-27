@@ -725,7 +725,7 @@ backreferences are still trained specifically on those very same
 function arguments, you can be sure that the function call is
 equivalent.
 
-We can now use the @kbd{C-c C-s C-r} to @emph{replay}n the sticker
+We can now use the @kbd{C-c C-s C-r} to @emph{replay} the sticker
 recordings of this last function call.  This is a kind of slow
 walk-through conducted in separate navigation window
 called @code{*sly-stickers-replay*} which pops up.  There we can see the
@@ -2232,8 +2232,8 @@ also annotated.
 Stickers are interactive parts just like any other part in @SLY{} that
 represents Lisp-side objects, so they can be inspected and returned to
 the REPL, for example. To move through the stickers with the keyboard
-use the existing keybindings to move through compilatino
-notes(@kbd{M-p} and @kbd{M-n}) or use @kbd{C-c C-s p} and @kbd{C-c C-s
+use the existing keybindings to move through compilation
+notes (@kbd{M-p} and @kbd{M-n}) or use @kbd{C-c C-s p} and @kbd{C-c C-s
 n} (@code{sly-stickers-prev-sticker} and
 @code{sly-stickers-next-sticker}).
 
