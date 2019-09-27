@@ -680,7 +680,7 @@ recent entry that is discarded."
     (ignore-errors
       ;; uses `sly-connection', which falls back to
       ;; `sly-buffer-connection'. If that is closed it's probably
-      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
+      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so
       (sly-mrepl--send `(:teardown))))
   (set (make-local-variable 'sly-mrepl--remote-channel) nil)
   (when (sly-mrepl--process)
@@ -836,6 +836,27 @@ history entry navigated to."
     (delete-overlay sly-mrepl--eli-input-overlay)
     (setq sly-mrepl--eli-input-overlay nil))
   (sly-mrepl--keep-eli-input-maybe))
+
+(defun sly-end-of-proprange-p (property)
+  (and (get-char-property (max 1 (1- (point))) property)
+       (not (get-char-property (point) property))))
+
+(defun sly-search-property-change (prop &optional backward)
+  (cond (backward
+         (goto-char (or (previous-single-char-property-change (point) prop)
+                        (point-min))))
+        (t
+         (goto-char (or (next-single-char-property-change (point) prop)
+                        (point-max))))))
+
+(defun sly-mrepl-find-prompt (&optional backward)
+  (let ((origin (point))
+        (prop 'sly-mrepl--prompt))
+    (while (progn
+             (sly-search-property-change prop backward)
+             (not (or (sly-end-of-proprange-p prop) (bobp) (eobp)))))
+    (unless (sly-end-of-proprange-p prop)
+      (goto-char origin))))
 
 
 ;;; Interactive commands
@@ -1106,6 +1127,16 @@ Doesn't clear input history."
                                           'sly-mrepl-note-face))
            and return nil)
   (sly-message "Cleared last output"))
+
+(defun sly-mrepl-previous-prompt ()
+  "Move backward to the previous prompt."
+  (interactive)
+  (sly-mrepl-find-prompt t))
+
+(defun sly-mrepl-next-prompt ()
+  "Move forward to the next prompt."
+  (interactive)
+  (sly-mrepl-find-prompt))
 
 
 ;;; "External" non-interactive functions for plugging into
