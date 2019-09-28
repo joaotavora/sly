@@ -1107,6 +1107,29 @@ Doesn't clear input history."
            and return nil)
   (sly-message "Cleared last output"))
 
+(defun sly-mrepl-next-prompt ()
+  "Go to the beginning of the next REPL prompt."
+  (interactive)
+  (let ((pos (next-single-char-property-change (line-beginning-position 2)
+                                               'sly-mrepl--prompt)))
+    (goto-char pos))
+  (end-of-line))
+
+(defun sly-mrepl-previous-prompt ()
+  "Go to the beginning of the previous REPL prompt."
+  (interactive)
+  ;; This has two wrinkles around the first prompt: (1) when going to
+  ;; the first prompt it leaves point at column 0 (1) when called from
+  ;; frist prompt goes to beginning of buffer.  The correct fix is to
+  ;; patch comint.el's comint-next-prompt and comint-previous-prompt
+  ;; anyway...
+  (let* ((inhibit-field-text-motion t)
+         (pos (previous-single-char-property-change (1- (line-beginning-position))
+                                                   'sly-mrepl--prompt)))
+    (goto-char pos)
+    (goto-char (line-beginning-position)))
+  (end-of-line))
+
 
 ;;; "External" non-interactive functions for plugging into
 ;;; other parts of SLY
