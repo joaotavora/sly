@@ -126,7 +126,8 @@ If it's not in the cache, the cache will be updated asynchronously."
     (save-match-data
       (let ((context
              (cons
-              (sly-connection)
+              (let ((sly-auto-select-connection 'never))
+                (sly-connection))
               (sly-autodoc--parse-context))))
 	(when context
 	  (let* ((cached (sly-autodoc--cache-get

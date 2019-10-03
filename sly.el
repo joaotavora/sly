@@ -1804,7 +1804,7 @@ Signal an error if there's no connection."
   (let ((conn (sly-current-connection)))
     (cond ((and (not conn) sly-net-processes)
            (or (sly-auto-select-connection)
-               (error "No fallback connection to select.")))
+               (error "Connections available, but none selected.")))
           ((not conn)
            (or (sly-auto-start)
                (error "No current SLY connection.")))
