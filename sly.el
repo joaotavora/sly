@@ -1077,12 +1077,11 @@ prefix argument controls the precise behaviour:
       ((active (and interactive
                     (not current-prefix-arg)
                     (sly--purge-connections)))
-       (sly-completing-read-no-match-label "(start a new one)")
        (target (or (and (eq sly-command-switch-to-existing-lisp 'ask)
                         (sly-prompt-for-connection
                          "[sly] Switch to open connection?\n\
   (Customize `sly-command-switch-to-existing-lisp' to avoid this prompt.)\n\
-  Connections: " nil t))
+  Connections: " nil "(start a new one)"))
                    (and (eq sly-command-switch-to-existing-lisp 'always)
                         (car active)))))
     (sly-message "Switching to `%s'" (sly-connection-name target))
@@ -2109,6 +2108,9 @@ Respect `sly-keep-buffers-on-connection-close'."
                                           #'(lambda (p1 _p2)
                                               (eq p1 (sly-current-connection))))
                                     collect (sly-connection-name process)))
+         (connection-names (if dont-require-match
+                               (cons dont-require-match
+                                     connection-names)))
          (connection-name (and connection-names
                                (sly-completing-read
                                 (or prompt "Connection: ")
@@ -2116,12 +2118,12 @@ Respect `sly-keep-buffers-on-connection-close'."
                                 nil (not dont-require-match))))
          (target (cl-find connection-name sly-net-processes :key #'sly-connection-name
                           :test #'string=)))
-    (cond (target
-           target)
-          (dont-require-match
+    (cond (target target)
+          ((and dont-require-match (or (zerop (length connection-name))
+                                       (string= connection-name dont-require-match)))
            nil)
           (connection-name
-           (sly-error "Bug in `sly-prompt-for-connection'"))
+           (sly-error "No such connection"))
           (t
            (sly-error "No connections")))))
 

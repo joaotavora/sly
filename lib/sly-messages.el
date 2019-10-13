@@ -81,34 +81,6 @@ SIT-FOR is has the semantincs of `minibuffer-message-timeout', which see."
                            (or (cl-position ?\n string) most-positive-fixnum)
                            (1- (window-width (minibuffer-window))))))
 
-(defvar sly-completing-read-function 'sly-ido-completing-read)
-
-(defvar sly-completing-read-no-match-label "(none)")
-
-(defun sly-ido-completing-read (prompt choices &optional
-                                       predicate
-                                       require-match
-                                       initial-input
-                                       hist
-                                       def
-                                       inherit-input-method)
-  "Like `ido-completing-read' but treat REQUIRE-MATCH different.
-If REQUIRE-MATCH is nil, offer a \"(none)\" option to return the
-empty string."
-  (let ((res (ido-completing-read
-              prompt
-              (append
-               choices
-               (unless require-match
-                 (list (propertize
-                        sly-completing-read-no-match-label
-                        'sly--none t))))
-              predicate require-match initial-input hist def
-              inherit-input-method)))
-    (if (get-text-property 0 'sly--none res)
-        ""
-      res)))
-
 (defun sly-completing-read (prompt choices &optional
                                    predicate
                                    require-match
@@ -116,15 +88,17 @@ empty string."
                                    hist
                                    def
                                    inherit-input-method)
-  (funcall sly-completing-read-function
-           prompt
-           choices
-           predicate
-           require-match
-           initial-input
-           hist
-           def
-           inherit-input-method))
+  "Like `completing-read', but tweak `completing-read-function'.
+Specifically, if the `completion-read-function' has not been
+tweaked, and `icomplete-mode' is not being used, use
+`ido-completing-read' to provide a better UX."
+  (let ((completing-read-function
+         (if (and (eq completing-read-function 'completing-read-default)
+                  (not icomplete-mode))
+             #'ido-completing-read
+           completing-read-function)))
+    (completing-read prompt choices predicate require-match initial-input hist def
+                     inherit-input-method)))
 
 (defun sly-y-or-n-p (format-string &rest args)
   (let ((prompt (apply #'format (concat "[sly] "
