@@ -4615,6 +4615,7 @@ TODO"
 (defun sly-apropos-describe (name type)
   (sly-eval-describe `(slynk:describe-definition-for-emacs ,name ,type)))
 
+(require 'info)
 (defun sly-info--file ()
   (or (cl-some (lambda (subdir)
                  (let ((probe (expand-file-name
@@ -4622,7 +4623,7 @@ TODO"
                                (expand-file-name subdir sly-path))))
                    (and (file-exists-p probe)
                         probe)))
-               '("doc" "."))
+               (append'("doc" "." ) Info-directory-list))
       (sly-error
        "No sly.info, run `make -C doc sly.info' from a SLY git checkout")))
 
