@@ -4618,12 +4618,13 @@ TODO"
 (require 'info)
 (defun sly-info--file ()
   (or (cl-some (lambda (subdir)
-                 (let ((probe (expand-file-name
-                               "sly.info"
-                               (expand-file-name subdir sly-path))))
-                   (and (file-exists-p probe)
-                        probe)))
-               (append'("doc" "." ) Info-directory-list))
+                 (cl-flet ((existing-file
+                            (name) (let* ((path (expand-file-name subdir sly-path))
+                                          (probe (expand-file-name name path)))
+                                     (and (file-exists-p probe) probe))))
+                   (or (existing-file "sly.info")
+                       (existing-file "sly.info.gz"))))
+               (append '("doc" ".") Info-directory-list))
       (sly-error
        "No sly.info, run `make -C doc sly.info' from a SLY git checkout")))
 
