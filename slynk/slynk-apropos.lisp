@@ -39,12 +39,15 @@ The result is a list of property lists."
       (do-all-symbols (sym)
         (let ((external (symbol-external-p sym)))
           (multiple-value-bind (bounds score)
-              (funcall matcher (if package
-                                   (string sym)
-                                   (concatenate 'string
-                                                (package-name (symbol-package sym))
-                                                (if external ":" "::")
-                                                (symbol-name sym))))
+              (and
+               (symbol-package sym) ; see github#266
+               (funcall matcher
+                        (if package
+                            (string sym)
+                            (concatenate 'string
+                                         (package-name (symbol-package sym))
+                                         (if external ":" "::")
+                                         (symbol-name sym)))))
             (unless (gethash sym seen)
               (when bounds
                 (unless (or (and external-only
