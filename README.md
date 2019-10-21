@@ -108,6 +108,11 @@ Additional Contribs
 * https://github.com/mmgeorge/sly-asdf
 * https://github.com/40ants/sly-package-inferred
 
+Related Emacs packages
+----------------------
+
+* https://github.com/emacs-helm/helm-sly
+
 License
 -------
 
