@@ -711,7 +711,7 @@ Now we return to the @SLY{} REPL, but this time let’s use @kbd{C-c ~}
 (that’s @kbd{C-c} followed by ``tilde'') to do so.  This syncs the
 REPL’s local package and local directory to the Lisp file that we’re
 visiting.  This is something not strictly necessary here but generally
-convenient when hacking on a system, becasue you can now call functions
+convenient when hacking on a system, because you can now call functions
 from the file you came from without package-qualification.
 
 Now, to re-run the newly instrumented function, by calling it with the
