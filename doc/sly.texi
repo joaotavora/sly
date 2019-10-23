@@ -1673,6 +1673,14 @@ Jump to the previous interactive value representing a Lisp object.
 
 Jump to the next interactive value representing a Lisp object.
 
+@kbditem{C-c C-o, sly-mrepl-clear-recent-output}
+
+Clear output between current and last REPL prompts, keeping results.
+
+@kbditem{C-c M-o, sly-mrepl-clear-repl}
+
+Clear the whole REPL of output and results.
+
 @end table
 
 @node REPL output

@@ -81,6 +81,10 @@ REPL buffers by default.
 In minibuffer prompts like the one of `M-x sly-inspect`, autodoc
 information is available and displayed temporarily in the mode-line.
 
+### `C-c C-o` and `C-c M-o` bound in the REPL
+
+These clear recent output and the whole REPL, respectively.
+
 ### Easy to parse copied calls to REPL
 
 The "Copy call to REPL" funcionality in the Trace Dialog and SLY-DB
