@@ -997,7 +997,7 @@ Fully macroexpand the expression at point.
 Display the compiler-macro expansion of sexp at point.
 
 @cmditem{sly-compiler-macroexpand}
-Repeatedy expand compiler macros of sexp at point.
+Repeatedly expand compiler macros of sexp at point.
 
 @end table
 
@@ -1083,7 +1083,7 @@ Like @code{sly-edit-definition} but opens another frame to edit the
 definition in.
 @end table
 
-The behavior of the @kbd{M-.} binding is sometimes affected by the
+The behaviour of the @kbd{M-.} binding is sometimes affected by the
 type of symbol you are giving it.
 
 @itemize @bullet
@@ -1725,7 +1725,7 @@ The characters printed to the standard Lisp streams
 @code{*standard-output*}, @code{*error-output*} and
 @code{*trace-output*} printed, perhaps @emph{asynchronously},
 from others threads, for instance. This feature is optional and
-controlled by the variable @code{SLYNK:*GLOBALLY-REDIRECT-IO*}. 
+controlled by the variable @code{SLYNK:*GLOBALLY-REDIRECT-IO*}.
 @end itemize
 
 @noindent
@@ -1740,7 +1740,7 @@ streams (@code{*standard-output*}, etc) to the @REPL{} in Emacs. The
 default value is @code{:started-from-emacs}, which means that
 redirection should only take place upon @code{M-x sly} invocations.
 When @code{t}, global redirection happens even for sessions started with
-@code{M-x sly-connect}, meaning output may be diverted from whereever
+@code{M-x sly-connect}, meaning output may be diverted from wherever
 you started the Lisp server originally.
 
 When @code{NIL} these streams are only temporarily redirected to Emacs
@@ -1761,7 +1761,7 @@ to send printed output to Emacs through, which is more efficient than
 sending the output in protocol messages to Emacs.
 
 The default value is @code{:started-from-emacs}, which means that the
-socket should only be establihed upon @code{M-x sly} invocations.  When
+socket should only be established upon @code{M-x sly} invocations.  When
 @code{t}, it's established even for sessions started with @code{M-x
 sly-connect}.  When @code{NIL} usual protocol messages are used for
 sending input to the @REPL{}.
@@ -2184,7 +2184,7 @@ exist inside other stickers.
 
 @item
 Stickers are ``armed'' when a definition or a file is compiled with the
-familar @kbd{C-c C-c} (@code{M-x sly-compile-defun}) or @kbd{C-c C-k}
+familiar @kbd{C-c C-c} (@code{M-x sly-compile-defun}) or @kbd{C-c C-k}
 (@code{M-x sly-compile-file}) commands. An armed sticker changes color from
 the default grey background to a blue background.
 
@@ -2200,7 +2200,7 @@ ways:
 @item
 @kbd{C-c C-s C-r}
 (or @code{M-x sly-stickers-replay}) interactively walks the user
-through recordings in the order that they occured. In the
+through recordings in the order that they occurred. In the
 created @code{*sly-stickers-replay*} buffer, type @kbd{h} for a list
 of keybindings active in that buffer.
 
@@ -2651,7 +2651,7 @@ C-e} or the inspector (see @ref{Evaluation}, @ref{Inspector}).
 
 If in doubt, use @code{*ECHO-NUMBER-ALIST*}.
 
-Both variables have the same structure: each element in the alistn takes
+Both variables have the same structure: each element in the alist takes
 the form @code{(TYPE . FUNCTIONS)}, where @code{TYPE} is a type designator
 and @code{FUNCTIONS} is a list of function designators for displaying
 that number in SLY. Each function takes the number as a single argument
@@ -2767,7 +2767,7 @@ uses the default settings:
 @end example
 
 This creates a ``one-connection-only'' server on port 4005 using the
-preffered communication style for your Lisp system. The following
+preferred communication style for your Lisp system. The following
 parameters to @code{slynk:create-server} can be used to change that
 behaviour:
 
@@ -2807,7 +2807,7 @@ is essential.}
 @subsection Setting up Emacs
 
 Now we need to create the tunnel between the local machine and the
-remote machine. Assumind a @acronym{UNIX} command-line, this can be
+remote machine. Assuming a @acronym{UNIX} command-line, this can be
 done with:
 
 @example
