@@ -2110,7 +2110,8 @@ Respect `sly-keep-buffers-on-connection-close'."
                                     collect (sly-connection-name process)))
          (connection-names (if dont-require-match
                                (cons dont-require-match
-                                     connection-names)))
+                                     connection-names)
+                             connection-names))
          (connection-name (and connection-names
                                (sly-completing-read
                                 (or prompt "Connection: ")
