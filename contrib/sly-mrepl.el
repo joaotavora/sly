@@ -1103,7 +1103,9 @@ Doesn't clear input history."
            when (eq (field-at-pos pos) 'sly-mrepl--output)
            do (let ((inhibit-read-only t))
                 (delete-region (field-beginning pos)
-                               (1+ (field-end pos)))
+                               (+
+                                (if (eq ?\n (char-before (field-end pos))) 0 1)
+                                (field-end pos)))
                 (sly-mrepl--insert-output "; Cleared last output"
                                           'sly-mrepl-note-face))
            and return nil)
