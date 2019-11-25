@@ -606,7 +606,14 @@ Intended to go into `completion-at-point-functions'"
                                   "")
              for start = (point)
              do
-             (insert (propertize completion 'mouse-face 'highlight
+             (cl-loop for (beg . end) in
+                      (get-text-property 0 'sly-completion-chunks completion)
+                      do (put-text-property beg
+                                            end
+                                            'face
+                                            'completions-common-part completion))
+             (insert (propertize completion
+                                 'mouse-face 'highlight
                                  'sly--completion t))
              (insert (make-string (max
                                    1
