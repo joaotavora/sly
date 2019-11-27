@@ -510,11 +510,11 @@ REPL."
           (when insert-p
             (sly-mrepl--insert-results results))
           (apply #'sly-mrepl--insert-prompt prompt-args)
-          (when after-prompt
-            (funcall after-prompt results))
           (pop-to-buffer (current-buffer))
           (goto-char (sly-mrepl--mark))
-          (insert saved-text))))))
+          (insert saved-text)
+          (when after-prompt
+            (funcall after-prompt results)))))))
 
 (defun sly-mrepl--copy-objects-to-repl (method-args &optional before after)
   "Recall objects in the REPL history as a new entry.
@@ -742,8 +742,7 @@ REPL is the REPL buffer to return the objects to."
           (sly-mrepl--copy-objects-to-repl nil before after)))))
 
 (defun sly-mrepl--insert-call (spec results)
-  (when (<= (point) (sly-mrepl--mark))
-    (goto-char (point-max)))
+  (delete-region (sly-mrepl--mark) (point-max))
   (insert (format
            "%s"
            `(,spec
