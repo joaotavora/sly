@@ -653,7 +653,10 @@ the reason why the sticker couldn't be found"
                        (goto-char (overlay-start sticker))
                        (sly-recenter (point))
                        (sly-button-flash sticker
-                                         :timeout 0.08 :times 2
+                                         :pattern
+                                         (cl-loop repeat 3
+                                                  append (list 0.07 0.07
+                                                               0.07 2))
                                          :face 'highlight))))))))
           (otherwise
            (funcall otherwise "Can't find sticker (probably deleted!)")))))

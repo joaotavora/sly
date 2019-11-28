@@ -112,29 +112,45 @@ tweaked, and `icomplete-mode' is not being used, use
 (defvar sly-flash-inhibit nil
   "If non-nil `sly-flash-region' does nothing")
 
-(cl-defun sly-flash-region (start end &key timeout face times)
+(defvar sly--flash-overlay (make-overlay 0 0))
+(overlay-put sly--flash-overlay 'priority 1000)
+
+(cl-defun sly-flash-region (start end &key
+                                  timeout
+                                  face
+                                  times
+                                  (pattern '(0.2)))
   "Temporarily highlight region from START to END."
+  (if pattern
+      (cl-assert (and (null times) (null timeout))
+                 nil
+                 "If PATTERN is supplied, don't supply TIMES or TIMEOUT")
+    (setq pattern (make-list (* 2 times) timeout)))
   (unless sly-flash-inhibit
-    (let ((overlay (make-overlay start end))
-          (buffer (current-buffer)))
-      (overlay-put overlay 'face (or face
-                                     'highlight))
-      (overlay-put overlay 'priority 1000)
-      (run-with-timer
-       (or timeout 0.2) nil
-       (lambda ()
-         (delete-overlay overlay)
-         (when (and times
-                    (> times 1))
-           (run-with-timer
-            (or timeout 0.2) nil
-            (lambda ()
-              (and (buffer-live-p buffer)
-                   (with-current-buffer buffer
-                     (sly-flash-region start end
-                                       :timeout timeout
-                                       :face face
-                                       :times (1- times))))))))))))
+    (let ((buffer (current-buffer)))
+      (move-overlay sly--flash-overlay start end buffer)
+      (cl-labels
+          ((on () (overlay-put sly--flash-overlay 'face (or face 'highlight)))
+           (off () (overlay-put sly--flash-overlay 'face nil))
+           (relevant-p ()
+                       (equal (list start end buffer)
+                              (list (overlay-start sly--flash-overlay)
+                                    (overlay-end sly--flash-overlay)
+                                    (overlay-buffer sly--flash-overlay))))
+           (onoff ()
+                  (when (and pattern (relevant-p))
+                    (on)
+                    (run-with-timer (pop pattern)
+                                    nil
+                                    (lambda ()
+                                      (when (relevant-p)
+                                        (off)
+                                        (when pattern
+                                          (run-with-timer
+                                           (pop pattern)
+                                           nil
+                                           (lambda () (onoff))))))))))
+        (onoff)))))
 
 (provide 'sly-messages)
 ;;; sly-messages.el ends here

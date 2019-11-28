@@ -144,10 +144,12 @@
 
 (cl-defun sly-button-flash (button &key
                                    (face 'highlight)
-                                   (times 2)
-                                   (timeout 0.07))
+                                   (pattern '(0.07 0.07 0.07 0.07))
+                                   times
+                                   timeout)
   (sly-flash-region (button-start button) (button-end button)
                     :timeout timeout
+                    :pattern pattern
                     :times times
                     :face face))
 
