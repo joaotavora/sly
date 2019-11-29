@@ -530,10 +530,7 @@ Return an OPTIONAL-ARG structure."
 
 (defun decode-arglist (arglist)
   "Parse the list ARGLIST and return an ARGLIST structure."
-  (etypecase arglist
-    ((eql :not-available) (return-from decode-arglist
-                            :not-available))
-    (list))
+  (if (eq arglist :not-available) (return-from decode-arglist arglist))
   (loop
     with mode = nil
     with result = (make-arglist)
