@@ -246,7 +246,7 @@ render the underlying text unreadable."
                            ,(color-darken-name
                              guessed-color
                              (* 40
-                                (/ (sly-stickers--get-level sticker)
+                                (/ (sly-stickers--level sticker)
                                    sly-stickers-max-nested-stickers
                                    1.0)))))))
 
@@ -293,11 +293,11 @@ render the underlying text unreadable."
       ;; choose a suitable level for ourselves and increase the
       ;; level of those contained by us
       ;;
-      (sly-stickers--set-level
-       sticker
-       (1+ (cl-reduce #'max (mapcar #'sly-stickers--get-level containers)
-                      :initial-value -1)))
-      (mapc #'sly-stickers--increase-level contained)
+      (setf (sly-stickers--level sticker)
+            (1+ (cl-reduce #'max containers
+                           :key #'sly-stickers--level
+                           :initial-value -1)))
+      (mapc (lambda (s) (cl-incf (sly-stickers--level s))) contained)
       ;; finally, set face
       ;;
       (sly-stickers--set-tooltip sticker label)
@@ -463,24 +463,13 @@ render the underlying text unreadable."
                 (word beg 1)
                 (word end -1))))))
 
-(defun sly-stickers--set-level (sticker level)
-  (overlay-put sticker 'sticker-level level))
+(gv-define-setter sly-stickers--level (level sticker)
+  `(prog1
+       (overlay-put ,sticker 'sticker-level ,level)
+     (when (button-get ,sticker 'sly-stickers--base-face)
+       (sly-stickers--set-face ,sticker))))
 
-(defun sly-stickers--get-level (sticker)
-  (overlay-get sticker 'sticker-level))
-
-(defun sly-stickers--decrease-level (sticker)
-  (let ((level (sly-stickers--get-level sticker)))
-    (unless (and level
-                 (cl-plusp level))
-      (sly-error "Something's fishy with the sticker levels"))
-    (sly-stickers--set-level sticker (cl-decf level))
-    (sly-stickers--set-face sticker)))
-
-(defun sly-stickers--increase-level (sticker)
-  (let ((level (sly-stickers--get-level sticker)))
-    (sly-stickers--set-level sticker (cl-incf level))
-    (sly-stickers--set-face sticker)))
+(defun sly-stickers--level (sticker) (overlay-get sticker 'sticker-level))
 
 (defun sly-stickers--delete (sticker)
   "Ensure that sticker is deleted."
@@ -490,7 +479,7 @@ render the underlying text unreadable."
   ;;
   (when (and (overlay-buffer sticker)
              (buffer-live-p (overlay-buffer sticker)))
-    (mapc #'sly-stickers--decrease-level
+    (mapc (lambda (s) (cl-decf (sly-stickers--level s)))
           (sly-stickers--sticker-substickers sticker))
     (delete-overlay sticker))
   ;; We also want to deregister it from the hashtable in case it's
