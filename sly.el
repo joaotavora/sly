@@ -3845,25 +3845,25 @@ SEARCH-FN is either the symbol `search-forward' or `search-backward'."
   (unless after? (delete-overlay button)))
 
 (defun sly--add-in-buffer-note  (note)
-  "Add NOTE as an `sly-in-buffer-note' button to the source buffer."
+  "Add NOTE as a `sly-in-buffer-note' button to the source buffer."
   (cl-destructuring-bind (&optional beg end)
       (sly-choose-overlay-region note)
     (when beg
       (let* ((contained (sly-button--overlays-between beg end))
              (containers (cl-set-difference (sly-button--overlays-at beg)
                                             contained)))
-        (cl-loop for ov in contained
-                 do (overlay-put ov 'priority (1+ (overlay-get ov 'priority))))
-        (make-button beg
-                     end
-                     :type 'sly-in-buffer-note
-                     'sly-button-search-id (sly-button-next-search-id)
-                     'sly-note note
-                     'help-echo (format "[sly] %s" (sly-note.message note))
-                     'priority (1+ (cl-reduce #'max containers
-                                              :key (sly-rcurry #'overlay-get 'priority)
-                                              :initial-value 0))
-                     'face (sly-severity-face (sly-note.severity note)))))))
+        (cl-loop for ov in contained do (cl-incf (sly-button--level ov)))
+        (let ((but (make-button beg
+                                end
+                                :type 'sly-in-buffer-note
+                                'sly-button-search-id (sly-button-next-search-id)
+                                'sly-note note
+                                'help-echo (format "[sly] %s" (sly-note.message note))
+                                'face (sly-severity-face (sly-note.severity note)))))
+          (setf (sly-button--level but)
+                (1+ (cl-reduce #'max containers
+                               :key #'sly-button--level
+                               :initial-value 0))))))))
 
 (defun sly--compilation-note-group-button  (label notes)
   "Pepare notes as a `sly-compilation-note' button.

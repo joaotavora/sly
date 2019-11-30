@@ -231,11 +231,11 @@ render the underlying text unreadable."
 
 (gv-define-setter sly-stickers--level (level sticker)
   `(prog1
-       (overlay-put ,sticker 'sticker-level ,level)
+       (setf (sly-button--level ,sticker) ,level)
      (when (button-get ,sticker 'sly-stickers--base-face)
        (sly-stickers--set-face ,sticker))))
 
-(defun sly-stickers--level (sticker) (overlay-get sticker 'sticker-level))
+(defun sly-stickers--level (sticker) (sly-button--level sticker))
 
 (defun sly-stickers--guess-face-color (face)
   (face-attribute-specified-or

@@ -196,10 +196,13 @@
   "Return overlays near POINT"
   (let ((point (or point (point))))
     (cl-sort (sly-button--overlays-in (1- point) (1+ point) filter)
-             #'> :key #'sly-button--overlay-priority)))
+             #'> :key #'sly-button--level)))
 
-(defun sly-button--overlay-priority (overlay)
-  (or (overlay-get overlay 'priority) 0))
+(gv-define-setter sly-button--level (level button)
+  `(overlay-put ,button 'sly-button-level ,level))
+
+(defun sly-button--level (button)
+  (or (overlay-get button 'sly-button-level) 0))
 
 
 
