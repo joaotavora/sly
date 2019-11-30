@@ -236,7 +236,8 @@ measures in length the number of characters in PATTERN.
 A floating-point score. Higher scores for better matches."
   (declare (optimize (speed 3) (safety 0))
            (type simple-string string)
-           (type simple-string pattern))
+           (type simple-string pattern)
+           (type function char-test))
   (let* ((strlen (length string))
          (indexes (loop for char across pattern
                         for from = 0 then (1+ pos)
