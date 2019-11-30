@@ -146,7 +146,10 @@ their ignore-spec is reset nonetheless."
                          recording))))))
 
 (defparameter *break-on-stickers* nil
-  "If non nil, RECORD breaks before and after recording sticker")
+  "If non-nil, invoke to debugger when evaluating stickered forms.
+If a list containing :BEFORE, break before evaluating.  If a list
+containing :AFTER, break after evaluating.  If t, break before and
+after.")
 
 (defslyfun toggle-break-on-stickers ()
   "Toggle the value of *BREAK-ON-STICKERS*"
@@ -170,6 +173,12 @@ their ignore-spec is reset nonetheless."
       (setf (ignore-spec-of sticker)
             (list :before :after)))))
 
+(defun break-on-sticker-p (sticker when)
+  (and (or (eq t *break-on-stickers*)
+           (and (listp *break-on-stickers*)
+                (member when *break-on-stickers*)))
+       (not (member when (ignore-spec-of sticker)))))
+
 (defun call-with-sticker-recording (id fn)
   (let* ((sticker (gethash id *stickers*))
          (mark (gensym))
@@ -179,17 +188,15 @@ their ignore-spec is reset nonetheless."
     (handler-bind ((condition (lambda (condition)
                                 (setq last-condition condition))))
       ;; Maybe break before
-      ;; 
-      (when (and sticker
-                 *break-on-stickers*
-                 (not (member :before (ignore-spec-of sticker))))
+      ;;
+      (when (and sticker (break-on-sticker-p sticker :before))
         (invoke-debugger-for-sticker
          sticker (make-condition 'just-before-sticker
                                  :sticker sticker
                                  :debugger-extra-options
                                  `((:slynk-before-sticker ,id)))))
       ;; Run actual code under the sticker
-      ;; 
+      ;;
       (unwind-protect
            (values-list (setq retval (multiple-value-list (funcall fn))))
         (when sticker
@@ -204,8 +211,7 @@ their ignore-spec is reset nonetheless."
                                :condition (and (eq mark retval)
                                                last-condition)))
           ;; ...and then maybe break after.
-          (when (and *break-on-stickers*
-                     (not (member :after (ignore-spec-of sticker))))
+          (when (break-on-sticker-p sticker :after)
             (invoke-debugger-for-sticker
              sticker
              (make-condition 'right-after-sticker

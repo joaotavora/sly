@@ -2209,9 +2209,13 @@ of keybindings active in that buffer.
 @item
 To step through stickers as your code is executed, ensure that
 ``breaking stickers'' are enabled via @code{M-x
-sly-stickers-toggle-break-on-stickers}. Whenever a sticker-covered
+sly-stickers-toggle-break-on-stickers}.  Whenever a sticker-covered
 expression is reached, the debugger comes up with useful restarts and
-interactive for the values produced.
+interactive for the values produced.  You can tweak this behaviour by
+setting the Lisp-side variable
+@code{SLYNK-STICKERS:*BREAK-ON-STICKERS*} to a list with the
+elements @code{:before} and @code{:after}, making @SLY{} break before a
+sticker, after it, or both.
 
 @*@image{images/stickers-4-breaking-stickers,350pt}@*
 
