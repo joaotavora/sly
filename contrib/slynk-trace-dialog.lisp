@@ -86,7 +86,7 @@ program.")
 
 (defmethod print-object ((entry trace-entry) stream)
   (print-unreadable-object (entry stream)
-    (format stream "~a: ~a" (id-of entry) (spec-of entry))))
+    (format stream "~a=~a" (id-of entry) (spec-of entry))))
 
 (defun completed-p (trace) (not (eq (retlist-of trace) 'still-inside)))
 

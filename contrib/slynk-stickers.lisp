@@ -51,12 +51,13 @@
 
 (defclass sticker ()
   ((id :initform (error "required")  :initarg :id :accessor id-of)
+   (hit-count :initform 0 :accessor hit-count-of)
    (recordings :initform nil :accessor recordings-of)
    (ignore-spec :initform nil :accessor ignore-spec-of)))
 
 (defmethod print-object ((sticker sticker) s)
   (print-unreadable-object (sticker s :type t)
-    (format s "id: ~a" (id-of sticker))))
+    (format s "id=~a hit-count=~a" (id-of sticker) (hit-count-of sticker))))
 
 (defun exited-non-locally-p (recording)
   (when (or (condition-of recording)
@@ -133,16 +134,16 @@ their ignore-spec is reset nonetheless."
   ()
   (:report (lambda (c stream)
              (with-slots (sticker) c
-               (print-unreadable-object (c stream :type t)
-                 (format stream "~a" (id-of sticker)))))))
+               (print-unreadable-object (c stream)
+                 (format stream "JUST BEFORE ~a" sticker))))))
 
 (define-condition right-after-sticker (sticker-related-condition)
   ((recording :initarg :recording :accessor recording-of))
   (:report (lambda (c stream)
              (with-slots (sticker recording) c
-               (print-unreadable-object (c stream :type t)
-                 (format stream "~a (recorded ~a)"
-                         (id-of sticker)
+               (print-unreadable-object (c stream)
+                 (format stream "RIGHT-AFTER ~a (recorded ~a)"
+                         sticker
                          recording))))))
 
 (defparameter *break-on-stickers* nil
@@ -189,12 +190,14 @@ after.")
                                 (setq last-condition condition))))
       ;; Maybe break before
       ;;
-      (when (and sticker (break-on-sticker-p sticker :before))
-        (invoke-debugger-for-sticker
-         sticker (make-condition 'just-before-sticker
-                                 :sticker sticker
-                                 :debugger-extra-options
-                                 `((:slynk-before-sticker ,id)))))
+      (when sticker
+        (incf (hit-count-of sticker))
+        (when (break-on-sticker-p sticker :before)
+          (invoke-debugger-for-sticker
+           sticker (make-condition 'just-before-sticker
+                                   :sticker sticker
+                                   :debugger-extra-options
+                                   `((:slynk-before-sticker ,id))))))
       ;; Run actual code under the sticker
       ;;
       (unwind-protect
