@@ -23,8 +23,9 @@
 ;;; There is much in this library that would merit comment. Just some points:
 ;;;
 ;;; * Stickers are just overlays that exist on the Emacs side. A lot
-;;;   of the code is just for managing overlay priorities and faces so
-;;;   stickers inside stickers are visually recognizable.
+;;;   of the code is managing overlay nesting levels so that faces
+;;;   are chosen suitably for making sticker inside stickers
+;;;   visually recognizable.
 ;;;
 ;;;   The main entry-point here is the interactive command
 ;;;   `sly-sticker-dwim', which places and removes stickers.
@@ -245,7 +246,7 @@ render the underlying text unreadable."
                            ,(color-darken-name
                              guessed-color
                              (* 40
-                                (/ (sly-button--overlay-priority sticker)
+                                (/ (sly-stickers--get-level sticker)
                                    sly-stickers-max-nested-stickers
                                    1.0)))))))
 
@@ -289,14 +290,14 @@ render the underlying text unreadable."
                          'sly-stickers-id (cl-incf sly-stickers--counter)
                          'sly-stickers--base-help-echo
                          "mouse-3: Context menu")))
-      ;; choose a suitable priorty for ourselves and increase the
-      ;; priority of those contained by us
+      ;; choose a suitable level for ourselves and increase the
+      ;; level of those contained by us
       ;;
-      (sly-stickers--set-sticker-piority
+      (sly-stickers--set-level
        sticker
-       (1+ (cl-reduce #'max (mapcar #'sly-button--overlay-priority containers)
+       (1+ (cl-reduce #'max (mapcar #'sly-stickers--get-level containers)
                       :initial-value -1)))
-      (mapc #'sly-stickers--increase-prio contained)
+      (mapc #'sly-stickers--increase-level contained)
       ;; finally, set face
       ;;
       (sly-stickers--set-tooltip sticker label)
@@ -462,31 +463,34 @@ render the underlying text unreadable."
                 (word beg 1)
                 (word end -1))))))
 
-(defun sly-stickers--set-sticker-piority (sticker prio)
-  (overlay-put sticker 'priority prio))
+(defun sly-stickers--set-level (sticker level)
+  (overlay-put sticker 'sticker-level level))
 
-(defun sly-stickers--decrease-prio (sticker)
-  (let ((prio (sly-button--overlay-priority sticker)))
-    (unless (and prio
-                 (cl-plusp prio))
-      (sly-error "Something's fishy with the sticker priorities"))
-    (sly-stickers--set-sticker-piority sticker (cl-decf prio))
+(defun sly-stickers--get-level (sticker)
+  (overlay-get sticker 'sticker-level))
+
+(defun sly-stickers--decrease-level (sticker)
+  (let ((level (sly-stickers--get-level sticker)))
+    (unless (and level
+                 (cl-plusp level))
+      (sly-error "Something's fishy with the sticker levels"))
+    (sly-stickers--set-level sticker (cl-decf level))
     (sly-stickers--set-face sticker)))
 
-(defun sly-stickers--increase-prio (sticker)
-  (let ((prio (sly-button--overlay-priority sticker)))
-    (sly-stickers--set-sticker-piority sticker (cl-incf prio))
+(defun sly-stickers--increase-level (sticker)
+  (let ((level (sly-stickers--get-level sticker)))
+    (sly-stickers--set-level sticker (cl-incf level))
     (sly-stickers--set-face sticker)))
 
 (defun sly-stickers--delete (sticker)
   "Ensure that sticker is deleted."
-  ;; Delete the overlay and take care of priorities for contained and
+  ;; Delete the overlay and take care of levels for contained and
   ;; containers, but note that a sticker might have no buffer anymore
   ;; if that buffer was killed, for example...
   ;;
   (when (and (overlay-buffer sticker)
              (buffer-live-p (overlay-buffer sticker)))
-    (mapc #'sly-stickers--decrease-prio
+    (mapc #'sly-stickers--decrease-level
           (sly-stickers--sticker-substickers sticker))
     (delete-overlay sticker))
   ;; We also want to deregister it from the hashtable in case it's
