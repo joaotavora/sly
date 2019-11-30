@@ -146,10 +146,7 @@ their ignore-spec is reset nonetheless."
                          recording))))))
 
 (defparameter *break-on-stickers* nil
-  "If non-nil, invoke to debugger when evaluating stickered forms.
-If a list containing :BEFORE, break before evaluating.  If a list
-containing :AFTER, break after evaluating.  If t, break before and
-after.")
+  "If non nil, RECORD breaks before and after recording sticker")
 
 (defslyfun toggle-break-on-stickers ()
   "Toggle the value of *BREAK-ON-STICKERS*"
@@ -182,11 +179,9 @@ after.")
     (handler-bind ((condition (lambda (condition)
                                 (setq last-condition condition))))
       ;; Maybe break before
-      ;;
+      ;; 
       (when (and sticker
-                 (or (eq t *break-on-stickers*)
-                     (and (listp *break-on-stickers*)
-                          (member :before *break-on-stickers*)))
+                 *break-on-stickers*
                  (not (member :before (ignore-spec-of sticker))))
         (invoke-debugger-for-sticker
          sticker (make-condition 'just-before-sticker
@@ -194,7 +189,7 @@ after.")
                                  :debugger-extra-options
                                  `((:slynk-before-sticker ,id)))))
       ;; Run actual code under the sticker
-      ;;
+      ;; 
       (unwind-protect
            (values-list (setq retval (multiple-value-list (funcall fn))))
         (when sticker
@@ -209,9 +204,7 @@ after.")
                                :condition (and (eq mark retval)
                                                last-condition)))
           ;; ...and then maybe break after.
-          (when (and (or (eq t *break-on-stickers*)
-                         (and (listp *break-on-stickers*)
-                              (member :after *break-on-stickers*)))
+          (when (and *break-on-stickers*
                      (not (member :after (ignore-spec-of sticker))))
             (invoke-debugger-for-sticker
              sticker
