@@ -228,6 +228,14 @@ render the underlying text unreadable."
 (defvar sly-stickers-color-face-attribute :background
   "Color-capable attribute of sticker faces that represents nesting.")
 
+(gv-define-setter sly-stickers--level (level sticker)
+  `(prog1
+       (overlay-put ,sticker 'sticker-level ,level)
+     (when (button-get ,sticker 'sly-stickers--base-face)
+       (sly-stickers--set-face ,sticker))))
+
+(defun sly-stickers--level (sticker) (overlay-get sticker 'sticker-level))
+
 (defun sly-stickers--guess-face-color (face)
   (face-attribute-specified-or
    (face-attribute face sly-stickers-color-face-attribute nil t)
@@ -462,14 +470,6 @@ render the underlying text unreadable."
         (format "sticker from \"%s...\" to \"...%s\""
                 (word beg 1)
                 (word end -1))))))
-
-(gv-define-setter sly-stickers--level (level sticker)
-  `(prog1
-       (overlay-put ,sticker 'sticker-level ,level)
-     (when (button-get ,sticker 'sly-stickers--base-face)
-       (sly-stickers--set-face ,sticker))))
-
-(defun sly-stickers--level (sticker) (overlay-get sticker 'sticker-level))
 
 (defun sly-stickers--delete (sticker)
   "Ensure that sticker is deleted."
