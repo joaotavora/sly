@@ -99,6 +99,7 @@
 (require 'cl-lib)
 (require 'hi-lock) ; for the faces
 (require 'color)
+(require 'pulse) ; pulse-momentary-highlight-overlay
 
 (define-sly-contrib sly-stickers
   "Mark expressions in source buffers and annotate return values."
