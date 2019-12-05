@@ -983,7 +983,7 @@ macroexpansion time.
 
 (defun sly-to-lisp-filename (filename)
   "Translate the string FILENAME to a Lisp filename."
-  (funcall sly-to-lisp-filename-function filename))
+  (funcall sly-to-lisp-filename-function (substring-no-properties filename)))
 
 (defun sly-from-lisp-filename (filename)
   "Translate the Lisp filename FILENAME to an Emacs filename."
