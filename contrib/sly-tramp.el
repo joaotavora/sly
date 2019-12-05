@@ -1,6 +1,6 @@
 (require 'sly)
 (require 'tramp)
-(eval-when-compile (require 'cl)) ; lexical-let
+(require 'cl-lib)
 
 (define-sly-contrib sly-tramp
   "Filename translations for tramp"
@@ -96,8 +96,8 @@ just the IP) of the remote machine. USERNAME is the username we
 should login with.
 The functions created here expect your tramp-default-method or
  tramp-default-method-alist to be setup correctly."
-  (lexical-let ((remote-host (or remote-host machine-instance))
-                (username (or username (user-login-name))))
+  (let ((remote-host (or remote-host machine-instance))
+        (username (or username (user-login-name))))
     (list (concat "^" machine-instance "$")
           (lambda (emacs-filename)
             (tramp-file-name-localname
@@ -111,12 +111,12 @@ The functions created here expect your tramp-default-method or
 (defun sly-tramp-to-lisp-filename (filename)
   (funcall (if (let ((conn (sly-current-connection)))
                  (and conn (process-live-p conn)))
-               (first (sly-find-filename-translators (sly-machine-instance)))
+               (cl-first (sly-find-filename-translators (sly-machine-instance)))
              'identity)
            (expand-file-name filename)))
 
 (defun sly-tramp-from-lisp-filename (filename)
-  (funcall (second (sly-find-filename-translators (sly-machine-instance)))
+  (funcall (cl-second (sly-find-filename-translators (sly-machine-instance)))
            filename))
 
 (provide 'sly-tramp)

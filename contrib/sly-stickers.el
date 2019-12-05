@@ -91,10 +91,11 @@
 (require 'sly-parse "lib/sly-parse")
 (require 'sly-buttons "lib/sly-buttons")
 
-;; Using `cl-defstruct' needs `cl'
-;; apparently. See issue
-;; https://github.com/joaotavora/sly/issues/54
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (when (version< emacs-version "26")
+      ;; Using `cl-defstruct' needs `cl' on older Emacsen. See issue
+      ;; https://github.com/joaotavora/sly/issues/54
+    (require 'cl)))
 
 (require 'cl-lib)
 (require 'hi-lock) ; for the faces
