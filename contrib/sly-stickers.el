@@ -803,11 +803,11 @@ buffer"
                           "Skipping recordings of deleted stickers. " "")
                       (if ignored-ids
                           (format "Skipping recordings of sticker%s %s."
-                                  (if (rest ignored-ids) "s" "")
+                                  (if (cl-rest ignored-ids) "s" "")
                                   (concat (mapconcat #'pp-to-string
                                                      (butlast ignored-ids)
                                                      ", ")
-                                          (and (rest ignored-ids) " and ")
+                                          (and (cl-rest ignored-ids) " and ")
                                           (pp-to-string
                                            (car (last ignored-ids)))))
                         ""))
@@ -881,7 +881,7 @@ buffer"
         (setf (cl-getf (sly-stickers--replay-data) :old-total) old-total)
         (when (and
                old-total
-               (plusp old-total)
+               (cl-plusp old-total)
                (> new-total old-total)
                (sly-y-or-n-p
                 "Looks like there are %s new recordings since last replay.\n
@@ -938,7 +938,7 @@ Non-interactively, set the `:recording' slot of
                      (cl-getf (sly-stickers--replay-data) :total) total
                      (cl-getf (sly-stickers--replay-data) :recording) rec)
                (if old-index
-                   (if (plusp n)
+                   (if (cl-plusp n)
                        (if (> old-index index) (sly-message "Rolled over to start"))
                      (if (< old-index index) (sly-message "Rolled over to end"))))
                ;; Assert that the recording isn't void
@@ -1125,7 +1125,7 @@ in the `nth' sense, the HOWMANYth recording survives."
 (defun sly-stickers--handle-break (extra)
   (sly-dcase extra
     ((:slynk-after-sticker description)
-     (let ((sticker-id (first description))
+     (let ((sticker-id (cl-first description))
            (recording (sly-stickers--make-recording description)))
        (sly-stickers--find-and-flash sticker-id
                                      :otherwise 'sly-message)
