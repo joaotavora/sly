@@ -632,6 +632,9 @@ properly deleted or brutally killed with the buffer they were in."
            (add-to-list 'sly-stickers--zombie-sticker-ids sticker-id)
            nil))))
 
+(defvar sly-stickers--flashing-sticker nil
+  "The sticker currently being flashed.")
+
 (cl-defun sly-stickers--find-and-flash (sticker-id &key (otherwise nil))
   "Find and flash the sticker referenced by STICKER-ID.
 otherwise call OTHERWISE with a single argument, a string stating
@@ -647,11 +650,14 @@ the reason why the sticker couldn't be found"
                        (push-mark nil t)
                        (goto-char (overlay-start sticker))
                        (sly-recenter (point))
+                       (setq sly-stickers--flashing-sticker sticker)
                        (pulse-momentary-highlight-overlay sticker 'highlight)
-                       (run-with-timer 2 nil
-                                       (lambda ()
-                                         (pulse-momentary-highlight-overlay
-                                          sticker 'highlight))))))))))
+                       (run-with-timer
+                        2 nil
+                        (lambda ()
+                          (when (eq sly-stickers--flashing-sticker sticker)
+                            (pulse-momentary-highlight-overlay
+                             sticker 'highlight)))))))))))
           (otherwise
            (funcall otherwise "Can't find sticker (probably deleted!)")))))
 
