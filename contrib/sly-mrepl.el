@@ -1052,7 +1052,8 @@ prefix argument is given."
     (sly-mrepl--eval-for-repl
      `(slynk-mrepl:sync-package-and-default-directory
        :package-name ,package
-       :directory ,(sly-to-lisp-filename directory))
+       :directory ,(and directory
+                        (sly-to-lisp-filename directory)))
      :insert-p nil
      :before-prompt
      #'(lambda (results)
