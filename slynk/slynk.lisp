@@ -1730,6 +1730,8 @@ Emacs buffer."
 (defmacro without-printing-errors ((&key object stream
                                         (msg "<<error printing object>>"))
                                   &body body)
+  ;; JT: Careful when calling this, make sure STREAM, if provided, is
+  ;; a symbol that alwyas designates a non-nil stream.  See gh#287.
   "Catches errors during evaluation of BODY and prints MSG instead."
   `(handler-case (progn ,@body)
      (serious-condition ()
@@ -2113,9 +2115,10 @@ If STREAM is nil, use a string"
                               (and (not *print-circle*) 512)))
           (*print-level* (or *print-level*
                               (and (not *print-circle*) 20))))
-      (without-printing-errors (:object object :stream stream)
-        (if stream
-            (write object :stream stream :pretty t :escape t)
+      (if stream
+          (without-printing-errors (:object object :stream stream)
+            (write object :stream stream :pretty t :escape t))
+          (without-printing-errors (:object object)
             (with-output-to-string (s)
               (write object :stream s :pretty t :escape t)))))))
 
