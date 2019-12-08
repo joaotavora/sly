@@ -12,7 +12,8 @@
            #:total-recordings
            #:find-recording-or-lose
            #:search-for-recording
-           #:toggle-break-on-stickers))
+           #:toggle-break-on-stickers
+           #:*break-on-stickers*))
 (in-package :slynk-stickers)
 
 (defvar *next-recording-id* 0)
