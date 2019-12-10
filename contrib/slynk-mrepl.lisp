@@ -252,10 +252,11 @@ Set this to NIL to turn this feature off.")
                                          table)))
                       (read in nil in))
                     until (eq form in)
-                    do (setq values (multiple-value-list
-                                     (eval
-                                      (saving-listener-bindings repl
-                                        (setq +++ ++ ++ + + form)))))
+                    do (let ((- form))
+                         (setq values (multiple-value-list
+                                       (eval
+                                        (saving-listener-bindings repl
+                                          (setq +++ ++ ++ + + form))))))
                     finally
                     (return values))))
         (setf (cdr (assoc '*package* (slot-value repl 'slynk::env)))

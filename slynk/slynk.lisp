@@ -1504,8 +1504,8 @@ event was found."
    (force-output)
    (let ((form (handler-case (read)
                  (end-of-repl-input () (return)))))
-     (let ((- form)
-           (values (multiple-value-list (eval form))))
+     (let* ((- form)
+            (values (multiple-value-list (eval form))))
        (setq *** **  ** *  * (car values)
              /// //  // /  / values
              +++ ++  ++ +  + form)
