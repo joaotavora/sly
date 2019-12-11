@@ -2115,12 +2115,20 @@ If STREAM is nil, use a string"
                               (and (not *print-circle*) 512)))
           (*print-level* (or *print-level*
                               (and (not *print-circle*) 20))))
-      (if stream
-          (without-printing-errors (:object object :stream stream)
-            (write object :stream stream :pretty t :escape t))
-          (without-printing-errors (:object object)
-            (with-output-to-string (s)
-              (write object :stream s :pretty t :escape t)))))))
+      (flet ((write-it (s)
+               (cond ((and *print-length*
+                           (stringp object)
+                           (> (length object) *print-length*))
+                      (format s "\"~a...[sly-elided string of length ~a]\""
+                              (subseq object 0 *print-length*)
+                              (length object)))
+                     (t
+                      (write object :stream s :pretty t :escape t)))))
+        (if stream
+            (without-printing-errors (:object object :stream stream)
+              (write-it stream))
+            (without-printing-errors (:object object)
+              (with-output-to-string (s) (write-it s))))))))
 
 (defun slynk-pprint-values (values &key (stream nil))
   "Pretty print each of VALUES to STREAM using *SLYNK-PPRINT-BINDINGS*.
