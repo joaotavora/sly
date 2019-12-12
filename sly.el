@@ -2749,7 +2749,7 @@ Debugged requests are ignored."
   "Switch to most recent buffer in MODE, a major-mode symbol.
 With prefix argument, prompt for MODE"
   (interactive
-   (list (if prefix-arg
+   (list (if current-prefix-arg
              (intern (sly-completing-read
                       "Switch to most recent buffer in what mode? "
                       (mapcar #'symbol-name '(lisp-mode
