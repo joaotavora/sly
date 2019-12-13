@@ -4233,6 +4233,26 @@ inserted in the current buffer."
   (interactive)
   (sly-interactive-eval (sly-last-expression)))
 
+(defvar-local sly-previous-eval-context nil
+  "The previous evaluation context if any.
+That's set by commands like `sly-eval-last-sexp-in-context'.")
+
+(defun sly-eval-last-expression-in-context ()
+  "Evaluate a form like `sly-eval-last-expression', but prompt for let* context variables.
+Also uses prefix arguments from `sly-interactive-eval'. Here is
+an example interaction:
+(+ x y)| <-- the cursor
+M-x sly-eval-last-expression
+Let context: (x 1) (y 2) RET
+; => 3"
+  (interactive)
+  (let* ((context (sly-read-from-minibuffer "let* context: "
+                                            sly-previous-eval-context))
+         (code (concat "(let* (" context ")"
+                       (sly-last-expression) ")")))
+    (sly-interactive-eval code)
+    (setq-local sly-previous-eval-context context)))
+
 (defun sly-eval-defun ()
   "Evaluate the current toplevel form.
 Use `sly-re-evaluate-defvar' if the from starts with '(defvar'"

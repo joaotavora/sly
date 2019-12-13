@@ -783,6 +783,10 @@ argument causes the results to be inserted in the current buffer.
 Evaluate the expression before point and show the result in the echo
 area.
 
+@cmditem{sly-eval-last-expression-in-context}
+
+Evaluate a form like `sly-eval-last-expression', but prompt for @code{let*} context variables.
+
 @kbditem{C-M-x, sly-eval-defun}
 Evaluate the current toplevel form and show the result in the echo
 area.  `C-M-x' treats `defvar' expressions specially.  Normally,
