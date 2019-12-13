@@ -1000,6 +1000,11 @@ Display the compiler-macro expansion of sexp at point.
 @cmditem{sly-compiler-macroexpand}
 Repeatedly expand compiler macros of sexp at point.
 
+@cmditem{sly-format-string-expand}
+Expand the format-string at point and display it.
+With prefix arg, or if no string at point, prompt the user for a
+string to expand.
+
 @end table
 
 Within a sly macroexpansion buffer some extra commands are provided
