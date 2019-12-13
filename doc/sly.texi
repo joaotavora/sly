@@ -772,9 +772,10 @@ a @code{.lisp} file.
 @section Evaluating code
 
 These commands each evaluate a Common Lisp expression in a different
-way.  Usually they mimic commands for evaluating Emacs Lisp code.  By
+way. Usually they mimic commands for evaluating Emacs Lisp code. By
 default they show their results in the echo area, but a prefix
-argument causes the results to be inserted in the current buffer.
+argument @kbd{C-u} inserts the results into the current buffer, while
+a negative prefix argument @kbd{M--} sends them to the kill ring.
 
 @table @kbd
 
@@ -1441,7 +1442,8 @@ Quit the connection list (kill buffer, restore window configuration).
 Restart the Lisp process for the connection at point.
 
 @cmditem{sly-connect}
-Connect to a running Slynk server.
+Connect to a running Slynk server. With prefix argument, asks if all
+connections should be closed first.
 
 @cmditem{sly-disconnect}
 Disconnect all connections.

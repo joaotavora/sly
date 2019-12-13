@@ -4140,8 +4140,9 @@ the display stuff that we neither need nor want."
 (defun sly-interactive-eval (string)
   "Read and evaluate STRING and print value in minibuffer.
 
-Note: If a prefix argument is in effect then the result will be
-inserted in the current buffer."
+A prefix argument(`C-u') inserts the result into the current
+buffer. A negative prefix argument (`M--') will sends it to the
+kill ring."
   (interactive (list (sly-read-from-minibuffer "SLY Eval: ")))
   (cl-case current-prefix-arg
     ((nil)
