@@ -1235,6 +1235,7 @@ When setting this variable outside of the Customize interface,
     ("disconnect all" . sly-disconnect-all)
     ("in-package"     . sly-mrepl-set-package)
     ("restart lisp"   . sly-restart-inferior-lisp)
+    ("quit"           . sly-quit-lisp)
     ("sayoonara"      . sly-quit-lisp)
     ("set directory"  . sly-mrepl-set-directory)
     ("set package"    . sly-mrepl-set-package)))
