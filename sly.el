@@ -828,6 +828,9 @@ move to make TARGET visible."
   (when sly-truncate-lines
     (set (make-local-variable 'truncate-lines) t)))
 
+(defvar sly-read-package-history nil
+  "History for sly-read-package completion. Used by sly-mrepl-shortcut
+in-package.")
 ;; Interface
 (defun sly-read-package-name (prompt &optional initial-value allow-blank)
   "Read a package name from the minibuffer, prompting with PROMPT.
@@ -838,7 +841,9 @@ selected."
                (concat "[sly] " prompt)
                (sly-eval
                 `(slynk:list-all-package-names t))
-               nil (not allow-blank) initial-value)))
+               nil (not allow-blank)
+               initial-value
+               'sly-read-package-history)))
     (unless (zerop (length res))
       res)))
 
@@ -2101,6 +2106,9 @@ Respect `sly-keep-buffers-on-connection-close'."
            (sly-warning "process %s in `sly-net-processes' dead. Force closing..." process)
            (sly-net-close process "process state invalid" nil t)))
 
+(defvar sly-prompt-connection-history nil
+  "History for connection prompt. eg. sayoonara.")
+
 (defun sly-prompt-for-connection (&optional prompt connections dont-require-match)
   (let* ((connections (or connections (sly--purge-connections)))
          (connection-names (cl-loop for process in
@@ -2116,7 +2124,11 @@ Respect `sly-keep-buffers-on-connection-close'."
                                (sly-completing-read
                                 (or prompt "Connection: ")
                                 connection-names
-                                nil (not dont-require-match))))
+                                nil
+                                (not dont-require-match)
+                                (when (null (cdr connection-names));Length of 1.
+                                  (car connection-names))
+                                'sly-prompt-for-connection)))
          (target (cl-find connection-name sly-net-processes :key #'sly-connection-name
                           :test #'string=)))
     (cond (target target)
