@@ -1395,19 +1395,19 @@ event was found."
 
 
 (defun spawn-threads-for-connection (connection)
-  (setf (mconn.control-thread connection)
-        (spawn (lambda () (control-thread connection))
-               :name "control-thread"))
+  (setf
+   (mconn.control-thread connection)
+   (spawn
+    (lambda ()
+      "Spawns a reader and indentation threads, then calls DISPATCH-LOOP."
+      (setf (mconn.reader-thread connection) (spawn (lambda () (read-loop connection))
+                                                    :name "reader-thread"))
+      (setf (mconn.indentation-cache-thread connection)
+            (spawn (lambda () (indentation-cache-loop connection))
+                   :name "slynk-indentation-cache-thread"))
+      (dispatch-loop connection))
+    :name "control-thread"))
   connection)
-
-(defun control-thread (connection)
-  (setf (mconn.control-thread connection) (current-thread))
-  (setf (mconn.reader-thread connection) (spawn (lambda () (read-loop connection))
-                                                :name "reader-thread"))
-  (setf (mconn.indentation-cache-thread connection)
-        (spawn (lambda () (indentation-cache-loop connection))
-               :name "slynk-indentation-cache-thread"))
-  (dispatch-loop connection))
 
 (defun cleanup-connection-threads (connection)
   (let* ((c connection)
