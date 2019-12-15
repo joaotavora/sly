@@ -5937,9 +5937,7 @@ The details include local variable bindings and CATCH-tags."
   "Prompt for an expression and evaluate it in the selected frame."
   (interactive (sly-db-frame-eval-interactive "Eval in frame (%s)> "))
   (sly-eval-async `(slynk:eval-string-in-frame ,string ,frame-number ,package)
-    (if current-prefix-arg
-        'sly-write-string
-      'sly-display-eval-result)))
+    'sly-display-eval-result))
 
 (defun sly-db-pprint-eval-in-frame (frame-number string package)
   "Prompt for an expression, evaluate in selected frame, pretty-print result."
