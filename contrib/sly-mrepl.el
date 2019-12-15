@@ -1248,7 +1248,7 @@ When setting this variable outside of the Customize interface,
 (defun sly-mrepl-set-directory ()
   (interactive)
   (let ((directory (read-directory-name "New directory: "
-                                        default-directory nil t)))
+                                        default-directory nil nil)))
     (sly-mrepl--save-and-copy-for-repl
      `(slynk:set-default-directory ,directory)
      :before (format "Setting directory to %s" directory))
