@@ -709,17 +709,6 @@ corresponding values in the CDR of VALUE."
   (check-type msg string)
   `(call-with-retry-restart ,msg (lambda () ,@body)))
 
-(defmacro with-struct* ((conc-name get obj) &body body)
-  (let ((var (gensym)))
-    `(let ((,var ,obj))
-       (macrolet ((,get (slot)
-                    (let ((getter (intern (concatenate 'string
-                                                       ',(string conc-name)
-                                                       (string slot))
-                                          (symbol-package ',conc-name))))
-                      `(,getter ,',var))))
-         ,@body))))
-
 
 ;;;;; Sentinel
 ;;;
@@ -1412,14 +1401,13 @@ event was found."
   connection)
 
 (defun control-thread (connection)
-  (with-struct* (mconn. @ connection)
-    (setf (@ control-thread) (current-thread))
-    (setf (@ reader-thread) (spawn (lambda () (read-loop connection))
-                                   :name "reader-thread"))
-    (setf (@ indentation-cache-thread)
-          (spawn (lambda () (indentation-cache-loop connection))
-                 :name "slynk-indentation-cache-thread"))
-    (dispatch-loop connection)))
+  (setf (mconn.control-thread connection) (current-thread))
+  (setf (mconn.reader-thread connection) (spawn (lambda () (read-loop connection))
+                                                :name "reader-thread"))
+  (setf (mconn.indentation-cache-thread connection)
+        (spawn (lambda () (indentation-cache-loop connection))
+               :name "slynk-indentation-cache-thread"))
+  (dispatch-loop connection))
 
 (defun cleanup-connection-threads (connection)
   (let* ((c connection)
@@ -3290,13 +3278,12 @@ DSPEC is a string and LOCATION a source location. NAME is a string."
         (t `(lcons ,car (lcons* ,cdr ,@more)))))
 
 (defun lcons-cdr (lcons)
-  (with-struct* (lcons- @ lcons)
-    (cond ((@ forced?)
-           (@ %cdr))
+  (let ((cdr (lcons-%cdr lcons)))
+    (cond ((lcons-forced? lcons) cdr)
           (t
-           (let ((value (funcall (@ %cdr))))
-             (setf (@ forced?) t
-                   (@ %cdr) value))))))
+           (let ((value (funcall cdr)))
+             (setf (lcons-forced? lcons) t
+                   (lcons-%cdr lcons) value))))))
 
 (defun llist-range (llist start end)
   (llist-take (llist-skip llist start) (- end start)))
