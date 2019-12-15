@@ -1258,9 +1258,11 @@ When setting this variable outside of the Customize interface,
   (interactive)
   (let* ((string (sly-completing-read "Command: "
                                       (mapcar #'car sly-mrepl-shortcut-alist)
-                                      nil 'require-match nil
-                                      'sly-mrepl-shortcut-history
-                                      (car sly-mrepl-shortcut-history)))
+                                      nil
+                                      ;; Like T, but RET acts differently.
+                                      'require-match
+                                      nil ; do not fill in a completion.
+                                      'sly-mrepl-shortcut-history))
          (command (and string
                        (cdr (assoc string sly-mrepl-shortcut-alist)))))
     (call-interactively command)))
