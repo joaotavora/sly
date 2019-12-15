@@ -1259,8 +1259,7 @@ When setting this variable outside of the Customize interface,
   (let* ((string (sly-completing-read "Command: "
                                       (mapcar #'car sly-mrepl-shortcut-alist)
                                       nil 'require-match nil
-                                      'sly-mrepl-shortcut-history
-                                      (car sly-mrepl-shortcut-history)))
+                                      'sly-mrepl-shortcut-history))
          (command (and string
                        (cdr (assoc string sly-mrepl-shortcut-alist)))))
     (call-interactively command)))
