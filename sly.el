@@ -5121,8 +5121,8 @@ The form is expanded with CL:MACROEXPAND-1 or, if a prefix
 argument is given, with CL:MACROEXPAND.
 
 Contrary to `sly-macroexpand-1', if the form denotes a compiler
-macro, SWANK/BACKEND:COMPILER-MACROEXPAND or
-SWANK/BACKEND:COMPILER-MACROEXPAND-1 are used instead."
+macro, SLYNK-BACKEND:COMPILER-MACROEXPAND or
+SLYNK-BACKEND:COMPILER-MACROEXPAND-1 are used instead."
   (interactive "P")
   (sly-eval-macroexpand
    (if repeatedly
