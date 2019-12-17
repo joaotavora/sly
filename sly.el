@@ -2376,7 +2376,7 @@ If CANCEL-ON-INPUT cancel the request immediately if the user
 wants to input, and return CANCEL-ON-INPUT-RETVAL."
   (when (null package) (setq package (sly-current-package)))
   (let* ((catch-tag (make-symbol (format "sly-result-%d"
-                                         (1+ (sly-continuation-counter)))))
+                                         (sly-continuation-counter))))
          (sly-stack-eval-tags (cons catch-tag sly-stack-eval-tags))
          (cancelled-on-input nil)
          (check-conn
