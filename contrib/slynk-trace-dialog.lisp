@@ -113,7 +113,8 @@ program.")
 (defun describe-trace-for-emacs (trace)
   `(,(id-of trace)
     ,(and (parent-of trace) (id-of (parent-of trace)))
-    ,(spec-of trace)
+    ,(cons (string-downcase (present-for-emacs (spec-of trace)))
+           (spec-of trace))
     ,(loop for arg in (args-of trace)
            for i from 0
            collect (list i (present-for-emacs arg #'slynk-pprint-to-line)))
@@ -167,9 +168,12 @@ program.")
      key)))
 
 (defslyfun report-specs ()
-  (sort (copy-list *traced-specs*)
-        #'string<
-        :key #'princ-to-string))
+  (mapcar (lambda (spec)
+            (cons (string-downcase (present-for-emacs spec))
+                  spec))
+          (sort (copy-list *traced-specs*)
+                #'string<
+                :key #'princ-to-string)))
 
 (defslyfun report-total ()
   (length *traces*))

@@ -262,35 +262,35 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 ;;;; Handlers for the *trace-dialog* buffer
 ;;;
 (defun sly-trace-dialog--open-specs (traced-specs)
-  (cl-labels ((make-report-spec-fn
-               (&optional form)
-               #'(lambda (_button)
-                   (sly-eval-async
-                       `(cl:progn
-                         ,form
-                         (slynk-trace-dialog:report-specs))
-                     #'(lambda (results)
-                         (sly-trace-dialog--open-specs results))))))
+  (let ((make-report-spec-fn-fn
+         (lambda (&optional form)
+           (lambda (_button)
+             (sly-eval-async
+                 `(cl:progn
+                   ,form
+                   (slynk-trace-dialog:report-specs))
+               #'(lambda (results)
+                   (sly-trace-dialog--open-specs results)))))))
     (sly-refreshing
         (:overlay sly-trace-dialog--specs-overlay
                   :recover-point-p t)
       (insert
        (sly-trace-dialog--format "Traced specs (%s)" (length traced-specs))
        (sly-make-action-button "[refresh]"
-                                 (make-report-spec-fn))
+                               (funcall make-report-spec-fn-fn))
        "\n" (make-string 50 ? )
        (sly-make-action-button
         "[untrace all]"
-        (make-report-spec-fn `(slynk-trace-dialog:dialog-untrace-all)))
+        (funcall make-report-spec-fn-fn `(slynk-trace-dialog:dialog-untrace-all)))
        "\n\n")
-      (cl-loop for spec in traced-specs
+      (cl-loop for (spec-pretty . spec) in traced-specs
                do (insert
                    "  "
                    (sly-make-action-button
                     "[untrace]"
-                    (make-report-spec-fn
+                    (funcall make-report-spec-fn-fn
                      `(slynk-trace-dialog:dialog-untrace ',spec)))
-                   (format " %s" spec)
+                   (format " %s" spec-pretty)
                    "\n")))))
 
 (defvar sly-trace-dialog--fetch-key nil)
@@ -399,7 +399,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
            :type 'sly-trace-dialog-spec
            'trace-id id
            'part-args (list id
-                            (sly-trace-dialog--trace-spec trace))
+                            (cdr (sly-trace-dialog--trace-spec trace)))
            'part-label (format "Trace entry: %s" id)
            props))
   label)
@@ -451,7 +451,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
           (sly-trace-dialog-spec-button
            (format "%4s" id) trace 'skip t 'action 'sly-button-inspect))
          (spec-button (sly-trace-dialog-spec-button
-                       (format "%s" (sly-trace-dialog--trace-spec trace))
+                       (format "%s" (car (sly-trace-dialog--trace-spec trace)))
                        trace))
          (summary (cl-loop for (type objects marker) in
                            `((:arg    ,(sly-trace-dialog--trace-args trace)
