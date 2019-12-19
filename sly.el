@@ -2367,8 +2367,13 @@ or nil if nothing suitable can be found.")
 ;;; that `throw's its result up to a `catch' and then enter a loop of
 ;;; handling I/O until that happens.
 
-(defvar sly-stack-eval-tags nil
-  "List of stack-tags of continuations waiting on the stack.")
+(defvar sly--stack-eval-tags nil
+  "List of stack-tags of waiting on the elisp stack.
+This is used by the sly-db debugger to decide whether to enter a
+`recursive-edit', so that if a synchronous `sly-eval' request
+errors and brings us a Slynk debugger, we can fix the error,
+invoke a restart and still get the return value of the `sly-eval'
+as if nothing had happened.")
 
 (defun sly-eval (sexp &optional package cancel-on-input cancel-on-input-retval)
   "Evaluate SEXP in Slynk's PACKAGE and return the result.
@@ -2377,37 +2382,41 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
   (when (null package) (setq package (sly-current-package)))
   (let* ((catch-tag (make-symbol (format "sly-result-%d"
                                          (sly-continuation-counter))))
-         (sly-stack-eval-tags (cons catch-tag sly-stack-eval-tags))
-         (cancelled-on-input nil)
+         (sly--stack-eval-tags (cons catch-tag sly--stack-eval-tags))
+         (cancelled nil)
          (check-conn
           (lambda ()
             (unless (eq (process-status (sly-connection)) 'open)
-              (error "Lisp connection closed unexpectedly")))))
-    (apply
-     #'funcall
-     (catch catch-tag
-       (sly-rex ()
-           (sexp package)
-         ((:ok value)
-          (unless cancelled-on-input
-            (unless (member catch-tag sly-stack-eval-tags)
-              (error "Reply to canceled synchronous eval request tag=%S sexp=%S"
-                     catch-tag sexp))
-            (throw catch-tag (list #'identity value))))
-         ((:abort _condition)
-          (throw catch-tag (list #'error "Synchronous Lisp Evaluation aborted"))))
-       (cond (cancel-on-input
-              (let ((inhibit-quit t))
-                (unwind-protect
-                    (while (sit-for 30))
-                  (setq cancelled-on-input t
-                        quit-flag nil)))
-              (funcall check-conn))
-             (t
-              (while t
-                (funcall check-conn)
-                (accept-process-output nil 30))))
-       (list #'identity cancel-on-input-retval)))))
+              (error "Lisp connection closed unexpectedly"))))
+         (retval
+          (unwind-protect
+              (catch catch-tag
+                (sly-rex ()
+                    (sexp package)
+                  ((:ok value)
+                   (unless cancelled
+                     (unless (member catch-tag sly--stack-eval-tags)
+                       (error "Reply to nested `sly-eval' request with tag=%S sexp=%S"
+                              catch-tag sexp))
+                     (throw catch-tag (list #'identity value))))
+                  ((:abort _condition)
+                   (unless cancelled
+                     (throw catch-tag
+                            (list #'error "Synchronous Lisp Evaluation aborted")))))
+                (cond (cancel-on-input
+                       (while (sit-for 30))
+                       (setq cancelled t)
+                       (funcall check-conn))
+                      (t
+                       (while t
+                         (funcall check-conn)
+                         (accept-process-output nil 30))))
+                (list #'identity cancel-on-input-retval))
+            ;; Protect against user quit during
+            ;; `accept-process-output' or `sit-for', so that if the
+            ;; Lisp is alive and replies, we don't get an error.
+            (setq cancelled t))))
+    (apply (car retval) (cdr retval))))
 
 (defun sly-eval-async (sexp &optional cont package env)
   "Evaluate SEXP on the superior Lisp and call CONT with the result.
@@ -5516,7 +5525,7 @@ pending Emacs continuations."
           (run-hooks 'sly-db-hook)
           (set-syntax-table lisp-mode-syntax-table)))
       (sly-recenter (point-min) 'allow-moving-point)
-      (when sly-stack-eval-tags
+      (when sly--stack-eval-tags
         (sly-message "Entering recursive edit..")
         (recursive-edit)))))
 
