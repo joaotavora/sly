@@ -2013,7 +2013,7 @@ stack."
 #+#.(slynk-backend:with-symbol 'comma-expr 'sb-impl)
 (progn
   (defmethod sexp-in-bounds-p ((s sb-impl::comma) i)
-    (= i 1))
+    (sexp-in-bounds-p (sb-impl::comma-expr s) i))
 
   (defmethod sexp-ref ((s sb-impl::comma) i)
-    (sb-impl::comma-expr s)))
+    (sexp-ref (sb-impl::comma-expr s) i)))
