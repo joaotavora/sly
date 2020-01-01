@@ -2139,12 +2139,12 @@ If STREAM is nil, use a string"
                    (print-all s))))))))
 
 (defun slynk-pprint-to-line (object)
-  "Print OBJECT to a single line at most. Return the string."
+  "Print OBJECT to a single line string and return it."
   (let ((*slynk-pprint-bindings*
           `((*print-lines* . 1)
             (*print-right-margin* . 512)
             ,@*slynk-pprint-bindings*)))
-    (slynk-pprint object)))
+    (substitute #\Space #\Newline (slynk-pprint object :stream nil))))
 
 (defslyfun pprint-eval (string)
   (with-buffer-syntax ()
