@@ -1083,3 +1083,26 @@ to do this, this factors in the length of the inserted header itself."
 
 (defimplementation wrapped-p (spec indicator)
   (getf (excl:fwrap-order (process-fspec-for-allegro spec)) indicator))
+
+;; FD Handler
+
+(defimplementation wait-for-input (streams &optional timeout)
+  (mp:wait-for-input-available streams
+                               :timeout (unless (eq t timeout)
+                                          timeout)))
+
+(defvar *fd-handlers* (make-hash-table))
+
+(defimplementation add-fd-handler (socket fn)
+  (setf (gethash socket *fd-handlers*) t)
+  (let ((fd (socket:socket-os-fd socket)))
+    (mp:process-run-function "FD Handler"
+                             (lambda ()
+                               (loop
+                                 while (gethash socket *fd-handlers*)
+                                 do (mp:wait-for-input-available
+                                     fd :whostate "Waiting on input from SLY client")
+                                    (funcall fn))))))
+
+(defimplementation remove-fd-handlers (socket)
+  (remhash socket *fd-handlers*))
