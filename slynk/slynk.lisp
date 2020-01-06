@@ -1216,8 +1216,11 @@ point the thread terminates and CHANNEL is closed."
   (spawn (lambda ()
            (with-bindings *default-worker-thread-bindings*
              (with-top-level-restart (connection nil)
-               (apply #'eval-for-emacs
-                      (cdr (wait-for-event `(:emacs-rex . _)))))))
+               (let ((thread (current-thread)))
+                 (unwind-protect
+                      (apply #'eval-for-emacs
+                             (cdr (wait-for-event `(:emacs-rex . _))))
+                   (remove-active-thread connection thread))))))
          :name "slynk-worker"))
 
 (defun add-active-thread (connection thread)
@@ -1248,7 +1251,6 @@ point the thread terminates and CHANNEL is closed."
                      (format nil "Thread not found: ~s" thread-id))
                (current-socket-io))))))
     ((:return thread &rest args)
-     (remove-active-thread connection thread)
      (encode-message `(:return ,@args) (current-socket-io)))
     ((:emacs-interrupt thread-id)
      (interrupt-worker-thread connection thread-id))
