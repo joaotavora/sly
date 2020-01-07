@@ -410,7 +410,8 @@ Otherwise NIL is returned."
   (etypecase arg
     (symbol        arg)
     (arglist-dummy arg)
-    (list          (decode-arglist arg))))
+    (list          (decode-arglist arg))
+    (number        arg)))
 
 (defun encode-required-arg (arg)
   (etypecase arg
