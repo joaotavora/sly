@@ -606,8 +606,7 @@ corresponding values in the CDR of VALUE."
     (clear-input in)))
 
 (defmethod close-listener (l)
-  ;; TODO: investigate why SBCL complains when we close IN and OUT
-  ;; here.
+  (with-slots (in out) l (close in) (close out))
   (setf (listeners) (delete l (listeners))))
 
 
@@ -1174,7 +1173,8 @@ point the thread terminates and CHANNEL is closed."
       (format *log-output* "~&;; closing ~a channels~%" (length (connection-channels c)))
       (mapc #'(lambda (c) (close-channel c :force t)) (connection-channels c))
       (format *log-output* "~&;; closing ~a listeners~%" (length (connection-listeners c)))
-      (mapc #'close-listener (connection-listeners c)))
+      (ignore-errors
+       (mapc #'close-listener (connection-listeners c))))
     (stop-serving-requests c)
     (close (connection-socket-io c))
     (setf *connections* (remove c *connections*))
