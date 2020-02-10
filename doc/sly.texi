@@ -388,6 +388,13 @@ or @file{~/.emacs.d/init.el} (@pxref{Emacs Init File}).
 (setq inferior-lisp-program "/opt/sbcl/bin/sbcl")
 @end example
 
+If your Common Lisp implementation doesn't automatically turn on UTF-8
+support, you may need to specify it manually:
+
+@example
+(setq inferior-lisp-program "/usr/local/bin/clisp -E UTF-8 -K full")
+@end example
+
 After evaluating this, you should be able to execute @kbd{M-x sly} and
 be greeted with a @REPL{}.
 
