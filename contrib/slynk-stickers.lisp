@@ -167,7 +167,11 @@ after.")
     (ignore-this-sticker ()
       :report "Stop bothering me about this sticker"
       :test (lambda (c)
-              (cond ((typep c 'sticker-related-condition)
+              (cond ((null c)
+                     ;; test functions will often be called without
+                     ;; conditions.
+                     t)
+                    ((typep c 'sticker-related-condition)
                      (and (eq (sticker-of c) sticker)
                           *break-on-stickers*))
                     (t
