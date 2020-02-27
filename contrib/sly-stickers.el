@@ -255,7 +255,7 @@ render the underlying text unreadable."
                            ,sly-stickers-color-face-attribute
                            ,(color-darken-name
                              guessed-color
-                             (* 40
+                             (* 25
                                 (/ (sly-stickers--level sticker)
                                    sly-stickers-max-nested-stickers
                                    1.0)))))))
