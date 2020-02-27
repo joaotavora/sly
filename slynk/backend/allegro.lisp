@@ -867,11 +867,11 @@ to do this, this factors in the length of the inserted header itself."
 (defimplementation spawn (fn &key name)
   (mp:process-run-function name fn))
 
-(defvar *id-lock* (mp:make-process-lock :name "id lock"))
+(defvar *process-plist-lock* (mp:make-process-lock :name "process-plist-lock"))
 (defvar *thread-id-counter* 0)
 
 (defimplementation thread-id (thread)
-  (mp:with-process-lock (*id-lock*)
+  (mp:with-process-lock (*process-plist-lock*)
     (or (getf (mp:process-property-list thread) 'id)
         (setf (getf (mp:process-property-list thread) 'id)
               (incf *thread-id-counter*)))))
@@ -908,8 +908,6 @@ to do this, this factors in the length of the inserted header itself."
 (defimplementation kill-thread (thread)
   (mp:process-kill thread))
 
-(defvar *mailbox-lock* (mp:make-process-lock :name "mailbox lock"))
-
 (defstruct (mailbox (:conc-name mailbox.)) 
   (lock (mp:make-process-lock :name "process mailbox"))
   (queue '() :type list)
@@ -917,7 +915,7 @@ to do this, this factors in the length of the inserted header itself."
 
 (defun mailbox (thread)
   "Return THREAD's mailbox."
-  (mp:with-process-lock (*mailbox-lock*)
+  (mp:with-process-lock (*process-plist-lock*)
     (or (getf (mp:process-property-list thread) 'mailbox)
         (setf (getf (mp:process-property-list thread) 'mailbox)
               (make-mailbox)))))
