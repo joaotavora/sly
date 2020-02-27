@@ -871,6 +871,9 @@ to do this, this factors in the length of the inserted header itself."
 (defvar *thread-id-counter* 0)
 
 (defimplementation thread-id (thread)
+  #+(version>= 10 0)
+  (mp:process-sequence thread)
+  #-(version> 10 0)
   (mp:with-process-lock (*process-plist-lock*)
     (or (getf (mp:process-property-list thread) 'id)
         (setf (getf (mp:process-property-list thread) 'id)
@@ -878,7 +881,11 @@ to do this, this factors in the length of the inserted header itself."
 
 (defimplementation find-thread (id)
   (find id mp:*all-processes*
-        :key (lambda (p) (getf (mp:process-property-list p) 'id))))
+        :key
+        #+(version>= 10 0)
+        #'mp:process-sequence
+        #-(version>= 10 0)
+        (lambda (p) (getf (mp:process-property-list p) 'id))))
 
 (defimplementation thread-name (thread)
   (mp:process-name thread))
