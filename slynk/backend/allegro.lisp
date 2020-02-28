@@ -920,12 +920,17 @@ to do this, this factors in the length of the inserted header itself."
   (queue '() :type list)
   (gate (mp:make-gate nil)))
 
+(defvar *global-mailbox-ht-lock*
+  (mp:make-process-lock :name '*global-mailbox-ht-lock*))
+
+(defvar *mailboxes* (make-hash-table :weak-keys t)
+  "Threads' mailboxes.")
+
 (defun mailbox (thread)
   "Return THREAD's mailbox."
-  (mp:with-process-lock (*process-plist-lock*)
-    (or (getf (mp:process-property-list thread) 'mailbox)
-        (setf (getf (mp:process-property-list thread) 'mailbox)
-              (make-mailbox)))))
+  (mp:with-process-lock (*global-mailbox-ht-lock*)
+    (or (gethash thread *mailboxes*)
+        (setf (gethash thread *mailboxes*) (make-mailbox)))))
 
 (defimplementation send (thread message)
   (let* ((mbox (mailbox thread)))
