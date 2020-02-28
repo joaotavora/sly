@@ -661,6 +661,14 @@ the reason why the sticker couldn't be found"
           (otherwise
            (funcall otherwise "Can't find sticker (probably deleted!)")))))
 
+;; Work around an Emacs bug, probably won't be needed in Emacs 27.1
+(advice-add 'pulse-momentary-unhighlight
+            :before (lambda (&rest _args)
+                      (let ((o pulse-momentary-overlay))
+                        (when (and o (overlay-get o 'sly-stickers-id))
+                          (overlay-put o 'priority nil))))
+            '((name . fix-pulse-momentary-unhighlight-bug)))
+
 
 ;;;; Recordings
 ;;;;
