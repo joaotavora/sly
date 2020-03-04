@@ -553,7 +553,7 @@ Well, a good point to start is always the @emph{apropos} functionality,
 which is a @code{grep} of sorts, but symbolic rather than purely
 textual.  So if we want to hack on @SLY{}'s ``flex-completion'', so we
 type @kbd{C-c C-d C-z} (the shortcut for @kbd{M-x sly-apropos-all}) and
-then type in ``slyflex'' at the prompt, followed by @kbd{enter}
+then type in ``sly.*flex'' at the prompt, followed by @kbd{enter}
 or @kbd{return} (abbreviated @code{RET} or @kbd{C-m}).
 
 Notice that we’ve just entered a @emph{fuzzy} or @emph{flex} search
@@ -678,7 +678,7 @@ Can this function be working correctly?  What do all those expressions
 return?  Should we reach for good old C-style @code{printf}?  Let's try
 ``stickers'' instead.  SLY's stickers are a form of non-intrusive
 function instrumentation that work like carefully crafted @code{print}
-or @code{(format t ...)}), but are much easier to work with.  You can
+or @code{(format t ...)}, but are much easier to work with.  You can
 later read more about them (@pxref{Stickers}), but for now you can just
 think of them as colorful labels placed on s-exp’s.  Let’s place a bunch
 here, like this:
