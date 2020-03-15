@@ -1,7 +1,7 @@
 (require 'sly-indentation)
 (require 'sly-tests "lib/sly-tests")
 
-(define-common-lisp-style "common-lisp-indent-test"
+(sly-define-common-lisp-style "common-lisp-indent-test"
     ;; Used to specify a few complex indentation specs for testing.
     ;; (:inherit "basic") ; Commented: unnecessatily messes up test 58
     (:indentation
@@ -38,7 +38,7 @@
     (with-temp-buffer
       (lisp-mode)
       (setq indent-tabs-mode nil)
-      (common-lisp-set-style "common-lisp-indent-test")
+      (sly-common-lisp-set-style "common-lisp-indent-test")
       (cl-loop for (sym value) in bindings
                do (set (make-local-variable sym) value))
       (insert expected)
