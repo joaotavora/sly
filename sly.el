@@ -593,8 +593,7 @@ interactive command.\".")
   "Minor mode for editing `lisp-mode' buffers."
   nil nil nil
   (sly-mode 1)
-  (set (make-local-variable 'lisp-indent-function)
-       'common-lisp-indent-function))
+  (setq-local lisp-indent-function 'sly-common-lisp-indent-function))
 
 (define-minor-mode sly-popup-buffer-mode
   "Minor mode for all read-only SLY buffers"
@@ -6808,7 +6807,7 @@ is setup, unless the user already set one explicitly."
     (let ((symbol (intern (car info)))
           (indent (sly-intern-indentation-spec (cl-second info)))
           (packages (cl-third info)))
-      (if (and (boundp 'common-lisp-system-indentation)
+      (if (and (boundp 'sly-common-lisp-system-indentation)
                (fboundp 'sly-update-system-indentation))
           ;; A table provided by sly-cl-indent.el.
           (funcall #'sly-update-system-indentation symbol indent packages)

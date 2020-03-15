@@ -168,7 +168,7 @@ for output printed to the REPL (not for evaluation results)")
                 (comint-scroll-to-bottom-on-input nil)
                 (comint-scroll-to-bottom-on-output nil)
                 (inhibit-field-text-motion nil)
-                (lisp-indent-function common-lisp-indent-function)
+                (lisp-indent-function sly-common-lisp-indent-function)
                 (open-paren-in-column-0-is-defun-start nil)
                 (buffer-file-coding-system utf-8-unix)
                 ;; Paredit workaround (see
