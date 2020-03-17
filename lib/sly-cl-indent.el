@@ -623,6 +623,7 @@ given point. Defaults to `sly-common-lisp-guess-current-package'.")
           (when sly-common-lisp-style
             (gethash name (sly-common-lisp-active-style-methods)))
           ;; From global settings.
+          (get name 'sly-cl-indent)
           (get name 'common-lisp-indent-function)
           ;; From system derived information.
           (let ((system-info (gethash name sly-common-lisp-system-indentation)))
@@ -1822,7 +1823,11 @@ Cause subsequent clauses to be indented.")
               (car spec)))
         ;; (unless (symbolp name)
         ;;   (error "Cannot set Common Lisp indentation of a non-symbol: %s" name))
-        (put name 'common-lisp-indent-function indentation)))))
+        (put name 'sly-cl-indent indentation)
+        (unless (or (eq (car-safe indentation) 'as)
+                    (get name 'common-lisp-indent-function))
+          (put name 'common-lisp-indent-function indentation))))))
+
 (sly-common-lisp-init-standard-indentation)
 
 ;; (provide 'cl-indent)
