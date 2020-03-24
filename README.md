@@ -111,8 +111,9 @@ Additional Contribs
 License
 -------
 
-SLY is free software. All files, unless explicitly stated otherwise, are
-public domain. ASCII artwork is copyright by Felix Lee and others.
+SLY is free software. All files, unless explicitly stated otherwise, are public
+domain.  ASCII artwork is copyright by Felix Lee, Joan G. Stark and Hayley Jane
+Wakenshaw.
 
 Fork
 ----
