@@ -4,9 +4,7 @@
 
 (define-sly-contrib sly-indentation
   "Contrib interfacing `sly-cl-indent' and SLY."
-  (:slynk-dependencies slynk/indentation)
-  (:on-load
-   (setq sly-common-lisp-current-package-function 'sly-current-package)))
+  (:slynk-dependencies slynk/indentation))
 
 (defun sly-update-system-indentation (symbol indent packages)
   (let ((list (gethash symbol sly-common-lisp-system-indentation))
