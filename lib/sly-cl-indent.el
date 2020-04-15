@@ -43,7 +43,6 @@
 
 (require 'sly) ; only for its cl-lib loading smartness
 (require 'cl-lib)
-;; (eval-when-compile (require 'cl))
 
 (defgroup sly-lisp-indent nil
   "Indentation in Common Lisp."
@@ -239,18 +238,8 @@ is set to `defun'.")
   name inherits variables indentation hook docstring)
 
 ;;; Convenience accessors
-;; (defalias 'sly--common-lisp-style-name              #'cl-first)
-;; (defalias 'sly--common-lisp-style-inherits          #'cl-second)
-;; (defalias 'sly--common-lisp-style-variables         #'cl-third)
-;; (defalias 'sly--common-lisp-style-indentation       #'cl-fourth)
-;; (defalias 'sly--common-lisp-style-hook              #'cl-fifth)
-;; (defalias 'sly--common-lisp-style-docstring         #'cl-sixth)
 (defalias 'sly--common-lisp-indent-parse-state-start #'cl-second)
 (defalias 'sly--common-lisp-indent-parse-state-prev  #'cl-third)
-
-;; (defsubst sly--common-lisp-make-style (stylename inherits variables
-;;                                        indentation hook documentation)
-;;   (list stylename inherits variables indentation hook documentation))
 
 (defvaralias 'common-lisp-style 'sly-common-lisp-style)
 (defvar-local sly-common-lisp-style nil)
@@ -1777,7 +1766,6 @@ Cause subsequent clauses to be indented.")
 
 (sly--common-lisp-init-standard-indentation)
 
-;; (provide 'cl-indent)
 (provide 'sly-cl-indent)
 
 ;;; sly-cl-indent.el ends here
