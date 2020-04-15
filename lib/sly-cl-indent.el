@@ -230,22 +230,17 @@ is set to `defun'.")
 ;;;; explicitly, however, and offers name completion, etc.
 
 ;;; Convenience accessors
-;; (defun sly-common-lisp-style-name (style) (first style))
-;; (defun sly-common-lisp-style-inherits (style) (second style))
-;; (defun sly-common-lisp-style-variables (style) (third style))
-;; (defun sly-common-lisp-style-indentation (style) (fourth style))
-;; (defun sly-common-lisp-style-hook (style) (fifth style))
-;; (defun sly-common-lisp-style-docstring (style) (sixth style))
-
-(defalias 'sly-common-lisp-style-name         #'cl-first)
-(defalias 'sly-common-lisp-style-inherits     #'cl-second)
-(defalias 'sly-common-lisp-style-variables    #'cl-third)
-(defalias 'sly-common-lisp-style-indentation  #'cl-fourth)
-(defalias 'sly-common-lisp-style-hook         #'cl-fifth)
-(defalias 'sly-common-lisp-style-docstring    #'cl-sixth)
+(defalias 'sly-common-lisp-style-name               #'cl-first)
+(defalias 'sly-common-lisp-style-inherits           #'cl-second)
+(defalias 'sly-common-lisp-style-variables          #'cl-third)
+(defalias 'sly-common-lisp-style-indentation        #'cl-fourth)
+(defalias 'sly-common-lisp-style-hook               #'cl-fifth)
+(defalias 'sly-common-lisp-style-docstring          #'cl-sixth)
+(defalias 'sly-common-lisp-indent-parse-state-start #'cl-second)
+(defalias 'sly-common-lisp-indent-parse-state-prev  #'cl-third)
 
 (defsubst sly-common-lisp-make-style (stylename inherits variables
-                                                indentation hook documentation)
+                                      indentation hook documentation)
   (list stylename inherits variables indentation hook documentation))
 
 (defvaralias 'common-lisp-style 'sly-common-lisp-style)
@@ -268,7 +263,7 @@ style is used instead. Use `sly-define-common-lisp-style' to define new styles."
 (put 'sly-common-lisp-style 'permanent-local t)
 
 ;;; Mark as safe when the style doesn't evaluate arbitrary code.
-(put 'sly-common-lisp-style 'safe-local-variable 'sly-common-lisp-safe-style-p)
+(put 'sly-common-lisp-style 'safe-local-variable 'sly--common-lisp-safe-style-p)
 (setplist 'common-lisp-style (symbol-plist 'sly-common-lisp-style))
 
 ;;; Common Lisp indentation style specifications.
@@ -286,7 +281,7 @@ style is used instead. Use `sly-define-common-lisp-style' to define new styles."
     (or (gethash name sly-common-lisp-styles)
         (error "Unknown Common Lisp style: %s" name))))
 
-(defun sly-common-lisp-safe-style-p (stylename)
+(defun sly--common-lisp-safe-style-p (stylename)
   "True for known Common Lisp style without an :EVAL option.
 Ie. styles that will not evaluate arbitrary code on activation."
   (let* ((style (ignore-errors (sly-common-lisp-find-style stylename)))
@@ -294,7 +289,7 @@ Ie. styles that will not evaluate arbitrary code on activation."
     (and style
          (not (sly-common-lisp-style-hook style))
          (or (not base)
-             (sly-common-lisp-safe-style-p base)))))
+             (sly--common-lisp-safe-style-p base)))))
 
 (defun sly-common-lisp-add-style (stylename inherits variables
                                             indentation hooks documentation)
@@ -488,12 +483,12 @@ OPTIONS are:
        customizations. It also adjusts comment indentation from default.
        All other predefined modes inherit from basic."
       (:inherit "basic-emacs26"))
-    (sly-define-common-lisp-style "basic"
-      "This style merely gives all identation variables their default values,
-       making it easy to create new styles that are proof against user
-       customizations. It also adjusts comment indentation from default.
-       All other predefined modes inherit from basic."
-      (:inherit "basic-emacs25")))
+  (sly-define-common-lisp-style "basic"
+    "This style merely gives all identation variables their default values,
+     making it easy to create new styles that are proof against user
+     customizations. It also adjusts comment indentation from default.
+     All other predefined modes inherit from basic."
+    (:inherit "basic-emacs25")))
 
 (sly-define-common-lisp-style "classic"
   "This style of indentation emulates the most striking features of 1995
@@ -533,15 +528,16 @@ OPTIONS are:
    (comment-fill-column nil)
    (fill-column 78))
   (:indentation
-   (def!constant       (as defconstant))
-   (def!macro          (as defmacro))
-   (def!method         (as defmethod))
-   (def!struct         (as defstruct))
-   (def!type           (as deftype))
-   (defmacro-mundanely (as defmacro))
+   (def!constant            (as defconstant))
+   (def!macro               (as defmacro))
+   (def!method              (as defmethod))
+   (def!struct              (as defstruct))
+   (def!type                (as deftype))
+   (defmacro-mundanely      (as defmacro))
    (define-source-transform (as defun))
-   (!def-type-translator (as defun))
-   (!def-debug-command (as defun))))
+   (deftransform            (as defmacro))
+   (!def-type-translator    (as defun))
+   (!def-debug-command      (as defun))))
 
 (defcustom sly-common-lisp-style-default nil
   "Name of the Common Lisp indentation style to use in lisp-mode buffers if
@@ -555,12 +551,12 @@ none has been specified."
 
 ;;; If style is being used, that's a sufficient invitation to snag
 ;;; the indentation function.
-(defun sly-common-lisp-lisp-mode-hook ()
+(defun sly-common-lisp-indent-lisp-mode-hook ()
   (let ((style (or sly-common-lisp-style sly-common-lisp-style-default)))
     (when style
       (setq-local lisp-indent-function #'sly-common-lisp-indent-function)
       (sly-common-lisp-set-style style))))
-(add-hook 'lisp-mode-hook #'sly-common-lisp-lisp-mode-hook)
+(add-hook 'lisp-mode-hook #'sly-common-lisp-indent-lisp-mode-hook)
 
 
 ;;;; The indentation specs are stored at three levels. In order of priority:
@@ -586,7 +582,6 @@ none has been specified."
 ;;;
 ;;; We never add stuff here by ourselves: this is for things like Slime to
 ;;; fill.
-(defvaralias 'common-lisp-system-indentation 'sly-common-lisp-system-indentation)
 (defvar sly-common-lisp-system-indentation (make-hash-table :test 'equal))
 
 (defun sly-common-lisp-guess-current-package ()
@@ -602,7 +597,6 @@ none has been specified."
                                start (1- (point)))))))))
     pkg))
 
-(defvaralias 'common-lisp-current-package-function 'sly-common-lisp-current-package-function)
 (defvar sly-common-lisp-current-package-function 'sly-common-lisp-guess-current-package
   "Used to derive the package name to use for indentation at a
 given point. Defaults to `sly-common-lisp-guess-current-package'.")
@@ -1473,19 +1467,6 @@ Cause subsequent clauses to be indented.")
 (defvar sly-common-lisp-loop-macro-else-keyword "\\(#?:\\)?else")
 
 ;;; Attempt to indent the loop macro ...
-
-;; (defun sly-common-lisp-indent-parse-state-depth (parse-state)
-;;   (car parse-state))
-(defalias 'sly-common-lisp-indent-parse-state-depth #'car)
-
-;; (defun sly-common-lisp-indent-parse-state-start (parse-state)
-;;   (car (cdr parse-state)))
-(defalias 'sly-common-lisp-indent-parse-state-start #'cadr)
-
-;; (defun sly-common-lisp-indent-parse-state-prev (parse-state)
-;;   (car (cdr (cdr parse-state))))
-(defalias 'sly-common-lisp-indent-parse-state-prev #'caddr)
-
 (defun sly-common-lisp-loop-part-indentation (indent-point state type)
   "Compute the indentation of loop form constituents."
   (let* ((loop-start (nth 1 state))
