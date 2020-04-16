@@ -192,7 +192,7 @@ If non-nil, alignment is done with the first parameter
 ;; should this be a defcustom?
 (defvar sly-lisp-indent-defun-method '(4 &lambda &body)
   "Defun-like indentation method.
-This applies when the value of the `common-lisp-indent-function' property
+This applies when the value of the `sly-common-lisp-indent-function' property
 is set to `defun'.")
 
 
@@ -415,7 +415,7 @@ OPTIONS are:
  (:indentation (symbol spec) ...)
 
   Specifying custom indentations associated with the style. SPEC is
-  a normal `common-lisp-indent-function' indentation specification.
+  a normal `sly-common-lisp-indent-function' indentation specification.
 
  (:inherit style)
 
@@ -559,7 +559,7 @@ none has been specified."
 ;;;; 1. Indentation as set by current style, from the indentation table
 ;;;;    in the current style.
 ;;;;
-;;;; 2. Globally set indentation, from the `common-lisp-indent-function'
+;;;; 2. Globally set indentation, from the `sly-common-lisp-indent-function'
 ;;;;    property of the symbol.
 ;;;;
 ;;;; 3. Per-package indentation derived by the system. A live Common Lisp
@@ -611,7 +611,7 @@ given point. Defaults to `sly--lisp-indent-guess-current-package'.")
           (when sly-common-lisp-style
             (gethash name (sly--lisp-indent-active-style-methods)))
           ;; From global settings.
-          (get name 'sly-indent)
+          (get name 'sly-common-lisp-indent-function)
           (get name 'common-lisp-indent-function)
           ;; From system derived information.
           (let ((system-info (gethash name sly-common-lisp-system-indentation)))
@@ -692,7 +692,7 @@ indentation function is called, and STATE is the
 of this function.
 
 If the indentation point is in a call to a Lisp function, that
-function's common-lisp-indent-function property specifies how
+function's `sly-common-lisp-indent-function' property specifies how
 this function should indent it.  Possible values for this
 property are:
 
@@ -1778,10 +1778,7 @@ Cause subsequent clauses to be indented.")
     (dolist (el l)
       (let* ((name (car el))
              (indentation (cadr el)))
-        (put name 'sly-indent indentation)
-        (or (eq (car-safe indentation) 'as)
-            (get name 'common-lisp-indent-function)
-            (put name 'common-lisp-indent-function indentation))))))
+        (put name 'sly-common-lisp-indent-function indentation)))))
 
 (sly--lisp-indent-init-standard-indentation)
 

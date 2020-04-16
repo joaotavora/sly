@@ -6801,7 +6801,7 @@ The `*' variable will be bound to the inspected object."
   "Update Lisp indent information.
 
 ALIST is a list of (SYMBOL-NAME . INDENT-SPEC) of proposed indentation
-settings for `common-lisp-indent-function'. The appropriate property
+settings for `sly-common-lisp-indent-function'. The appropriate property
 is setup, unless the user already set one explicitly."
   (dolist (info alist)
     (let ((symbol (intern (car info)))
@@ -6812,9 +6812,9 @@ is setup, unless the user already set one explicitly."
           ;; A table provided by sly-cl-indent.el.
           (funcall #'sly-update-system-indentation symbol indent packages)
         ;; Does the symbol have an indentation value that we set?
-        (when (equal (get symbol 'common-lisp-indent-function)
+        (when (equal (get symbol 'sly-common-lisp-indent-function)
                      (get symbol 'sly-indent))
-          (put symbol 'common-lisp-indent-function indent)
+          (put symbol 'sly-common-lisp-indent-function indent)
           (put symbol 'sly-indent indent)))
       (run-hook-with-args 'sly-indentation-update-hooks
                           symbol indent packages))))
