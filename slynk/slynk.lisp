@@ -3946,7 +3946,7 @@ belonging to PACKAGE."
 
 (defun symbol-indentation (symbol)
   "Return a form describing the indentation of SYMBOL.
-The form is to be used as the `common-lisp-indent-function' property
+The form is to be used as the `sly-common-lisp-indent-function' property
 in Emacs."
   (if (and (macro-function symbol)
            (not (known-to-emacs-p symbol)))
