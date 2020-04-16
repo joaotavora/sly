@@ -577,13 +577,29 @@ none has been specified."
 ;;; fill.
 (defvar sly-common-lisp-system-indentation (make-hash-table :test 'equal))
 
+(defun sly--common-lisp-guess-current-package ()
+  (save-excursion
+    (ignore-errors
+      (when (let ((case-fold-search t))
+              (search-backward "(in-package "))
+        (re-search-forward "[ :\"]+")
+        (let ((start (point)))
+          (re-search-forward "[\":)]")
+          (upcase (buffer-substring-no-properties
+                   start (1- (point)))))))))
+
+(defvar sly--common-lisp-current-package-function
+  'sly--common-lisp-guess-current-package
+  "Used to derive the package name to use for indentation at a
+given point. Defaults to `sly--common-lisp-guess-current-package'.")
+
 (defun sly--common-lisp-symbol-package (string)
   (if (and (stringp string) (string-match ":" string))
       (let ((p (match-beginning 0)))
         (if (eq p 0)
             "KEYWORD"
           (upcase (substring string 0 p))))
-    (sly-current-package)))
+    (funcall sly--common-lisp-current-package-function)))
 
 (defun sly--common-lisp-get-indentation (name &optional full)
   "Retrieves the indentation information for NAME."
@@ -1764,7 +1780,6 @@ Cause subsequent clauses to be indented.")
 
 (sly--common-lisp-init-standard-indentation)
 
-;; (provide 'cl-indent)
 (provide 'sly-cl-indent)
 
 ;;; sly-cl-indent.el ends here
