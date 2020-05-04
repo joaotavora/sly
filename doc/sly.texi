@@ -551,17 +551,18 @@ makes this happen.
 Where should we start though, if we know very little about this project?
 Well, a good point to start is always the @emph{apropos} functionality,
 which is a @code{grep} of sorts, but symbolic rather than purely
-textual.  So if we want to hack on @SLY{}'s ``flex-completion'', so we
-type @kbd{C-c C-d C-z} (the shortcut for @kbd{M-x sly-apropos-all}) and
-then type in ``slyflex'' at the prompt, followed by @kbd{enter}
-or @kbd{return} (abbreviated @code{RET} or @kbd{C-m}).
+textual.  In @SLY{}, @code{sly-apropos} will use the @code{CL-PPCRE}
+library if it finds is it loaded, else it falls back to a regex-less
+mode of searching.  If you
+have @uref{https://www.quicklisp.org/beta/,Quicklisp} you need only
+type @code{(ql:quickload :cl-ppcre)} from the @REPL{}.
 
-Notice that we’ve just entered a @emph{fuzzy} or @emph{flex} search
-string in @SLY{}'s @emph{apropos} prompt, something that a regular
-Lisp @emph{apropos} search doesn’t allow.  You could also have searched
-by regular expression (see the @code{*PREFERRED-APROPOS-MATCHER*}
-variable).  Anyway, @SLY{} should now present all Lisp symbols matching
-your search pattern, with the better matches sorted at the top.
+So if we want to hack on @SLY{}'s ``flex-completion'' functionality, but
+we don't any of its symbol's names.  We type
+@kbd{C-c C-d C-z} (the shortcut for @kbd{M-x sly-apropos-all}) and
+then type in ``sly.*flex'' at the prompt, followed by @kbd{enter}
+or @kbd{return} (abbreviated @code{RET} or @kbd{C-m}). @SLY{} should
+now present all Lisp symbols matching your search pattern.
 
 @*@image{images/tutorial-2,350pt}@*
 
