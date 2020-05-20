@@ -1594,9 +1594,13 @@ EVAL'd by Lisp."
                         (fboundp sly-net-send-translator))
                    (funcall sly-net-send-translator sexp)
                  sexp))
-         (payload (encode-coding-string
-                   (concat (sly-prin1-to-string sexp) "\n")
-                   'utf-8-unix))
+         (payload (let (print-escape-nonascii
+                        print-escape-newlines
+                        print-length
+                        print-level)
+                    (encode-coding-string
+                     (concat (prin1-to-string sexp) "\n")
+                     'utf-8-unix)))
          (string (concat (sly-net-encode-length (length payload))
                          payload)))
     (sly-log-event sexp proc)
@@ -1662,7 +1666,7 @@ EVAL'd by Lisp."
               (sly-dispatch-event event process)
               (setq ok t))
           (unless ok
-            (sly-run-when-idle 'sly-process-available-input process)))))))
+            (run-at-time 0 nil 'sly-process-available-input process)))))))
 
 (defsubst sly-net-decode-length ()
   (string-to-number (buffer-substring (point) (+ (point) 6))
@@ -1673,10 +1677,6 @@ EVAL'd by Lisp."
   (goto-char (point-min))
   (and (>= (buffer-size) 6)
        (>= (- (buffer-size) 6) (sly-net-decode-length))))
-
-(defun sly-run-when-idle (function &rest args)
-  "Call FUNCTION as soon as Emacs is idle."
-  (apply #'run-at-time 0 nil function args))
 
 (defun sly-handle-net-read-error (error)
   (let ((packet (buffer-string)))
@@ -1718,15 +1718,6 @@ EVAL'd by Lisp."
 
 (defun sly-net-encode-length (n)
   (format "%06x" n))
-
-(defun sly-prin1-to-string (sexp)
-  "Like `prin1-to-string' but don't octal-escape non-ascii characters.
-This is more compatible with the CL reader."
-  (let (print-escape-nonascii
-        print-escape-newlines
-        print-length
-        print-level)
-    (prin1-to-string sexp)))
 
 
 ;;;; Connections
@@ -4239,7 +4230,8 @@ inserted in the current buffer."
   "Evaluate the current toplevel form.
 Use `sly-re-evaluate-defvar' if the from starts with '(defvar'"
   (interactive)
-  (let ((form (sly-defun-at-point)))
+  (let ((form (apply #'buffer-substring-no-properties
+                     (sly-region-for-defun-at-point))))
     (cond ((string-match "^(defvar " form)
            (sly-re-evaluate-defvar form))
           (t
@@ -7243,11 +7235,6 @@ and skips comments."
         (t (signal 'sly-incorrect-feature-expression e))))
 
 ;;;;; Extracting Lisp forms from the buffer or user
-
-(defun sly-defun-at-point ()
-  "Return the text of the defun at point."
-  (apply #'buffer-substring-no-properties
-         (sly-region-for-defun-at-point)))
 
 (defun sly-region-for-defun-at-point (&optional pos)
   "Return a list (START END) for the positions of defun at POS.
