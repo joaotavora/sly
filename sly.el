@@ -7129,11 +7129,8 @@ keys."
 
 (defun sly-trim-whitespace (str)
   "Chomp leading and tailing whitespace from STR."
-  ;; lited from http://www.emacswiki.org/emacs/ElispCookbook
-  (replace-regexp-in-string (rx (or (: bos (* (any " \t\n")))
-                                    (: (* (any " \t\n")) eos)))
-                            ""
-                            str))
+  ;; lifted from http://www.emacswiki.org/emacs/ElispCookbook
+  (replace-regexp-in-string "\\`[\t\n ]*\\|[\t\n ]*\\'" "" str))
 
 ;;;;; Buffer related
 
