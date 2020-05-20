@@ -7095,13 +7095,14 @@ keys."
   (let ((alist '()))
     (dolist (e list)
       (let* ((k (funcall key e))
-             (probe (cl-assoc k alist :test test)))
+             (probe (assoc k alist test)))
         (if probe
             (push e (cdr probe))
           (push (cons k (list e)) alist))))
     ;; Put them back in order.
-    (cl-loop for (key . value) in (reverse alist)
-             collect (cons key (reverse value)))))
+    (nreverse (mapc (lambda (ent)
+                      (setcdr ent (nreverse (cdr ent))))
+                    alist))))
 
 ;;;;; Misc.
 
