@@ -7128,14 +7128,6 @@ keys."
 
 ;;;;; Buffer related
 
-(defun sly-buffer-narrowed-p (&optional buffer)
-  "Returns T if BUFFER (or the current buffer respectively) is narrowed."
-  (with-current-buffer (or buffer (current-buffer))
-    (let ((beg (point-min))
-          (end (point-max))
-          (total (buffer-size)))
-      (or (/= beg 1) (/= end (1+ total))))))
-
 (defun sly-column-max ()
   (save-excursion
     (goto-char (point-min))

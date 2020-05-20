@@ -384,12 +384,12 @@ conditions (assertions)."
                       "  'nothing)"          "\n"))
       (dotimes (i 100) (insert (format ";;; %d. line\n" (+ 100 i))))
       (sly-check "Checking that newly created buffer is not narrowed."
-        (not (sly-buffer-narrowed-p)))
+        (not (buffer-narrowed-p)))
 
       (goto-char defun-pos)
       (narrow-to-defun)
       (sly-check "Checking that narrowing succeeded."
-       (sly-buffer-narrowed-p))
+       (buffer-narrowed-p))
 
       (sly-with-popup-buffer (random-buffer-name)
         (sly-check ("Checking that we're in Sly's temp buffer `%s'"
@@ -406,7 +406,7 @@ conditions (assertions)."
 
       (sly-check "Checking that narrowing sustained \
 after quitting Sly's temp buffer."
-        (sly-buffer-narrowed-p))
+        (buffer-narrowed-p))
 
       (let ((sly-buffer-package "SLYNK")
             (symbol '*buffer-package*))
@@ -420,7 +420,7 @@ after quitting Sly's temp buffer."
                (= (point) defun-pos)))
 
         (sly-check "Checking that narrowing sustained after M-,"
-          (sly-buffer-narrowed-p)))
+          (buffer-narrowed-p)))
       ))
   (sly-check-top-level))
 
