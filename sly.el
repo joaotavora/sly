@@ -1,4 +1,4 @@
-;;; sly.el --- Sylvester the Cat's Common Lisp IDE  -*-lexical-binding:t-*-
+;;; sly.el --- Sylvester the Cat's Common Lisp IDE  -*- lexical-binding: t; -*-
 
 ;; Version: 1.0.0-beta-3
 ;; URL: https://github.com/joaotavora/sly
@@ -1662,7 +1662,7 @@ EVAL'd by Lisp."
               (sly-dispatch-event event process)
               (setq ok t))
           (unless ok
-            (sly-run-when-idle 'sly-process-available-input process)))))))
+            (run-at-time 0 nil 'sly-process-available-input process)))))))
 
 (defsubst sly-net-decode-length ()
   (string-to-number (buffer-substring (point) (+ (point) 6))
@@ -1673,10 +1673,6 @@ EVAL'd by Lisp."
   (goto-char (point-min))
   (and (>= (buffer-size) 6)
        (>= (- (buffer-size) 6) (sly-net-decode-length))))
-
-(defun sly-run-when-idle (function &rest args)
-  "Call FUNCTION as soon as Emacs is idle."
-  (apply #'run-at-time 0 nil function args))
 
 (defun sly-handle-net-read-error (error)
   (let ((packet (buffer-string)))
@@ -3079,12 +3075,6 @@ Each newlines and following indentation is replaced by a single space."
       (sly-xref--show-results
        xrefs 'definition "Compiler notes" (sly-current-package)))))
 
-(defun sly-note-has-location-p (note)
-  (not (eq ':error (car (sly-note.location note)))))
-
-(defun sly-redefinition-note-p (note)
-  (eq (sly-note.severity note) :redefinition))
-
 (defun sly-maybe-show-compilation-log (successp notes buffer loadp)
   "Display the log on failed compilations or if NOTES is non-nil."
   (sly-show-compilation-log successp notes buffer loadp
@@ -4244,7 +4234,8 @@ inserted in the current buffer."
   "Evaluate the current toplevel form.
 Use `sly-re-evaluate-defvar' if the from starts with '(defvar'"
   (interactive)
-  (let ((form (sly-defun-at-point)))
+  (let ((form (apply #'buffer-substring-no-properties
+                     (sly-region-for-defun-at-point))))
     (cond ((string-match "^(defvar " form)
            (sly-re-evaluate-defvar form))
           (t
@@ -7133,14 +7124,6 @@ keys."
 
 ;;;;; Buffer related
 
-(defun sly-buffer-narrowed-p (&optional buffer)
-  "Returns T if BUFFER (or the current buffer respectively) is narrowed."
-  (with-current-buffer (or buffer (current-buffer))
-    (let ((beg (point-min))
-          (end (point-max))
-          (total (buffer-size)))
-      (or (/= beg 1) (/= end (1+ total))))))
-
 (defun sly-column-max ()
   (save-excursion
     (goto-char (point-min))
@@ -7264,11 +7247,6 @@ and skips comments."
         (t (signal 'sly-incorrect-feature-expression e))))
 
 ;;;;; Extracting Lisp forms from the buffer or user
-
-(defun sly-defun-at-point ()
-  "Return the text of the defun at point."
-  (apply #'buffer-substring-no-properties
-         (sly-region-for-defun-at-point)))
 
 (defun sly-region-for-defun-at-point (&optional pos)
   "Return a list (START END) for the positions of defun at POS.
@@ -7434,8 +7412,6 @@ can be found."
    sly-forward-cruft
    sly-forward-reader-conditional))
 
-(provide 'sly)
-
 ;;;###autoload
 (if (or (not (memq 'slime-lisp-mode-hook lisp-mode-hook))
         noninteractive
@@ -7449,7 +7425,9 @@ and replace `sly-editing-mode' with `slime-lisp-mode-hook'.")
   (warn "`sly.el' loaded OK. To use SLY, customize `lisp-mode-hook' and
 replace `slime-lisp-mode-hook' with `sly-editing-mode'."))
 
+(provide 'sly)
+
+;;; sly.el ends here
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-;;; sly.el ends here
