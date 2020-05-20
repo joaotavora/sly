@@ -3079,12 +3079,6 @@ Each newlines and following indentation is replaced by a single space."
       (sly-xref--show-results
        xrefs 'definition "Compiler notes" (sly-current-package)))))
 
-(defun sly-note-has-location-p (note)
-  (not (eq ':error (car (sly-note.location note)))))
-
-(defun sly-redefinition-note-p (note)
-  (eq (sly-note.severity note) :redefinition))
-
 (defun sly-maybe-show-compilation-log (successp notes buffer loadp)
   "Display the log on failed compilations or if NOTES is non-nil."
   (sly-show-compilation-log successp notes buffer loadp
