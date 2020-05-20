@@ -1,4 +1,4 @@
-;;; sly-tests.el --- Automated tests for sly.el -*-lexical-binding:t-*-
+;;; sly-tests.el --- Automated tests for sly.el -*- lexical-binding: t; -*-
 ;;
 ;;;; License
 ;;     Copyright (C) 2003  Eric Marsden, Luke Gorrie, Helmut Eller
@@ -30,8 +30,6 @@
 (require 'ert "lib/ert" t) ;; look for bundled version for Emacs 23
 (require 'cl-lib)
 (require 'bytecomp) ; byte-compile-current-file
-(eval-when-compile
-  (require 'cl)) ; lexical-let
 
 (defun sly-shuffle-list (list)
   (let* ((len (length list))
@@ -53,7 +51,7 @@ Exits Emacs when finished. The exit code is the number of failed tests."
         (timeout 30))
     (sly)
     ;; Block until we are up and running.
-    (lexical-let (timed-out)
+    (let (timed-out)
       (run-with-timer timeout nil
                       (lambda () (setq timed-out t)))
       (while (not (sly-connected-p))
@@ -157,7 +155,7 @@ INPUTS is a list of argument lists, each tested separately.
 BODY is the test case. The body can use `sly-check' to test
 conditions (assertions)."
   (declare (debug (&define name sexp sexp sexp &rest def-form))
-           (indent 2))
+           (indent 4))
   (if (not (featurep 'ert))
       (warn "No ert.el found: not defining test %s"
             name)
@@ -181,8 +179,6 @@ conditions (assertions)."
                                                              fails-for
                                                              style
                                                              fname))))))))
-
-(put 'def-sly-test 'lisp-indent-function 4)
 
 (defmacro sly-check (check &rest body)
   (declare (indent defun))
@@ -788,8 +784,8 @@ Confirm that SUBFORM is correctly located."
 (def-sly-test async-eval-debugging (depth)
   "Test recursive debugging of asynchronous evaluation requests."
   '((1) (2) (3))
-  (lexical-let ((depth depth)
-                (debug-hook-max-depth 0))
+  (let ((depth depth)
+        (debug-hook-max-depth 0))
     (let ((debug-hook
            (lambda ()
              (with-current-buffer (sly-db-get-default-buffer)
@@ -812,10 +808,10 @@ Confirm that SUBFORM is correctly located."
   "Test recursive debugging and returning to lower SLY-DB levels."
   '((2 1) (4 2))
   (sly-check-top-level)
-  (lexical-let ((level2 level2)
-                (level1 level1)
-                (state 'enter)
-                (max-depth 0))
+  (let ((level2 level2)
+        (level1 level1)
+        (state 'enter)
+        (max-depth 0))
     (let ((debug-hook
            (lambda ()
              (with-current-buffer (sly-db-get-default-buffer)
@@ -910,7 +906,7 @@ Confirm that SUBFORM is correctly located."
       ("~a" "(let ((x (cons (make-string 100000 :initial-element #\\X) nil)))\
                 (setf (cdr x) x))"))
   (sly-check-top-level)
-  (lexical-let ((done nil))
+  (let ((done nil))
     (let ((sly-db-hook (lambda () (sly-db-continue) (setq done t))))
       (sly-interactive-eval
        (format "(with-standard-io-syntax (cerror \"foo\" \"%s\" %s) (+ 1 2))"
@@ -1287,7 +1283,7 @@ Reconnect afterwards."
     (with-current-buffer (process-buffer p)
       (assert (< (buffer-size) 500) nil "Unusual output"))
     (sly-inferior-connect p (sly-inferior-lisp-args p))
-    (lexical-let ((hook nil) (p p))
+    (let ((hook nil) (p p))
       (setq hook (lambda ()
                    (sly-test-expect
                     "We are connected again" p (sly-inferior-process))
