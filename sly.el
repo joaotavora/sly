@@ -7184,7 +7184,7 @@ and skips comments."
   ;; We need this for the source files of SBCL itself.
   (regexp-opt '("#+" "#-" "#!+" "#!-")))
 
-(defun sly-forward-reader-conditional ()
+(defsubst sly-forward-reader-conditional ()
   "Move past any reader conditional (#+ or #-) at point."
   (when (looking-at sly-reader-conditionals-regexp)
     (goto-char (match-end 0))
@@ -7202,7 +7202,7 @@ and skips comments."
   "Move forward over whitespace, comments, reader conditionals."
   (while (sly-point-moves-p (skip-chars-forward " \t\n")
                             (forward-comment (buffer-size))
-                            (inline (sly-forward-reader-conditional)))))
+                            (sly-forward-reader-conditional))))
 
 (defun sly-keywordify (symbol)
   "Make a keyword out of the symbol SYMBOL."
