@@ -1,4 +1,4 @@
-;;; sly-tests.el --- Automated tests for sly.el -*-lexical-binding:t-*-
+;;; sly-tests.el --- Automated tests for sly.el -*- lexical-binding: t; -*-
 ;;
 ;;;; License
 ;;     Copyright (C) 2003  Eric Marsden, Luke Gorrie, Helmut Eller
@@ -30,8 +30,6 @@
 (require 'ert "lib/ert" t) ;; look for bundled version for Emacs 23
 (require 'cl-lib)
 (require 'bytecomp) ; byte-compile-current-file
-(eval-when-compile
-  (require 'cl)) ; lexical-let
 
 (defun sly-shuffle-list (list)
   (let* ((len (length list))
@@ -53,7 +51,7 @@ Exits Emacs when finished. The exit code is the number of failed tests."
         (timeout 30))
     (sly)
     ;; Block until we are up and running.
-    (lexical-let (timed-out)
+    (let (timed-out)
       (run-with-timer timeout nil
                       (lambda () (setq timed-out t)))
       (while (not (sly-connected-p))
@@ -102,8 +100,8 @@ Exits Emacs when finished. The exit code is the number of failed tests."
     "Like `ert-deftest', but set tags automatically.
 Also don't error if `ert.el' is missing."
     (declare (debug (&define name sexp sexp &rest def-form)))
-    (let* ((docstring (and (stringp (second args))
-                           (second args)))
+    (let* ((docstring (and (stringp (cl-second args))
+                           (cl-second args)))
            (args (if docstring
                      (cddr args)
                    (cdr args)))
@@ -164,7 +162,7 @@ INPUTS is a list of argument lists, each tested separately.
 BODY is the test case. The body can use `sly-check' to test
 conditions (assertions)."
   (declare (debug (&define name sexp sexp sexp &rest def-form))
-           (indent 2))
+           (indent 4))
   (if (not (featurep 'ert))
       (warn "No ert.el found: not defining test %s"
             name)
@@ -188,8 +186,6 @@ conditions (assertions)."
                                                              fails-for
                                                              style
                                                              fname))))))))
-
-(put 'def-sly-test 'lisp-indent-function 4)
 
 (defmacro sly-check (check &rest body)
   (declare (indent defun))
@@ -215,7 +211,7 @@ conditions (assertions)."
     (while (not (funcall predicate))
       (let ((now (current-time)))
         (sly-message "waiting for condition: %s [%s.%06d]" name
-                     (format-time-string "%H:%M:%S" now) (third now)))
+                     (format-time-string "%H:%M:%S" now) (cl-third now)))
       (cond ((time-less-p end (current-time))
              (unwind-protect
                  (error "Timeout waiting for condition: %S" name)
@@ -291,7 +287,7 @@ conditions (assertions)."
 
 (def-sly-test symbol-at-point.3 (sym)
   "fancy symbol-name with leading ,"
-  (remove-if (lambda (s) (eq (aref (car s) 0) ?@)) sly-test-symbols)
+  (cl-remove-if (lambda (s) (eq (aref (car s) 0) ?@)) sly-test-symbols)
   (sly-check-symbol-at-point "," sym ""))
 
 (def-sly-test symbol-at-point.4 (sym)
@@ -751,7 +747,7 @@ Confirm that SUBFORM is correctly located."
                   ;;(encode-coding-string (string #x304a #x306f #x3088 #x3046)
                   ;;                      'utf-8)
                   (string (decode-coding-string bytes 'utf-8-unix)))
-            (assert (equal bytes (encode-coding-string string 'utf-8-unix)))
+            (cl-assert (equal bytes (encode-coding-string string 'utf-8-unix)))
             (list (concat "(defun cl-user::foo () \"" string "\")")
                   string)))
   (sly-eval `(cl:eval (cl:read-from-string ,input)))
@@ -795,8 +791,8 @@ Confirm that SUBFORM is correctly located."
 (def-sly-test async-eval-debugging (depth)
   "Test recursive debugging of asynchronous evaluation requests."
   '((1) (2) (3))
-  (lexical-let ((depth depth)
-                (debug-hook-max-depth 0))
+  (let ((depth depth)
+        (debug-hook-max-depth 0))
     (let ((debug-hook
            (lambda ()
              (with-current-buffer (sly-db-get-default-buffer)
@@ -819,15 +815,15 @@ Confirm that SUBFORM is correctly located."
   "Test recursive debugging and returning to lower SLY-DB levels."
   '((2 1) (4 2))
   (sly-check-top-level)
-  (lexical-let ((level2 level2)
-                (level1 level1)
-                (state 'enter)
-                (max-depth 0))
+  (let ((level2 level2)
+        (level1 level1)
+        (state 'enter)
+        (max-depth 0))
     (let ((debug-hook
            (lambda ()
              (with-current-buffer (sly-db-get-default-buffer)
                (setq max-depth (max sly-db-level max-depth))
-               (ecase state
+               (cl-ecase state
                  (enter
                   (cond ((= sly-db-level level2)
                          (setq state 'leave)
@@ -917,7 +913,7 @@ Confirm that SUBFORM is correctly located."
       ("~a" "(let ((x (cons (make-string 100000 :initial-element #\\X) nil)))\
                 (setf (cdr x) x))"))
   (sly-check-top-level)
-  (lexical-let ((done nil))
+  (let ((done nil))
     (let ((sly-db-hook (lambda () (sly-db-continue) (setq done t))))
       (sly-interactive-eval
        (format "(with-standard-io-syntax (cerror \"foo\" \"%s\" %s) (+ 1 2))"
@@ -1288,13 +1284,13 @@ Reconnect afterwards."
     (with-current-buffer (process-buffer p)
       (erase-buffer))
     (delete-process c)
-    (assert (equal (process-status c) 'closed) nil "Connection not closed")
+    (cl-assert (equal (process-status c) 'closed) nil "Connection not closed")
     (accept-process-output nil 0.1)
-    (assert (equal (process-status p) 'run) nil "Subprocess not running")
+    (cl-assert (equal (process-status p) 'run) nil "Subprocess not running")
     (with-current-buffer (process-buffer p)
-      (assert (< (buffer-size) 500) nil "Unusual output"))
+      (cl-assert (< (buffer-size) 500) nil "Unusual output"))
     (sly-inferior-connect p (sly-inferior-lisp-args p))
-    (lexical-let ((hook nil) (p p))
+    (let ((hook nil) (p p))
       (setq hook (lambda ()
                    (sly-test-expect
                     "We are connected again" p (sly-inferior-process))
@@ -1426,7 +1422,7 @@ Reconnect afterwards."
 ;;; xref recompilation
 ;;;
 (defun sly-test--eval-now (string)
-  (second (sly-eval `(slynk:eval-and-grab-output ,string))))
+  (cl-second (sly-eval `(slynk:eval-and-grab-output ,string))))
 
 (def-sly-test (sly-recompile-all-xrefs (:fails-for "cmucl")) ()
   "Test recompilation of all references within an xref buffer."
