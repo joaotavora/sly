@@ -161,7 +161,7 @@ position, or nil."
                 "Further: font-lock-beg=%d, font-lock-end=%d.")
         c font-lock-beg font-lock-end)))))
 
-(defun sly-beginning-of-tlf ()
+(defsubst sly-beginning-of-tlf ()
   (let ((pos (syntax-ppss-toplevel-pos (sly-current-parser-state))))
     (if pos (goto-char pos))))
 
@@ -169,7 +169,7 @@ position, or nil."
   (let ((beg orig-beg)
         (end orig-end))
     (goto-char beg)
-    (inline (sly-beginning-of-tlf))
+    (sly-beginning-of-tlf)
     (cl-assert (not (cl-plusp (nth 0 (sly-current-parser-state)))))
     (setq beg (let ((pt (point)))
                 (cond ((> (- beg pt) 20000) beg)
