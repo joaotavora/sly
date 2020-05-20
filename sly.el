@@ -1664,6 +1664,10 @@ EVAL'd by Lisp."
           (unless ok
             (sly-run-when-idle 'sly-process-available-input process)))))))
 
+(defsubst sly-net-decode-length ()
+  (string-to-number (buffer-substring (point) (+ (point) 6))
+                    16))
+
 (defun sly-net-have-input-p ()
   "Return true if a complete message is available."
   (goto-char (point-min))
@@ -1711,10 +1715,6 @@ EVAL'd by Lisp."
                (error
                 (sly-handle-net-read-error error))))
       (delete-region (point-min) end))))
-
-(defun sly-net-decode-length ()
-  (string-to-number (buffer-substring-no-properties (point) (+ (point) 6))
-                    16))
 
 (defun sly-net-encode-length (n)
   (format "%06x" n))
