@@ -1664,6 +1664,10 @@ EVAL'd by Lisp."
           (unless ok
             (sly-run-when-idle 'sly-process-available-input process)))))))
 
+(defsubst sly-net-decode-length ()
+  (string-to-number (buffer-substring (point) (+ (point) 6))
+                    16))
+
 (defun sly-net-have-input-p ()
   "Return true if a complete message is available."
   (goto-char (point-min))
@@ -1711,10 +1715,6 @@ EVAL'd by Lisp."
                (error
                 (sly-handle-net-read-error error))))
       (delete-region (point-min) end))))
-
-(defun sly-net-decode-length ()
-  (string-to-number (buffer-substring-no-properties (point) (+ (point) 6))
-                    16))
 
 (defun sly-net-encode-length (n)
   (format "%06x" n))
@@ -3075,7 +3075,7 @@ Each newlines and following indentation is replaced by a single space."
 (defun sly-maybe-show-xrefs-for-notes (_successp notes _buffer _loadp)
   "Show the compiler notes NOTES if they come from more than one file."
   (let ((xrefs (sly-xref--get-xrefs-for-notes notes)))
-    (when (sly-length> xrefs 1)          ; >1 file
+    (when (cdr xrefs)                   ; >1 file
       (sly-xref--show-results
        xrefs 'definition "Compiler notes" (sly-current-package)))))
 
@@ -3950,7 +3950,7 @@ new frame."
              (sly-push-definition-stack)
              (sly--pop-to-source-location
               (sly-xref.location (car xrefs)) method))
-            ((sly-length= xrefs 1)      ; ((:error "..."))
+            ((null (cdr xrefs))      ; ((:error "..."))
              (error "%s" xrefs))
             (t
              (sly-push-definition-stack)
@@ -5437,7 +5437,7 @@ PREDICATE is executed in the buffer to test."
     (if b (pop-to-buffer b)
       (sly-error "Can't find a *sly-db* debugger for this context"))))
 
-(defun sly-db-get-default-buffer ()
+(defsubst sly-db-get-default-buffer ()
   "Get a sly-db buffer.
 The chosen buffer the default connection's it if exists."
   (car (sly-db-buffers (sly-current-connection))))
@@ -7095,7 +7095,7 @@ The order of the input list is preserved."
         (if (funcall similar-p x (caar accumulator))
             (push x (car accumulator))
           (push (list x) accumulator)))
-      (reverse (mapcar #'reverse accumulator)))))
+      (nreverse (mapcar #'nreverse accumulator)))))
 
 (defun sly-alistify (list key test)
   "Partition the elements of LIST into an alist.
@@ -7109,20 +7109,18 @@ keys."
             (push e (cdr probe))
           (push (cons k (list e)) alist))))
     ;; Put them back in order.
-    (cl-loop for (key . value) in (reverse alist)
-             collect (cons key (reverse value)))))
+    (nreverse (mapc (lambda (ent)
+                      (setcdr ent (nreverse (cdr ent))))
+                    alist))))
 
 ;;;;; Misc.
 
-(defun sly-length= (seq n)
-  "Return (= (length SEQ) N)."
-  (cl-etypecase seq
-    (list
-     (cond ((zerop n) (null seq))
-           ((let ((tail (nthcdr (1- n) seq)))
-              (and tail (null (cdr tail)))))))
-    (sequence
-     (= (length seq) n))))
+(defun sly-length= (list n)
+  "Return (= (length LIST) N)."
+  (if (zerop n)
+      (null list)
+    (let ((tail (nthcdr (1- n) list)))
+      (and tail (null (cdr tail))))))
 
 (defun sly-length> (seq n)
   "Return (> (length SEQ) N)."
@@ -7212,7 +7210,7 @@ and skips comments."
   ;; We need this for the source files of SBCL itself.
   (regexp-opt '("#+" "#-" "#!+" "#!-")))
 
-(defun sly-forward-reader-conditional ()
+(defsubst sly-forward-reader-conditional ()
   "Move past any reader conditional (#+ or #-) at point."
   (when (looking-at sly-reader-conditionals-regexp)
     (goto-char (match-end 0))
@@ -7230,7 +7228,7 @@ and skips comments."
   "Move forward over whitespace, comments, reader conditionals."
   (while (sly-point-moves-p (skip-chars-forward " \t\n")
                             (forward-comment (buffer-size))
-                            (inline (sly-forward-reader-conditional)))))
+                            (sly-forward-reader-conditional))))
 
 (defun sly-keywordify (symbol)
   "Make a keyword out of the symbol SYMBOL."
@@ -7248,7 +7246,7 @@ and skips comments."
                          error))
 
 ;; FIXME: let it crash
-;; FIXME: the length=1 constraint is bogus
+;; FIXME: the (null (cdr l)) constraint is bogus
 (defun sly-eval-feature-expression (e)
   "Interpret a reader conditional expression."
   (cond ((symbolp e)
@@ -7261,11 +7259,10 @@ and skips comments."
                       (:not
                        (let ((feature-expression e))
                          (lambda (f l)
-                           (cond
-                            ((sly-length= l 0) t)
-                            ((sly-length= l 1) (not (apply f l)))
-                            (t (signal 'sly-incorrect-feature-expression
-                                       feature-expression))))))
+                           (cond ((null l) t)
+                                 ((null (cdr l)) (not (apply f l)))
+                                 (t (signal 'sly-incorrect-feature-expression
+                                            feature-expression))))))
                       (t (signal 'sly-unknown-feature-expression head))))
                   #'sly-eval-feature-expression
                   (cdr e)))
@@ -7295,10 +7292,10 @@ POS defaults to point"
                              (when (> (point) 2000) (- (point) 2000))
                              t))
   (re-search-forward "\\=#[-+.<|]" nil t)
-  (when (and (looking-at "@") (eq (char-before) ?\,))
+  (when (and (eq (char-after) ?@) (eq (char-before) ?\,))
     (forward-char)))
 
-(defun sly-end-of-symbol ()
+(defsubst sly-end-of-symbol ()
   "Move to the end of the CL-style symbol at point."
   (re-search-forward "\\=\\(\\sw\\|\\s_\\|\\s\\.\\|#:\\|[@|]\\)*"))
 
