@@ -3075,7 +3075,7 @@ Each newlines and following indentation is replaced by a single space."
 (defun sly-maybe-show-xrefs-for-notes (_successp notes _buffer _loadp)
   "Show the compiler notes NOTES if they come from more than one file."
   (let ((xrefs (sly-xref--get-xrefs-for-notes notes)))
-    (when (sly-length> xrefs 1)          ; >1 file
+    (when (cdr xrefs)                   ; >1 file
       (sly-xref--show-results
        xrefs 'definition "Compiler notes" (sly-current-package)))))
 
@@ -3945,7 +3945,7 @@ new frame."
              (sly-push-definition-stack)
              (sly--pop-to-source-location
               (sly-xref.location (car xrefs)) method))
-            ((sly-length= xrefs 1)      ; ((:error "..."))
+            ((null (cdr xrefs))      ; ((:error "..."))
              (error "%s" xrefs))
             (t
              (sly-push-definition-stack)
@@ -7106,21 +7106,12 @@ keys."
 
 ;;;;; Misc.
 
-(defun sly-length= (seq n)
-  "Return (= (length SEQ) N)."
-  (cl-etypecase seq
-    (list
-     (cond ((zerop n) (null seq))
-           ((let ((tail (nthcdr (1- n) seq)))
-              (and tail (null (cdr tail)))))))
-    (sequence
-     (= (length seq) n))))
-
-(defun sly-length> (seq n)
-  "Return (> (length SEQ) N)."
-  (cl-etypecase seq
-    (list (nthcdr n seq))
-    (sequence (> (length seq) n))))
+(defun sly-length= (list n)
+  "Return (= (length LIST) N)."
+  (if (zerop n)
+      (null list)
+    (let ((tail (nthcdr (1- n) list)))
+      (and tail (null (cdr tail))))))
 
 (defun sly-trim-whitespace (str)
   "Chomp leading and tailing whitespace from STR."
@@ -7242,11 +7233,10 @@ and skips comments."
                       (:not
                        (let ((feature-expression e))
                          (lambda (f l)
-                           (cond
-                            ((sly-length= l 0) t)
-                            ((sly-length= l 1) (not (apply f l)))
-                            (t (signal 'sly-incorrect-feature-expression
-                                       feature-expression))))))
+                           (cond ((null l) t)
+                                 ((null (cdr l)) (not (apply f l)))
+                                 (t (signal 'sly-incorrect-feature-expression
+                                            feature-expression))))))
                       (t (signal 'sly-unknown-feature-expression head))))
                   #'sly-eval-feature-expression
                   (cdr e)))
