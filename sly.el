@@ -5419,7 +5419,7 @@ PREDICATE is executed in the buffer to test."
     (if b (pop-to-buffer b)
       (sly-error "Can't find a *sly-db* debugger for this context"))))
 
-(defun sly-db-get-default-buffer ()
+(defsubst sly-db-get-default-buffer ()
   "Get a sly-db buffer.
 The chosen buffer the default connection's it if exists."
   (car (sly-db-buffers (sly-current-connection))))
@@ -7078,7 +7078,7 @@ The order of the input list is preserved."
         (if (funcall similar-p x (caar accumulator))
             (push x (car accumulator))
           (push (list x) accumulator)))
-      (reverse (mapcar #'reverse accumulator)))))
+      (nreverse (mapcar #'nreverse accumulator)))))
 
 (defun sly-alistify (list key test)
   "Partition the elements of LIST into an alist.
@@ -7253,10 +7253,10 @@ POS defaults to point"
                              (when (> (point) 2000) (- (point) 2000))
                              t))
   (re-search-forward "\\=#[-+.<|]" nil t)
-  (when (and (looking-at "@") (eq (char-before) ?\,))
+  (when (and (eq (char-after) ?@) (eq (char-before) ?\,))
     (forward-char)))
 
-(defun sly-end-of-symbol ()
+(defsubst sly-end-of-symbol ()
   "Move to the end of the CL-style symbol at point."
   (re-search-forward "\\=\\(\\sw\\|\\s_\\|\\s\\.\\|#:\\|[@|]\\)*"))
 
