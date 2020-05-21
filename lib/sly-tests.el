@@ -100,8 +100,8 @@ Exits Emacs when finished. The exit code is the number of failed tests."
     "Like `ert-deftest', but set tags automatically.
 Also don't error if `ert.el' is missing."
     (declare (debug (&define name sexp sexp &rest def-form)))
-    (let* ((docstring (and (stringp (second args))
-                           (second args)))
+    (let* ((docstring (and (stringp (cl-second args))
+                           (cl-second args)))
            (args (if docstring
                      (cddr args)
                    (cdr args)))
@@ -204,7 +204,7 @@ conditions (assertions)."
     (while (not (funcall predicate))
       (let ((now (current-time)))
         (sly-message "waiting for condition: %s [%s.%06d]" name
-                     (format-time-string "%H:%M:%S" now) (third now)))
+                     (format-time-string "%H:%M:%S" now) (cl-third now)))
       (cond ((time-less-p end (current-time))
              (unwind-protect
                  (error "Timeout waiting for condition: %S" name)
@@ -280,7 +280,7 @@ conditions (assertions)."
 
 (def-sly-test symbol-at-point.3 (sym)
   "fancy symbol-name with leading ,"
-  (remove-if (lambda (s) (eq (aref (car s) 0) ?@)) sly-test-symbols)
+  (cl-remove-if (lambda (s) (eq (aref (car s) 0) ?@)) sly-test-symbols)
   (sly-check-symbol-at-point "," sym ""))
 
 (def-sly-test symbol-at-point.4 (sym)
@@ -740,7 +740,7 @@ Confirm that SUBFORM is correctly located."
                   ;;(encode-coding-string (string #x304a #x306f #x3088 #x3046)
                   ;;                      'utf-8)
                   (string (decode-coding-string bytes 'utf-8-unix)))
-            (assert (equal bytes (encode-coding-string string 'utf-8-unix)))
+            (cl-assert (equal bytes (encode-coding-string string 'utf-8-unix)))
             (list (concat "(defun cl-user::foo () \"" string "\")")
                   string)))
   (sly-eval `(cl:eval (cl:read-from-string ,input)))
@@ -1277,11 +1277,11 @@ Reconnect afterwards."
     (with-current-buffer (process-buffer p)
       (erase-buffer))
     (delete-process c)
-    (assert (equal (process-status c) 'closed) nil "Connection not closed")
+    (cl-assert (equal (process-status c) 'closed) nil "Connection not closed")
     (accept-process-output nil 0.1)
-    (assert (equal (process-status p) 'run) nil "Subprocess not running")
+    (cl-assert (equal (process-status p) 'run) nil "Subprocess not running")
     (with-current-buffer (process-buffer p)
-      (assert (< (buffer-size) 500) nil "Unusual output"))
+      (cl-assert (< (buffer-size) 500) nil "Unusual output"))
     (sly-inferior-connect p (sly-inferior-lisp-args p))
     (let ((hook nil) (p p))
       (setq hook (lambda ()
@@ -1415,7 +1415,7 @@ Reconnect afterwards."
 ;;; xref recompilation
 ;;;
 (defun sly-test--eval-now (string)
-  (second (sly-eval `(slynk:eval-and-grab-output ,string))))
+  (cl-second (sly-eval `(slynk:eval-and-grab-output ,string))))
 
 (def-sly-test (sly-recompile-all-xrefs (:fails-for "cmucl")) ()
   "Test recompilation of all references within an xref buffer."
