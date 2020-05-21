@@ -1,4 +1,4 @@
-;;; sly.el --- Sylvester the Cat's Common Lisp IDE  -*-lexical-binding:t-*-
+;;; sly.el --- Sylvester the Cat's Common Lisp IDE  -*- lexical-binding: t; -*-
 
 ;; Version: 1.0.0-beta-3
 ;; URL: https://github.com/joaotavora/sly
@@ -7400,8 +7400,6 @@ can be found."
    sly-forward-cruft
    sly-forward-reader-conditional))
 
-(provide 'sly)
-
 ;;;###autoload
 (if (or (not (memq 'slime-lisp-mode-hook lisp-mode-hook))
         noninteractive
@@ -7415,7 +7413,9 @@ and replace `sly-editing-mode' with `slime-lisp-mode-hook'.")
   (warn "`sly.el' loaded OK. To use SLY, customize `lisp-mode-hook' and
 replace `slime-lisp-mode-hook' with `sly-editing-mode'."))
 
+(provide 'sly)
+
+;;; sly.el ends here
 ;; Local Variables:
 ;; coding: utf-8
 ;; End:
-;;; sly.el ends here
