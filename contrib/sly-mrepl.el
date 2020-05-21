@@ -1280,7 +1280,7 @@ ENTRY-IDX.  If ENTRY-IDX is nil, highlight all results.  Returns
 a list of result buttons thus highlighted"
   (interactive)
   (cl-loop
-   for button in (sly-button-buttons-in (point-min) (point-max))
+   for button in (sly-button-buttons-in-buffer)
    for e-idx = (car (button-get button 'part-args))
    for v-idx = (cadr (button-get button 'part-args))
    when (and (button-type-subtype-p (button-type button) 'sly-mrepl-part)

@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'sly)
 (require 'sly-parse "lib/sly-parse")
 
@@ -17,9 +18,7 @@
    ))
 
 (defvar sly-package-file-candidates
-  (mapcar #'file-name-nondirectory
-	  '("package.lisp" "packages.lisp" "pkgdcl.lisp"
-            "defpackage.lisp")))
+  '("package.lisp" "packages.lisp" "pkgdcl.lisp" "defpackage.lisp"))
 
 (defvar sly-export-symbol-representation-function
   #'(lambda (n) (format "#:%s" n)))

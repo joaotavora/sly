@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'sly)
 (require 'sly-parse "lib/sly-parse")
 (require 'font-lock)

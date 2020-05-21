@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'sly)
 (require 'tramp)
 (require 'cl-lib)

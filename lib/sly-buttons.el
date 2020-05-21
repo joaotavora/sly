@@ -1,4 +1,4 @@
-;;; sly-buttons.el --- Button-related utils for SLY
+;;; sly-buttons.el --- Button-related utils for SLY  -*- lexical-binding: t; -*-
 ;;;
 (require 'cl-lib)
 (require 'sly-messages "lib/sly-messages")
@@ -45,7 +45,7 @@
            (unless no-error
              (error "[sly] No button at point"))))))
 
-(defun sly-button-buttons-in (beg end)
+(defun sly-button-buttons-in-buffer ()
   (save-excursion
     (goto-char (point-min))
     (cl-loop for count-current = t then nil
@@ -154,7 +154,7 @@
                     :face face))
 
 
-(defun sly-button-echo-button (button) (sly-message "A sly button"))
+(defun sly-button-echo-button (_button) (sly-message "A sly button"))
 
 (defun sly-button-echo-part (button)
   (sly-button-flash button)

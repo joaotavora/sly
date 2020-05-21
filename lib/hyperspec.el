@@ -1,4 +1,4 @@
-;;; hyperspec.el --- Browse documentation from the Common Lisp HyperSpec
+;;; hyperspec.el --- Browse documentation from the Common Lisp HyperSpec  -*- lexical-binding: t; -*-
 
 ;; Copyright 1997 Naggum Software
 
@@ -1312,11 +1312,11 @@ If you copy the HyperSpec to another location, customize the variable
 
 ;;;; Glossary
 
-(defvar common-lisp-hyperspec-glossary-function 'common-lisp-glossary-6.0
-  "Function that creates a URL for a glossary term.")
-
 (define-obsolete-variable-alias 'common-lisp-glossary-fun
   'common-lisp-hyperspec-glossary-function)
+
+(defvar common-lisp-hyperspec-glossary-function 'common-lisp-glossary-6.0
+  "Function that creates a URL for a glossary term.")
 
 (defvar common-lisp-hyperspec--glossary-terms (make-hash-table :test #'equal)
   "Collection of glossary terms and relative URLs.")

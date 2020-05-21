@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'sly)
 
 (define-sly-contrib sly-fancy
