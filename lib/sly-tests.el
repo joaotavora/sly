@@ -816,7 +816,7 @@ Confirm that SUBFORM is correctly located."
            (lambda ()
              (with-current-buffer (sly-db-get-default-buffer)
                (setq max-depth (max sly-db-level max-depth))
-               (ecase state
+               (cl-ecase state
                  (enter
                   (cond ((= sly-db-level level2)
                          (setq state 'leave)
