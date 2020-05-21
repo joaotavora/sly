@@ -7087,7 +7087,7 @@ keys."
   (let ((alist '()))
     (dolist (e list)
       (let* ((k (funcall key e))
-             (probe (assoc k alist test)))
+             (probe (cl-assoc k alist :test test)))
         (if probe
             (push e (cdr probe))
           (push (cons k (list e)) alist))))
