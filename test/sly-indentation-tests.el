@@ -30,7 +30,7 @@
 (defvar sly-indentation--test-function nil
   "Can be set indentation tests to `indent-region' if need be.")
 
-(defun sly-indentation-test--1 (test-name bindings expected)
+(defun sly-indentation-test--1 (bindings expected)
   (cl-flet ((count-leading
              (line)
              (cl-loop for char across line
@@ -76,12 +76,11 @@
   (defun sly-indentation-test-form (test-name bindings expected)
     `(define-sly-ert-test ,test-name ()
        ,(format "An indentation test named `%s'" test-name)
-       (sly-indentation-test--1 ',test-name ',bindings ,expected)))
+       (sly-indentation-test--1 ',bindings ,expected)))
 
   (defun sly-indentation-test-forms-for-file (file)
     (with-current-buffer
-        (find-file-noselect (concat sly-path
-                                    "/test/sly-cl-indent-test.txt"))
+        (find-file-noselect (expand-file-name file sly-path))
       (goto-char (point-min))
       (cl-loop
        while (re-search-forward ";;; Test:[\t\n\s]*\\(.*\\)[\t\n\s]" nil t)
@@ -108,7 +107,7 @@
 
 (defmacro sly-indentation-define-tests ()
     `(progn
-       ,@(sly-indentation-test-forms-for-file "sly-cl-indent-test.txt")))
+       ,@(sly-indentation-test-forms-for-file "test/sly-cl-indent-test.txt")))
 
 (sly-indentation-define-tests)
 
