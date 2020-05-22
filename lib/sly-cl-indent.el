@@ -1385,7 +1385,7 @@ environment\\|more\
         (save-excursion
           (backward-up-list 2)
           (forward-char 1)
-          (if (looking-at "\\(lisp:+\\)?function\\(\\Sw\\|\\S_\\)")
+          (if (looking-at "\\(\\(common-lisp\\|cl\\)::?\\)?function\\(\\Sw\\|\\S_\\)")
               (+ lisp-body-indent -1 (current-column))
             (+ sexp-column lisp-body-indent)))
       (error (+ sexp-column lisp-body-indent)))))
