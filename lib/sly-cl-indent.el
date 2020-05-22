@@ -771,12 +771,6 @@ used to do this by default."
     (advice-remove 'common-lisp-indent-function
                    'sly-common-lisp-indent-function)))
 
-;;; XEmacs doesn't have looking-back, so we define a simple one. Faster to
-;;; boot, and sufficient for our needs.
-(defun sly--lisp-indent-looking-back (string)
-  (let* ((end (point))
-         (beg (max (point-min) (- end (length string)))))
-    (equal string (buffer-substring beg end))))
 
 (defvar sly--lisp-indent-feature-expr-regexp "#!?\\(+\\|-\\)")
 
@@ -811,8 +805,9 @@ used to do this by default."
 
 (defun sly--lisp-indent-function-1 (indent-point state)
   ;; If we're looking at a splice, move to the first comma.
-  (when (or (sly--lisp-indent-looking-back ",")
-            (sly--lisp-indent-looking-back ",@"))
+  (when (or (eq (char-before) ?,)
+            (and (eq (char-before) ?@)
+                 (eq (char-before (1- (point))) ?,)))
     (when (re-search-backward "[^,@'],")
       (forward-char 1)))
   (let ((normal-indent (current-column)))
@@ -1229,7 +1224,7 @@ environment\\|more\
                               (list normal-indent containing-form-start))))
               ((eq tem '&lambda)
                (throw 'exit
-                      (cond ((not (sly--lisp-indent-looking-back ")"))
+                      (cond ((not (eq (char-before) ?\)))
                              ;; If it's not a list at all, indent it
                              ;; like body instead.
                              (if (null p)
