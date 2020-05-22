@@ -66,16 +66,6 @@
 (defvar sly-autodoc--cache-last-context nil)
 (defvar sly-autodoc--cache-last-autodoc nil)
 
-(defun sly-autodoc--cache-get (context)
-  "Return cached autodoc documentation for CONTEXT or nil."
-  (and (equal context sly-autodoc--cache-last-context)
-       sly-autodoc--cache-last-autodoc))
-
-(defun sly-autodoc--cache-put (context autodoc)
-  "Update the autodoc cache for CONTEXT with AUTODOC."
-  (setq sly-autodoc--cache-last-context context)
-  (setq sly-autodoc--cache-last-autodoc autodoc))
-
 
 ;;;; Formatting autodoc
 
@@ -94,25 +84,25 @@
       (cond (multilinep message)
             (t (sly-oneliner (sly-autodoc--canonicalize-whitespace message)))))))
 
-  (defun sly-autodoc--fontify (string)
-    "Fontify STRING as `font-lock-mode' does in Lisp mode."
-    (with-current-buffer (get-buffer-create (sly-buffer-name :fontify :hidden t))
-      (erase-buffer)
-      (unless (eq major-mode 'lisp-mode)
-        ;; Just calling (lisp-mode) will turn sly-mode on in that buffer,
-        ;; which may interfere with this function
-        (setq major-mode 'lisp-mode)
-        (lisp-mode-variables t))
-      (insert string)
-      (let ((font-lock-verbose nil))
-        (font-lock-fontify-buffer))
-      (goto-char (point-min))
-      (when (re-search-forward "===> \\(\\(.\\|\n\\)*\\) <===" nil t)
-        (let ((highlight (match-string 1)))
-          ;; Can't use (replace-match highlight) here -- broken in Emacs 21
-          (delete-region (match-beginning 0) (match-end 0))
-          (sly-insert-propertized '(face eldoc-highlight-function-argument)
-                                  highlight)))
+(defun sly-autodoc--fontify (string)
+  "Fontify STRING as `font-lock-mode' does in Lisp mode."
+  (with-current-buffer (get-buffer-create (sly-buffer-name :fontify :hidden t))
+    (erase-buffer)
+    (unless (eq major-mode 'lisp-mode)
+      ;; Just calling (lisp-mode) will turn sly-mode on in that buffer,
+      ;; which may interfere with this function
+      (setq major-mode 'lisp-mode)
+      (lisp-mode-variables t))
+    (insert string)
+    (let ((font-lock-verbose nil))
+      (font-lock-fontify-buffer))
+    (goto-char (point-min))
+    (when (re-search-forward "===> \\(\\(.\\|\n\\)*\\) <===" nil t)
+      (let ((highlight (match-string 1)))
+        ;; Can't use (replace-match highlight) here -- broken in Emacs 21
+        (delete-region (match-beginning 0) (match-end 0))
+        (sly-insert-propertized '(face eldoc-highlight-function-argument)
+                                highlight)))
     (buffer-substring (point-min) (point-max))))
 
 
@@ -130,8 +120,8 @@ If it's not in the cache, the cache will be updated asynchronously."
                 (sly-connection))
               (sly-autodoc--parse-context))))
 	(when context
-	  (let* ((cached (sly-autodoc--cache-get
-                          context))
+	  (let* ((cached (and (equal context sly-autodoc--cache-last-context)
+                              sly-autodoc--cache-last-autodoc))
 		 (multilinep (or force-multiline
 				 eldoc-echo-area-use-multiline-p)))
 	    (cond (cached (sly-autodoc--format cached multilinep))
@@ -144,12 +134,8 @@ If it's not in the cache, the cache will be updated asynchronously."
 ;; slynk:autodoc.  nil is returned if nothing reasonable could be
 ;; found.
 (defun sly-autodoc--parse-context ()
-  (and (sly-autodoc--parsing-safe-p)
-       (let ((levels sly-autodoc-accuracy-depth))
-	 (sly-parse-form-upto-point levels))))
-
-(defun sly-autodoc--parsing-safe-p ()
-  (not (sly-inside-string-or-comment-p)))
+  (and (not (sly-inside-string-or-comment-p))
+       (sly-parse-form-upto-point sly-autodoc-accuracy-depth)))
 
 (defun sly-autodoc--async (context multilinep)
   (sly-eval-async
@@ -161,7 +147,8 @@ If it's not in the cache, the cache will be updated asynchronously."
   (cl-destructuring-bind (doc &optional cache-p) doc
     (unless (eq doc :not-available)
       (when cache-p
-	(sly-autodoc--cache-put context doc))
+        (setq sly-autodoc--cache-last-context context)
+        (setq sly-autodoc--cache-last-autodoc doc))
       ;; Now that we've got our information,
       ;; get it to the user ASAP.
       (when (eldoc-display-message-p)
