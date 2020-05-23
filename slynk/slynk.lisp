@@ -1780,10 +1780,11 @@ considered to represent a symbol internal to some current package.)"
   "This version of TOKENIZE-SYMBOL handles escape characters."
   (let ((package nil)
         (token (make-array (length string) :element-type 'character
-                           :fill-pointer 0))
+                                           :fill-pointer 0))
         (backslash nil)
         (vertical nil)
-        (internp nil))
+        (internp nil)
+        (caser (char-casifier string)))
     (loop for char across string do
           (cond
             (backslash
@@ -1806,7 +1807,7 @@ considered to represent a symbol internal to some current package.)"
                                             :element-type 'character
                                             :fill-pointer 0)))))
             (t
-             (vector-push-extend (casify-char char) token))))
+             (vector-push-extend (funcall caser char) token))))
     (unless vertical
           (values token package (or (not package) internp)))))
 
@@ -1821,15 +1822,18 @@ considered to represent a symbol internal to some current package.)"
         (internal-p 		(cat package-name "::" symbol-name))
         (t 			(cat package-name ":" symbol-name))))
 
-(defun casify-char (char)
-  "Convert CHAR accoring to readtable-case."
+(defun char-casifier (string)
+  "Return a function which converts characters in STRING according to `readtable-case'."
   (ecase (readtable-case *readtable*)
-    (:preserve char)
-    (:upcase   (char-upcase char))
-    (:downcase (char-downcase char))
-    (:invert (if (upper-case-p char)
-                 (char-downcase char)
-                 (char-upcase char)))))
+    (:preserve #'identity)
+    (:upcase   #'char-upcase)
+    (:downcase #'char-downcase)
+    ;; :invert only inverts the case if every character of a token is the same
+    ;; case, otherwise it acts like :preserve.
+    (:invert (let ((upper (count-if #'upper-case-p string)))
+               (cond ((= upper 0) #'char-upcase)
+                     ((= upper (length string)) #'char-downcase)
+                     (t #'identity))))))
 
 
 (defun find-symbol-with-status (symbol-name status
