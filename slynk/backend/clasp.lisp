@@ -542,33 +542,29 @@
 
 ;;;; Profiling
 
-#+profile
-(progn
+;;;; as clisp and ccl
 
 (defimplementation profile (fname)
-  (when fname (eval `(profile:profile ,fname))))
-
-(defimplementation unprofile (fname)
-  (when fname (eval `(profile:unprofile ,fname))))
-
-(defimplementation unprofile-all ()
-  (profile:unprofile-all)
-  "All functions unprofiled.")
-
-(defimplementation profile-report ()
-  (profile:report))
-
-(defimplementation profile-reset ()
-  (profile:reset)
-  "Reset profiling counters.")
+  (eval `(slynk-monitor:monitor ,fname)))         ;monitor is a macro
 
 (defimplementation profiled-functions ()
-  (profile:profile))
+  slynk-monitor:*monitored-functions*)
 
-(defimplementation profile-package (package callers methods)
-  (declare (ignore callers methods))
-  (eval `(profile:profile ,(package-name (find-package package)))))
-) ; #+profile (progn ...
+(defimplementation unprofile (fname)
+  (eval `(slynk-monitor:unmonitor ,fname)))       ;unmonitor is a macro
+
+(defimplementation unprofile-all ()
+  (slynk-monitor:unmonitor))
+
+(defimplementation profile-report ()
+  (slynk-monitor:report-monitoring))
+
+(defimplementation profile-reset ()
+  (slynk-monitor:reset-all-monitoring))
+
+(defimplementation profile-package (package callers-p methods)
+  (declare (ignore callers-p methods))
+  (slynk-monitor:monitor-all package))
 
 
 ;;;; Threads
