@@ -1598,7 +1598,6 @@ stack."
                    (label-value-line*
                     (:name (sb-kernel:%simple-fun-name o))
                     (:arglist (sb-kernel:%simple-fun-arglist o))
-                    (:next (sb-kernel:%simple-fun-next o))
                     (:type (sb-kernel:%simple-fun-type o))
                     (:code (sb-kernel:fun-code-header o))
                     (:documentation (documentation o t))))
@@ -1615,7 +1614,6 @@ stack."
   (append
    (label-value-line*
     (:code-size (sb-kernel:%code-code-size o))
-    (:entry-points (sb-kernel:%code-entry-points o))
     (:debug-info (sb-kernel:%code-debug-info o)))
    `("Constants:" (:newline))
    (loop for i from sb-vm:code-constants-offset
