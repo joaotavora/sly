@@ -479,8 +479,11 @@ corresponding values in the CDR of VALUE."
 
 ;;; Channels
 
-(defmacro channels () `(connection-channels *emacs-connection*))
-(defmacro channel-counter () `(connection-channel-counter *emacs-connection*))
+(defun channels () (connection-channels *emacs-connection*))
+(defun (setf channels) (value) (setf (connection-channels *emacs-connection*) value))
+
+(defun channel-counter () (connection-channel-counter *emacs-connection*))
+(defun (setf channels) (value) (setf (connection-channel-counter *emacs-connection*) value))
 
 (defclass channel ()
   ((id     :initform (incf (channel-counter))
