@@ -483,7 +483,7 @@ corresponding values in the CDR of VALUE."
 (defun (setf channels) (value) (setf (connection-channels *emacs-connection*) value))
 
 (defun channel-counter () (connection-channel-counter *emacs-connection*))
-(defun (setf channels) (value) (setf (connection-channel-counter *emacs-connection*) value))
+(defun (setf channel-counter) (value) (setf (connection-channel-counter *emacs-connection*) value))
 
 (defclass channel ()
   ((id     :initform (incf (channel-counter))
