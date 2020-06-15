@@ -539,8 +539,7 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
                          'part-args (list (cadr result) idx)
                          'part-label (format "REPL Result")
                          'sly-mrepl--result result
-                         'sly-button-search-id (sly-button-next-search-id))
-  (car result))
+                         'sly-button-search-id (sly-button-next-search-id)))
 
 (defun sly-mrepl--insert-results (results)
   (let* ((comint-preoutput-filter-functions nil))

@@ -106,8 +106,7 @@
          label nil :type 'sly-action
          'action action
          'mouse-action action
-         props)
-  label)
+         props))
 
 (defface sly-action-face
   `((t (:inherit warning)))
