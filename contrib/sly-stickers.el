@@ -353,8 +353,7 @@ render the underlying text unreadable."
          :type 'sly-stickers--recording-part
          'part-args (list sticker-id recording vindex)
          'part-label "Recorded value"
-         props)
-  label)
+         props))
 
 (cl-defun sly-stickers--describe-recording-values (recording &key
                                                              (indent 0)

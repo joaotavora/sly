@@ -363,8 +363,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
                          'part-label (format "%s %s"
                                              (capitalize
                                               (substring (symbol-name type) 1))
-                                             part-id))
-  part-text)
+                                             part-id)))
 
 (define-button-type 'sly-trace-dialog-spec :supertype 'sly-part
   'action 'sly-button-show-source
@@ -401,8 +400,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
            'part-args (list id
                             (cdr (sly-trace-dialog--trace-spec trace)))
            'part-label (format "Trace entry: %s" id)
-           props))
-  label)
+           props)))
 
 (defun sly-trace-dialog--draw-tree-lines (start offset direction)
   (save-excursion
