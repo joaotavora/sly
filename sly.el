@@ -6685,7 +6685,7 @@ position of point in the current buffer."
   "Quit the inspector and kill the buffer."
   (interactive)
   (sly-eval-async `(slynk:quit-inspector))
-  (quit-window t))
+  (quit-window))
 
 (defun sly-inspector-describe-inspectee ()
   "Describe the currently inspected object"
