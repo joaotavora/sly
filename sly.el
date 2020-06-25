@@ -5519,7 +5519,9 @@ pending Emacs continuations."
           (setq sly-db-backtrace-start-marker (point-marker))
           (save-excursion
             (if frame-specs
-                (sly-db-insert-frames (sly-db-prune-initial-frames frame-specs) t)
+                (let* ((initial-frames (sly-db-prune-initial-frames frame-specs))
+                       (more (sly-length> frame-specs (length initial-frames))))
+                  (sly-db-insert-frames initial-frames more))
               (insert "[No backtrace]")))
           (run-hooks 'sly-db-hook)
           (set-syntax-table lisp-mode-syntax-table)))
