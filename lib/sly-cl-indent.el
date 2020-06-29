@@ -1719,8 +1719,7 @@ Cause subsequent clauses to be indented.")
              ;; Clause body ...
              if*-body-indentation)
             (t (- (+ 7 if*-start-column)
-                  (match-end 0)
-                  (match-beginning 0)))))))))
+                  (- (match-end 0) (match-beginning 0))))))))))
 
 
 ;;;; Indentation specs for standard symbols, and a few semistandard ones.
