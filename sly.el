@@ -157,7 +157,7 @@ in `sly-contribs.'")
 (cl-defmacro sly--contrib-safe (contrib &body body)
   "Run BODY catching and resignalling any errors for CONTRIB"
   (declare (indent 1))
-  `(condition-case e
+  `(condition-case-unless-debug e
        (progn
          ,@body)
      (error (sly-error "There's an error in %s: %s"
