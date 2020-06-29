@@ -4147,8 +4147,9 @@ the display stuff that we neither need nor want."
 (defun sly-interactive-eval (string)
   "Read and evaluate STRING and print value in minibuffer.
 
-Note: If a prefix argument is in effect then the result will be
-inserted in the current buffer."
+A prefix argument(`C-u') inserts the result into the current
+buffer. A negative prefix argument (`M--') will sends it to the
+kill ring."
   (interactive (list (sly-read-from-minibuffer "SLY Eval: ")))
   (cl-case current-prefix-arg
     ((nil)
@@ -4923,6 +4924,8 @@ If PROP-VALUE-FN is non-nil use it to extract PROP's value."
           (t (goto-char start) nil))))
 
 (defun sly-recompile-xref (&optional raw-prefix-arg)
+  "Recompile definition at point.
+Uses prefix arguments like `sly-compile-defun'."
   (interactive "P")
   (let ((sly-compilation-policy (sly-compute-policy raw-prefix-arg)))
     (let ((location (sly-xref-location-at-point))
@@ -4933,6 +4936,8 @@ If PROP-VALUE-FN is non-nil use it to extract PROP's value."
                    (list dspec) (current-buffer))))))
 
 (defun sly-recompile-all-xrefs (&optional raw-prefix-arg)
+  "Recompile all definitions.
+Uses prefix arguments like `sly-compile-defun'."
   (interactive "P")
   (let ((sly-compilation-policy (sly-compute-policy raw-prefix-arg)))
     (let ((dspecs) (locations))
