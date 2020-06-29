@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'sly-fontifying-fu)
 (require 'sly-tests "lib/sly-tests")
 (require 'sly-autodoc)
