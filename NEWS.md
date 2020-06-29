@@ -140,6 +140,14 @@ If the Slynk-side of a contrib fails to load for whatever
 reason, a CONTINUE restart is provided. On the SLY side, the user
 can choose to disable that contrib temporarily.
 
+### A lot of cleanup to SLY sources
+
+Courtesy of Zach Shaftel <zshaftel@gmail.com>, sly-cl-indent.el no
+longer clobbers or conflicts Emacs's own cl-indent.el and is its own
+thing.  The cl.el library is no longer required, not even at
+compile-time or in tests.  A lot of cleanup and performance
+improvements.
+
 ### On par with SLIME 2.19 and 2.20
 
 Where applicable, SLY tracks bug-fixes and improvements contributed to
