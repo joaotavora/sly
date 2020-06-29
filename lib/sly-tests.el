@@ -133,9 +133,16 @@ Also don't error if `ert.el' is missing."
                            (unless (listp impl)
                              (setq impl (list impl #'(lambda (&rest _ign) t))))
                            (and (equal (car impl) (sly-lisp-implementation-name))
-                                (funcall (cadr impl)
-                                         (sly-lisp-implementation-version)
-                                         (caddr impl))))
+                                (funcall
+                                 (cadr impl)
+                                 ;; Appease `version-to-list' for
+                                 ;; SBCL.  `version-regexp-alist'
+                                 ;; doesn't work here.
+                                 (replace-regexp-in-string
+                                  "[-._+ ]?[[:alnum:]]\\{7,9\\}$"
+                                  "-snapshot"
+                                  (sly-lisp-implementation-version))
+                                 (caddr impl))))
                          ',fails-for)
                         :failed
                       :passed))))))
