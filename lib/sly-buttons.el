@@ -1,4 +1,4 @@
-;;; sly-buttons.el --- Button-related utils for SLY
+;;; sly-buttons.el --- Button-related utils for SLY  -*- lexical-binding: t; -*-
 ;;;
 (require 'cl-lib)
 (require 'sly-messages "lib/sly-messages")

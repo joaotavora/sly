@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'sly)
 (require 'cl-lib)
 (require 'sly-cl-indent "lib/sly-cl-indent")

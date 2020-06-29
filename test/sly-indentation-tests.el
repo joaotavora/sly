@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'sly-indentation)
 (require 'sly-tests "lib/sly-tests")
 

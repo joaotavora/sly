@@ -1,4 +1,4 @@
-;;; sly-scratch.el
+;;; sly-scratch.el  -*- lexical-binding: t; -*-
 
 (require 'sly)
 (require 'cl-lib)

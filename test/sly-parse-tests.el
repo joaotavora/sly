@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; -*-
 (require 'sly-parse "lib/sly-parse")
 (require 'sly-tests "lib/sly-tests")
 
