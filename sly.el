@@ -6678,10 +6678,12 @@ position of point in the current buffer."
   (sly-eval-for-inspector `(slynk:inspector-next)
                           :error-message "No next object"))
 
-(defun sly-inspector-quit ()
-  "Quit the inspector and kill the buffer."
-  (interactive)
-  (sly-eval-async `(slynk:quit-inspector))
+(defun sly-inspector-quit (&optional reset)
+  "Quit the inspector and kill the buffer.
+With optional RESET (true with prefix arg), also reset the
+inspector on the Lisp side."
+  (interactive "p")
+  (when reset (sly-eval-async `(slynk:quit-inspector)))
   (quit-window))
 
 (defun sly-inspector-describe-inspectee ()
