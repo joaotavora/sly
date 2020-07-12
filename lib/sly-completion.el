@@ -740,18 +740,19 @@ was given and ALLOW-EMPTY is non-nil)."
              allow-empty)
     return read)))
 
-(defun sly-default-symbol-completing-read
+(defun sly-ui-symbol-completing-read
     (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
-  "Used by default to complete symbols being read in with Sly's special
+  "Used to complete symbols being read in with Sly's special
 completions minibuffer if sly-symbol-completion-mode is t."
   (let ((icomplete-mode nil)
         (completing-read-function #'completing-read-default))
     (sly--with-sly-minibuffer (completing-read prompt collection nil nil initial-input))))
 
-(defvar sly-symbol-completing-read-function #'sly-default-symbol-completing-read
+(defvar sly-symbol-completing-read-function #'completing-read
   "Used by Sly to complete symbols being read in if sly-symbol-completion-mode
-is t. Its value must be a function conforming to the interface of
-completing-read.")
+is nil. Its value must be a function conforming to the interface of
+completing-read. This variable is intended for use when it is necessary to
+target only sly's use of completing-read and globally shadowing it is not an option.")
 
 (defun sly-read-symbol-name (prompt &optional query)
   "Either read a symbol name or choose the one at point.
@@ -761,8 +762,8 @@ symbol at point, or if QUERY is non-nil."
          (wrapper (sly--completion-function-wrapper sly-complete-symbol-function)))
     (cond ((or current-prefix-arg query (not sym-at-point))
            (funcall (if sly-symbol-completion-mode
-                        sly-symbol-completing-read-function
-                      #'completing-read)
+                        #'sly-ui-symbol-completing-read
+                      sly-symbol-completing-read-function)
                     prompt wrapper nil nil sym-at-point))
           (t sym-at-point))))
 
