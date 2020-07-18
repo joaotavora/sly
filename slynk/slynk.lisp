@@ -1252,6 +1252,7 @@ point the thread terminates and CHANNEL is closed."
                      (format nil "Thread not found: ~s" thread-id))
                (current-socket-io))))))
     ((:return thread &rest args)
+     (declare (ignore thread))
      (encode-message `(:return ,@args) (current-socket-io)))
     ((:emacs-interrupt thread-id)
      (interrupt-worker-thread connection thread-id))
