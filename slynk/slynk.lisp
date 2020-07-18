@@ -41,6 +41,7 @@
            #:*default-worker-thread-bindings*
            #:*macroexpand-printer-bindings*
            #:*slynk-pprint-bindings*
+           #:*string-elision-length*
            #:*inspector-verbose*
            #:*require-module*
            #:*eval-for-emacs-wrappers*
@@ -2087,13 +2088,17 @@ last form."
           (makunbound name)
           (prin1-to-string (eval form)))))))
 
+(defvar-unbound *string-elision-length*
+  "Maximum length of a sring before elision by SLYNK-PPRINT.")
+
 (defparameter *slynk-pprint-bindings*
-  `((*print-pretty*   . t)
-    (*print-level*    . nil)
-    (*print-length*   . nil)
-    (*print-circle*   . nil)
-    (*print-gensym*   . t)
-    (*print-readably* . nil))
+  `((*print-pretty*           . t)
+    (*print-level*            . nil)
+    (*print-length*           . nil)
+    (*string-elision-length*  . 100)
+    (*print-circle*           . nil)
+    (*print-gensym*           . t)
+    (*print-readably*         . nil))
   "A list of variables bindings during pretty printing.
 Used by pprint-eval.")
 
@@ -2110,11 +2115,11 @@ If STREAM is nil, use a string"
           (*print-level* (or *print-level*
                               (and (not *print-circle*) 20))))
       (flet ((write-it (s)
-               (cond ((and *print-length*
+               (cond ((and *string-elision-length*
                            (stringp object)
-                           (> (length object) *print-length*))
+                           (> (length object) *string-elision-length*))
                       (format s "\"~a...[sly-elided string of length ~a]\""
-                              (subseq object 0 *print-length*)
+                              (subseq object 0 *string-elision-length*)
                               (length object)))
                      (t
                       (write object :stream s :pretty t :escape t)))))
@@ -2702,7 +2707,9 @@ TAGS has is a list of strings."
                         (prin1-to-string name))
                 :id id
                 :value
-                (let ((*slynk-pprint-bindings* *backtrace-printer-bindings*))
+                (let ((*slynk-pprint-bindings*
+                        (append *slynk-pprint-bindings*
+                                *backtrace-printer-bindings*)))
                   (slynk-pprint value))))))
 
 (defslyfun sly-db-disassemble (index)

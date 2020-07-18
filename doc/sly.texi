@@ -2651,6 +2651,14 @@ variable.  You, of course, override this protection:
               slynk:*slynk-pprint-bindings* :key #'car))
 @end example
 
+@item SLYNK:*STRING-ELISION-LENGTH*
+@itemx SLYNK:*STRING-ELISION-LENGTH*
+
+This variable controls the maximum length of strings before their pretty
+printed representation in the Inspector, Debugger, @REPL, etc is elided.
+Don't set this variable directly, create a binding for this variable
+in @code{SLYNK:*SLYNK-PPRINT-BINDINGS*} instead.
+
 @item SLYNK:*ECHO-NUMBER-ALIST*
 @itemx SLYNK:*PRESENT-NUMBER-ALIST*
 These variables hold function designators used for displaying numbers
