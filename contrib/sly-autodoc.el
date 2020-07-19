@@ -12,9 +12,11 @@
             "Matthias Koeppe  <mkoeppe@mail.math.uni-magdeburg.de>"
             "Tobias C. Rittweiler  <tcr@freebits.de>")
   (:slynk-dependencies slynk/arglists)
-  (:on-load (add-hook 'sly-mode-hook 'sly-autodoc-mode)
+  (:on-load (add-hook 'sly-editing-mode-hook 'sly-autodoc-mode)
+            (add-hook 'sly-mrepl-mode-hook 'sly-autodoc-mode)
             (add-hook 'sly-minibuffer-setup-hook 'sly-autodoc-mode))
-  (:on-unload (remove-hook 'sly-mode-hook 'sly-autodoc-mode)
+  (:on-unload (remove-hook 'sly-editing-mode-hook 'sly-autodoc-mode)
+              (remove-hook 'sly-mrepl-mode-hook 'sly-autodoc-mode)
               (remove-hook 'sly-minibuffer-setup-hook 'sly-autodoc-mode)))
 
 (defcustom sly-autodoc-accuracy-depth 10
