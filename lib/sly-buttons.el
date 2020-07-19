@@ -275,7 +275,9 @@ at exactly the same spot, they are both visited simultaneously,
 `sly-button-echo' being passed a variable number of button arguments."
   (cl-loop for i from 0 below (abs n)
            for buttons =
-           (or (and (not (get last-command 'sly-button-navigation-command))
+           (or (and (not (and
+                          (symbolp last-command)
+                          (get last-command 'sly-button-navigation-command)))
                     (sly-button--searchable-buttons-starting-at (point) filter))
                (sly-button--search-1 n filter))
            for button = (car buttons)
