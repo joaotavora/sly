@@ -2738,6 +2738,8 @@ Debugged requests are ignored."
                          (set (make-local-variable 'comment-end) "")
                          (when sly-outline-mode-in-events-buffer
                            (outline-minor-mode))
+                         (when (fboundp 'lisp-data-mode) ; Emacs >= 28 only
+                           (funcall 'lisp-data-mode))
                          (set (make-local-variable 'sly-buffer-connection) process)
                          (sly-mode 1))
                        (process-put process 'sly--events-buffer buffer)
