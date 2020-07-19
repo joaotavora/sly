@@ -70,7 +70,6 @@
 (require 'comint)
 (require 'pp)
 (require 'easymenu)
-(require 'outline)
 (require 'arc-mode)
 (require 'etags)
 (require 'apropos)
@@ -2686,14 +2685,10 @@ Debugged requests are ignored."
 ;;;;; Event logging to *sly-events*
 ;;;
 ;;; The *sly-events* buffer logs all protocol messages for debugging
-;;; purposes. Optionally you can enable outline-mode in that buffer,
-;;; which is convenient but slows things down significantly.
+;;; purposes. 
 
 (defvar sly-log-events t
   "*Log protocol events to the *sly-events* buffer.")
-
-(defvar sly-outline-mode-in-events-buffer nil
-  "*Non-nil means use outline-mode in *sly-events*.")
 
 (defun sly-log-event (event process)
   "Record the fact that EVENT occurred in PROCESS."
@@ -2705,11 +2700,13 @@ Debugged requests are ignored."
         (re-search-forward "^(" nil t)
         (delete-region (point-min) (point)))
       (goto-char (point-max))
-      (save-excursion
-        (sly-pprint-event event (current-buffer)))
-      (when (and (boundp 'outline-minor-mode)
-                 outline-minor-mode)
-        (hide-entry))
+      (unless (bolp) (insert "\n"))
+      (cond ((and (stringp event)
+                  (string-match "^;" event))
+             (insert-before-markers event))
+            (t
+             (save-excursion
+               (sly-pprint-event event (current-buffer)))))
       (goto-char (point-max)))))
 
 (defun sly-pprint-event (event buffer)
@@ -2733,11 +2730,6 @@ Debugged requests are ignored."
                                              `(:suffix ,(format "%s" process)))))))
                        (with-current-buffer buffer
                          (buffer-disable-undo)
-                         (set (make-local-variable 'outline-regexp) "^(")
-                         (set (make-local-variable 'comment-start) ";")
-                         (set (make-local-variable 'comment-end) "")
-                         (when sly-outline-mode-in-events-buffer
-                           (outline-minor-mode))
                          (when (fboundp 'lisp-data-mode) ; Emacs >= 28 only
                            (funcall 'lisp-data-mode))
                          (set (make-local-variable 'sly-buffer-connection) process)
