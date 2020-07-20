@@ -214,22 +214,28 @@ for output printed to the REPL (not for evaluation results)")
 
 (sly-define-channel-method listener :set-read-mode (mode)
   (with-current-buffer (sly-channel-get self 'buffer)
-    (sly-mrepl--accept-process-output)
-    (let ((inhibit-read-only t))
-      (cl-ecase mode
-        (:read (setq sly-mrepl--read-mark (point))
-               (add-text-properties (1- (point)) (point)
-                                    `(rear-nonsticky t))
-               (sly-message "Listener waiting for input to read"))
-        (:finished-reading
-         (if sly-mrepl--read-mark
+    (cl-macrolet ((assert-soft
+                   (what) `(unless ,what
+                             (sly-warning
+                              ,(format "Expectation failed: %s" what)))))
+      (let ((inhibit-read-only t))
+        (cl-ecase mode
+          (:read
+           (assert-soft (null sly-mrepl--read-mark))
+           ;; Give a chance for output to come in before we block it
+           ;; during the read.
+           (sly-mrepl--accept-process-output)
+           (setq sly-mrepl--read-mark (point))
+           (add-text-properties (1- (point)) (point)
+                                `(rear-nonsticky t))
+           (sly-message "REPL now waiting for input to read"))
+          (:finished-reading
+           (assert-soft (integer-or-marker-p sly-mrepl--read-mark))
+           (when sly-mrepl--read-mark
              (add-text-properties (1- sly-mrepl--read-mark) (point)
-                                  `(face bold read-only t))
-           (sly-warning "Expected `sly-mrepl--read-mark' to be set!"))
-         (setq sly-mrepl--read-mark nil)
-         (when sly-mrepl--pending-output
-           (sly-mrepl--insert-output "\n"))
-         (sly-message "Listener waiting for sexps to eval"))))))
+                                  `(face bold read-only t)))
+           (setq sly-mrepl--read-mark nil)
+           (sly-message "REPL back to normal evaluation mode")))))))
 
 (sly-define-channel-method listener :prompt (package prompt
                                                      error-level
