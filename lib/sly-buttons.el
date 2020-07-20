@@ -276,7 +276,7 @@ at exactly the same spot, they are both visited simultaneously,
   (cl-loop for i from 0 below (abs n)
            for buttons =
            (or (and (not (and
-                          (symbolp last-command)
+                          ;; (symbolp last-command)
                           (get last-command 'sly-button-navigation-command)))
                     (sly-button--searchable-buttons-starting-at (point) filter))
                (sly-button--search-1 n filter))

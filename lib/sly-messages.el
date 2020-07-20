@@ -31,7 +31,6 @@
 (defun sly-message (format-string &rest args)
   "Like `message', but use a prefix."
   (let ((body (apply #'format format-string args)))
-    (sly-log-event (concat ";; " body) (sly-current-connection))
     (setq sly--last-message (format "[sly] %s" body))
     (message "%s" sly--last-message)))
 
