@@ -7411,7 +7411,6 @@ can be found."
    sly-forward-cruft
    sly-forward-reader-conditional))
 
-;;;###autoload
 (if (or (not (memq 'slime-lisp-mode-hook lisp-mode-hook))
         noninteractive
         (prog1 (y-or-n-p "[sly] SLIME detected in `lisp-mode-hook', which causes keybinding conflicts.
