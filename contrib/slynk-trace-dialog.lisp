@@ -67,22 +67,28 @@ program.")
    (spec       :initarg  :spec      :accessor spec-of
                :initform (error "must provide a spec"))
    (function   :initarg  :function  :accessor function-of)
-   (args       :initarg  :args      :accessor args-of
+   (args       :initarg  :args      :reader args-of
                :initform (error "must provide args"))
+   (printed-args)
    (parent     :initarg  :parent    :reader   parent-of
                :initform (error "must provide a parent, even if nil"))
    (retlist    :initarg  :retlist   :accessor retlist-of
-               :initform 'still-inside)))
+               :initform 'still-inside)
+   (printed-retlist)))
 
-(defmethod initialize-instance :after ((entry trace-entry) &rest initargs)
-  (declare (ignore initargs))
-  (if (parent-of entry)
-      (nconc (children-of (parent-of entry)) (list entry)))
-  (slynk-backend:call-with-lock-held
-   *trace-lock*
-   #'(lambda ()
-       (setf (slot-value entry 'id) (fill-pointer *traces*))
-       (vector-push-extend entry *traces*))))
+(defmethod initialize-instance :after ((entry trace-entry) &key)
+  (with-slots (parent id printed-args args) entry
+    (if parent
+        (nconc (children-of parent) (list entry)))
+    (setf printed-args
+          (mapcar (lambda (arg)
+                    (present-for-emacs arg #'slynk-pprint-to-line))
+                  args))
+    (slynk-backend:call-with-lock-held
+     *trace-lock*
+     #'(lambda ()
+         (setf (slot-value entry 'id) (fill-pointer *traces*))
+         (vector-push-extend entry *traces*)))))
 
 (defmethod print-object ((entry trace-entry) stream)
   (print-unreadable-object (entry stream)
@@ -111,16 +117,18 @@ program.")
 ;;;; Helpers
 ;;;;
 (defun describe-trace-for-emacs (trace)
-  `(,(id-of trace)
-    ,(and (parent-of trace) (id-of (parent-of trace)))
-    ,(cons (string-downcase (present-for-emacs (spec-of trace)))
-           (spec-of trace))
-    ,(loop for arg in (args-of trace)
-           for i from 0
-           collect (list i (present-for-emacs arg #'slynk-pprint-to-line)))
-    ,(loop for retval in (slynk::ensure-list (retlist-of trace))
-           for i from 0
-           collect (list i (present-for-emacs retval #'slynk-pprint-to-line)))))
+  (with-slots (id args parent spec printed-args retlist printed-retlist) trace
+    `(,id
+      ,(and parent (id-of parent))
+      ,(cons (string-downcase (present-for-emacs spec)) spec)
+      ,(loop for arg in args
+             for printed-arg in printed-args
+             for i from 0
+             collect (list i printed-arg))
+      ,(loop for retval in (slynk::ensure-list retlist)
+             for printed-retval in (slynk::ensure-list printed-retlist)
+             for i from 0
+             collect (list i printed-retval)))))
 
 
 ;;;; slyfuns
@@ -224,15 +232,20 @@ program.")
                                                                  spec)
                                                   :args      args
                                                   :parent    (current-trace))))
-           (after-hook (retlist)
+           (after-hook (returned-values)
              (let ((trace (current-trace)))
                (when trace
-                 ;; the current trace might have been wiped away if the
-                 ;; user cleared the tree in the meantime. no biggie,
-                 ;; don't do anything.
-                 ;;
-                 (setf (retlist-of trace) retlist
-                       (current-trace) (parent-of trace))))))
+                 (with-slots (retlist parent printed-retlist) trace
+                   ;; the current trace might have been wiped away if the
+                   ;; user cleared the tree in the meantime. no biggie,
+                   ;; don't do anything.
+                   ;;
+                   (setf retlist returned-values
+                         printed-retlist
+                         (mapcar (lambda (obj)
+                                   (present-for-emacs obj #'slynk-pprint-to-line))
+                                 retlist)
+                         (current-trace) parent))))))
       (when (dialog-traced-p spec)
         (warn "~a is apparently already traced! Untracing and retracing." spec)
         (dialog-untrace spec))
