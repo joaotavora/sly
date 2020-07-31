@@ -1384,7 +1384,7 @@ a list of result buttons thus highlighted"
          (t
           (overlay-put overlay 'face 'font-lock-warning-face)
           (setq message-text (format "Invalid backreference `%s'" m0))))
-        (sly-message message-text)
+        (sly-message "%s" message-text)
         (set (make-local-variable 'sly-autodoc-preamble) message-text)))))
 
 
