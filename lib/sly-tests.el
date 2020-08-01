@@ -1376,18 +1376,6 @@ Reconnect afterwards."
     (if success (delete-file test-file)
       (message "Test failed: keeping %s for inspection" test-file)))))
 
-(define-sly-ert-test readme-recipe-autoload-on-lisp-visit ()
-  "Test more autoload bits in README.md's installation recipe."
-  (sly-test-recipe-test-for
-   :preflight `((add-to-list 'load-path ,sly-path)
-                (require 'sly-autoloads))
-   :landing nil
-   :takeoff `((if (featurep 'sly)
-                  (die "Didn't expect SLY to be loaded so early!"))
-              (find-file ,(make-temp-file "sly-lisp-source-file" nil ".lisp"))
-              (unless (featurep 'sly)
-                (die "Expected SLY to be fully loaded by now")))))
-
 (define-sly-ert-test readme-recipe ()
   "Test the README.md's autoload recipe."
   (sly-test-recipe-test-for
