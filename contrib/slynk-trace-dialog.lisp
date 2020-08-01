@@ -74,7 +74,7 @@ program.")
                :initform (error "must provide a parent, even if nil"))
    (retlist    :initarg  :retlist   :accessor retlist-of
                :initform 'still-inside)
-   (printed-retlist)))
+   (printed-retlist :initform ":STILL-INSIDE")))
 
 (defmethod initialize-instance :after ((entry trace-entry) &key)
   (with-slots (parent id printed-args args) entry
@@ -244,7 +244,7 @@ program.")
                          printed-retlist
                          (mapcar (lambda (obj)
                                    (present-for-emacs obj #'slynk-pprint-to-line))
-                                 retlist)
+                                 (slynk::ensure-list retlist))
                          (current-trace) parent))))))
       (when (dialog-traced-p spec)
         (warn "~a is apparently already traced! Untracing and retracing." spec)
