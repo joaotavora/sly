@@ -41,6 +41,8 @@
 (define-obsolete-variable-alias 'sly-setup-contribs
   'sly-contribs "2.3.2")
 
+(add-hook 'lisp-mode-hook 'sly-editing-mode)
+
 (provide 'sly-autoloads)
 
 ;;; sly-autoloads.el ends here
