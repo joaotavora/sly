@@ -7411,17 +7411,24 @@ can be found."
    sly-forward-cruft
    sly-forward-reader-conditional))
 
-(if (or (not (memq 'slime-lisp-mode-hook lisp-mode-hook))
-        noninteractive
-        (prog1 (y-or-n-p "[sly] SLIME detected in `lisp-mode-hook', which causes keybinding conflicts.
-Remove it for this Emacs session?")
-          (warn
-           "To restore SLIME in this session, customize `lisp-mode-hook'
+;;;###autoload
+(add-hook 'lisp-mode-hook 'sly-editing-mode)
+
+(cond ((or (not (memq 'slime-lisp-mode-hook lisp-mode-hook))
+           noninteractive
+           (y-or-n-p "[sly] SLIME detected in `lisp-mode-hook', which causes keybinding conflicts.
+Remove it for this Emacs session?"))
+       (warn "To restore SLIME in this session, customize `lisp-mode-hook'
 and replace `sly-editing-mode' with `slime-lisp-mode-hook'.")
-          (remove-hook 'lisp-mode-hook 'slime-lisp-mode-hook)))
-    (add-hook 'lisp-mode-hook 'sly-editing-mode)
-  (warn "`sly.el' loaded OK. To use SLY, customize `lisp-mode-hook' and
-replace `slime-lisp-mode-hook' with `sly-editing-mode'."))
+       (remove-hook 'lisp-mode-hook 'slime-lisp-mode-hook)
+       (dolist (buffer (buffer-list))
+         (with-current-buffer buffer
+           (when (eq major-mode 'lisp-mode)
+             (sly-editing-mode 1)
+             (funcall 'slime-mode -1)))))
+      (t
+       (warn "`sly.el' loaded OK. To use SLY, customize `lisp-mode-hook' and
+to remove `slime-lisp-mode-hook'.")))
 
 (provide 'sly)
 
