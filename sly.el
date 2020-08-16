@@ -202,6 +202,7 @@ in `sly-contribs.'")
     ;; Some contribs add stuff to `sly-mode-hook' or
     ;; `sly-editing-hook', so make sure we re-run those hooks now.
     (when all-active-contribs
+      (defvar sly-editing-mode)         ;FIXME: Forward reference!
       (cl-loop for buffer in (buffer-list)
                do (with-current-buffer buffer
                     (when sly-editing-mode (sly-editing-mode 1)))))))
@@ -1489,7 +1490,8 @@ The default condition handler for timer functions (see
 (defun sly-random-words-of-encouragement ()
   "Return a string of hackerish encouragement."
   (eval (nth (random (length sly-words-of-encouragement))
-             sly-words-of-encouragement)))
+             sly-words-of-encouragement)
+        t))
 
 
 ;;;; Networking
@@ -2547,7 +2549,7 @@ Debugged requests are ignored."
            (sly-handle-indentation-update info))
           ((:eval-no-wait form)
            (sly-check-eval-in-emacs-enabled)
-           (eval (read form)))
+           (eval (read form) t))
           ((:eval thread tag form-string)
            (sly-check-eval-in-emacs-enabled)
            (sly-eval-for-lisp thread tag form-string))
@@ -4020,8 +4022,7 @@ FILE-ALIST is an alist of the form ((FILENAME . (XREF ...)) ...)."
           (sly-eval-async `(slynk:buffer-first-change ,filename)))))))
 
 (defun sly-setup-first-change-hook ()
-  (add-hook (make-local-variable 'first-change-hook)
-            'sly-first-change-hook))
+  (add-hook 'first-change-hook #'sly-first-change-hook nil t))
 
 (add-hook 'sly-mode-hook 'sly-setup-first-change-hook)
 
@@ -4037,7 +4038,7 @@ FILE-ALIST is an alist of the form ((FILENAME . (XREF ...)) ...)."
         (condition-case err
             (progn
               (sly-check-eval-in-emacs-enabled)
-              (setq value (eval (read form-string)))
+              (setq value (eval (read form-string) t))
               (sly-check-eval-in-emacs-result value)
               (setq ok t))
           ((debug error)
@@ -5037,7 +5038,9 @@ This variable specifies both what was expanded and how.")
     (erase-buffer)
     (insert expansion)
     (goto-char (point-min))
-    (font-lock-fontify-buffer)))
+    (if (fboundp 'font-lock-ensure)
+        (font-lock-ensure)
+      (with-no-warnings (font-lock-fontify-buffer)))))
 
 (defun sly-create-macroexpansion-buffer ()
   (let ((name (sly-buffer-name :macroexpansion)))
@@ -5371,10 +5374,14 @@ Full list of frame-specific commands:
 (dotimes (number 10)
   (let ((fname (intern (format "sly-db-invoke-restart-%S" number)))
         (docstring (format "Invoke restart numbered %S." number)))
+    ;; FIXME: In Emacs≥25, you could avoid `eval' and use
+    ;;     (defalias .. (lambda .. (:documentation docstring) ...))
+    ;; instead!
     (eval `(defun ,fname ()
              ,docstring
              (interactive)
-             (sly-db-invoke-restart ,number)))
+             (sly-db-invoke-restart ,number))
+          t)
     (define-key sly-db-mode-map (number-to-string number) fname)))
 
 
@@ -5458,7 +5465,7 @@ The chosen buffer the default connection's it if exists."
     (ignore-errors (sly-db-quit))
     t))
 
-(defun sly-db--display-debugger (thread)
+(defun sly-db--display-debugger (_thread)
   "Display (or pop to) sly-db for THREAD as appropriate.
 Also mark the window as a debugger window."
   (let* ((action '(sly-db--display-in-prev-sly-db-window))
@@ -5492,8 +5499,9 @@ pending Emacs continuations."
       (unless (equal sly-db-level level)
         (let ((inhibit-read-only t))
           (sly-db-mode)
-          (add-to-list (make-local-variable 'kill-buffer-query-functions)
-                       'sly-db-confirm-buffer-kill)
+          (add-hook 'kill-buffer-query-functions
+                    #'sly-db-confirm-buffer-kill
+                    nil t)
           (setq sly-current-thread thread)
           (setq sly-db-level level)
           (setq mode-name (format "sly-db[%d]" sly-db-level))
