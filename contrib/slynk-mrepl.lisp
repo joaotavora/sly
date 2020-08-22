@@ -18,7 +18,8 @@
            #:guess-and-set-package
            #:copy-to-repl
            #:describe-entry
-           #:send-prompt))
+           #:send-prompt
+           #:copy-to-repl-in-emacs))
 (in-package :slynk-mrepl)
 
 
@@ -390,6 +391,14 @@ Set this to NIL to turn this feature off.")
  the COPY-TO-REPL slyfun."
   (setq *saved-objects* (multiple-value-list (apply slave-slyfun args)))
   t)
+
+(defun copy-to-repl-in-emacs (values &key (blurb "Here are some values"))
+  "Copy any user object to SLY's REPL.  Requires
+  `sly-enable-evaluate-in-emacs' to be true."
+  (with-connection ((default-connection))
+    (apply #'slynk-mrepl:globally-save-object #'cl:values values)
+    (slynk:eval-in-emacs `(sly-mrepl--copy-to-repl ,blurb))
+    t))
 
 (defmacro with-eval-for-repl ((remote-id &optional mrepl-sym
                                                    update-mrepl) &body body)
