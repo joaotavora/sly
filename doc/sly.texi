@@ -1183,11 +1183,11 @@ the @code{*sly-xref} buffer.
 
 @kbditem{C-c C-c, sly-recompile-xref}
 Recompile definition at point. Uses prefix arguments like
-@ref{sly-compile-defun}.
+@code{sly-compile-defun}.
 
 @kbditem{C-c C-k, sly-recompile-all-xrefs}
 Recompile all definitions. Uses prefix arguments like
-@ref{sly-compile-defun}.
+@code{sly-compile-defun}.
 
 @end table
 
