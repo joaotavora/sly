@@ -26,7 +26,8 @@
            ;;#:inspect-slot-for-emacs
            #:authenticate-client
            #:*loopback-interface*
-           #:*buffer-readtable*)
+           #:*buffer-readtable*
+           #:process-requests)
   ;; These are user-configurable variables:
   (:export #:*communication-style*
            #:*dont-close*
@@ -1090,6 +1091,9 @@ The processing is done in the extent of the toplevel restart."
               (with-top-level-restart (connection (go start))
                 (process-requests timeout)))))))
 
+(defvar-unbound *channel*
+  "Current CHANNEL instance used by :EMACS-CHANNEL-SEND messages.")
+
 (defun process-requests (timeout)
   "Read and process requests from Emacs.
 TIMEOUT has the same meaning as in WAIT-FOR-EVENT."
@@ -1102,8 +1106,8 @@ TIMEOUT has the same meaning as in WAIT-FOR-EVENT."
         (when timed-out-p (return))
         (destructure-case event
           ((:emacs-rex &rest args) (apply #'eval-for-emacs args))
-          ((:emacs-channel-send channel (selector &rest args))
-           (channel-send channel selector args)))))))
+          ((:emacs-channel-send *channel* (selector &rest args))
+           (channel-send *channel* selector args)))))))
 
 (defun spawn-channel-thread (connection channel)
   "Spawn a listener thread for CONNECTION and CHANNEL.
@@ -4065,6 +4069,7 @@ Collisions are caused because package information is ignored."
                #:define-channel-method
                #:find-channel
                #:send-to-remote-channel
+               #:*channel*
                ;;
                #:listener
                #:with-listener-bindings

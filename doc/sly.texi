@@ -221,6 +221,7 @@ Tips and Tricks
 * Connecting to a remote Lisp::
 * Loading Slynk faster::
 * Auto-SLY::
+* REPLs and game loops::
 
 Connecting to a remote Lisp
 
@@ -2743,6 +2744,7 @@ your Lisp system's own listener, usually in the buffer
 * Connecting to a remote Lisp::
 * Loading Slynk faster::
 * Auto-SLY::
+* REPLs and game loops::
 @end menu
 
 @node Connecting to a remote Lisp
@@ -2949,6 +2951,45 @@ just add this to your @file{~/.emacs} or
             (unless (sly-connected-p)
               (save-excursion (sly)))))
 @end example
+
+@node REPLs and game loops
+@section REPLs and ``Game Loops''
+
+When developing Common Lisp video games or graphical applications, a
+REPL (@pxref{REPL}) is just as useful as anywhere else.  But it is often
+the case that one needs to control exactly the timing of REPL requests
+and ensure they do not interfere with the ``game loop''.  In other
+situations the choice of communication style (@pxref{Communication
+style}) may invalidate simultaneous multi-threading operation of REPL
+and game loop.
+
+Instead of giving up on the REPL or using complicated solution, SLY's
+REPL can be built into your game loop by using a couple of Slynk Common
+Lisp functions, @code{SLYNK-MREPL:SEND-PROMPT} and
+@code{SLYNK:PROCESS-REQUESTS}.
+
+@example
+(defun my-repl-aware-game-loop ()
+  (loop initially
+          (princ "Starting our game")
+          (slynk-mrepl:send-prompt)
+        for i from 0
+        do (when (zerop (mod i 10))
+             (fresh-line)
+             (princ "doing high-priority 3D game loop stuff"))
+           (sleep 0.1)
+           ;; When you're ready to serve a potential waiting 
+           ;; REPL request, just do this non-blocking thing:
+           (with-simple-restart (abort "Abort our game loop")
+             (slynk:process-requests t)))))
+@end example
+
+Note that this function is to be called @emph{from the REPL}, and will
+enter kind of ``sub-REPL'' inside it.  It'll likely ``just work'' in
+this situation.  However, if you need you need to call this from
+anywhere else (like, say, another thread), you must additionally arrange
+for the variable @code{SLYNK-API:*CHANNEL*} to be bound to the value it
+is bound to in whatever SLY REPL you wish to interact with your game.
 
 @node Extensions
 @chapter Extensions
