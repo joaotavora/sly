@@ -140,7 +140,7 @@ This file has been placed in the public domain.
 * Tips and Tricks::
 * Extensions::
 * Credits::
-* Key Index ::
+* Key Index::
 * Command Index::
 * Variable Index::
 
@@ -153,7 +153,7 @@ Getting started
 * Downloading::
 * Basic setup::
 * Running::
-* Basic customization ::
+* Basic customization::
 * Multiple Lisps::
 
 Working with source files
@@ -299,7 +299,7 @@ This chapter tells you how to get @SLY{} up and running.
 * Downloading::
 * Basic setup::
 * Running::
-* Basic customization ::
+* Basic customization::
 * Multiple Lisps::
 @end menu
 
