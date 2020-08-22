@@ -742,9 +742,15 @@ REPL is the REPL buffer to return the objects to."
       `(slynk-mrepl:globally-save-object ',(car slyfun-and-args)
                                          ,@(cdr slyfun-and-args))
     #'(lambda (_ignored)
-        (sly-mrepl--with-repl (or repl
-                                  (sly-mrepl--find-create (sly-connection)))
-          (sly-mrepl--copy-objects-to-repl nil before after)))))
+        (sly-mrepl--copy-to-repl before after repl))))
+
+(defun sly-mrepl--copy-to-repl (&optional before after repl)
+  "Copy last globally saved values to REPL, or active REPL.
+BEFORE and AFTER as described in
+`sly-mrepl--save-and-copy-for-repl'."
+  (sly-mrepl--with-repl (or repl
+                            (sly-mrepl--find-create (sly-connection)))
+    (sly-mrepl--copy-objects-to-repl nil before after)))
 
 (defun sly-mrepl--insert-call (spec results)
   (delete-region (sly-mrepl--mark) (point-max))
