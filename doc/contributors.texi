@@ -1,27 +1,31 @@
 @multitable @columnfractions 0.333333 0.333333 0.333333
 
-@item Helmut Eller @tab Luke Gorrie @tab João Távora
+@item Helmut Eller @tab João Távora @tab Luke Gorrie
 @item Tobias C. Rittweiler @tab Stas Boukarev @tab Marco Baringer
-@item Matthias Koeppe @tab Joao Tavora @tab Nikodemus Siivola
-@item Alan Ruttenberg @tab Attila Lendvai @tab Dan Barlow
-@item Andras Simon @tab Luís Oliveira @tab Martin Simmons
-@item Geo Carncross @tab Christophe Rhodes @tab Peter Seibel
-@item Mark Evenson @tab Juho Snellman @tab Douglas Crosher
-@item Wolfgang Jenkner @tab Edi Weitz @tab James Bielman
-@item Javier Olaechea @tab Daniel Kochmanski @tab Luís Oliveira
+@item Matthias Koeppe @tab Nikodemus Siivola @tab Alan Ruttenberg
+@item Attila Lendvai @tab Luís Borges de Oliveira @tab Dan Barlow
+@item Andras Simon @tab Martin Simmons @tab Geo Carncross
+@item Christophe Rhodes @tab Peter Seibel @tab Mark Evenson
+@item Juho Snellman @tab Douglas Crosher @tab Wolfgang Jenkner
+@item R Primus @tab Javier Olaechea @tab Edi Weitz
+@item Zach Shaftel @tab James Bielman @tab Daniel Kochmanski
 @item Terje Norderhaug @tab Vladimir Sedach @tab Juan Jose Garcia Ripoll
-@item Nathan Trapuzzano @tab  @tab Brian Downing
-@item Mark @tab Jeffrey Cunningham @tab Espen Wiborg
-@item Jan Moringen @tab Samuel Freilich @tab Raymond Toy
-@item Phil Hargett @tab Paulo Madeira @tab Luís Borges de Oliveira
-@item Jonas Bernoulli @tab Ivan Shvedunov @tab Gábor Melis
-@item Francois-Rene Rideau @tab Christophe Junke @tab Bozhidar Batsov
-@item Bart Botta @tab Alexander Artemenko @tab Tianxiang Xiong
-@item Syohei YOSHIDA @tab Paul M. Rodriguez @tab Olof-Joachim Frahm
-@item  @tab Mike Clarke @tab Michał Herda
-@item Mark H. David @tab Mario Lang @tab Luis Oliveira
-@item Leo Liu @tab Jon Oddie @tab Graham Dobbins
-@item Douglas Katzman @tab  @tab Deokhwan Kim
-@item Denis Budyak @tab Chunyang Xu @tab 
-@item Angelo Rossi @tab Andrew Kirkpatrick
+@item Alexander Artemenko @tab Spenser Truex @tab Nathan Trapuzzano
+@item Brian Downing @tab Mark @tab Jeffrey Cunningham
+@item Espen Wiborg @tab Paul M. Rodriguez @tab Masataro Asai
+@item Jan Moringen @tab Sébastien Villemot @tab Samuel Freilich
+@item Raymond Toy @tab Pierre Neidhardt @tab Phil Hargett
+@item Paulo Madeira @tab Kris Katterjohn @tab Jonas Bernoulli
+@item Ivan Shvedunov @tab Gábor Melis @tab Francois-Rene Rideau
+@item Christophe Junke @tab Bozhidar Batsov @tab Bart Botta
+@item Wilfredo Velázquez-Rodríguez @tab Tianxiang Xiong @tab Syohei YOSHIDA
+@item Stefan Monnier @tab Rommel MARTINEZ @tab Pavel Kulyov
+@item Paul A. Patience @tab Olof-Joachim Frahm @tab Mike Clarke
+@item Michał Herda @tab Mark H. David @tab Mario Lang
+@item Manfred Bergmann @tab Leo Liu @tab Koga Kazuo
+@item Jon Oddie @tab John Stracke @tab Joe Robertson
+@item Grant Shangreaux @tab Graham Dobbins @tab Eric Timmons
+@item Douglas Katzman @tab Dmitry Igrishin @tab Dmitrii Korobeinikov
+@item Deokhwan Kim @tab Denis Budyak @tab Chunyang Xu
+@item Cayman @tab Angelo Rossi @tab Andrew Kirkpatrick
 @end multitable
