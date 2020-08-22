@@ -287,11 +287,12 @@ ANNOTATION) describing each completion possibility."
           (sly--completion-function-wrapper fn)
           :annotation-function #'sly-completion-annotation
           :exit-function (lambda (obj _status)
-                           (sly--when-let (suggestion
-                                           (get-text-property 0 'sly--suggestion
-                                                              obj))
-                             (delete-region (- (point) (length obj)) (point))
-                             (insert suggestion)))
+                           (let ((suggestion
+                                  (get-text-property 0 'sly--suggestion
+                                                     obj)))
+                             (when suggestion
+                               (delete-region (- (point) (length obj)) (point))
+                               (insert suggestion))))
           :company-docsig
           (lambda (obj)
             (when (sit-for 0.1)
