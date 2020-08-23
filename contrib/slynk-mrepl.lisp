@@ -392,12 +392,15 @@ Set this to NIL to turn this feature off.")
   (setq *saved-objects* (multiple-value-list (apply slave-slyfun args)))
   t)
 
-(defun copy-to-repl-in-emacs (values &key (blurb "Here are some values"))
+(defun copy-to-repl-in-emacs (values &key
+                                       (blurb "Here are some values")
+                                       (pop-to-buffer t))
   "Copy any user object to SLY's REPL.  Requires
   `sly-enable-evaluate-in-emacs' to be true."
   (with-connection ((default-connection))
     (apply #'slynk-mrepl:globally-save-object #'cl:values values)
-    (slynk:eval-in-emacs `(sly-mrepl--copy-to-repl ,blurb))
+    (slynk:eval-in-emacs `(sly-mrepl--copy-globally-saved-to-repl
+                           :before ,blurb :pop-to-buffer ,pop-to-buffer))
     t))
 
 (defmacro with-eval-for-repl ((remote-id &optional mrepl-sym
