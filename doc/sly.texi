@@ -222,7 +222,7 @@ Tips and Tricks
 * Loading Slynk faster::
 * Auto-SLY::
 * REPLs and game loops::
-* Returning objects to the REPL from outside Emacs::
+* Controlling SLY from outside Emacs::
 
 Connecting to a remote Lisp
 
@@ -2746,7 +2746,7 @@ your Lisp system's own listener, usually in the buffer
 * Loading Slynk faster::
 * Auto-SLY::
 * REPLs and game loops::
-* Returning objects to the REPL from outside Emacs::
+* Controlling SLY from outside Emacs::
 @end menu
 
 @node Connecting to a remote Lisp
@@ -2993,18 +2993,21 @@ anywhere else (like, say, another thread), you must additionally arrange
 for the variable @code{SLYNK-API:*CHANNEL*} to be bound to the value it
 is bound to in whatever SLY REPL you wish to interact with your game.
 
-@node Returning objects to the REPL from outside Emacs
-@section Returning objects to the REPL from outside Emacs
+@node Controlling SLY from outside Emacs
+@section Controlling SLY from outside Emacs
 
 If your application has a non-SLY, non-Emacs user interface (graphical
-or otherwise), you can still exert some control over the SLY's REPL
-(@pxref{REPL}) back in SLY/Emacs.  Specifically, you can
+or otherwise), you can use it to exert some control over SLY
+functionality, such as its REPL (@pxref{REPL}) and inspector
+(@pxref{Inspector}).  This requires that you first set, in Emacs,
+variable @code{sly-enable-evaluate-in-emacs} to non-nil.  As the name
+suggests, it lets outside Slynk servers evaluate code in your Elisp
+runtime.  It is set to @code{nil} by default for security purposes.
+
+Once you've done that, you can
 call @code{SLYNK-MREPL:COPY-TO-REPL-IN-EMACS} from your CL code with
-some objects you'd like to manipulate in the REPL.  This requires that
-you first set the Emacs-side
-variable @code{sly-enable-evaluate-in-emacs} to non-nil (it is
-@code{nil} by default for security purposes).  Then you can have this code run
-from some UI event handler:
+some objects you'd like to manipulate in the REPL.  Then you can have
+this code run from some UI event handler:
 
 @example
 (lambda ()
@@ -3015,6 +3018,10 @@ from some UI event handler:
 
 And see those objects pop up in your REPL for inspection and
 manipulation.
+
+You can also use the functions @code{SLYNK:INSPECT-IN-EMACS},
+@code{SLYNK:ED-IN-EMACS}, and in general, any exported function ending
+in @code{IN-EMACS}.  See their docstrings for details.
 
 @node Extensions
 @chapter Extensions
