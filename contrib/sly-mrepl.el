@@ -484,11 +484,12 @@ In that case, moving a sexp backward does nothing."
 (defun sly-mrepl--copy-part-to-repl (entry-idx value-idx)
   (sly-mrepl--copy-objects-to-repl
    `(,entry-idx ,value-idx)
-   (format "Returning value %s of history entry %s"
-           value-idx entry-idx)))
+   :before (format "Returning value %s of history entry %s"
+                   value-idx entry-idx)))
 
 (cl-defun sly-mrepl--eval-for-repl
-    (slyfun-and-args &key insert-p before-prompt after-prompt)
+    (slyfun-and-args
+     &key insert-p before-prompt after-prompt (pop-to-buffer t))
   "Evaluate SLYFUN-AND-ARGS in Slynk, then call callbacks.
 
 SLYFUN-AND-ARGS is (SLYFUN . ARGS) and is called in
@@ -499,7 +500,7 @@ respectively.
 
 If INSERT-P is non-nil, SLYFUN's results are printable
 representations of Slynk objects and should be inserted into the
-REPL."
+REPL.  POP-TO-BUFFER says whether to pop the REPL buffer."
   (sly-eval-async `(slynk-mrepl:eval-for-mrepl
                     ,sly-mrepl--remote-channel
                     ',(car slyfun-and-args)
@@ -516,19 +517,22 @@ REPL."
           (when insert-p
             (sly-mrepl--insert-results results))
           (apply #'sly-mrepl--insert-prompt prompt-args)
-          (pop-to-buffer (current-buffer))
+          (when pop-to-buffer
+            (pop-to-buffer (current-buffer)))
           (goto-char (sly-mrepl--mark))
           (insert saved-text)
           (when after-prompt
             (funcall after-prompt results)))))))
 
-(defun sly-mrepl--copy-objects-to-repl (method-args &optional before after)
+(cl-defun sly-mrepl--copy-objects-to-repl
+    (method-args &key before after (pop-to-buffer t))
   "Recall objects in the REPL history as a new entry.
-METHOD-ARGS are SWANK-MREPL:COPY-TO-REPL's optional args. If nil
-then the globally saved objects that
-SLYNK-MREPL:GLOBALLY-SAVE-OBJECT stored are considered, otherwise
-it is a list (ENTRY-IDX VALUE-IDX).
-BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
+METHOD-ARGS are SLYNK-MREPL:COPY-TO-REPL's optional args. If nil
+, consider the globally saved objects that
+SLYNK-MREPL:GLOBALLY-SAVE-OBJECT stored.  Otherwise, it is a
+list (ENTRY-IDX VALUE-IDX).  BEFORE and AFTER as in
+`sly-mrepl--save-and-copy-for-repl' POP-TO-BUFFER as in
+`sly-mrepl--eval-for-repl'."
   (sly-mrepl--eval-for-repl
    `(slynk-mrepl:copy-to-repl
      ,@method-args)
@@ -537,7 +541,8 @@ BEFORE and AFTER as in `sly-mrepl--save-and-copy-for-repl'"
                         (sly-mrepl--insert-note before)
                         (sly-mrepl--insert-results objects))
                     before)
-   :after-prompt after))
+   :after-prompt after
+   :pop-to-buffer pop-to-buffer))
 
 (defun sly-mrepl--make-result-button (result idx)
   (sly--make-text-button (car result) nil
@@ -742,15 +747,21 @@ REPL is the REPL buffer to return the objects to."
       `(slynk-mrepl:globally-save-object ',(car slyfun-and-args)
                                          ,@(cdr slyfun-and-args))
     #'(lambda (_ignored)
-        (sly-mrepl--copy-to-repl before after repl))))
+        (sly-mrepl--copy-globally-saved-to-repl :before before
+                                                :after after
+                                                :repl repl))))
 
-(defun sly-mrepl--copy-to-repl (&optional before after repl)
+(cl-defun sly-mrepl--copy-globally-saved-to-repl
+    (&key before after repl (pop-to-buffer t))
   "Copy last globally saved values to REPL, or active REPL.
 BEFORE and AFTER as described in
 `sly-mrepl--save-and-copy-for-repl'."
   (sly-mrepl--with-repl (or repl
                             (sly-mrepl--find-create (sly-connection)))
-    (sly-mrepl--copy-objects-to-repl nil before after)))
+    (sly-mrepl--copy-objects-to-repl nil
+                                     :before before
+                                     :after after
+                                     :pop-to-buffer pop-to-buffer)))
 
 (defun sly-mrepl--insert-call (spec results)
   (delete-region (sly-mrepl--mark) (point-max))
