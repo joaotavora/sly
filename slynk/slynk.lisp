@@ -2445,7 +2445,8 @@ after Emacs causes a restart to be invoked."
   (let ((*slynk-debugger-condition* condition)
         (*sly-db-restarts* (compute-restarts condition))
         (*sly-db-quit-restart* (and *sly-db-quit-restart*
-                                  (find-restart *sly-db-quit-restart*)))
+                                    (find-restart *sly-db-quit-restart*
+                                                  condition)))
         (*package* (or (and (boundp '*buffer-package*)
                             (symbol-value '*buffer-package*))
                        *package*))
