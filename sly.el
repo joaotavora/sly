@@ -5303,6 +5303,7 @@ process associated with CONNECTION."
     (define-key map ">"    'sly-db-end-of-backtrace)
 
     (define-key map "a"    'sly-db-abort)
+    (define-key map "q"    'sly-db-abort)
     (define-key map "c"    'sly-db-continue)
     (define-key map "A"    'sly-db-break-with-system-debugger)
     (define-key map "B"    'sly-db-break-with-default-debugger)
@@ -5310,7 +5311,7 @@ process associated with CONNECTION."
     (define-key map "I"    'sly-db-invoke-restart-by-name)
     (define-key map "C"    'sly-db-inspect-condition)
     (define-key map ":"    'sly-interactive-eval)
-    (define-key map "q"    'sly-db-quit)
+    (define-key map "Q"    'sly-db-quit)
 
     (set-keymap-parent map button-buffer-map)
     map))
