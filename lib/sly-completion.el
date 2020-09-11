@@ -150,7 +150,7 @@ immediately."
   (declare (indent 1) (debug (sexp &rest form)))
   (let ((sym (make-symbol "sly--responsive-eval")))
     `(let* ((,sym (make-symbol "sly--responsive-eval-unique"))
-            (,var (sly-eval ,sexp ,package t ,sym)))
+            (,var (sly-eval ,sexp ,package non-essential ,sym)))
        (if (eq ,var ,sym)
            ,input-arrived-retval
          ,@body))))
