@@ -1029,9 +1029,12 @@ handle to distinguish the new buffer from the existing."
                                            'sly-mrepl--prompt))
          (package (and probe
                        (or (get-text-property probe 'sly-mrepl--prompt)
-                           (get-text-property (previous-single-property-change
-                                               probe 'sly-mrepl--prompt)
-                                              'sly-mrepl--prompt)))))
+                           (let ((probe2
+                                  (previous-single-property-change
+                                   probe 'sly-mrepl--prompt)))
+                             (and probe2
+                                  (get-text-property probe2
+                                                     'sly-mrepl--prompt)))))))
     (when interactive
       (sly-message "Guessed package \"%s\"" package))
     package))
