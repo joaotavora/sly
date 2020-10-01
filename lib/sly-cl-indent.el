@@ -242,7 +242,6 @@ is set to `defun'.")
 (defalias 'sly--lisp-indent-parse-state-start #'cl-second)
 (defalias 'sly--lisp-indent-parse-state-prev  #'cl-third)
 
-(defvaralias 'common-lisp-style 'sly-common-lisp-style)
 (defvar-local sly-common-lisp-style nil)
 
 ;;; `sly-define-common-lisp-style' updates the docstring of
@@ -263,7 +262,6 @@ style is used instead. Use `sly-define-common-lisp-style' to define new styles."
 
 ;;; Mark as safe when the style doesn't evaluate arbitrary code.
 (put 'sly-common-lisp-style 'safe-local-variable 'sly--lisp-indent-safe-style-p)
-(setplist 'common-lisp-style (symbol-plist 'sly-common-lisp-style))
 
 ;;; Common Lisp indentation style specifications.
 (defvar sly--common-lisp-styles (make-hash-table :test 'equal))
@@ -354,7 +352,7 @@ Ie. styles that will not evaluate arbitrary code on activation."
 ;;; pick up redefinitions, etc. Returns the method table for the currently
 ;;; active style.
 (defun sly--lisp-indent-active-style-methods ()
-  (let* ((name sly-common-lisp-style)
+  (let* ((name (or sly-common-lisp-style (bound-and-true-p common-lisp-style)))
          (style (when name (sly--lisp-indent-find-style name))))
     (if (eq style (car sly--lisp-indent-active-style))
         (cdr sly--lisp-indent-active-style)
@@ -547,7 +545,9 @@ none has been specified."
 ;;; If style is being used, that's a sufficient invitation to snag
 ;;; the indentation function.
 (defun sly--lisp-indent-lisp-mode-hook ()
-  (let ((style (or sly-common-lisp-style sly-common-lisp-style-default)))
+  (let ((style (or sly-common-lisp-style
+                   (bound-and-true-p common-lisp-style)
+                   sly-common-lisp-style-default)))
     (when style
       (setq-local lisp-indent-function #'sly-common-lisp-indent-function)
       (sly-common-lisp-set-style style))))
@@ -608,8 +608,8 @@ given point. Defaults to `sly--lisp-indent-guess-current-package'.")
   (let ((method
          (or
           ;; From style
-          (when sly-common-lisp-style
-            (gethash name (sly--lisp-indent-active-style-methods)))
+          (let ((methods (sly--lisp-indent-active-style-methods)))
+            (and methods (gethash name methods)))
           ;; From global settings.
           (get name 'sly-common-lisp-indent-function)
           (get name 'common-lisp-indent-function)
