@@ -772,7 +772,7 @@ used to do this by default."
                    'sly-common-lisp-indent-function)))
 
 
-(defvar sly--lisp-indent-feature-expr-regexp "#!?\\(+\\|-\\)")
+(defvar sly--lisp-indent-feature-expr-regexp "#[+-]")
 
 ;;; Semi-feature-expression aware keyword check.
 (defun sly--lisp-indent-looking-at-keyword ()
@@ -1062,10 +1062,16 @@ used to do this by default."
 ;; `sly-lisp-lambda-list-keyword-parameter-indentation' -- dvl
 
 (defvar sly--lisp-indent-lambda-list-keywords-regexp
-  "&\\(\
-optional\\|rest\\|key\\|allow-other-keys\\|aux\\|whole\\|body\\|\
-environment\\|more\
-\\)\\>"
+  (regexp-opt '("&allow-other-keys"
+                "&aux"
+                "&body"
+                "&environment"
+                "&key"
+                "&more"
+                "&optional"
+                "&rest"
+                "&whole")
+              'symbols)
   "Regular expression matching lambda-list keywords.")
 
 (defun sly--lisp-indent-lambda-list
@@ -1340,15 +1346,15 @@ environment\\|more\
 
 (defun sly--lisp-indent-beginning-of-defmethod-qualifiers ()
   (let ((case-fold-search t)
-        (regexp "(\\(?:\\(def\\)\\|\\(:\\)\\)method"))
+        (regexp "(\\(?:def\\|:\\)method"))
     (ignore-errors
       (while (not (looking-at regexp)) (backward-up-list))
-      (cond ((match-string 1)
+      (cond ((match-beginning 1)
              (forward-char)
              ;; Skip name.
              (forward-sexp 2)
              1)
-            ((match-string 2)
+            ((match-beginning 2)
              (forward-char)
              (forward-sexp 1)
              0)))))
@@ -1385,7 +1391,7 @@ environment\\|more\
         (save-excursion
           (backward-up-list 2)
           (forward-char 1)
-          (if (looking-at "\\(\\(common-lisp\\|cl\\)::?\\)?function\\(\\Sw\\|\\S_\\)")
+          (if (looking-at "\\_<\\(?:\\(?:common-lisp\\|cl\\)::?\\)?function\\_>")
               (+ lisp-body-indent -1 (current-column))
             (+ sexp-column lisp-body-indent)))
       (error (+ sexp-column lisp-body-indent)))))
@@ -1405,41 +1411,89 @@ environment\\|more\
 
 ;;;; LOOP indentation, the complex version -- handles subclause indentation
 
+(defun sly--lisp-loop-keyword-regexp (&rest symbol-names)
+  "Returns a regexp suitable for matching any symbol whose name is in SYMBOL-NAMES.
+This will match uninterned symbols and keywords as well as interned symbols."
+  (concat "\\(?:#?:\\)?" (regexp-opt symbol-names) "\\_>"))
+
 ;; Regexps matching various varieties of loop macro keyword ...
-(defvar sly--common-lisp-body-introducing-loop-macro-keyword
-  "\\(#?:\\)?\\(do\\(ing\\)?\\|finally\\|initially\\)"
+(defvar sly--lisp-indent-body-loop-macro-keyword
+  (sly--lisp-loop-keyword-regexp "do" "doing" "finally" "initially")
   "Regexp matching loop macro keywords which introduce body forms.")
 
 ;; Not currently used
-(defvar sly--common-lisp-accumlation-loop-macro-keyword
-  "\\(#?:\\)?\\(collect\\(ing\\)?\\|append\\(ing\\)?\\|nconc\\(ing\\)?\\|\
-count\\(ing\\)?\\|sum\\(ming\\)?\\|maximiz\\(e\\|ing\\)\\|\
-minimiz\\(e\\|ing\\)\\)"
+(defvar sly--lisp-indent-accumulation-loop-macro-keyword
+  (sly--lisp-loop-keyword-regexp "collecting"
+                                 "appending"
+                                 "counting"
+                                 "nconcing"
+                                 "summing"
+                                 "maximizing"
+                                 "minimizing"
+                                 "collect"
+                                 "append"
+                                 "count"
+                                 "nconc"
+                                 "sum"
+                                 "maximize"
+                                 "minimize")
   "Regexp matching loop macro keywords which introduce accumulation clauses.")
 
 ;; This is so "and when" and "else when" get handled right
 ;; (not to mention "else do" !!!)
-(defvar sly--common-lisp-prefix-loop-macro-keyword
-  "\\(#?:\\)?\\(and\\|else\\)"
+(defvar sly--lisp-indent-prefix-loop-macro-keyword
+  (sly--lisp-loop-keyword-regexp "and" "else")
   "Regexp matching loop macro keywords which are prefixes.")
 
-(defvar sly--common-lisp-indent-clause-joining-loop-macro-keyword
-  "\\(#?:\\)?and"
+(defvar sly--lisp-indent-joining-loop-macro-keyword
+  (sly--lisp-loop-keyword-regexp "and")
   "Regexp matching 'and', and anything else there ever comes to be like it.")
 
-(defvar sly--common-lisp-indent-indented-loop-macro-keyword
-  "\\(#?:\\)?\\(\\(up\\|down\\)?(from\\|to)\\|below\\|above\\|in\\(to\\)?\\|\
-on\\|=\\|then\\|across\\|being\\|each\\|the\\|of\\|using\\|\
-\\(present-\\|external-\\)?symbols?\\|fixnum\\|float\\|t\\|nil\\|of-type\\)"
+(defvar sly--lisp-indent-indented-loop-macro-keyword
+  (sly--lisp-loop-keyword-regexp "="
+                                 "above"
+                                 "across"
+                                 "being"
+                                 "below"
+                                 "by"
+                                 "downfrom"
+                                 "downto"
+                                 "each"
+                                 "external-symbol"
+                                 "external-symbols"
+                                 "fixnum"
+                                 "float"
+                                 "from"
+                                 "hash-key"
+                                 "hash-keys"
+                                 "hash-value"
+                                 "hash-values"
+                                 "in"
+                                 "nil"
+                                 "of"
+                                 "of-type"
+                                 "on"
+                                 "present-symbol"
+                                 "present-symbols"
+                                 "symbol"
+                                 "symbols"
+                                 "t"
+                                 "the"
+                                 "then"
+                                 "to"
+                                 "upfrom"
+                                 "upto"
+                                 "using")
   "Regexp matching keywords introducing loop subclauses.
 Always indented two.")
 
-(defvar sly--common-lisp-indenting-loop-macro-keyword
-  "\\(#?:\\)?\\(when\\|unless\\|if\\)"
+(defvar sly--lisp-indent-conditional-loop-macro-keyword
+  (sly--lisp-loop-keyword-regexp "when" "unless" "if")
   "Regexp matching keywords introducing conditional clauses.
 Cause subsequent clauses to be indented.")
 
-(defvar sly--lisp-indent-loop-macro-else-keyword "\\(#?:\\)?else")
+(defvar sly--lisp-indent-else-loop-macro-keyword
+  (sly--lisp-loop-keyword-regexp "else"))
 
 ;;; Attempt to indent the loop macro ...
 (defun sly--lisp-indent-loop-part-indentation (indent-point state type)
@@ -1465,7 +1519,7 @@ Cause subsequent clauses to be indented.")
                               (not (looking-at re)))
                     (setq indent (current-column)))
                   (and indent
-                       (looking-at sly--common-lisp-body-introducing-loop-macro-keyword))))
+                       (looking-at sly--lisp-indent-body-loop-macro-keyword))))
            (list indent loop-start))
           ;; Keyword-style or comment outside body
           ((or sly-lisp-loop-indent-forms-like-keywords
@@ -1483,8 +1537,7 @@ Cause subsequent clauses to be indented.")
 
 (defun sly--lisp-indent-loop-advance-past-keyword-on-line ()
   (forward-word 1)
-  (while (and (looking-at "\\s-") (not (eolp)))
-    (forward-char 1))
+  (skip-syntax-forward "-" (line-end-position))
   (unless (eolp)
     (current-column)))
 
@@ -1521,7 +1574,7 @@ Cause subsequent clauses to be indented.")
           (goto-char previous-expression-start)
 
           ;; Handle a body-introducing-clause which ends a line specially.
-          (if (looking-at sly--common-lisp-body-introducing-loop-macro-keyword)
+          (if (looking-at sly--lisp-indent-body-loop-macro-keyword)
               (let ((keyword-position (current-column)))
                 (setq loop-body-p t)
                 (setq loop-body-indentation
@@ -1543,7 +1596,7 @@ Cause subsequent clauses to be indented.")
             ;; as if there were a "when" and indent under it ...
             (let ((exit nil))
               (while (and (null exit)
-                          (looking-at sly--common-lisp-prefix-loop-macro-keyword))
+                          (looking-at sly--lisp-indent-prefix-loop-macro-keyword))
                 (if (null (sly--lisp-indent-loop-advance-past-keyword-on-line))
                     (progn (setq exit t)
                            (back-to-indentation)))))
@@ -1555,7 +1608,7 @@ Cause subsequent clauses to be indented.")
               ;; We're in the middle of a clause body ...
               (setq loop-body-p t)
               (setq loop-body-indentation (current-column)))
-             ((looking-at sly--common-lisp-body-introducing-loop-macro-keyword)
+             ((looking-at sly--lisp-indent-body-loop-macro-keyword)
               (setq loop-body-p t)
               ;; Know there's something else on the line (or would
               ;; have been caught above)
@@ -1563,8 +1616,8 @@ Cause subsequent clauses to be indented.")
               (setq loop-body-indentation (current-column)))
              (t
               (setq loop-body-p nil)
-              (if (or (looking-at sly--common-lisp-indenting-loop-macro-keyword)
-                      (looking-at sly--common-lisp-prefix-loop-macro-keyword))
+              (if (or (looking-at sly--lisp-indent-conditional-loop-macro-keyword)
+                      (looking-at sly--lisp-indent-prefix-loop-macro-keyword))
                   (setq default-value (+ 2 (current-column))))
               (setq indented-clause-indentation (+ 2 (current-column)))
               ;; We still need loop-body-indentation for "syntax errors" ...
@@ -1586,9 +1639,9 @@ Cause subsequent clauses to be indented.")
                 loop-body-indentation
               (or (and (looking-at ";") (sly--lisp-indent-trailing-comment))
                   default-value)))
-           ((looking-at sly--common-lisp-indent-indented-loop-macro-keyword)
+           ((looking-at sly--lisp-indent-indented-loop-macro-keyword)
             indented-clause-indentation)
-           ((looking-at sly--common-lisp-indent-clause-joining-loop-macro-keyword)
+           ((looking-at sly--lisp-indent-joining-loop-macro-keyword)
             (let ((stolen-indent-column nil))
               (forward-line -1)
               (while (and (null stolen-indent-column)
@@ -1597,7 +1650,7 @@ Cause subsequent clauses to be indented.")
                 (if (and (< (current-column) loop-body-indentation)
                          (looking-at "\\(#?:\\)?\\sw"))
                     (progn
-                      (if (looking-at sly--lisp-indent-loop-macro-else-keyword)
+                      (if (looking-at sly--lisp-indent-else-loop-macro-keyword)
                           (sly--lisp-indent-loop-advance-past-keyword-on-line))
                       (setq stolen-indent-column (current-column)))
                   (forward-line -1)))
