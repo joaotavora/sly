@@ -221,9 +221,7 @@ string is a 33% match and just '(1) is a 11% match."
                                            ,@indexes
                                            ,string-length)
                             while b
-                            unless (zerop (- b a 1))
-                              sum (expt 1 *flex-score-falloff*) into holes
-                              and sum (- b a 1) into hole-length)))))))
+                            collect (expt (- b a 1) *flex-score-falloff*))))))))
 
 (defun flex-matches (pattern string char-test)
   "Return non-NIL if PATTERN flex-matches STRING.
