@@ -1832,7 +1832,7 @@ considered to represent a symbol internal to some current package.)"
     ;; case, otherwise it acts like :preserve.
     (:invert (let ((upper (count-if #'upper-case-p string)))
                (cond ((= upper 0) #'char-upcase)
-                     ((= upper (length string)) #'char-downcase)
+                     ((= upper (count-if #'both-case-p string)) #'char-downcase)
                      (t #'identity))))))
 
 
