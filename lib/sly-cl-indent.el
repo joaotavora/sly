@@ -1346,7 +1346,7 @@ used to do this by default."
 
 (defun sly--lisp-indent-beginning-of-defmethod-qualifiers ()
   (let ((case-fold-search t)
-        (regexp "(\\(?:def\\|:\\)method"))
+        (regexp "(\\(?:\\(def\\)\\|\\(:\\)\\)method"))
     (ignore-errors
       (while (not (looking-at regexp)) (backward-up-list))
       (cond ((match-beginning 1)
