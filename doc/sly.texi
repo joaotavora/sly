@@ -2974,14 +2974,15 @@ Lisp functions, @code{SLYNK-MREPL:SEND-PROMPT} and
           (princ "Starting our game")
           (slynk-mrepl:send-prompt)
         for i from 0
-        do (when (zerop (mod i 10))
-             (fresh-line)
-             (princ "doing high-priority 3D game loop stuff"))
-           (sleep 0.1)
-           ;; When you're ready to serve a potential waiting 
-           ;; REPL request, just do this non-blocking thing:
-           (with-simple-restart (abort "Abort our game loop")
-             (slynk:process-requests t)))))
+        do (with-simple-restart (abort "Skip rest of this game loop iteration")
+             (when (zerop (mod i 10))
+               (fresh-line)
+               (princ "doing high-priority 3D game loop stuff"))
+             (sleep 0.1)
+             ;; When you're ready to serve a potential waiting 
+             ;; REPL request, just do this non-blocking thing:
+             (with-simple-restart (abort "Abort this game REPL evaluation")
+               (slynk:process-requests t)))))
 @end example
 
 Note that this function is to be called @emph{from the REPL}, and will

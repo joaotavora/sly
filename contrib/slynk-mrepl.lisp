@@ -169,7 +169,7 @@ Set this to NIL to turn this feature off.")
 (defun mrepl-eval (repl string)
   (let ((aborted t)
         (results)
-        (errored))
+        (error-prompt-sent))
     (setf (mrepl-mode repl) :busy)
     (unwind-protect
          (let* ((previous-hook *debugger-hook*)
@@ -177,41 +177,51 @@ Set this to NIL to turn this feature off.")
                   ;; Here's how this debugger hook handles "debugger
                   ;; levels".
                   ;;
-                  ;; This lambda may run multiple times for the same
-                  ;; MREPL-EVAL call, because SLY's top-level debugger
-                  ;; hook may enter SLY-DB-LOOP, and invoke all
-                  ;; manners of restarts. It's important though that
-                  ;; we mark the condition that led to the debugger
-                  ;; only once, in the ERRORRED var.  On that
-                  ;; occasion, we also send a prompt to the REPL and
-                  ;; increase the debugger level.  We will not do so
-                  ;; again, if the user selects a restart that re-runs
-                  ;; this lambda very lambda, even if with a different
-                  ;; condition.
+                  ;; (1) This very lambda may be called multiple
+                  ;; times, but *not recursively, for the same
+                  ;; MREPL-EVAL call.  That is becasue because SLY's
+                  ;; top-level debugger hook enters a blocking
+                  ;; SLY-DB-LOOP, and letting users invoke all manners
+                  ;; of restarts established in the code they wants us
+                  ;; to evaluate.  It's important that we mark the
+                  ;; condition that led to the debugger only once, in
+                  ;; the ERRORRED var.  On that occasion, we also send
+                  ;; a prompt to the REPL and increase the debugger
+                  ;; level.  If the user selects a restart that
+                  ;; re-runs (but *not* recursively) this very lambda,
+                  ;; we do *not* want to send a prompt again.
                   ;;
-                  ;; This lambda may also eventually run multiple
-                  ;; times in the case of nested MREPL-EVAL may be
-                  ;; nested (if the program calls PROCESS-REQUESTS
-                  ;; explicitly e.g.).  In that case, we avoid sending
-                  ;; multiple prompts by checking the car of
-                  ;; MREPL-PENDING-ERRORS.
+                  ;; (2) This lambda may also run multiple times, but
+                  ;; recursively, in the very special case of nested
+                  ;; MREPL-EVAL may be nested (if the program calls
+                  ;; PROCESS-REQUESTS explicitly e.g.).  We
+                  ;; (hackishly) detect this case by checking by
+                  ;; checking the car of MREPL-PENDING-ERRORS.  In
+                  ;; that case, we are sure that calling previous hook
+                  ;; (which is a different copy of this very lambda
+                  ;; but running in a different stack frame) will take
+                  ;; care of the prompt sending and error management
+                  ;; for us, so we just do that.
                   (lambda (condition hook)
-                    (unless (or errored
-                                (eq condition (car (mrepl-pending-errors repl))))
-                      (push condition (mrepl-pending-errors repl))
-                      (setq aborted condition errored condition)
-                      (with-listener-bindings repl
-                        (send-prompt repl errored)))
-                    (funcall previous-hook condition hook))))
+                    (setq aborted condition)
+                    (cond ((eq condition (car (mrepl-pending-errors repl)))
+                           (funcall previous-hook condition hook))
+                          (t
+                           (push condition (mrepl-pending-errors repl))
+                           (unless error-prompt-sent
+                             (setq error-prompt-sent t)
+                             (with-listener-bindings repl
+                               (send-prompt repl condition)))
+                           (unwind-protect
+                                (funcall previous-hook condition hook)
+                             (pop (mrepl-pending-errors repl))))))))
            (setq results (mrepl-eval-1 repl string)
-                 ;; If MREPL-EVAL-1 errored once but somehow
-                 ;; recovered, set ABORTED to nil
+                 ;; If somehow the form above MREPL-EVAL-1 exited
+                 ;; normally, set ABORTED to nil
                  aborted nil))
       (unless (eq (mrepl-mode repl) :teardown)
         (flush-listener-streams repl)
         (saving-listener-bindings repl
-          (if errored
-              (pop (mrepl-pending-errors repl)))
           (cond (aborted
                  (send-to-remote-channel (mrepl-remote-id repl)
                                          `(:evaluation-aborted
