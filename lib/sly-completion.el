@@ -741,19 +741,31 @@ was given and ALLOW-EMPTY is non-nil)."
              allow-empty)
     return read)))
 
+(defun sly-ui-symbol-completing-read
+    (prompt collection &optional predicate require-match initial-input hist def inherit-input-method)
+  "Used to complete symbols being read in with Sly's special
+completions minibuffer if sly-symbol-completion-mode is t."
+  (let ((icomplete-mode nil)
+        (completing-read-function #'completing-read-default))
+    (sly--with-sly-minibuffer (completing-read prompt collection nil nil initial-input))))
+
+(defvar sly-symbol-completing-read-function #'completing-read
+  "Used by Sly to complete symbols being read in if sly-symbol-completion-mode
+is nil. Its value must be a function conforming to the interface of
+completing-read. This variable is intended for use when it is necessary to
+target only sly's use of completing-read and globally shadowing it is not an option.")
+
 (defun sly-read-symbol-name (prompt &optional query)
   "Either read a symbol name or choose the one at point.
 The user is prompted if a prefix argument is in effect, if there is no
 symbol at point, or if QUERY is non-nil."
   (let* ((sym-at-point (sly-symbol-at-point))
-         (wrapper (sly--completion-function-wrapper sly-complete-symbol-function))
-         (do-it (lambda () (completing-read prompt wrapper nil nil sym-at-point))))
+         (wrapper (sly--completion-function-wrapper sly-complete-symbol-function)))
     (cond ((or current-prefix-arg query (not sym-at-point))
-           (cond (sly-symbol-completion-mode
-                  (let ((icomplete-mode nil)
-                        (completing-read-function #'completing-read-default))
-                    (sly--with-sly-minibuffer (funcall do-it))))
-                 (t (funcall do-it))))
+           (funcall (if sly-symbol-completion-mode
+                        #'sly-ui-symbol-completing-read
+                      sly-symbol-completing-read-function)
+                    prompt wrapper nil nil sym-at-point))
           (t sym-at-point))))
 
 (provide 'sly-completion)
