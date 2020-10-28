@@ -883,6 +883,31 @@ about internal symbols most times. As the spec says:
 If PACKAGE is not specified, the home package of SYMBOL is used."
   (eq (symbol-status symbol package) :external))
 
+(defun classify-symbol (symbol)
+  "Returns a list of classifiers that classify SYMBOL according to its
+underneath objects (e.g. :BOUNDP if SYMBOL constitutes a special
+variable.) The list may contain the following classification
+keywords: :BOUNDP, :FBOUNDP, :CONSTANT, :GENERIC-FUNCTION,
+:TYPESPEC, :CLASS, :MACRO, :SPECIAL-OPERATOR, and/or :PACKAGE"
+  (check-type symbol symbol)
+  (flet ((type-specifier-p (s)
+           (or (documentation s 'type)
+               (not (eq (type-specifier-arglist s) :not-available)))))
+    (let (result)
+      (when (boundp symbol)             (push (if (constantp symbol)
+                                                  :constant :boundp) result))
+      (when (fboundp symbol)            (push :fboundp result))
+      (when (type-specifier-p symbol)   (push :typespec result))
+      (when (find-class symbol nil)     (push :class result))
+      (when (macro-function symbol)     (push :macro result))
+      (when (special-operator-p symbol) (push :special-operator result))
+      (when (find-package symbol)       (push :package result))
+      (when (and (fboundp symbol)
+                 (typep (ignore-errors (fdefinition symbol))
+                        'generic-function))
+        (push :generic-function result))
+      result)))
+
 
 ;;;; TCP Server
 

@@ -609,6 +609,27 @@ See `methods-by-applicability'.")
   (%%make-package-symbols-container :title title :description description
                                     :symbols symbols :grouping-kind :symbol))
 
+(defun symbol-classification-string (symbol)
+  "Return a string in the form -f-c---- where each letter stands for
+boundp fboundp generic-function class macro special-operator package"
+  (let ((letters "bfgctmsp")
+        (result (copy-seq "--------")))
+    (flet ((flip (letter)
+             (setf (char result (position letter letters))
+                   letter)))
+      (when (boundp symbol) (flip #\b))
+      (when (fboundp symbol)
+        (flip #\f)
+        (when (typep (ignore-errors (fdefinition symbol))
+                     'generic-function)
+          (flip #\g)))
+      (when (type-specifier-p symbol) (flip #\t))
+      (when (find-class symbol nil)   (flip #\c) )
+      (when (macro-function symbol)   (flip #\m))
+      (when (special-operator-p symbol) (flip #\s))
+      (when (find-package symbol)       (flip #\p))
+      result)))
+
 (defgeneric make-symbols-listing (grouping-kind symbols))
 
 (defmethod make-symbols-listing ((grouping-kind (eql :symbol)) symbols)
@@ -723,6 +744,16 @@ SPECIAL-OPERATOR groups."
                                                  :description description
                                                  :symbols symbols)
                ,(format nil "~D ~A symbol~P." length type length))))
+
+(defmacro do-symbols* ((var &optional (package '*package*) result-form)
+                       &body body)
+  "Just like do-symbols, but makes sure a symbol is visited only once."
+  (let ((seen-ht (gensym "SEEN-HT")))
+    `(let ((,seen-ht (make-hash-table :test #'eq)))
+       (do-symbols (,var ,package ,result-form)
+         (unless (gethash ,var ,seen-ht)
+           (setf (gethash ,var ,seen-ht) t)
+           (tagbody ,@body))))))
 
 (defmethod emacs-inspect ((package package))
   (let ((package-name         (package-name package))

@@ -62,10 +62,6 @@
    (:file "slynk-completion")
    (:file "slynk-apropos")))
 
-(defsystem :slynk/util
-  :depends-on (:slynk)
-  :components ((:file "slynk-util")))
-
 (defmethod perform :after ((o load-op) (c (eql (find-system :slynk))))
   (format *debug-io* "~&SLYNK's ASDF loader finished.")
   (funcall (read-from-string "slynk::init")))
@@ -84,7 +80,7 @@
   :components ((:file "../contrib/slynk-arglists")))
 
 (defsystem :slynk/fancy-inspector
-  :depends-on (:slynk :slynk/util)
+  :depends-on (:slynk)
   :components ((:file "../contrib/slynk-fancy-inspector")))
 
 (defsystem :slynk/package-fu
@@ -92,7 +88,7 @@
   :components ((:file "../contrib/slynk-package-fu")))
 
 (defsystem :slynk/mrepl
-  :depends-on (:slynk :slynk/util)
+  :depends-on (:slynk)
   :components ((:file "../contrib/slynk-mrepl")))
 
 (defsystem :slynk/trace-dialog
