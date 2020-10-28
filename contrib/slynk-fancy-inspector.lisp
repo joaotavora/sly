@@ -6,9 +6,6 @@
 
 (in-package :slynk)
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (slynk-require :slynk/util))
-
 (defmethod emacs-inspect ((symbol symbol))
   (let ((package (symbol-package symbol)))
     (multiple-value-bind (_symbol status)
