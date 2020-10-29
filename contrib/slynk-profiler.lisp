@@ -154,8 +154,8 @@
   (loop for spec in (timed-specs)
         append (loop for partial being the hash-values of (stats-of spec)
                      for path being the hash-keys of (stats-of spec)
-                     collect (list (slynk:to-line spec) partial
-                                   (slynk:to-line path)))))
+                     collect (list (slynk-api:slynk-pprint-to-line spec) partial
+                                   (slynk-api:slynk-pprint-to-line path)))))
 
 (defun print-tree ()
   (loop for ts in (timed-specs)
