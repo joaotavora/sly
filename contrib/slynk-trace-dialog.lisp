@@ -293,13 +293,6 @@ program.")
                    (dialog-untrace spec)
                    "untraced for the trace dialog as well")))))
 
-;; HACK: `slynk::*inspector-history*' is unbound by default and needs
-;; a reset in that case so that it won't error `slynk::inspect-object'
-;; before any other object is inspected in the sly session.
-;;
-(unless (boundp 'slynk::*inspector-history*)
-  (slynk::reset-inspector))
-
 
 ;;;; Instrumentation
 ;;;;
