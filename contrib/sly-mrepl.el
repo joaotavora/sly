@@ -269,7 +269,8 @@ for output printed to the REPL (not for evaluation results)")
       (sly-eval-for-inspector `(slynk-mrepl:inspect-entry
                                 ,sly-mrepl--remote-channel
                                 ,entry-idx
-                                ,value-idx)))
+                                ,value-idx)
+                              :inspector-name (sly-maybe-read-inspector-name)))
   'sly-button-describe
   #'(lambda (entry-idx value-idx)
       (sly-eval-describe `(slynk-mrepl:describe-entry ,sly-mrepl--remote-channel
