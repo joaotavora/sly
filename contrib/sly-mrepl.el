@@ -385,9 +385,11 @@ In that case, moving a sexp backward does nothing."
                                'font-lock-face face))
              (setq sly-mrepl--pending-output nil)
              (unless nofilters
-               (mapc (lambda (fn)
-                       (setq string (funcall fn string)))
-                     sly-mrepl-output-filter-functions))
+               (run-hook-wrapped
+                'sly-mrepl-output-filter-functions
+                (lambda (fn)
+                  (setq string (funcall fn string))
+                  nil)))
              (insert-before-markers string)
              (cond ((and (not (zerop (current-column)))
                          (sly-mrepl--break-output-p (point)))
