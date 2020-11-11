@@ -458,6 +458,27 @@ In that case, moving a sexp backward does nothing."
                          (overlay-end sly-mrepl--last-prompt-overlay)
                          '(font-lock-face sly-mrepl-prompt-face))))
 
+(defun sly-mrepl-format-default-prompt (package error-level)
+  "Return a the default SLY prompt string.
+Suitable for `sly-mrepl-prompt-formatter'."
+  (concat
+   (when (cl-plusp error-level)
+     (concat (sly-make-action-button
+              (format "[%d]" error-level)
+              #'sly-db-pop-to-debugger-maybe)
+             " "))
+   (propertize
+    (concat package "> ")
+    'face 'sly-mrepl-prompt-face
+    'font-lock-face 'sly-mrepl-prompt-face)))
+
+(defcustom sly-mrepl-prompt-formatter #'sly-mrepl--format-default-prompt
+  "Function called when preparing the prompt.
+It takes the current Common Lisp package and the error-level (possibly nil).
+Return a possibly propertized string."
+  :type 'function
+  :group 'sly)
+
 (defun sly-mrepl--insert-prompt (package prompt error-level &optional condition)
   (sly-mrepl--accept-process-output)
   (overlay-put sly-mrepl--last-prompt-overlay 'face 'bold)
@@ -468,16 +489,7 @@ In that case, moving a sexp backward does nothing."
   (let ((beg (marker-position (sly-mrepl--mark))))
     (sly-mrepl--insert
      (propertize
-      (concat
-       (when (cl-plusp error-level)
-         (concat (sly-make-action-button
-                  (format "[%d]" error-level)
-                  #'sly-db-pop-to-debugger-maybe)
-                 " "))
-       (propertize
-        (concat prompt "> ")
-        'face 'sly-mrepl-prompt-face
-        'font-lock-face 'sly-mrepl-prompt-face))
+      (funcall sly-mrepl-prompt-formatter prompt error-level)
       'sly-mrepl--prompt (downcase package)))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
   (sly-mrepl--ensure-prompt-face)
