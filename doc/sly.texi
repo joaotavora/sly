@@ -279,7 +279,7 @@ of that interface, making @SLY{} as a whole readily portable.
 @SLY{} is a direct fork of @acronym{SLIME}, the ``Superior Lisp
 Interaction Mode for Emacs'', which itself derived from previous Emacs
 programs such as @acronym{SLIM} and @acronym{ILISP}.  If you already
-know @acronym{SLIME}, @SLY{}'s closeness to is immediately apparent.
+know @acronym{SLIME}, @SLY{}'s closeness to it is immediately apparent.
 However, where @acronym{SLIME} has traditionally focused on the
 stability of its core functionality, @SLY{} aims for a richer feature
 set, a more consistent user interface, and an experience generally
@@ -2267,7 +2267,7 @@ There are some caveats when using @SLY{} Stickers:
 @item
 Stickers on unevaluated forms (such as @code{let} variable bindings, or
 other constructs) are rejected, though the function is still compiled as
-usual. To let the user about this, these stickers remain grey, and are
+usual. To let the user know about this, these stickers remain grey, and are
 marked as ``disarmed''. A message also appears in the echo area.
 @item
 Stickers placed on expressions inside backquoted expressions in macros
