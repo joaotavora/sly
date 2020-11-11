@@ -2504,6 +2504,41 @@ inspector, etc..) are automatically killed.
 
 @end table
 
+The following customization variables affect the behaviour of the
+@REPL{} (@pxref{REPL}):
+
+@table @code
+
+@item sly-mrepl-shortcut
+The key to use to trigger the REPL's ``comma shortcut''.  We recommend
+you keep the default setting which is the comma (@code{,}) key, since
+there's special logic in the REPL to discern if you're typing a comma
+inside a backquoted list or not.
+
+@item sly-mrepl-prompt-formatter
+Holds a function that can be set from your Emacs init file
+(@pxref{Init File,Init File, Emacs Init File, emacs, The Emacs Manual})
+to change the way the prompt is rendered.  It takes a number of
+arguments describing the prompt and should return a propertized Elisp
+string.  See the default value, @code{sly-mrepl-default-prompt}, for how
+to implement such a prompt.
+
+@item sly-mrepl-history-file-name
+Holds a string designating the file to use for keeping the shared REPL
+histories persistently.  The default is to use a hidden file
+named @code{.sly-mrepl-history} in the user's home directory.
+
+@item sly-mrepl-prevent-duplicate-history
+A symbol.  If non-nil, prevent duplicate entries in input history.  If
+the non-nil value is the symbol @code{move}, the previously occuring
+entry is moved to a more recent spot.
+
+@item sly-mrepl-eli-like-history-navigation
+If non-NIL, navigate history like in ELI, Franz's Common Lisp IDE for
+Emacs.
+
+@end table
+
 @node Hooks
 @subsection Hooks
 

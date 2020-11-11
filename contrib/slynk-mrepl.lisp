@@ -240,9 +240,11 @@ Set this to NIL to turn this feature off.")
           (send-prompt repl))))))
 
 (defun prompt-arguments (repl condition)
+  "Return (PACKAGE NICKNAME ELEVEL ENTRY-IDX &optional CONDITION)"
   `(,(package-name *package*)
     ,(package-string-for-prompt *package*)
     ,(length (mrepl-pending-errors repl))
+    ,(length *history*)
     ,@(when condition
         (list (write-to-string condition
                                :escape t

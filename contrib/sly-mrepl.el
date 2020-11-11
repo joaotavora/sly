@@ -237,11 +237,9 @@ for output printed to the REPL (not for evaluation results)")
            (setq sly-mrepl--read-mark nil)
            (sly-message "REPL back to normal evaluation mode")))))))
 
-(sly-define-channel-method listener :prompt (package prompt
-                                                     error-level
-                                                     &optional condition)
+(sly-define-channel-method listener :prompt (&rest prompt-args)
   (with-current-buffer (sly-channel-get self 'buffer)
-    (sly-mrepl--insert-prompt package prompt error-level condition)))
+    (apply #'sly-mrepl--insert-prompt prompt-args)))
 
 (sly-define-channel-method listener :open-dedicated-output-stream
                            (port _coding-system)
@@ -458,7 +456,47 @@ In that case, moving a sexp backward does nothing."
                          (overlay-end sly-mrepl--last-prompt-overlay)
                          '(font-lock-face sly-mrepl-prompt-face))))
 
-(defun sly-mrepl--insert-prompt (package prompt error-level &optional condition)
+(defun sly-mrepl-default-prompt (_package
+                                 nickname
+                                 error-level
+                                 _entry-idx
+                                 _condition)
+  "Compute default SLY prompt string.
+Suitable for `sly-mrepl-prompt-formatter'."
+  (concat
+   (when (cl-plusp error-level)
+     (concat (sly-make-action-button
+              (format "[%d]" error-level)
+              #'sly-db-pop-to-debugger-maybe)
+             " "))
+   (propertize
+    (concat nickname "> ")
+    'face 'sly-mrepl-prompt-face
+    'font-lock-face 'sly-mrepl-prompt-face)))
+
+(defcustom sly-mrepl-prompt-formatter #'sly-mrepl-default-prompt
+  "Compute propertized string to use as REPL prompt.
+Value is a function passed at least 5 arguments with the
+following signature:
+
+(PACKAGE NICKNAME ERROR-LEVEL NEXT-ENTRY-IDX CONDITION &REST)
+
+PACKAGE is a string denoring the full name of the current
+package.  NICKNAME is the shortest or preferred nickname of
+PACKAGE, according to the Lisp variables
+SLYNK:*CANONICAL-PACKAGE-NICKNAMES* and
+SLYNK:*AUTO-ABBREVIATE-DOTTED-PACKAGES*.  ERROR-LEVEL is a
+integer counting the number of outstanding errors.
+NEXT-ENTRY-IDX is a number identifying future evaluation results
+for backreferencing purposes.  Depending on ERROR-LEVEL,
+CONDITION is either nil or a string containing the printed
+representation of the outstanding condition that caused the
+current ERROR-LEVEL."
+  :type 'function
+  :group 'sly)
+
+(defun sly-mrepl--insert-prompt (package nickname error-level next-entry-idx
+                                         &optional condition)
   (sly-mrepl--accept-process-output)
   (overlay-put sly-mrepl--last-prompt-overlay 'face 'bold)
   (when condition
@@ -468,16 +506,12 @@ In that case, moving a sexp backward does nothing."
   (let ((beg (marker-position (sly-mrepl--mark))))
     (sly-mrepl--insert
      (propertize
-      (concat
-       (when (cl-plusp error-level)
-         (concat (sly-make-action-button
-                  (format "[%d]" error-level)
-                  #'sly-db-pop-to-debugger-maybe)
-                 " "))
-       (propertize
-        (concat prompt "> ")
-        'face 'sly-mrepl-prompt-face
-        'font-lock-face 'sly-mrepl-prompt-face))
+      (funcall sly-mrepl-prompt-formatter
+               package
+               nickname
+               error-level
+               next-entry-idx
+               condition)
       'sly-mrepl--prompt (downcase package)))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
   (sly-mrepl--ensure-prompt-face)
