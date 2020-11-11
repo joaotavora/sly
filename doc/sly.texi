@@ -2900,23 +2900,66 @@ Lisp (SBCL) is presented.  Similar setups should also work for other
 Lisp implementations.
 
 For SBCL, we recommend that you create a custom core file with socket
-support and @acronym{POSIX} bindings included because those modules
-take the most time to load.  To create such a core, execute the
-following steps:
-
-@example
-shell$ sbcl
-* (mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))
-* (save-lisp-and-die "sbcl.core-for-sly")
-@end example
-
-After that, add something like this to your @file{~/.emacs} or
+support and @acronym{POSIX} bindings included because those modules take
+the most time to load.  To create such a core, include the following in
+your @file{~/.emacs} or
 @file{~/.emacs.d/init.el} (@pxref{Emacs Init File}):
 
 @lisp
-(setq sly-lisp-implementations '((sbcl ("sbcl" "--core"
-      "sbcl.core-for-sly"))))
+(defvar my/sly-sbcl-core-extra-packages '(:serapeum))
+
+(defun my/sly-dump-sbcl-core (&rest extra-package-keywords)
+  "Dump an SBCL core optimized for SLY.
+EXTRA-PACKAGE-KEYWORDS can be included in the core.
+The core is stored in `user-emacs-directory'/sly.
+Return path to the generated core, or nil if it failed to generate.
+If the core already exists, it's only regenerated if the SBCL version has
+changed, of when called interactively."
+  (interactive my/sly-sbcl-core-extra-packages)
+  (cl-flet ((read-bytes (path)
+                        (with-temp-buffer
+                          (insert-file-contents-literally path)
+                          (buffer-substring-no-properties (point-min) (point-max))))
+            (call-process-to-string (command &rest args)
+                                    (with-temp-buffer
+                                      (apply #'call-process command nil t nil args)
+                                      (buffer-string))))
+    (let* ((sbcl-core-dir (expand-file-name "sly/" user-emacs-directory))
+           (sbcl-core (expand-file-name "sbcl.core-for-sly" sbcl-core-dir))
+           (sbcl-core-version (expand-file-name "sbcl.version" sbcl-core-dir))
+           (current-sbcl-version (cadr (split-string
+                                        (call-process-to-string "sbcl" "--version"))))
+           (lisp-output-buffer (get-buffer-create " *Lisp dump log*")))
+      (when (or (called-interactively-p 'any)
+                (not (file-exists-p sbcl-core-version))
+                (not (version= (car (split-string (read-bytes sbcl-core-version)))
+                               current-sbcl-version)))
+        (make-directory sbcl-core-dir :parents)
+        (with-current-buffer lisp-output-buffer
+          (erase-buffer))
+        (apply #'call-process
+               "sbcl" nil (list lisp-output-buffer t) nil
+               "--eval" "(mapc 'require '(sb-bsd-sockets sb-posix sb-introspect sb-cltl2 asdf))"
+               (append
+                (mapcan (lambda (package-keyword)
+                          (list "--eval" (format "(require %S)" package-keyword)))
+                        extra-package-keywords)
+                (list
+                 "--eval" (format "(save-lisp-and-die %S)" sbcl-core)))))
+      (if (not (file-exists-p sbcl-core))
+          (switch-to-buffer-other-window lisp-output-buffer)
+        (with-temp-file sbcl-core-version
+          (insert current-sbcl-version))
+        sbcl-core))))
+
+(setq sly-lisp-implementations
+      '((sbcl (lambda ()
+                (let ((core (my/sly-dump-sbcl-core :alexandria)))
+                  `(("sbcl" ,@(when core `("--core" ,core)))))))))
 @end lisp
+
+As mentioned in the @code{my/sly-dump-sbcl-core} docstring, the core is
+generated on demand and on SBCL version change.
 
 For maximum startup speed you can include the Slynk server directly in
 a core file.  The disadvantage of this approach is that the setup is a
