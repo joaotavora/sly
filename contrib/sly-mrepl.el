@@ -516,7 +516,13 @@ current ERROR-LEVEL."
                package
                nickname
                error-level
-               next-entry-idx
+               (or next-entry-idx
+                   (let ((last-button (previous-button (point))))
+                     (when (and last-button
+                                (button-type-subtype-p (button-type last-button)
+                                                       'sly-mrepl-part))
+                       (1+ (car (button-get last-button 'part-args)))))
+                   0)
                condition)
       'sly-mrepl--prompt (downcase package)))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
@@ -735,7 +741,7 @@ recent entry that is discarded."
     (ignore-errors
       ;; uses `sly-connection', which falls back to
       ;; `sly-buffer-connection'. If that is closed it's probably
-      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
+      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so
       (sly-mrepl--send `(:teardown))))
   (set (make-local-variable 'sly-mrepl--remote-channel) nil)
   (when (sly-mrepl--process)
