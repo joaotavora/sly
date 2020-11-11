@@ -1010,14 +1010,24 @@ EXECUTABLE and ARGS are strings."
   "*A list of known Lisp implementations.
 The list should have the form:
   ((NAME (PROGRAM PROGRAM-ARGS...) &key KEYWORD-ARGS) ...)
+or
+  ((NAME FUNCTION) ...)
 
 NAME is a symbol for the implementation.
+
 PROGRAM and PROGRAM-ARGS are strings used to start the Lisp process.
 For KEYWORD-ARGS see `sly-start'.
 
+FUNCTION takes no argument and returns the list of arguments to
+start the Lisp process, itself wrapped in a list.
+
 Here's an example:
+
  ((cmucl (\"/opt/cmucl/bin/lisp\" \"-quiet\") :init sly-init-command)
-  (acl (\"acl7\") :coding-system emacs-mule))")
+  (acl (\"acl7\") :coding-system emacs-mule)
+  (sbcl (lambda ()
+          (let ((core (my-sly-dump-sbcl-core)))
+            `((\"sbcl\" ,@(when core `(\"--core\" ,core)))))))")
 
 (defcustom sly-command-switch-to-existing-lisp 'ask
   "Should the `sly' command start new lisp if one is available?"
