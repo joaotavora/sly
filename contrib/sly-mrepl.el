@@ -474,7 +474,8 @@ Suitable for `sly-mrepl-prompt-formatter'."
 
 (defcustom sly-mrepl-prompt-formatter #'sly-mrepl--format-default-prompt
   "Function called when preparing the prompt.
-It takes the current Common Lisp package and the error-level (possibly nil).
+Takes two arguments, a string designating the current Common Lisp package and a
+fixnum indicating how many errors are outstanding.  The error level may be nil.
 Return a possibly propertized string."
   :type 'function
   :group 'sly)
