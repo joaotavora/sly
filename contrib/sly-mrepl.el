@@ -528,8 +528,8 @@ REPL.  POP-TO-BUFFER says whether to pop the REPL buffer."
 (cl-defun sly-mrepl--copy-objects-to-repl
     (method-args &key before after (pop-to-buffer t))
   "Recall objects in the REPL history as a new entry.
-METHOD-ARGS are SLYNK-MREPL:COPY-TO-REPL's optional args. If nil
-, consider the globally saved objects that
+METHOD-ARGS are SLYNK-MREPL:COPY-TO-REPL's optional args. If nil,
+consider the globally saved objects that
 SLYNK-MREPL:GLOBALLY-SAVE-OBJECT stored.  Otherwise, it is a
 list (ENTRY-IDX VALUE-IDX).  BEFORE and AFTER as in
 `sly-mrepl--save-and-copy-for-repl' POP-TO-BUFFER as in
