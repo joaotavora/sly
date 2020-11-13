@@ -21,7 +21,7 @@ The result is a string."
          (sly-read-from-minibuffer "(Un)trace: " (prin1-to-string spec)))
         (t
          (sly-dcase spec
-           ((setf n)
+           ((setf _n)
             (sly-read-from-minibuffer "(Un)trace: " (prin1-to-string spec)))
            ((:defun n)
             (sly-read-from-minibuffer "(Un)trace: " (prin1-to-string n)))
