@@ -462,7 +462,6 @@ In that case, moving a sexp backward does nothing."
                                            package-nickname
                                            &key
                                            error-level
-                                           _condition
                                            &allow-other-keys)
   "Return the default SLY prompt string.
 Suitable for `sly-mrepl-prompt-formatter'."
@@ -484,6 +483,7 @@ It takes the following arguments:
 - PACKAGE: The full name of the current package as a string.
 - PACKAGE-NICKNAME: The nickname of the current package as a string, not
   necessarily the same as PACKAGE.
+- ENTRY-IDX (key argument): Entry index as a fixnum.
 - ERROR-LEVEL (key argument): Number of oustanding errors as a fixnum.
 - CONDITION (key argument): The Common Lisp condition.
 
@@ -498,10 +498,16 @@ Return a possibly propertized string."
     (sly-mrepl--insert-note (format "Debugger entered on %s" condition)))
   (sly-mrepl--ensure-newline)
   (sly-mrepl--catch-up)
-  (let ((beg (marker-position (sly-mrepl--mark))))
+  (let ((beg (marker-position (sly-mrepl--mark)))
+        (last-button (previous-button (point))))
     (sly-mrepl--insert
      (propertize
-      (funcall sly-mrepl-prompt-formatter package-nickname
+      (funcall sly-mrepl-prompt-formatter
+               package
+               package-nickname
+               :entry-idx (or (when last-button
+                                (1+ (car (button-get (previous-button (point)) 'part-args))))
+                              0)
                :error-level error-level
                :condition condition)
       'sly-mrepl--prompt (downcase package)))
