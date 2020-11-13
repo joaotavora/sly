@@ -458,8 +458,13 @@ In that case, moving a sexp backward does nothing."
                          (overlay-end sly-mrepl--last-prompt-overlay)
                          '(font-lock-face sly-mrepl-prompt-face))))
 
-(defun sly-mrepl-format-default-prompt (package error-level)
-  "Return a the default SLY prompt string.
+(cl-defun sly-mrepl-format-default-prompt (_package
+                                           package-nickname
+                                           &key
+                                           error-level
+                                           _condition
+                                           &allow-other-keys)
+  "Return the default SLY prompt string.
 Suitable for `sly-mrepl-prompt-formatter'."
   (concat
    (when (cl-plusp error-level)
@@ -468,19 +473,25 @@ Suitable for `sly-mrepl-prompt-formatter'."
               #'sly-db-pop-to-debugger-maybe)
              " "))
    (propertize
-    (concat package "> ")
+    (concat package-nickname "> ")
     'face 'sly-mrepl-prompt-face
     'font-lock-face 'sly-mrepl-prompt-face)))
 
-(defcustom sly-mrepl-prompt-formatter #'sly-mrepl--format-default-prompt
+(defcustom sly-mrepl-prompt-formatter #'sly-mrepl-format-default-prompt
   "Function called when preparing the prompt.
-Takes two arguments, a string designating the current Common Lisp package and a
-fixnum indicating how many errors are outstanding.  The error level may be nil.
+It takes the following arguments:
+
+- PACKAGE: The full name of the current package as a string.
+- PACKAGE-NICKNAME: The nickname of the current package as a string, not
+  necessarily the same as PACKAGE.
+- ERROR-LEVEL (key argument): Number of oustanding errors as a fixnum.
+- CONDITION (key argument): The Common Lisp condition.
+
 Return a possibly propertized string."
   :type 'function
   :group 'sly)
 
-(defun sly-mrepl--insert-prompt (package prompt error-level &optional condition)
+(defun sly-mrepl--insert-prompt (package package-nickname error-level &optional condition)
   (sly-mrepl--accept-process-output)
   (overlay-put sly-mrepl--last-prompt-overlay 'face 'bold)
   (when condition
@@ -490,7 +501,9 @@ Return a possibly propertized string."
   (let ((beg (marker-position (sly-mrepl--mark))))
     (sly-mrepl--insert
      (propertize
-      (funcall sly-mrepl-prompt-formatter prompt error-level)
+      (funcall sly-mrepl-prompt-formatter package-nickname
+               :error-level error-level
+               :condition condition)
       'sly-mrepl--prompt (downcase package)))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
   (sly-mrepl--ensure-prompt-face)
