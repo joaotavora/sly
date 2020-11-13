@@ -84,7 +84,7 @@ use `sly-export-symbol-representation-function'.")
   (sly-eval `(slynk:unexport-symbol-for-emacs ,symbol ,package)))
 
 
-(defun sly-find-possible-package-file (buffer-file-name)
+(defun sly-find-possible-package-file (file-name)
   (cl-labels ((file-name-subdirectory (dirname)
                                       (expand-file-name
                                        (concat (file-name-as-directory (sly-to-lisp-filename dirname))
@@ -95,8 +95,8 @@ use `sly-export-symbol-representation-function'.")
                                (concat dirname package-file-name))))
                        (when (file-readable-p f)
                          (cl-return f))))))
-    (when buffer-file-name
-      (let ((buffer-cwd (file-name-directory buffer-file-name)))
+    (when file-name
+      (let ((buffer-cwd (file-name-directory file-name)))
 	(or (try buffer-cwd)
 	    (try (file-name-subdirectory buffer-cwd))
 	    (try (file-name-subdirectory
