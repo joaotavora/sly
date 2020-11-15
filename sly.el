@@ -2400,8 +2400,17 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
                      (throw catch-tag
                             (list #'error "Synchronous Lisp Evaluation aborted")))))
                 (cond (cancel-on-input
-                       (while (sit-for 30))
-                       (setq cancelled t)
+                       ;; Setting `inhibit-quit' to t helps with
+                       ;; callers that wrap us in `while-no-input',
+                       ;; like `fido-mode' and Helm.  It doesn't seem
+                       ;; to create any specific problems, since
+                       ;; `sit-for' exits immediately given input
+                       ;; anyway.  This include the C-g input, and
+                       ;; thus even with `inhibit-quit' set to t, quit
+                       ;; happens immediately.
+                       (unwind-protect
+                           (let ((inhibit-quit t)) (while (sit-for 30)))
+                         (setq cancelled t))
                        (funcall check-conn))
                       (t
                        (while t
