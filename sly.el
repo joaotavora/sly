@@ -4766,12 +4766,17 @@ METHOD is used to set `sly-xref--popup-method', which see."
 ;;;;; XREF commands
 
 (defun sly-who-calls (symbol)
-  "Show all known callers of the function SYMBOL."
+  "Show all known callers of the function SYMBOL.
+This is implemented with special compiler support, see `sly-list-callers' for a
+portable alternative."
   (interactive (list (sly-read-symbol-name "Who calls: " t)))
   (sly-xref :calls symbol))
 
 (defun sly-calls-who (symbol)
-  "Show all known functions called by the function SYMBOL."
+  "Show all known functions called by the function SYMBOL.
+This is implemented with special compiler support and may not be supported by
+all implementations.
+See `sly-list-callees' for a portable alternative."
   (interactive (list (sly-read-symbol-name "Who calls: " t)))
   (sly-xref :calls-who symbol))
 
@@ -4801,12 +4806,14 @@ METHOD is used to set `sly-xref--popup-method', which see."
   (sly-xref :specializes symbol))
 
 (defun sly-list-callers (symbol-name)
-  "List the callers of SYMBOL-NAME in a xref window."
+  "List the callers of SYMBOL-NAME in a xref window.
+See `sly-who-calls' for an implementation-specific alternative."
   (interactive (list (sly-read-symbol-name "List callers: ")))
   (sly-xref :callers symbol-name))
 
 (defun sly-list-callees (symbol-name)
-  "List the callees of SYMBOL-NAME in a xref window."
+  "List the callees of SYMBOL-NAME in a xref window.
+See `sly-calls-who' for an implementation-specific alternative."
   (interactive (list (sly-read-symbol-name "List callees: ")))
   (sly-xref :callees symbol-name))
 
