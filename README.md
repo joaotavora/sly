@@ -108,6 +108,17 @@ Additional Contribs
 * https://github.com/mmgeorge/sly-asdf
 * https://github.com/40ants/sly-package-inferred
 
+Completion UIs
+--------------
+
+SLY works with most Emacs "completion UIs" out of the box, providing completion
+in source files and inputting Common Lisp symbol names from the minibuffer.
+[Company][14], Emacs 27's Fido-mode, and Helm are well-supported, as is
+"vanilla" completion.  For consistency, SLY defaults to its own UI,
+`sly-symbol-completion-mode`, useful if you don't have or like any of those.
+You can turn it off.  Also, if you use Helm and wish to have even more
+Helm-based fanciness, you can use [helm-sly][15].
+
 License
 -------
 
@@ -159,6 +170,7 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [12]: https://github.com/joaotavora/sly-macrostep
 [13]: https://github.com/joaotavora/sly-quicklisp
 [14]: https://github.com/company-mode/company-mode
+[15]: https://github.com/emacs-helm/helm-sly
 [documentation]: http://joaotavora.github.io/sly
 [tutorial]: http://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users
 
