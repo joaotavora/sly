@@ -3922,6 +3922,9 @@ For insertion in the `compilation-mode' buffer"
               ,(when hints `(:hints ,hints))))
 
 
+(defvar sly-edit-definition-hooks '()
+  "The hooks are called with the same arguments as
+`slime-edit-definition'.")
 
 (defun sly-edit-definition (&optional name method)
   "Lookup the definition of the name at point.
@@ -3935,24 +3938,30 @@ new frame."
                          (sly-read-symbol-name "Edit Definition of: "))))
   ;; The hooks might search for a name in a different manner, so don't
   ;; ask the user if it's missing before the hooks are run
-  (let ((xrefs (sly-eval `(slynk:find-definitions-for-emacs ,name))))
-    (unless xrefs
-      (error "No known definition for: %s (in %s)"
-             name (sly-current-package)))
-    (cl-destructuring-bind (1loc file-alist)
-        (sly-analyze-xrefs xrefs)
-      (cond (1loc
-             (sly-push-definition-stack)
-             (sly--pop-to-source-location
-              (sly-xref.location (car xrefs)) method))
-            ((null (cdr xrefs))      ; ((:error "..."))
-             (error "%s" xrefs))
-            (t
-             (sly-push-definition-stack)
-             (sly-xref--show-results file-alist 'definition name
-                                     (sly-current-package)
-                                     (cons (selected-window)
-                                           method)))))))
+  (or (run-hook-with-args-until-success 'sly-edit-definition-hooks
+                                        name method)
+      (let ((xrefs (sly-eval `(slynk:find-definitions-for-emacs ,name))))
+        (sly-edit-definition-cont xrefs
+                                  name method))))
+
+(defun sly-edit-definition-cont (xrefs name method)
+  (unless xrefs
+    (error "No known definition for: %s (in %s)"
+           name (sly-current-package)))
+  (cl-destructuring-bind (1loc file-alist)
+      (sly-analyze-xrefs xrefs)
+    (cond (1loc
+           (sly-push-definition-stack)
+           (sly--pop-to-source-location
+            (sly-xref.location (car xrefs)) method))
+          ((null (cdr xrefs))      ; ((:error "..."))
+           (error "%s" xrefs))
+          (t
+           (sly-push-definition-stack)
+           (sly-xref--show-results file-alist 'definition name
+                                   (sly-current-package)
+                                   (cons (selected-window)
+                                         method))))))
 
 (defvar sly-edit-uses-xrefs
   '(:calls :macroexpands :binds :references :sets :specializes))
