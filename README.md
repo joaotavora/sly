@@ -105,6 +105,8 @@ Additional Contribs
 
 * https://github.com/joaotavora/sly-quicklisp
 * https://github.com/joaotavora/sly-named-readtables
+* https://github.com/joaotavora/sly-macrostep
+* https://github.com/joaotavora/sly-stepper
 * https://github.com/mmgeorge/sly-asdf
 * https://github.com/40ants/sly-package-inferred
 

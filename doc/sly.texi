@@ -2961,11 +2961,11 @@ When developing Common Lisp video games or graphical applications, a
 REPL (@pxref{REPL}) is just as useful as anywhere else.  But it is often
 the case that one needs to control exactly the timing of REPL requests
 and ensure they do not interfere with the ``game loop''.  In other
-situations the choice of communication style (@pxref{Communication
-style}) may invalidate simultaneous multi-threading operation of REPL
-and game loop.
+situations, the choice of communication style (@pxref{Communication
+style}) to the Slynk server may invalidate simultaneous multi-threaded
+operation of REPL and game loop.
 
-Instead of giving up on the REPL or using complicated solution, SLY's
+Instead of giving up on the REPL or using a complicated solution, SLY's
 REPL can be built into your game loop by using a couple of Slynk Common
 Lisp functions, @code{SLYNK-MREPL:SEND-PROMPT} and
 @code{SLYNK:PROCESS-REQUESTS}.
