@@ -1585,12 +1585,24 @@ first line of the file."
 (defvar sly-net-send-translator nil
   "If non-nil, function to translate outgoing sexps for the wire.")
 
+(defun sly--sanitize-or-lose (form)
+  "Sanitize FORM for Slynk or error."
+  (cl-typecase form
+    (number)
+    (symbol 'fonix)
+    (string (set-text-properties 0 (length form) nil form))
+    (cons (sly--sanitize-or-lose (car form))
+          (sly--sanitize-or-lose (cdr form)))
+    (t (sly-error "Can't serialize %s for Slynk." form)))
+  form)
+
 (defun sly-net-send (sexp proc)
   "Send a SEXP to Lisp over the socket PROC.
 This is the lowest level of communication. The sexp will be READ and
 EVAL'd by Lisp."
   (let* ((print-circle nil)
          (print-quoted nil)
+         (sexp (sly--sanitize-or-lose sexp))
          (sexp (if (and sly-net-send-translator
                         (fboundp sly-net-send-translator))
                    (funcall sly-net-send-translator sexp)
