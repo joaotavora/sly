@@ -552,6 +552,7 @@ interactive command.\".")
     (define-key map (kbd "C-c M-m") 'sly-macroexpand-all)
     ;; Misc
     (define-key map (kbd "C-c C-u") 'sly-undefine-function)
+    (define-key map (kbd "C-c C-y") 'sly-call-defun)
     map))
 
 (defvar sly-editing-mode-map
@@ -4283,6 +4284,62 @@ First make the variable unbound, then evaluate the entire form."
   (interactive (list (sly-last-expression)))
   (insert "\n")
   (sly-eval-print string))
+
+(defun sly-call-defun ()
+  "Insert a call to the toplevel form defined around point into the REPL."
+  (interactive)
+  (cl-labels ((insert-call
+               (name &key (function t)
+                     defclass)
+               (let* ((setf (and function
+                                 (consp name)
+                                 (= (length name) 2)
+                                 (eql (car name) 'setf)))
+                      (symbol (if setf
+                                  (cadr name)
+                                name))
+                      (qualified-symbol-name
+                       (sly-qualify-cl-symbol-name symbol))
+                      (symbol-name (sly-cl-symbol-name qualified-symbol-name))
+                      (symbol-package (sly-cl-symbol-package
+                                       qualified-symbol-name))
+                      (call (if (cl-equalp (sly-current-package) symbol-package)
+                                symbol-name
+                              qualified-symbol-name)))
+                 (switch-to-buffer-other-window
+                  (sly-mrepl--find-buffer (sly-current-connection)))
+                 (goto-char (comint-line-beginning-position))
+                 (insert (if function
+                             "("
+                           " "))
+                 (when setf
+                   (insert "setf ("))
+                 (if defclass
+                     (insert "make-instance '"))
+                 (insert call)
+                 (cond (setf
+                        (insert " ")
+                        (save-excursion (insert ") )")))
+                       (function
+                        (insert " ")
+                        (save-excursion (insert ")"))))
+                 (unless function
+                   (goto-char (comint-line-beginning-position))))))
+    (let ((toplevel (sly-parse-toplevel-form)))
+      (if (symbolp toplevel)
+          (error "Not in a function definition")
+        (sly-dcase toplevel
+          (((:defun :defgeneric :defmacro :define-compiler-macro) symbol)
+           (insert-call symbol))
+          ((:defmethod symbol &rest args)
+           (declare (ignore args))
+           (insert-call symbol))
+          (((:defparameter :defvar :defconstant) symbol)
+           (insert-call symbol :function nil))
+          (((:defclass) symbol)
+           (insert-call symbol :defclass t))
+          (t
+           (error "Not in a function definition")))))))
 
 ;;;; Edit Lisp value
 ;;;
