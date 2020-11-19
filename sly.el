@@ -1395,6 +1395,11 @@ Fall back to `sly-init-using-slynk-loader' if ASDF fails."
 (defun sly-read-port-and-connect (inferior-process)
   (sly-attempt-connection inferior-process nil 1))
 
+(defcustom sly-connection-poll-interval 0.3
+  "Seconds to wait between connection attempts when first connecting."
+  :type 'number
+  :group 'sly-ui)
+
 (defun sly-attempt-connection (process retries attempt)
   ;; A small one-state machine to attempt a connection with
   ;; timer-based retries.
@@ -1424,7 +1429,7 @@ Fall back to `sly-init-using-slynk-loader' if ASDF fails."
            (cl-assert (not sly-connect-retry-timer))
            (setq sly-connect-retry-timer
                  (run-with-timer
-                  0.3 nil
+                  sly-connection-poll-interval nil
                   #'sly-timer-call #'sly-attempt-connection
                   `((sly-ignore-protocol-mismatches . ,sly-ignore-protocol-mismatches))
                   process (and retries (1- retries))
