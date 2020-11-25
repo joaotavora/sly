@@ -1,6 +1,6 @@
 ;;; sly.el --- Sylvester the Cat's Common Lisp IDE  -*- lexical-binding: t; -*-
 
-;; Version: 1.0.0-beta-3
+;; Version: 1.0.0beta3
 ;; URL: https://github.com/joaotavora/sly
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: languages, lisp, sly
@@ -112,6 +112,7 @@ Emacs Lisp package.")
 (defvar sly-contribs '(sly-fancy)
   "A list of contrib packages to load with SLY.")
 
+;;;###autoload
 (defun sly-setup (&optional contribs)
   "Have SLY load and use extension modules CONTRIBS.
 CONTRIBS defaults to `sly-contribs' and is a list (LIB1 LIB2...)
