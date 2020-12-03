@@ -100,6 +100,14 @@ $ sbcl
 Now in Emacs you can do `sly-connect` and give it the host and the 4008 port as
 a destination.
 
+Instant REPL startup
+--------------------
+
+To dramatically increase the startup time of the REPL, [Lisp REPL core
+dumper](https://gitlab.com/ambrevar/lisp-repl-core-dumper) can generate
+preloaded executable images on demand.  See the official website for the Emacs
+setup.
+
 Additional Contribs
 -------------------
 

@@ -2929,6 +2929,11 @@ shell$ sbcl
 * (slynk-loader:dump-image "sbcl.core-with-slynk")
 @end example
 
+The above steps have the drawback that they must be repeated when the
+Lisp compiler is updated, and for each compiler.
+See @url{https://gitlab.com/ambrevar/lisp-repl-core-dumper} for an
+automated, portable way to generate fast-starting images.
+
 @noindent
 Then add this to the Emacs initializion file:
 
