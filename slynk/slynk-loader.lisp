@@ -48,7 +48,7 @@
   #+cormanlisp '((backend corman))
   #+ecl '(slynk-source-path-parser slynk-source-file-cache
           (backend ecl))
-  #+clasp '((backend clasp))
+  #+clasp '(metering (backend clasp))
   #+mkcl '((backend mkcl)))
 
 (defparameter *implementation-features*

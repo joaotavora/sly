@@ -28,7 +28,7 @@
    (:file "slynk-source-file-cache")
    #+clisp
    (:file "xref")
-   #+(or clisp clozure)
+   #+(or clisp clozure clasp)
    (:file "metering")
    (:module "backend"
     :serial t
