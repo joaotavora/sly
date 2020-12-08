@@ -2540,10 +2540,15 @@ Debugged requests are ignored."
           ((:emacs-rex form package thread continuation &rest extra-options)
            (when (and (sly-use-sigint-for-interrupt) (sly-busy-p))
              (sly-display-oneliner "; pipelined request... %S" form))
-           (let ((id (cl-incf (sly-continuation-counter))))
-             (push (cons id continuation) (sly-rex-continuations))
-             (sly-send `(:emacs-rex ,form ,package ,thread ,id ,@extra-options))
-             (sly--refresh-mode-line)))
+           (let ((id (cl-incf (sly-continuation-counter)))
+                 send-success)
+             (unwind-protect
+                 (progn
+                   (sly-send `(:emacs-rex ,form ,package ,thread ,id ,@extra-options))
+                   (setq send-success t))
+               (when send-success
+                 (push (cons id continuation) (sly-rex-continuations)))))
+             (sly--refresh-mode-line))
           ((:return value id)
            (let ((rec (assq id (sly-rex-continuations))))
              (cond (rec (setf (sly-rex-continuations)
