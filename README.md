@@ -100,6 +100,12 @@ $ sbcl
 Now in Emacs you can do `sly-connect` and give it the host and the 4008 port as
 a destination.
 
+Faster startup
+--------------
+
+If the Lisp program doesn't start fast enough for you, look in [the
+manual][instasly], for ways to make it faster.
+
 Additional Contribs
 -------------------
 
@@ -174,6 +180,7 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [14]: https://github.com/company-mode/company-mode
 [15]: https://github.com/emacs-helm/helm-sly
 [documentation]: http://joaotavora.github.io/sly
+[instasly]: http://joaotavora.github.io/sly/#Loading-Slynk-faster
 [tutorial]: http://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users
 
 <!-- Local Variables: -->

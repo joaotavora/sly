@@ -2899,6 +2899,10 @@ In this section, a technique to load Slynk faster on South Bank Common
 Lisp (SBCL) is presented.  Similar setups should also work for other
 Lisp implementations.
 
+A pre-canned solution that automates this technique was developed by
+@uref{https://gitlab.com/ambrevar/lisp-repl-core-dumper,Pierre
+Neidhardt}.
+
 For SBCL, we recommend that you create a custom core file with socket
 support and @acronym{POSIX} bindings included because those modules
 take the most time to load.  To create such a core, execute the
