@@ -50,6 +50,8 @@
                  (:file "lispworks")
                  #+sbcl
                  (:file "sbcl")
+                 #+clasp
+                 (:file "clasp")
                  #+scl
                  (:file "scl")
                  #+mkcl
