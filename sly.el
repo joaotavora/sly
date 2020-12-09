@@ -2546,8 +2546,12 @@ Debugged requests are ignored."
                  (progn
                    (sly-send `(:emacs-rex ,form ,package ,thread ,id ,@extra-options))
                    (setq send-success t))
-               (when send-success
-                 (push (cons id continuation) (sly-rex-continuations)))))
+               (if send-success
+                   (push (cons id continuation) (sly-rex-continuations))
+                 (sly-message
+                  "[issue#385] likely `process-send-string' exited non-locally from timer.")
+                 (sly-log-event `(:issue-385-sly-send-fishiness :id ,id :form ,form )
+                                sly-dispatching-connection))))
              (sly--refresh-mode-line))
           ((:return value id)
            (let ((rec (assq id (sly-rex-continuations))))
