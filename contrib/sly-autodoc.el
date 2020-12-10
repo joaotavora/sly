@@ -116,10 +116,13 @@ If it's not in the cache, the cache will be updated asynchronously."
   (interactive "P")
   (save-excursion
     (save-match-data
-      (let ((context
-             (cons
-              (sly-current-connection)
-              (sly-autodoc--parse-context))))
+      ;; See github#385 and
+      ;; https://debbugs.gnu.org/cgi/bugreport.cgi?bug=45117
+      (let* ((inhibit-quit t)
+             (context
+              (cons
+               (sly-current-connection)
+               (sly-autodoc--parse-context))))
 	(when (car context)
 	  (let* ((cached (and (equal context sly-autodoc--cache-last-context)
                               sly-autodoc--cache-last-autodoc))

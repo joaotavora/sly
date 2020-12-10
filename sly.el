@@ -2541,6 +2541,9 @@ Debugged requests are ignored."
            (when (and (sly-use-sigint-for-interrupt) (sly-busy-p))
              (sly-display-oneliner "; pipelined request... %S" form))
            (let ((id (cl-incf (sly-continuation-counter))))
+             ;; JT@2020-12-10: FIXME: Force inhibit-quit here to
+             ;; ensure atomicity between `sly-send' and the `push'?
+             ;; See Github#385..
              (sly-send `(:emacs-rex ,form ,package ,thread ,id ,@extra-options))
              (push (cons id continuation) (sly-rex-continuations))
              (sly--refresh-mode-line)))
