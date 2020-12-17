@@ -1,6 +1,6 @@
 ;;;; -*- indent-tabs-mode: nil -*-
 ;;;
-;;; slynk-clasp.lisp --- SLIME backend for CLASP.
+;;; slynk-clasp.lisp --- SLY backend for CLASP.
 ;;;
 ;;; This code has been placed in the Public Domain.  All warranties
 ;;; are disclaimed.
@@ -13,13 +13,14 @@
 
 (in-package slynk-clasp)
 
-#+(or)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (setq slynk::*log-output* (open "/tmp/slime.log" :direction :output))
-  (setq slynk:*log-events* t))
+;; #+(or)
+;; (eval-when (:compile-toplevel :load-toplevel :execute)
+;;    (set slynk::*log-output* (open "/tmp/sly.log" :direction :output))
+;;    (set slynk:*log-events* t))
 
-(defmacro slime-dbg (fmt &rest args)
-  `(slynk::log-event "slime-dbg ~a ~a~%" mp:*current-process* (apply #'format nil ,fmt ,args)))
+(defmacro sly-dbg (fmt &rest args)
+  `(funcall (read-from-string "slynk::log-event")
+            "sly-dbg ~a ~a~%" mp:*current-process* (apply #'format nil ,fmt ,args)))
 
 ;; Hard dependencies.
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -130,7 +131,7 @@
 ;;; executing the SIGINT handler. We do not want to BREAK into that
 ;;; helper but into the main thread, though. This is coupled with the
 ;;; current choice of NIL as communication-style in so far as CLASP's
-;;; main-thread is also the Slime's REPL thread.
+;;; main-thread is also the Sly's REPL thread.
 
 #+clasp-working
 (defimplementation call-with-user-break-handler (real-handler function)
@@ -191,7 +192,7 @@
   (defimplementation wait-for-input (streams &optional timeout)
     (assert (member timeout '(nil t)))
     (loop
-       (cond ((check-slime-interrupts) (return :interrupt))
+       (cond ((check-sly-interrupts) (return :interrupt))
              (timeout (return (poll-streams streams 0)))
              (t
               (when-let (ready (poll-streams streams 0.2))
@@ -203,7 +204,7 @@
 (defimplementation wait-for-input (streams &optional timeout)
   (assert (member timeout '(nil t)))
   (loop
-   (cond ((check-slime-interrupts) (return :interrupt))
+   (cond ((check-sly-interrupts) (return :interrupt))
          (timeout (return (remove-if-not #'listen streams)))
          (t
           (let ((ready (remove-if-not #'listen streams)))
@@ -642,7 +643,7 @@
 
   (defstruct (mailbox (:conc-name mailbox.))
     thread
-    (mutex (mp:make-lock :name "SLIMELCK"))
+    (mutex (mp:make-lock :name "SLYLCK"))
     (cvar  (mp:make-condition-variable))
     (queue '() :type list))
 
@@ -665,39 +666,39 @@
   (defimplementation send (thread message)
     (let* ((mbox (mailbox thread))
            (mutex (mailbox.mutex mbox)))
-      (slynk::log-event "clasp.lisp: send message ~a    mutex: ~a~%" message mutex)
-      (slynk::log-event "clasp.lisp:    (lock-owner mutex) -> ~a~%" (mp:lock-owner mutex))
-      (slynk::log-event "clasp.lisp:    (lock-count mutex) -> ~a~%" (mp:lock-count mutex))
+      ;; (sly-dbg "clasp.lisp: send message ~a    mutex: ~a~%" message mutex)
+      ;; (sly-dbg "clasp.lisp:    (lock-owner mutex) -> ~a~%" (mp:lock-owner mutex))
+      ;; (sly-dbg "clasp.lisp:    (lock-count mutex) -> ~a~%" (mp:lock-count mutex))
       (mp:with-lock (mutex)
-        (slynk::log-event "clasp.lisp:  in with-lock   (lock-owner mutex) -> ~a~%" (mp:lock-owner mutex))
-        (slynk::log-event "clasp.lisp:  in with-lock   (lock-count mutex) -> ~a~%" (mp:lock-count mutex))
+        ;; (sly-dbg "clasp.lisp:  in with-lock   (lock-owner mutex) -> ~a~%" (mp:lock-owner mutex))
+        ;; (sly-dbg "clasp.lisp:  in with-lock   (lock-count mutex) -> ~a~%" (mp:lock-count mutex))
         (setf (mailbox.queue mbox)
               (nconc (mailbox.queue mbox) (list message)))
-        (slynk::log-event "clasp.lisp: send about to broadcast~%")
+        (sly-dbg "clasp.lisp: send about to broadcast~%")
         (mp:condition-variable-broadcast (mailbox.cvar mbox)))))
 
   
   (defimplementation receive-if (test &optional timeout)
-    (slime-dbg "Entered receive-if")
+    (sly-dbg "Entered receive-if")
     (let* ((mbox (mailbox (current-thread)))
            (mutex (mailbox.mutex mbox)))
-      (slime-dbg "receive-if assert")
+      (sly-dbg "receive-if assert")
       (assert (or (not timeout) (eq timeout t)))
       (loop
-         (slime-dbg "receive-if check-slime-interrupts")
-         (check-slime-interrupts)
-         (slime-dbg "receive-if with-lock")
+         (sly-dbg "receive-if check-sly-interrupts")
+         (check-sly-interrupts)
+         (sly-dbg "receive-if with-lock")
          (mp:with-lock (mutex)
            (let* ((q (mailbox.queue mbox))
                   (tail (member-if test q)))
              (when tail
                (setf (mailbox.queue mbox) (nconc (ldiff q tail) (cdr tail)))
                (return (car tail))))
-           (slime-dbg "receive-if when (eq")
+           (sly-dbg "receive-if when (eq")
            (when (eq timeout t) (return (values nil t))) 
-           (slime-dbg "receive-if condition-variable-timedwait")
+           (sly-dbg "receive-if condition-variable-timedwait")
            (mp:condition-variable-wait (mailbox.cvar mbox) mutex) ; timedwait 0.2
-           (slime-dbg "came out of condition-variable-timedwait")
+           (sly-dbg "came out of condition-variable-timedwait")
            (core:check-pending-interrupts)))))
 
   ) ; #+threads (progn ...
