@@ -1,6 +1,6 @@
 ;;; sly.el --- Sylvester the Cat's Common Lisp IDE  -*- lexical-binding: t; -*-
 
-;; Version: 1.0.0beta3
+;; Version: 1.0.42
 ;; URL: https://github.com/joaotavora/sly
 ;; Package-Requires: ((emacs "24.3"))
 ;; Keywords: languages, lisp, sly
@@ -38,22 +38,25 @@
 ;; SLY is a direct fork of SLIME, and contains the following
 ;; improvements over it:
 ;;
-;; * Completely redesigned REPL based on Emacs's own full-featured
-;;   `comint.el`
-;; * Live code annotations via a new `sly-stickers` contrib
-;; * Consistent interactive button interface. Everything can be
-;;   copied to the REPL.
-;; * Multiple inspectors with independent history
-;; * Regexp-capable M-x sly-apropos
-;; * Contribs are first class SLY citizens and enabled by default
-;; * Use ASDF to loads contribs on demand.
+;; * A full-featured REPL based on Emacs's `comint.el`;
+;; * Live code annotations via a new `sly-stickers` contrib;
+;; * Consistent button interface. Every Lisp object can be copied to the REPL;
+;; * flex-style completion out-of-the-box, using  Emacs's completion API.
+;;   Company, Helm, and others supported natively, no plugin required;
+;; * Cleanly ASDF-loaded by default, including contribs, enabled out-of-the-box;
+;; * Multiple inspectors and multiple REPLs;
+;; * An interactive trace dialog with interactive objects.  Copies function calls
+;;   to the REPL;
+;; * "Presentations" replaced by interactive backreferences which
+;;   highlight the object and remain stable throughout the REPL session;
 ;;
-;; SLY tracks SLIME's bugfixes and all its familar features (debugger,
-;; inspector, xref, etc...) are still available, but with better
-;; integration.
+;; SLY is a fork of SLIME. We track its bugfixes, particularly to the
+;; implementation backends.  All SLIME's familar features (debugger,
+;; inspector, xref, etc...) are still available, with improved overall
+;; UX.
 ;;
-;; See the NEWS.md file (should be sitting alongside this file) for a
-;; complete list of features.
+;; See the NEWS.md file (should be sitting alongside this file) for
+;; more information
 
 ;;; Code:
 

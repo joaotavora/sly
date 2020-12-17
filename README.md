@@ -17,22 +17,26 @@ SLY is Sylvester the Cat's Common Lisp IDE for Emacs:
 * 📣 Read the [NEWS][6] file
 * 📚 Read the [manual][documentation]
 
-SLY is a fork of [SLIME][1] and contains the following improvements upon
-it:
+SLY's highlights are:
 
-* Completely [redesigned REPL](#repl) based on Emacs's own full-featured
-  `comint.el`;
-* [Live code annotations](#stickers) via a new `sly-stickers` contrib;
-* Consistent interactive button interface.  Everything can be copied to the
-  REPL;
-* Modern [flex-style completion](#company-flex-completion).  Much snappier when
-  using [company][14], and no plugin required;
-* Cleanly ASDF-loaded by default, including contribs, which are enabled
-  out-of-the-box;
-* Multiple inspectors;
+* A [full-featured REPL](#repl) based on Emacs's `comint.el`.  Everything can be
+  copied to the REPL;
+* [Stickers](#stickers), or live code annotations that record values as code
+  traverses them.
+* [Flex-style completion](#company-flex-completion) out-of-the-box, using
+  Emacs's completion API.  Company, Helm, and other [supported
+  natively](#completion), no plugin required;
+* An interactive [Trace Dialog][trace-dialog];
+* Cleanly ASDF-loaded by default, including contribs, enabled out-of-the-box;
+* Multiple inspectors and multiple REPLs;
+* "Presentations" replaced by [interactive backreferences](#repl) which
+  highlight the object and remain stable throughout the REPL session;
 * Support for [NAMED-READTABLES][11], [macrostep.el][12] and [quicklisp][13]
+* A [portable, annotation-based stepper][16] in [early][17] but functional
+  prototype stage.
 
-SLY tracks SLIME's bugfixes.  All its familar features (debugger, inspector,
+SLY is a fork of [SLIME][1]. We tracks its bugfixes, particularly to the
+implementation backends.  All SLIME's familar features (debugger, inspector,
 xref, etc...) are still available, with improved overall UX.
 
 Installation
@@ -116,6 +120,7 @@ Additional Contribs
 * https://github.com/mmgeorge/sly-asdf
 * https://github.com/40ants/sly-package-inferred
 
+<a name="completion"></a>
 Completion UIs
 --------------
 
@@ -179,8 +184,11 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [13]: https://github.com/joaotavora/sly-quicklisp
 [14]: https://github.com/company-mode/company-mode
 [15]: https://github.com/emacs-helm/helm-sly
+[16]: https://zenodo.org/record/3742759
+[17]: https://github.com/joaotavora/sly-stepper
 [documentation]: http://joaotavora.github.io/sly
 [instasly]: http://joaotavora.github.io/sly/#Loading-Slynk-faster
+[trace-dialog]: http://joaotavora.github.io/sly/#Trace-Dialog
 [tutorial]: http://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users
 
 <!-- Local Variables: -->

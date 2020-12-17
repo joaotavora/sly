@@ -1,5 +1,8 @@
-Upcoming SLY 1.0.0-beta-3 (Somewhere 2018)
------------------------------------------
+Upcoming version
+----------------
+
+SLY 1.0.42 (December 2020)
+------------------------------
 
 ### Much improved company completion
 
@@ -13,6 +16,13 @@ experience.
 
 If you don't like company, you can still use the normal on-request TAB
 completion, which also features an improved UI.
+
+### Fixed Helm conflicts
+
+Helm users should now get access to the full capabilities of SLY's
+completion function without needing to install any extra packages.
+Just need to `M-x sly-symbol-completion-mode` to turn off SLY's
+default completion UI.  (https://github.com/joaotavora/sly/issues/303)
 
 ### Redesigned completion backend
 
@@ -147,7 +157,7 @@ longer clobbers or conflicts with Emacs's own cl-indent.el.  The cl.el
 library is no longer required, not even at compile-time or in tests.
 A lot of cleanup and performance improvements.
 
-### On par with SLIME 2.19 and 2.20
+### On par with SLIME 2.26
 
 Where applicable, SLY tracks bug-fixes and improvements contributed to
 SLIME:
@@ -161,6 +171,8 @@ SLIME:
 - Function `create-server` now accepts optional `interface` argument.
 
 - In SBCL, slynk can be bound to IPv6 interface and can work on IPv6-only machines.
+
+- Clasp/ABCL improvements.
 
 SLY 1.0.0-beta-2 (March 2016)
 -----------------------------
