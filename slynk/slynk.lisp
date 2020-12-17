@@ -2125,7 +2125,7 @@ last form."
   `((*print-pretty*           . t)
     (*print-level*            . nil)
     (*print-length*           . nil)
-    (*string-elision-length*  . 100)
+    (*string-elision-length*  . 200)
     (*print-circle*           . nil)
     (*print-gensym*           . t)
     (*print-readably*         . nil))
