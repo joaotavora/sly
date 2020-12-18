@@ -1013,6 +1013,7 @@ handle to distinguish the new buffer from the existing."
             (with-current-buffer buffer
               (sly-mrepl--read-input-ring)
               (setq header-line-format nil)
+              (setq sly-current-thread thread-id)
               (set (make-local-variable 'sly-mrepl--remote-channel) remote)
               (unwind-protect
                   (run-hooks 'sly-mrepl-hook 'sly-mrepl-runonce-hook)
