@@ -5,7 +5,7 @@ Távora for SLY.
 
 This file has been placed in the public domain.
  -->
-<!-- Created on August 22, 2020 by texi2html 1.82
+<!-- Created on December 29, 2020 by texi2html 1.82
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -15,10 +15,10 @@ Maintained by: Many creative people.
 Send bugs and suggestions to <texi2html-bug@nongnu.org>
 -->
 <head>
-<title>SLY User Manual, version 1.0.0-beta-2</title>
+<title>SLY User Manual, version 1.0.42</title>
 
-<meta name="description" content="SLY User Manual, version 1.0.0-beta-2">
-<meta name="keywords" content="SLY User Manual, version 1.0.0-beta-2">
+<meta name="description" content="SLY User Manual, version 1.0.42">
+<meta name="keywords" content="SLY User Manual, version 1.0.42">
 <meta name="resource-type" content="document">
 <meta name="distribution" content="global">
 <meta name="Generator" content="texi2html 1.82">
@@ -80,7 +80,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 <h1 class="settitle">SLY</h1>
 
 <p><acronym>SLY</acronym> is a Common Lisp IDE for Emacs. This is the manual for version
-1.0.0-beta-2. (Last updated August 22, 2020)
+1.0.42. (Last updated December 29, 2020)
 </p>
 <p>Written for SLIME Luke Gorrie and others, rewritten by João
 Távora for SLY.
@@ -237,6 +237,8 @@ Tips and Tricks
 </td></tr>
 <tr><td align="left" valign="top"><a href="#REPLs-and-game-loops">8.4 REPLs and &ldquo;Game Loops&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top"><a href="#Controlling-SLY-from-outside-Emacs">8.5 Controlling SLY from outside Emacs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
 Connecting to a remote Lisp
 
@@ -317,7 +319,7 @@ of that interface, making <acronym>SLY</acronym> as a whole readily portable.
 <p><acronym>SLY</acronym> is a direct fork of <acronym>SLIME</acronym>, the &ldquo;Superior Lisp
 Interaction Mode for Emacs&rdquo;, which itself derived from previous Emacs
 programs such as <acronym>SLIM</acronym> and <acronym>ILISP</acronym>.  If you already
-know <acronym>SLIME</acronym>, <acronym>SLY</acronym>&rsquo;s closeness to is immediately apparent.
+know <acronym>SLIME</acronym>, <acronym>SLY</acronym>&rsquo;s closeness to it is immediately apparent.
 However, where <acronym>SLIME</acronym> has traditionally focused on the
 stability of its core functionality, <acronym>SLY</acronym> aims for a richer feature
 set, a more consistent user interface, and an experience generally
@@ -3497,7 +3499,7 @@ n</kbd> (<code>sly-stickers-prev-sticker</code> and
 <li>
 Stickers on unevaluated forms (such as <code>let</code> variable bindings, or
 other constructs) are rejected, though the function is still compiled as
-usual. To let the user about this, these stickers remain grey, and are
+usual. To let the user know about this, these stickers remain grey, and are
 marked as &ldquo;disarmed&rdquo;. A message also appears in the echo area.
 </li><li>
 Stickers placed on expressions inside backquoted expressions in macros
@@ -4204,6 +4206,8 @@ your Lisp system&rsquo;s own listener, usually in the buffer
 </td></tr>
 <tr><td align="left" valign="top"><a href="#REPLs-and-game-loops">8.4 REPLs and &ldquo;Game Loops&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
+<tr><td align="left" valign="top"><a href="#Controlling-SLY-from-outside-Emacs">8.5 Controlling SLY from outside Emacs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</td></tr>
 </table>
 
 <hr size="6">
@@ -4437,6 +4441,9 @@ contrib to setup the proper translations by simply doing:
 Lisp (SBCL) is presented.  Similar setups should also work for other
 Lisp implementations.
 </p>
+<p>A pre-canned solution that automates this technique was developed by
+<a href="https://gitlab.com/ambrevar/lisp-repl-core-dumper">Pierre Neidhardt</a>.
+</p>
 <p>For SBCL, we recommend that you create a custom core file with socket
 support and <acronym>POSIX</acronym> bindings included because those modules
 take the most time to load.  To create such a core, execute the
@@ -4508,7 +4515,7 @@ just add this to your &lsquo;<tt>~/.emacs</tt>&rsquo; or
 <a name="REPLs-and-game-loops"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Auto_002dSLY" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#Extensions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Controlling-SLY-from-outside-Emacs" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Up section"> Up </a>]</td>
@@ -4529,10 +4536,10 @@ just add this to your &lsquo;<tt>~/.emacs</tt>&rsquo; or
 REPL (see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>) is just as useful as anywhere else.  But it is often
 the case that one needs to control exactly the timing of REPL requests
 and ensure they do not interfere with the &ldquo;game loop&rdquo;.  In other
-situations the choice of communication style (see section <a href="#Communication-style">Communication style</a>) may invalidate simultaneous multi-threading operation of REPL
-and game loop.
+situations, the choice of communication style (see section <a href="#Communication-style">Communication style</a>) to the Slynk server may invalidate simultaneous multi-threaded
+operation of REPL and game loop.
 </p>
-<p>Instead of giving up on the REPL or using complicated solution, SLY&rsquo;s
+<p>Instead of giving up on the REPL or using a complicated solution, SLY&rsquo;s
 REPL can be built into your game loop by using a couple of Slynk Common
 Lisp functions, <code>SLYNK-MREPL:SEND-PROMPT</code> and
 <code>SLYNK:PROCESS-REQUESTS</code>.
@@ -4542,14 +4549,15 @@ Lisp functions, <code>SLYNK-MREPL:SEND-PROMPT</code> and
           (princ &quot;Starting our game&quot;)
           (slynk-mrepl:send-prompt)
         for i from 0
-        do (when (zerop (mod i 10))
-             (fresh-line)
-             (princ &quot;doing high-priority 3D game loop stuff&quot;))
-           (sleep 0.1)
-           ;; When you're ready to serve a potential waiting 
-           ;; REPL request, just do this non-blocking thing:
-           (with-simple-restart (abort &quot;Abort our game loop&quot;)
-             (slynk:process-requests t)))))
+        do (with-simple-restart (abort &quot;Skip rest of this game loop iteration&quot;)
+             (when (zerop (mod i 10))
+               (fresh-line)
+               (princ &quot;doing high-priority 3D game loop stuff&quot;))
+             (sleep 0.1)
+             ;; When you're ready to serve a potential waiting 
+             ;; REPL request, just do this non-blocking thing:
+             (with-simple-restart (abort &quot;Abort this game REPL evaluation&quot;)
+               (slynk:process-requests t)))))
 </pre></td></tr></table>
 
 <p>Note that this function is to be called <em>from the REPL</em>, and will
@@ -4560,9 +4568,56 @@ for the variable <code>SLYNK-API:*CHANNEL*</code> to be bound to the value it
 is bound to in whatever SLY REPL you wish to interact with your game.
 </p>
 <hr size="6">
-<a name="Extensions"></a>
+<a name="Controlling-SLY-from-outside-Emacs"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#REPLs-and-game-loops" title="Previous section in reading order"> &lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#Extensions" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left"> &nbsp; </td>
+<td valign="middle" align="left">[<a href="#Top" title="Cover (top) of document">Top</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_Contents" title="Table of contents">Contents</a>]</td>
+<td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
+<td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
+</tr></table>
+<a name="Controlling-SLY-from-outside-Emacs-1"></a>
+<h2 class="section">8.5 Controlling SLY from outside Emacs</h2>
+
+<p>If your application has a non-SLY, non-Emacs user interface (graphical
+or otherwise), you can use it to exert some control over SLY
+functionality, such as its REPL (see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>) and inspector
+(see section <a href="#Inspector">The Inspector</a>).  This requires that you first set, in Emacs,
+variable <code>sly-enable-evaluate-in-emacs</code> to non-nil.  As the name
+suggests, it lets outside Slynk servers evaluate code in your Elisp
+runtime.  It is set to <code>nil</code> by default for security purposes.
+</p>
+<p>Once you&rsquo;ve done that, you can
+call <code>SLYNK-MREPL:COPY-TO-REPL-IN-EMACS</code> from your CL code with
+some objects you&rsquo;d like to manipulate in the REPL.  Then you can have
+this code run from some UI event handler:
+</p>
+<table><tr><td>&nbsp;</td><td><pre class="example">(lambda ()
+  (slynk-mrepl:copy-to-repl-in-emacs
+     (list 42 'foo)
+     :blurb &quot;Just a forty-two and a foo&quot;))
+</pre></td></tr></table>
+
+<p>And see those objects pop up in your REPL for inspection and
+manipulation.
+</p>
+<p>You can also use the functions <code>SLYNK:INSPECT-IN-EMACS</code>,
+<code>SLYNK:ED-IN-EMACS</code>, and in general, any exported function ending
+in <code>IN-EMACS</code>.  See their docstrings for details.
+</p>
+<hr size="6">
+<a name="Extensions"></a>
+<table cellpadding="1" cellspacing="1" border="0">
+<tr><td valign="middle" align="left">[<a href="#Controlling-SLY-from-outside-Emacs" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Loading-and-unloading" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
@@ -4581,7 +4636,7 @@ is bound to in whatever SLY REPL you wish to interact with your game.
 <h1 class="chapter">9. Extensions</h1>
 
 <table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top"><a href="#Loading-and-unloading">9.1 Loading and unloading &ldquo;on the fly&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#Loading-and-unloading">9.1 Loading and unloading &ldquo;on the fly&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">       More contribs::
 </td></tr>
 <tr><td align="left" valign="top"><a href="#More-contribs">9.2 More contribs</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -4826,34 +4881,32 @@ and code-contributors of <acronym>SLY</acronym> are:
 <table>
 <tr><td width="33%">Helmut Eller</td><td width="33%">João Távora</td><td width="33%">Luke Gorrie</td></tr>
 <tr><td width="33%">Tobias C. Rittweiler</td><td width="33%">Stas Boukarev</td><td width="33%">Marco Baringer</td></tr>
-<tr><td width="33%">Matthias Koeppe</td><td width="33%">Joao Tavora</td><td width="33%">Nikodemus Siivola</td></tr>
-<tr><td width="33%">Alan Ruttenberg</td><td width="33%">Attila Lendvai</td><td width="33%">Dan Barlow</td></tr>
-<tr><td width="33%">Luís Oliveira</td><td width="33%">Andras Simon</td><td width="33%">Martin Simmons</td></tr>
-<tr><td width="33%">Geo Carncross</td><td width="33%">Christophe Rhodes</td><td width="33%">Peter Seibel</td></tr>
-<tr><td width="33%">Mark Evenson</td><td width="33%">Juho Snellman</td><td width="33%">Douglas Crosher</td></tr>
-<tr><td width="33%">Wolfgang Jenkner</td><td width="33%">R Primus</td><td width="33%">Javier Olaechea</td></tr>
-<tr><td width="33%">Edi Weitz</td><td width="33%">Zach Shaftel</td><td width="33%">James Bielman</td></tr>
-<tr><td width="33%">Daniel Kochmanski</td><td width="33%">Luís Oliveira</td><td width="33%">Terje Norderhaug</td></tr>
-<tr><td width="33%">Vladimir Sedach</td><td width="33%">Juan Jose Garcia Ripoll</td><td width="33%">Alexander Artemenko</td></tr>
-<tr><td width="33%">Spenser Truex</td><td width="33%">Nathan Trapuzzano</td><td width="33%">Brian Downing</td></tr>
-<tr><td width="33%">Mark</td><td width="33%">Jeffrey Cunningham</td><td width="33%">Espen Wiborg</td></tr>
-<tr><td width="33%">Paul M. Rodriguez</td><td width="33%">Masataro Asai</td><td width="33%">Jan Moringen</td></tr>
-<tr><td width="33%">Sébastien Villemot</td><td width="33%">Samuel Freilich</td><td width="33%">Raymond Toy</td></tr>
-<tr><td width="33%">Pierre Neidhardt</td><td width="33%">Phil Hargett</td><td width="33%">Paulo Madeira</td></tr>
-<tr><td width="33%">Luís Borges de Oliveira</td><td width="33%">Kris Katterjohn</td><td width="33%">Jonas Bernoulli</td></tr>
+<tr><td width="33%">Matthias Koeppe</td><td width="33%">Nikodemus Siivola</td><td width="33%">Alan Ruttenberg</td></tr>
+<tr><td width="33%">Attila Lendvai</td><td width="33%">Luís Borges de Oliveira</td><td width="33%">Dan Barlow</td></tr>
+<tr><td width="33%">Andras Simon</td><td width="33%">Martin Simmons</td><td width="33%">Geo Carncross</td></tr>
+<tr><td width="33%">Christophe Rhodes</td><td width="33%">Peter Seibel</td><td width="33%">Mark Evenson</td></tr>
+<tr><td width="33%">Juho Snellman</td><td width="33%">Douglas Crosher</td><td width="33%">Wolfgang Jenkner</td></tr>
+<tr><td width="33%">R Primus</td><td width="33%">Javier Olaechea</td><td width="33%">Edi Weitz</td></tr>
+<tr><td width="33%">Zach Shaftel</td><td width="33%">James Bielman</td><td width="33%">Daniel Kochmanski</td></tr>
+<tr><td width="33%">Terje Norderhaug</td><td width="33%">Vladimir Sedach</td><td width="33%">Juan Jose Garcia Ripoll</td></tr>
+<tr><td width="33%">Alexander Artemenko</td><td width="33%">Spenser Truex</td><td width="33%">Nathan Trapuzzano</td></tr>
+<tr><td width="33%">Brian Downing</td><td width="33%">Mark</td><td width="33%">Jeffrey Cunningham</td></tr>
+<tr><td width="33%">Espen Wiborg</td><td width="33%">Paul M. Rodriguez</td><td width="33%">Masataro Asai</td></tr>
+<tr><td width="33%">Jan Moringen</td><td width="33%">Sébastien Villemot</td><td width="33%">Samuel Freilich</td></tr>
+<tr><td width="33%">Raymond Toy</td><td width="33%">Pierre Neidhardt</td><td width="33%">Phil Hargett</td></tr>
+<tr><td width="33%">Paulo Madeira</td><td width="33%">Kris Katterjohn</td><td width="33%">Jonas Bernoulli</td></tr>
 <tr><td width="33%">Ivan Shvedunov</td><td width="33%">Gábor Melis</td><td width="33%">Francois-Rene Rideau</td></tr>
 <tr><td width="33%">Christophe Junke</td><td width="33%">Bozhidar Batsov</td><td width="33%">Bart Botta</td></tr>
 <tr><td width="33%">Wilfredo Velázquez-Rodríguez</td><td width="33%">Tianxiang Xiong</td><td width="33%">Syohei YOSHIDA</td></tr>
 <tr><td width="33%">Stefan Monnier</td><td width="33%">Rommel MARTINEZ</td><td width="33%">Pavel Kulyov</td></tr>
 <tr><td width="33%">Paul A. Patience</td><td width="33%">Olof-Joachim Frahm</td><td width="33%">Mike Clarke</td></tr>
 <tr><td width="33%">Michał Herda</td><td width="33%">Mark H. David</td><td width="33%">Mario Lang</td></tr>
-<tr><td width="33%">Manfred Bergmann</td><td width="33%">Luis Oliveira</td><td width="33%">Leo Liu</td></tr>
-<tr><td width="33%">Koga Kazuo</td><td width="33%">Jon Oddie</td><td width="33%">John Stracke</td></tr>
-<tr><td width="33%">Joe Robertson</td><td width="33%">Grant Shangreaux</td><td width="33%">Graham Dobbins</td></tr>
-<tr><td width="33%">Eric Timmons</td><td width="33%">Douglas Katzman</td><td width="33%">Dmitry Igrishin</td></tr>
-<tr><td width="33%">Dmitrii Korobeinikov</td><td width="33%">Deokhwan Kim</td><td width="33%">Denis Budyak</td></tr>
-<tr><td width="33%">Chunyang Xu</td><td width="33%">Cayman</td><td width="33%">Angelo Rossi</td></tr>
-<tr><td width="33%">Andrew Kirkpatrick</td></tr>
+<tr><td width="33%">Manfred Bergmann</td><td width="33%">Leo Liu</td><td width="33%">Koga Kazuo</td></tr>
+<tr><td width="33%">Jon Oddie</td><td width="33%">John Stracke</td><td width="33%">Joe Robertson</td></tr>
+<tr><td width="33%">Grant Shangreaux</td><td width="33%">Graham Dobbins</td><td width="33%">Eric Timmons</td></tr>
+<tr><td width="33%">Douglas Katzman</td><td width="33%">Dmitry Igrishin</td><td width="33%">Dmitrii Korobeinikov</td></tr>
+<tr><td width="33%">Deokhwan Kim</td><td width="33%">Denis Budyak</td><td width="33%">Chunyang Xu</td></tr>
+<tr><td width="33%">Cayman</td><td width="33%">Angelo Rossi</td><td width="33%">Andrew Kirkpatrick</td></tr>
 </table>
 
 <p>... not counting the bundled code from &lsquo;<tt>hyperspec.el</tt>&rsquo;,
@@ -4979,8 +5032,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-_003e-1"><code>&gt;</code></a></td><td valign="top"><a href="#Frame-Navigation">6.3.3 Navigating between frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-A">A</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-a"><code>a</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-A"><code>A</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.4 Miscellaneous Commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-a"><code>a</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-B">B</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-B"><code>B</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.4 Miscellaneous Commands</a></td></tr>
@@ -5050,18 +5103,18 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002d_005f"><code>C-_</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-D">D</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-d"><code>d</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-D"><code>D</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-d-1"><code>d</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-d"><code>d</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-D-1"><code>D</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-d-1"><code>d</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-E">E</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-e"><code>e</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-e-1"><code>e</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-G">G</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-G"><code>G</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-g"><code>g</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-1"><code>g</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-2"><code>g</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-g-3"><code>g</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
@@ -5101,8 +5154,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-q-3"><code>q</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-R">R</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-R"><code>R</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-r"><code>r</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.4 Miscellaneous Commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-R"><code>R</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-R-1"><code>R</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.4 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET"><code>RET</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-RET-1"><code>RET</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
@@ -5599,6 +5652,7 @@ using that port number instead
     <li><a name="toc-Loading-Slynk-faster-1" href="#Loading-Slynk-faster">8.2 Loading Slynk faster</a></li>
     <li><a name="toc-Connecting-to-SLY-automatically" href="#Auto_002dSLY">8.3 Connecting to SLY automatically</a></li>
     <li><a name="toc-REPLs-and-_0060_0060Game-Loops_0027_0027" href="#REPLs-and-game-loops">8.4 REPLs and &ldquo;Game Loops&rdquo;</a></li>
+    <li><a name="toc-Controlling-SLY-from-outside-Emacs-1" href="#Controlling-SLY-from-outside-Emacs">8.5 Controlling SLY from outside Emacs</a></li>
   </ul></li>
   <li><a name="toc-Extensions-1" href="#Extensions">9. Extensions</a>
   <ul class="toc">
@@ -5630,7 +5684,7 @@ using that port number instead
 </tr></table>
 <h1>About This Document</h1>
 <p>
-  This document was generated by <em>Joao</em> on <em>August 22, 2020</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao</em> on <em>December 29, 2020</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -5732,7 +5786,7 @@ using that port number instead
 <hr size="1">
 <p>
  <font size="-1">
-  This document was generated by <em>Joao</em> on <em>August 22, 2020</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao</em> on <em>December 29, 2020</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
  </font>
  <br>
 
