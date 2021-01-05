@@ -6716,7 +6716,7 @@ position of point in the current buffer."
   "Quit the inspector and kill the buffer.
 With optional RESET (true with prefix arg), also reset the
 inspector on the Lisp side."
-  (interactive "p")
+  (interactive "P")
   (when reset (sly-eval-async `(slynk:quit-inspector)))
   (quit-window))
 
