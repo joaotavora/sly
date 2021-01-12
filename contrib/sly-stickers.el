@@ -31,8 +31,8 @@
 ;;;   `sly-sticker-dwim', which places and removes stickers.
 ;;;
 ;;;   Stickers are also indexed by an integer and placed in a
-;;;   connection-global hash-table, `sly-stickers--stickers' It can be
-;;;   connection-global because the same sticker with the same id
+;;;   connection-global hash-table, `sly-stickers--stickers'.  It can
+;;;   be connection-global because the same sticker with the same id
 ;;;   might eventually be sent, multiple times, to many
 ;;;   connections. It's the Slynk side that has to be able to tell
 ;;;   whence the stickers comes from (this is not done currently).
@@ -64,7 +64,7 @@
 ;;;   Before a zombie sticker is reaped, some code may still be
 ;;;   running that adds recordings to these stickers, and some of
 ;;;   these recordings make it to the Emacs side. The user can ignore
-;;;   them in `sly-stickers--replay', being notified that a deleted
+;;;   them in `sly-stickers-replay', being notified that a deleted
 ;;;   sticker is being referenced.
 ;;;
 ;;;   This need to communicate dead stickers to Slynk is only here
@@ -73,14 +73,14 @@
 ;;;   instrumented forms could reference sticker objects directly.
 ;;;
 ;;; * To see the results of sticker-instrumented code, there are the
-;;;   interactive commands `sly-stickers--replay' and
-;;;   `sly-stickers--fetch'. If "breaking stickers" is enabled, the
+;;;   interactive commands `sly-stickers-replay' and
+;;;   `sly-stickers-fetch'. If "breaking stickers" is enabled, the
 ;;;   debugger is also invoked before a sticker is reached and after a
 ;;;   sticker returns (if it returns). Auxiliary data-structures like
 ;;;   `sly-stickers--recording' are used here.
 ;;;
 ;;; * `sly-stickers--replay-state' and `sly-stickers--replay-map' are
-;;;   great big hacks just for handling the `sly-stickers--replay'
+;;;   great big hacks just for handling the `sly-stickers-replay'
 ;;;   interactive loop. Should look into recursive minibuffers or
 ;;;   something more akin to `ediff', for example.
 ;;;
@@ -875,7 +875,7 @@ buffer"
       (insert (describe-help)))))
 
 (defun sly-stickers-replay ()
-  "Navigate to WHATth next sticker recording fetched from Slynk"
+  "Start interactive replaying of known sticker recordings."
   (interactive)
   (let* ((buffer-name (sly-buffer-name :stickers-replay
                                        :connection (sly-current-connection)))
