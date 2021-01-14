@@ -505,8 +505,10 @@ Return a possibly propertized string."
       (funcall sly-mrepl-prompt-formatter
                package
                package-nickname
-               :entry-idx (or (when last-button
-                                (1+ (car (button-get (previous-button (point)) 'part-args))))
+               :entry-idx (or (when (and last-button
+                                         (button-type-subtype-p (button-type last-button)
+                                                                'sly-mrepl-part))
+                                (1+ (car (button-get last-button 'part-args))))
                               0)
                :error-level error-level
                :condition condition)
