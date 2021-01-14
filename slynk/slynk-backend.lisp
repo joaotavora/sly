@@ -1175,7 +1175,7 @@ The results is a list ((DSPEC LOCATION) ...)."
   :not-implemented)
 
 (definterface calls-who (function-name)
-  "Return the call sites of FUNCTION-NAME (a symbol).
+  "Return the list of functions called by FUNCTION-NAME (a symbol).
 The results is a list ((DSPEC LOCATION) ...)."
   (declare (ignore function-name))
   :not-implemented)
