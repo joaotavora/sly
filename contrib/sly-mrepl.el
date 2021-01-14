@@ -414,6 +414,13 @@ In that case, moving a sexp backward does nothing."
            ;; If no process yet, fall back to the simpler strategy.
            (sly-mrepl--insert-output string face)))))
 
+(defun sly-mrepl--remove-comint-highlight (start end)
+  "Some `comint' functions force the `comint-highlight-prompt'
+face, which we don't want so we remove it."
+  (font-lock--remove-face-from-text-property
+   start end
+   'font-lock-face 'comint-highlight-prompt))
+
 (defun sly-mrepl--send-input-sexp ()
   (goto-char (point-max))
   (save-excursion
@@ -424,15 +431,18 @@ In that case, moving a sexp backward does nothing."
   (buffer-disable-undo)
   (overlay-put sly-mrepl--last-prompt-overlay 'face 'highlight)
   (set (make-local-variable 'sly-mrepl--dirty-history) t)
-  (sly-mrepl--commiting-text
-      `(field sly-mrepl-input
-              keymap ,(let ((map (make-sparse-keymap)))
-                        (define-key map (kbd "RET") 'sly-mrepl-insert-input)
-                        (define-key map [return] 'sly-mrepl-insert-input)
-                        (define-key map [mouse-2] 'sly-mrepl-insert-input)
-                        map))
-    (comint-send-input))
-  (sly-mrepl--ensure-prompt-face))
+  (let ((previous-comint-last-prompt comint-last-prompt))
+    (sly-mrepl--commiting-text
+        `(field sly-mrepl-input
+                keymap ,(let ((map (make-sparse-keymap)))
+                          (define-key map (kbd "RET") 'sly-mrepl-insert-input)
+                          (define-key map [return] 'sly-mrepl-insert-input)
+                          (define-key map [mouse-2] 'sly-mrepl-insert-input)
+                          map))
+      (prog1 (comint-send-input)
+        (sly-mrepl--remove-comint-highlight
+         (car previous-comint-last-prompt)
+         (cdr previous-comint-last-prompt))))))
 
 (defun sly-mrepl--ensure-newline ()
   (unless (save-excursion
@@ -450,13 +460,6 @@ In that case, moving a sexp backward does nothing."
     (while (accept-process-output sly-mrepl--dedicated-stream
                                   0
                                   (and (eq (window-system) 'w32) 1)))))
-
-(defun sly-mrepl--ensure-prompt-face ()
-  "Override `comint.el''s use of `comint-highlight-prompt'."
-  (let ((inhibit-read-only t))
-    (add-text-properties (overlay-start sly-mrepl--last-prompt-overlay)
-                         (overlay-end sly-mrepl--last-prompt-overlay)
-                         '(font-lock-face sly-mrepl-prompt-face))))
 
 (cl-defun sly-mrepl-format-default-prompt (_package
                                            package-nickname
@@ -513,8 +516,12 @@ Return a possibly propertized string."
                :error-level error-level
                :condition condition)
       'sly-mrepl--prompt (downcase package)))
+      ;; `comint-output-filter' forces the `comint-highlight-prompt' face, which
+      ;; we don't want, so we remove it here.
+    (let ((prompt-start (save-excursion (forward-line 0) (point)))
+          (inhibit-read-only t))
+      (sly-mrepl--remove-comint-highlight prompt-start (point)))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
-  (sly-mrepl--ensure-prompt-face)
   (buffer-disable-undo)
   (buffer-enable-undo))
 
