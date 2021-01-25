@@ -1086,6 +1086,38 @@ the buffer's undo-list."
                        buffer-content
                        (substring-no-properties (buffer-string)))))
 
+(def-sly-test indentation.2 (buffer-content point-markers)
+        "Check indentation update to work correctly."
+    '(("
+\(in-package :slynk)
+
+\(defmacro lolipop (&body body)
+  `(progn ,@body))
+
+\(defmacro lolipop (&rest body)
+  `(progn ,@body))
+
+\(lolipop 1
+         2
+         23)
+"
+       ("23")))
+  (with-temp-buffer
+    (lisp-mode)
+    (sly-editing-mode 1)
+    (insert buffer-content)
+    (sly-compile-region (point-min) (point-max))
+    (sly-sync-to-top-level 3)
+    (sly-update-indentation)
+    (sly-sync-to-top-level 3)
+    (dolist (marker point-markers)
+      (search-backward marker)
+      (beginning-of-defun)
+      (indent-region (point) (progn (end-of-defun) (point))))
+    (sly-test-expect "Correct buffer content"
+                       buffer-content
+                       (substring-no-properties (buffer-string)))))
+
 (def-sly-test break
     (times exp)
     "Test whether BREAK invokes SLY-DB."
