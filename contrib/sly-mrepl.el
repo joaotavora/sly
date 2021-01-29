@@ -1281,10 +1281,13 @@ Return whatever `sly-change-directory' returns."
   (interactive)
   (let ((directory (or directory (read-directory-name "New directory: "
                                                       default-directory nil t))))
-    (sly-mrepl--save-and-copy-for-repl
-     `(slynk:set-default-directory ,directory)
-     :before (format "Setting directory to %s" directory))
-    (cd directory)))
+    (prog1 (sly-change-directory
+            directory
+            (lambda (body)
+              (sly-mrepl--save-and-copy-for-repl
+               body
+               :before (format "Setting directory to %s" directory))))
+      (cd directory))))
 
 (defun sly-cd (directory)
   "Alias for `sly-mrepl-set-directory'."
