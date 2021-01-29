@@ -1274,10 +1274,13 @@ When setting this variable outside of the Customize interface,
   (let ((package (sly-read-package-name "New package: ")))
     (sly-mrepl--eval-for-repl `(slynk-mrepl:guess-and-set-package ,package))))
 
-(defun sly-mrepl-set-directory ()
+(defun sly-mrepl-set-directory (&optional directory)
+  "Make DIRECTORY (or prompt for it if nil) become the Lisp's current directory.
+Also switch directory in the current REPL.
+Return whatever `sly-change-directory' returns."
   (interactive)
-  (let ((directory (read-directory-name "New directory: "
-                                        default-directory nil t)))
+  (let ((directory (or directory (read-directory-name "New directory: "
+                                                      default-directory nil t))))
     (sly-mrepl--save-and-copy-for-repl
      `(slynk:set-default-directory ,directory)
      :before (format "Setting directory to %s" directory))
