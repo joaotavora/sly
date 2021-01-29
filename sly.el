@@ -4418,12 +4418,6 @@ Return whatever slynk:set-default-directory returns."
       (sly-with-connection-buffer nil (cd-absolute dir))
       (run-hook-with-args 'sly-change-directory-hooks dir))))
 
-(defun sly-cd (directory)
-  "Make DIRECTORY become Lisp's current directory.
-Return whatever slynk:set-default-directory returns."
-  (interactive (list (read-directory-name "[sly] Directory: " nil nil t)))
-  (sly-message "default-directory: %s" (sly-change-directory directory)))
-
 (defun sly-pwd ()
   "Show Lisp's default directory."
   (interactive)

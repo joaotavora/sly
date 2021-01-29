@@ -1286,6 +1286,11 @@ Return whatever `sly-change-directory' returns."
      :before (format "Setting directory to %s" directory))
     (cd directory)))
 
+(defun sly-cd (directory)
+  "Alias for `sly-mrepl-set-directory'."
+  (interactive (list (read-directory-name "[sly] Directory: " nil nil t)))
+  (sly-mrepl-set-directory directory))
+
 (defun sly-mrepl-shortcut ()
   (interactive)
   (let* ((string (sly-completing-read "Command: "
