@@ -4407,13 +4407,14 @@ in Lisp when committed with \\[sly-edit-value-commit]."
   "Hook run by `sly-change-directory'.
 The functions are called with the new (absolute) directory.")
 
-(defun sly-change-directory (directory)
+(defun sly-change-directory (directory &optional evaluator)
   "Make DIRECTORY become Lisp's current directory.
 Return whatever slynk:set-default-directory returns."
   (let ((dir (expand-file-name directory)))
-    (prog1 (sly-eval `(slynk:set-default-directory
-                       (slynk-backend:filename-to-pathname
-                        ,(sly-to-lisp-filename dir))))
+    (prog1 (funcall (or evaluator 'sly-eval)
+                    `(slynk:set-default-directory
+                      (slynk-backend:filename-to-pathname
+                       ,(sly-to-lisp-filename dir))))
       (sly-with-connection-buffer nil (cd-absolute dir))
       (run-hook-with-args 'sly-change-directory-hooks dir))))
 
