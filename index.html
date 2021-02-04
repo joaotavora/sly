@@ -5,7 +5,7 @@ Távora for SLY.
 
 This file has been placed in the public domain.
  -->
-<!-- Created on December 29, 2020 by texi2html 1.82
+<!-- Created on February 4, 2021 by texi2html 1.82
 texi2html was written by: 
             Lionel Cons <Lionel.Cons@cern.ch> (original author)
             Karl Berry  <karl@freefriends.org>
@@ -80,7 +80,7 @@ a:focus { color: #161; text-decoration: none; padding: 1px 2px 1px 2px; border: 
 <h1 class="settitle">SLY</h1>
 
 <p><acronym>SLY</acronym> is a Common Lisp IDE for Emacs. This is the manual for version
-1.0.42. (Last updated December 29, 2020)
+1.0.42. (Last updated February 4, 2021)
 </p>
 <p>Written for SLIME Luke Gorrie and others, rewritten by João
 Távora for SLY.
@@ -98,7 +98,7 @@ Távora for SLY.
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Common-functionality">5. Common functionality</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
-<tr><td align="left" valign="top"><a href="#SLY-REPL-and-other-special-buffers">6. SLY REPL and other special buffers</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#The-REPL-and-other-special-buffers">6. The REPL and other special buffers</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Customization">7. Customization</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -169,9 +169,9 @@ Common functionality
 <tr><td align="left" valign="top"><a href="#Multi_002dthreading">5.10 Multi-threading</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-SLY REPL and other special buffers
+The REPL and other special buffers
 
-</pre></th></tr><tr><td align="left" valign="top"><a href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+</pre></th></tr><tr><td align="left" valign="top"><a href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Inspector">6.2 The Inspector</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -182,7 +182,7 @@ SLY REPL and other special buffers
 <tr><td align="left" valign="top"><a href="#Stickers">6.5 Stickers</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><th colspan="3" align="left" valign="top"><pre class="menu-comment">
-SLY REPL: the &ldquo;top level&rdquo;
+The REPL: the &ldquo;top level&rdquo;
 
 </pre></th></tr><tr><td align="left" valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -712,65 +712,73 @@ the connection is established. (See also <a href="#sly_002dconnected_002dhook">s
 <acronym>SLIME</acronym>, the project that originated <acronym>SLY</acronym>.  Itself originating in
 older Emacs extensions <acronym>SLIM</acronym> and <acronym>ILISP</acronym>, <acronym>SLIME</acronym> has
 been around for at least a decade longer than <acronym>SLY</acronym> and is quite an
-amazing IDE.  It seems reasonable to assume that most Lispers have some
-experience with it, and perhaps it is an even more reasonable idea to
-provide, in the form of a quick tutorial, a hands-on overview of some of
-the improvements of <acronym>SLY</acronym> over <acronym>SLIME</acronym>.
+amazing IDE.  It&rsquo;s likely that most Lispers have some experience with
+it, making it a good idea to provide, in the shape of a quick tutorial,
+a hands-on overview of some of the improvements of <acronym>SLY</acronym> over <acronym>SLIME</acronym>.
 </p>
 <p>When you start <acronym>SLY</acronym> with <kbd>M-x sly</kbd> (see section <a href="#Basic-setup">Basic setup</a>) you are
 greeted with its <acronym>REPL</acronym>, a common starting point of Lisp hacking
 sessions.  This has been completely redesigned in <acronym>SLY</acronym>: you can spawn
 multiple REPL sessions with <code>sly-mrepl-new</code>; copy objects from most
-places directly into it (with <kbd>M-RET</kbd> and <kbd>M-S-RET</kbd>); and use a
-much more powerful incremental history search engine (with <kbd>C-r</kbd>).
+places directly into it (with <kbd>M-RET</kbd> and <kbd>M-S-RET</kbd>); use
+powerful incremental history search (with <kbd>C-r</kbd>) found in most
+modern shells; and get real-time assistance when &ldquo;backreferecing&rdquo;
+previous evaluation values in your Lisp input.
 </p>
 <br><img src="images/tutorial-1.png" alt="images/tutorial-1"><br>
 
 <p>Starting from the new <acronym>REPL</acronym>, let&rsquo;s showcase some of <acronym>SLY</acronym>’s features.
-Let’s pretend we want to hack an existing Lisp project, say <acronym>SLY</acronym>
-itself, or rather a part of its Lisp server which is called Slynk.
-Let&rsquo;s pretend we&rsquo;re intrigued by the way its &ldquo;flex&rdquo;-style completion
-works.  What is &ldquo;flex&rdquo;-style completion, you ask?  Well, if you&rsquo;re at
-the <acronym>REPL</acronym> you can try it now: it&rsquo;s a way of <kbd>TAB</kbd>-completing
-(see section <a href="#Completion">Auto-completion</a>) symbol names based on educated guesses of a few
-letters. Thus if we type <code>mvbind</code>, <acronym>SLY</acronym> guesses that we probably
-meant <code>multiple-value-bind</code>, and if we type <code>domat</code> it might
+Let’s pretend we want to hack an existing Lisp project.  We&rsquo;ll pick
+<acronym>SLY</acronym> itself, or rather its Lisp server, called Slynk.  Let&rsquo;s pretend
+we&rsquo;re intrigued by the way its &ldquo;flex&rdquo;-style completion works.  What is
+flex completion, you ask?  Well, if you&rsquo;re at the <acronym>REPL</acronym> you can try it
+now: it&rsquo;s a way of <kbd>TAB</kbd>-completing (see section <a href="#Completion">Auto-completion</a>) symbol
+names based on educated guesses of a few letters. Thus if we type
+<code>mvbind</code>, <acronym>SLY</acronym> guesses that we probably meant
+<code>multiple-value-bind</code>, and if we type <code>domat</code> it might
 possibly guess <code>cl-ppcre:do-matches</code>.  Let&rsquo;s dig into the code that
 makes this happen.
 </p>
-<p>Where should we start though, if we know very little about this project?
-Well, a good point to start is always the <em>apropos</em> functionality,
-which is a <code>grep</code> of sorts, but symbolic rather than purely
-textual.  In <acronym>SLY</acronym>, <code>sly-apropos</code> will use the <code>CL-PPCRE</code>
-library if it finds is it loaded, else it falls back to a regex-less
-mode of searching.  If you
-have <a href="https://www.quicklisp.org/beta/">Quicklisp</a> you need only
-type <code>(ql:quickload :cl-ppcre)</code> from the <acronym>REPL</acronym>.
+<p>But how?  Where to begin, given we know so little about this project?
 </p>
-<p>So if we want to hack on <acronym>SLY</acronym>&rsquo;s &ldquo;flex-completion&rdquo; functionality, but
-we don&rsquo;t any of its symbol&rsquo;s names.  We type
+<p>Well, a good starting point is always the <em>apropos</em> functionality,
+which is a <code>grep</code> of sorts, but aware of the symbols loaded in your
+Lisp, rather the contents of text files.  Furthermore, in
+<acronym>SLY</acronym>, <code>sly-apropos</code> will do a regular-expression-enabled symbol
+search, which will help us here since we don&rsquo;t yet know any symbols
+names of this mysterious flex feature.
+</p>
+<p>To enable regular expression searches you need the <code>CL-PPCRE</code>
+library is loaded (else <code>sly-apropos</code> falls back to regex-less
+mode).  If you have <a href="https://www.quicklisp.org/beta/">Quicklisp</a>
+installed (you do, right?) you need only type <code>(ql:quickload
+:cl-ppcre)</code> now from the <acronym>REPL</acronym>.
+</p>
+<p>Thus, if we want to hack <acronym>SLY</acronym>&rsquo;s flex completion, and <em>don&rsquo;t</em>
+known any of its symbol&rsquo;s names, we type
 <kbd>C-c C-d C-z</kbd> (the shortcut for <kbd>M-x sly-apropos-all</kbd>) and
-then type in &ldquo;sly.*flex&rdquo; at the prompt, followed by <kbd>enter</kbd>
-or <kbd>return</kbd> (abbreviated <code>RET</code> or <kbd>C-m</kbd>). <acronym>SLY</acronym> should
-now present all Lisp symbols matching your search pattern.
+then type in &ldquo;sly.*flex&rdquo; at the prompt.  We follow with <kbd>enter</kbd>
+or <kbd>return</kbd> (abbreviated <code>RET</code> or <kbd>C-m</kbd>). <acronym>SLY</acronym> should now
+present all Lisp symbols matching your search pattern.
 </p>
 <br><img src="images/tutorial-2.png" alt="images/tutorial-2"><br>
 
-<p>In the <code>apropos</code> buffer, let’s examine, by right-clicking it, the
-symbol <code>SLY-COMPLETIONS:FLEX-COMPLETIONS</code>.  We’ll be presented with
-a context menu with options for describing the symbol, inspecting it, or
-navigating to its source definition.  In general, the Lisp-side objects
-that SLY presents &mdash; symbols, CLOS objects, function calls, etc... &mdash;
-are right-clickable buttons with such a context menu
+<p>In the <code>apropos</code> buffer, let’s grab the mouse and right-click the
+symbol <code>SLYNK-COMPLETIONS:FLEX-COMPLETIONS</code>.  We’ll be presented
+with a context menu with options for describing the symbol, inspecting
+it, or navigating to its source definition.  In general, the Lisp-side
+objects that SLY presents &mdash; symbols, CLOS objects, function calls,
+etc... &mdash; are right-clickable buttons with such a context menu
 (see section <a href="#Interactive-objects">Interactive objects</a>).  For now, let’s navigate to the source
-definition of the symbol by choosing &ldquo;Go To source&rdquo; from the menu.  We
-could also have just pressed <kbd>M-.</kbd> on the symbol, of course.
+definition of the symbol by choosing &ldquo;Go To source&rdquo; from the menu.
+Alternatively, we could also have just pressed <kbd>M-.</kbd> on the symbol,
+of course.
 </p>
 <p>From the Lisp source buffer that we landed on (probably
-&lsquo;<tt>slynk-completion.lisp</tt>&rsquo;), let’s <em>trace</em> the newly found function
-<code>SLY-COMPLETIONS:FLEX-COMPLETIONS</code>.  However, instead of using the
-regular <code>CL:TRACE</code>, we’ll use <acronym>SLY</acronym>’s Trace Dialog functionality.
-This is how we set it up:
+&lsquo;<tt>slynk-completion.lisp</tt>&rsquo;), let’s <em>trace</em> the newly found
+function <code>SLYNK-COMPLETIONS:FLEX-COMPLETIONS</code>.  However, instead of
+using the regular <code>CL:TRACE</code>, we’ll use <acronym>SLY</acronym>’s Trace Dialog
+functionality.  This is how we set it up:
 </p>
 <ol>
 <li>
@@ -784,24 +792,23 @@ the heading &ldquo;Traced specs&rdquo;;
 
 </li><li>
 thirdly, for good measure, let’s also trace the nearby
-function <code>SLY-COMPLETIONS::FLEX-SCORE</code> by also typing <kbd>C-c C-t</kbd>
-on its name, or just entering it in the minibuffer prompt.
+function <code>SLYNK-COMPLETIONS::FLEX-SCORE</code> by also typing <kbd>C-c
+C-t</kbd> on its name, or just entering it in the minibuffer prompt.
 
 </li></ol>
 
 <p>Now let’s return to the REPL by switching to its
-<code>*sly-mrepl ...</code> buffer or typing <kbd>C-c C-z</kbd>. In the REPL, let’s try to
-complete some typical Lisp string by typing just <code>desbind</code> and then
-typing <kbd>TAB</kbd>. We should see a window popup including the desired
-completion <code>destructuring-bind</code> (it should also be the top
-match). Of course, we could now select some completion from the list,
-but instead let&rsquo;s just type <kbd>C-g</kbd> to dismiss
-the <code>*sly-completions*</code> window, since  we wanted to test
-completion, not write any actual <code>destructuring-bind</code> expression.
+<code>*sly-mrepl ...</code> buffer or typing <kbd>C-c C-z</kbd>.  To exercise the
+code we just traced, let’s type something like <code>desbind</code>, followed
+by tab, and see if it suggest <code>destructuring-bind</code> as the top
+match. We could now select some completion from the list, but instead
+let&rsquo;s just type <kbd>C-g</kbd> to dismiss the completion, since we wanted to
+test completion, not write any actual <code>destructuring-bind</code>
+expression.
 </p>
-<p>Remember the traced functions in the Trace Dialog?  Let’s see if we got
-any traces: let&rsquo;s type <kbd>C-c T</kbd> to switch to that buffer, and then
-type capital <kbd>G</kbd>. This should produce a fair number of traces
+<p>Remember the traced functions in the Trace Dialog?  Time to see if we
+got any traces. let&rsquo;s type <kbd>C-c T</kbd> to switch to that buffer, and
+then type capital <kbd>G</kbd>. This should produce a fair number of traces
 organized in a call graph.
 </p>
 <br><img src="images/tutorial-3.png" alt="images/tutorial-3"><br>
@@ -814,12 +821,11 @@ witness said <code>FLEX-SCORE</code> function respond to any implementation
 improvements we perform.  To do so, it&rsquo;s useful to be able to surgically
 re-run that function with those very same arguments.  Let&rsquo;s do this by
 finding the function call in the Trace Dialog window, right-clicking it
-with the mouse and selecting &ldquo;Copy call to REPL&rdquo;.  As an alternative,
-pressing <kbd>M-S-RET</kbd> on it also works.  Whichever way we do this, we
-are automatically transported to the REPL again, where the desired
-function call has already been typed out for us at the command prompt,
-awaiting a confirmation <kbd>RET</kbd>, which will run the function call.
-The call may look strange, though:
+with the mouse and selecting &ldquo;Copy call to REPL&rdquo;.
+Pressing <kbd>M-S-RET</kbd> on it should accomplish the same.  We are
+automatically transported to the REPL again, where the desired function
+call has already been typed out for us at the command prompt, awaiting a
+confirmation <kbd>RET</kbd>, which will run the function call:
 </p>
 <table><tr><td>&nbsp;</td><td><pre class="example">; The actual arguments passed to trace 15
 &quot;desbind&quot;
@@ -832,18 +838,19 @@ SLYNK-COMPLETION&gt;
 
 <br><img src="images/tutorial-4.png" alt="images/tutorial-4"><br>
 
-<p>So here’s what’s going on: to copy the call to the REPL, <acronym>SLY</acronym> first
-copied over its actual arguments, and then wrote the function using
-special <em>backreferences</em> to those arguments in the correct place.
-These are the <code>#v4:0</code> and <code>#v4:1</code> bits seen at the command
-prompt.  Let’s go ahead and put the cursor on them (or hover the mouse).
-See how this makes them highlight the corresponding object a few lines
-above in the buffer?  Later, you can also try typing &ldquo;#v&rdquo; at the REPL
-to incrementally write your own backreferences.
+<p>If those <code>#v...</code>&rsquo;s look odd, here’s what’s going on: to copy the call
+to the REPL, <acronym>SLY</acronym> first copied over its actual arguments, and then
+wrote the function using special <em>backreferences</em> to those
+arguments in the correct place.  These are the <code>#v4:0</code>
+and <code>#v4:1</code> bits seen at the command prompt.  If one puts the
+cursor on them or hovers with the mouse, this highlights the
+corresponding object a few lines above in the buffer.  Later, you can
+also try typing &ldquo;#v&rdquo; at the REPL to incrementally write your own
+backreferences (see section <a href="#REPL-backreferences">REPL backreferences</a>).
 </p>
 <p>For one final demonstration, let’s now suppose say we are still
-intrigued by how that function (<code>FLEX-SCORE</code>) works internally. So let&rsquo;s navigate to
-its definition using <kbd>M-.</kbd> again (or just open
+intrigued by how that function (<code>FLEX-SCORE</code>) works internally. So
+let&rsquo;s navigate to its definition using <kbd>M-.</kbd> again (or just open
 the &lsquo;<tt>slynk-completion.lisp</tt>&rsquo; buffer that you probably still have
 open). The function’s code might look like this:
 </p>
@@ -1453,7 +1460,7 @@ the macroexpansion buffer are replaced with the new expansion.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Working-with-source-files" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -1469,7 +1476,7 @@ the macroexpansion buffer are replaced with the new expansion.
 <p>This chapter describes the commands available throughout
 <acronym>SLY</acronym>-enabled buffers, which are not only Lisp source buffers, but
 every auxiliary buffer created by <acronym>SLY</acronym>, such as the <acronym>REPL</acronym>,
-Inspector, etc (see section <a href="#SLY-REPL-and-other-special-buffers">SLY REPL and other special buffers</a>) In
+Inspector, etc (see section <a href="#The-REPL-and-other-special-buffers">The REPL and other special buffers</a>) In
 general, it’s a good bet that if the buffer’s name starts with
 <code>*sly-...*</code>, these commands and functionality will be available
 there.
@@ -1505,7 +1512,7 @@ there.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -1588,7 +1595,7 @@ buffer (see section <a href="#Cross_002dreferencing">Cross-referencing</a>).
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -1739,7 +1746,7 @@ the <code>*sly-xref</code> buffer.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -1843,7 +1850,7 @@ pressing <kbd>C-g</kbd> or moves out of the symbol being completed, the
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -1923,7 +1930,7 @@ like <code>sly-pprint-eval-last-expression</code>.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2024,7 +2031,7 @@ in a web browser. The Hyperspec is found either on the Web or in
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2050,7 +2057,7 @@ read that from the buffer’s name which will usually be
 the name of the connection.
 </p>
 <p>Each Lisp connection has its own main <acronym>REPL</acronym> buffer
-(see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>), and all expressions entered or <acronym>SLY</acronym> commands invoked
+(see section <a href="#REPL">The REPL: the &ldquo;top level&rdquo;</a>), and all expressions entered or <acronym>SLY</acronym> commands invoked
 in that buffer are sent to the associated connection. Other buffers
 created by <acronym>SLY</acronym> are similarly tied to the connections they originate
 from, including <acronym>SLY-DB</acronym> buffers (see section <a href="#Debugger">The SLY-DB Debugger</a>), apropos result
@@ -2158,7 +2165,7 @@ connections should be closed first.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2203,7 +2210,7 @@ should be traced.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2258,7 +2265,7 @@ changes the current directory of the REPL buffer.
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2302,11 +2309,11 @@ versa.
 <a name="Multi_002dthreading"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Temporary-buffers" title="Previous section in reading order"> &lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next section in reading order"> &gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Common-functionality" title="Up section"> Up </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2349,7 +2356,7 @@ doubles by default:
 </pre></td></tr></table>
 
 <hr size="6">
-<a name="SLY-REPL-and-other-special-buffers"></a>
+<a name="The-REPL-and-other-special-buffers"></a>
 <table cellpadding="1" cellspacing="1" border="0">
 <tr><td valign="middle" align="left">[<a href="#Multi_002dthreading" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL" title="Next section in reading order"> &gt; </a>]</td>
@@ -2366,11 +2373,11 @@ doubles by default:
 <td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<a name="SLY-REPL-and-other-special-buffers-1"></a>
-<h1 class="chapter">6. SLY REPL and other special buffers</h1>
+<a name="The-REPL-and-other-special-buffers-1"></a>
+<h1 class="chapter">6. The REPL and other special buffers</h1>
 
 <table class="menu" border="0" cellspacing="0">
-<tr><td align="left" valign="top"><a href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
+<tr><td align="left" valign="top"><a href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
 <tr><td align="left" valign="top"><a href="#Inspector">6.2 The Inspector</a></td><td>&nbsp;&nbsp;</td><td align="left" valign="top">
 </td></tr>
@@ -2385,11 +2392,11 @@ doubles by default:
 <hr size="6">
 <a name="REPL"></a>
 <table cellpadding="1" cellspacing="1" border="0">
-<tr><td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Previous section in reading order"> &lt; </a>]</td>
+<tr><td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL-commands" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2400,8 +2407,8 @@ doubles by default:
 <td valign="middle" align="left">[<a href="#Key-Index" title="Index">Index</a>]</td>
 <td valign="middle" align="left">[<a href="#SEC_About" title="About (help)"> ? </a>]</td>
 </tr></table>
-<a name="SLY-REPL_003a-the-_0060_0060top-level_0027_0027"></a>
-<h2 class="section">6.1 SLY REPL: the &ldquo;top level&rdquo;</h2>
+<a name="The-REPL_003a-the-_0060_0060top-level_0027_0027"></a>
+<h2 class="section">6.1 The REPL: the &ldquo;top level&rdquo;</h2>
 
 <a name="index-Listener"></a>
 
@@ -2474,7 +2481,7 @@ chosen.
 <tr><td valign="middle" align="left">[<a href="#REPL" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL-output" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2592,7 +2599,7 @@ buffer contents.
 <tr><td valign="middle" align="left">[<a href="#REPL-commands" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL-backreferences" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2718,7 +2725,7 @@ buffering on EOL)
 <tr><td valign="middle" align="left">[<a href="#REPL-output" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Inspector" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#REPL" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2812,8 +2819,8 @@ is as easy as using <kbd>C-r</kbd> and some characters (see section <a href="#RE
 <tr><td valign="middle" align="left">[<a href="#REPL-backreferences" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Debugger" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2948,8 +2955,8 @@ then be used to access the object in the REPL.
 <tr><td valign="middle" align="left">[<a href="#Inspector" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Examining-frames" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -2991,7 +2998,7 @@ backtrace, and poking around in stack frames.
 <tr><td valign="middle" align="left">[<a href="#Debugger" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Restarts" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Debugger" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3070,7 +3077,7 @@ instruction pointer within the frame.
 <tr><td valign="middle" align="left">[<a href="#Examining-frames" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Frame-Navigation" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Debugger" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3127,7 +3134,7 @@ them in the buffer.
 <tr><td valign="middle" align="left">[<a href="#Restarts" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Miscellaneous" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Debugger" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3186,7 +3193,7 @@ only.
 <tr><td valign="middle" align="left">[<a href="#Frame-Navigation" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Trace-Dialog" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Debugger" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3256,8 +3263,8 @@ debugger.
 <tr><td valign="middle" align="left">[<a href="#Miscellaneous" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Stickers" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3376,7 +3383,7 @@ outstanding.
 buttons. Clicking them opens the inspector
 (see section <a href="#Inspector">The Inspector</a>). Invoking <kbd>M-RET</kbd>
 (<code>sly-trace-dialog-copy-down-to-repl</code>) returns them to the REPL
-for manipulation (see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>). The number left of each entry
+for manipulation (see section <a href="#REPL">The REPL: the &ldquo;top level&rdquo;</a>). The number left of each entry
 indicates its absolute position in the calling order, which might
 differ from display order in case multiple threads call the same
 traced function.
@@ -3393,8 +3400,8 @@ it.
 <tr><td valign="middle" align="left">[<a href="#Trace-Dialog" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Customization" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3514,7 +3521,7 @@ inside a macro definition.
 <tr><td valign="middle" align="left">[<a href="#Stickers" title="Previous section in reading order"> &lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Emacs_002dside" title="Next section in reading order"> &gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
-<td valign="middle" align="left">[<a href="#SLY-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
+<td valign="middle" align="left">[<a href="#The-REPL-and-other-special-buffers" title="Beginning of this chapter or previous chapter"> &lt;&lt; </a>]</td>
 <td valign="middle" align="left">[<a href="#Top" title="Up section"> Up </a>]</td>
 <td valign="middle" align="left">[<a href="#Tips-and-Tricks" title="Next chapter"> &gt;&gt; </a>]</td>
 <td valign="middle" align="left"> &nbsp; </td>
@@ -3768,7 +3775,7 @@ to inspecting Lisp objects (see section <a href="#Inspector">The Inspector</a>).
 <dt> <code>sly-mrepl-mode-map</code></dt>
 <dd>
 <p>A keymap for functionality available in <acronym>SLY</acronym>’s REPL buffers
-(see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>).
+(see section <a href="#REPL">The REPL: the &ldquo;top level&rdquo;</a>).
 </p>
 </dd>
 <dt> <code>sly-trace-dialog-mode-map</code></dt>
@@ -3855,6 +3862,45 @@ that should be kept around when a connection closes.  For example, if
 the variable&rsquo;s value includes <code>:mrepl</code> (which is the default),
 <acronym>REPL</acronym> buffer is kept around while all other stale buffers (debugger,
 inspector, etc..) are automatically killed.
+</p>
+</dd>
+</dl>
+
+<p>The following customization variables affect the behaviour of the
+<acronym>REPL</acronym> (see section <a href="#REPL">The REPL: the &ldquo;top level&rdquo;</a>):
+</p>
+<dl compact="compact">
+<dt> <code>sly-mrepl-shortcut</code></dt>
+<dd><p>The key to use to trigger the REPL&rsquo;s &ldquo;comma shortcut&rdquo;.  We recommend
+you keep the default setting which is the comma (<code>,</code>) key, since
+there&rsquo;s special logic in the REPL to discern if you&rsquo;re typing a comma
+inside a backquoted list or not.
+</p>
+</dd>
+<dt> <code>sly-mrepl-prompt-formatter</code></dt>
+<dd><p>Holds a function that can be set from your Emacs init file
+(see <a href="emacs.html#Init-File">Init File: (emacs)Init File</a> section &lsquo;Emacs Init File&rsquo; in <cite>The Emacs Manual</cite>)
+to change the way the prompt is rendered.  It takes a number of
+arguments describing the prompt and should return a propertized Elisp
+string.  See the default value, <code>sly-mrepl-default-prompt</code>, for how
+to implement such a prompt.
+</p>
+</dd>
+<dt> <code>sly-mrepl-history-file-name</code></dt>
+<dd><p>Holds a string designating the file to use for keeping the shared REPL
+histories persistently.  The default is to use a hidden file
+named <code>.sly-mrepl-history</code> in the user&rsquo;s home directory.
+</p>
+</dd>
+<dt> <code>sly-mrepl-prevent-duplicate-history</code></dt>
+<dd><p>A symbol.  If non-nil, prevent duplicate entries in input history.  If
+the non-nil value is the symbol <code>move</code>, the previously occuring
+entry is moved to a more recent spot.
+</p>
+</dd>
+<dt> <code>sly-mrepl-eli-like-history-navigation</code></dt>
+<dd><p>If non-NIL, navigate history like in ELI, Franz&rsquo;s Common Lisp IDE for
+Emacs.
 </p>
 </dd>
 </dl>
@@ -4075,7 +4121,7 @@ the pretty printer for formatting backtraces in <acronym>SLY-DB</acronym>, you c
 </pre></td></tr></table>
 
 <p>The fact that most <acronym>SLY</acronym> output (in the <acronym>REPL</acronym> for instance,
-see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>) uses <code>SLYNK:*SLYNK-PPRINT-BINDINGS*</code> may surprise you
+see section <a href="#REPL">The REPL: the &ldquo;top level&rdquo;</a>) uses <code>SLYNK:*SLYNK-PPRINT-BINDINGS*</code> may surprise you
 if you expected it to use a global setting for, say,
 <code>*PRINT-LENGTH*</code>.  The rationale for this decision is that output
 is a very basic feature of <acronym>SLY</acronym>, and it should keep operating normally
@@ -4105,7 +4151,7 @@ when SLY presents them in its interface.
 <p>The difference between the two functions is that
 <code>*PRESENT-NUMBER-ALIST*</code>, if non-nil,
 overrides <code>*ECHO-NUMBER-ALIST*</code> in the context of the <acronym>REPL</acronym>, Trace
-Dialog and Stickers (see <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>, <a href="#Trace-Dialog">Trace Dialog</a> and
+Dialog and Stickers (see <a href="#REPL">The REPL: the &ldquo;top level&rdquo;</a>, <a href="#Trace-Dialog">Trace Dialog</a> and
 <a href="#Stickers">Stickers</a>), while the latter is used for commands like <kbd>C-x
 C-e</kbd> or the inspector (see <a href="#Evaluation">Evaluating code</a>, <a href="#Inspector">The Inspector</a>).
 </p>
@@ -4533,7 +4579,7 @@ just add this to your &lsquo;<tt>~/.emacs</tt>&rsquo; or
 <h2 class="section">8.4 REPLs and &ldquo;Game Loops&rdquo;</h2>
 
 <p>When developing Common Lisp video games or graphical applications, a
-REPL (see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>) is just as useful as anywhere else.  But it is often
+REPL (see section <a href="#REPL">The REPL: the &ldquo;top level&rdquo;</a>) is just as useful as anywhere else.  But it is often
 the case that one needs to control exactly the timing of REPL requests
 and ensure they do not interfere with the &ldquo;game loop&rdquo;.  In other
 situations, the choice of communication style (see section <a href="#Communication-style">Communication style</a>) to the Slynk server may invalidate simultaneous multi-threaded
@@ -4590,7 +4636,7 @@ is bound to in whatever SLY REPL you wish to interact with your game.
 
 <p>If your application has a non-SLY, non-Emacs user interface (graphical
 or otherwise), you can use it to exert some control over SLY
-functionality, such as its REPL (see section <a href="#REPL">SLY REPL: the &ldquo;top level&rdquo;</a>) and inspector
+functionality, such as its REPL (see section <a href="#REPL">The REPL: the &ldquo;top level&rdquo;</a>) and inspector
 (see section <a href="#Inspector">The Inspector</a>).  This requires that you first set, in Emacs,
 variable <code>sly-enable-evaluate-in-emacs</code> to non-nil.  As the name
 suggests, it lets outside Slynk servers evaluate code in your Elisp
@@ -4881,32 +4927,37 @@ and code-contributors of <acronym>SLY</acronym> are:
 <table>
 <tr><td width="33%">Helmut Eller</td><td width="33%">João Távora</td><td width="33%">Luke Gorrie</td></tr>
 <tr><td width="33%">Tobias C. Rittweiler</td><td width="33%">Stas Boukarev</td><td width="33%">Marco Baringer</td></tr>
-<tr><td width="33%">Matthias Koeppe</td><td width="33%">Nikodemus Siivola</td><td width="33%">Alan Ruttenberg</td></tr>
-<tr><td width="33%">Attila Lendvai</td><td width="33%">Luís Borges de Oliveira</td><td width="33%">Dan Barlow</td></tr>
-<tr><td width="33%">Andras Simon</td><td width="33%">Martin Simmons</td><td width="33%">Geo Carncross</td></tr>
-<tr><td width="33%">Christophe Rhodes</td><td width="33%">Peter Seibel</td><td width="33%">Mark Evenson</td></tr>
-<tr><td width="33%">Juho Snellman</td><td width="33%">Douglas Crosher</td><td width="33%">Wolfgang Jenkner</td></tr>
-<tr><td width="33%">R Primus</td><td width="33%">Javier Olaechea</td><td width="33%">Edi Weitz</td></tr>
-<tr><td width="33%">Zach Shaftel</td><td width="33%">James Bielman</td><td width="33%">Daniel Kochmanski</td></tr>
-<tr><td width="33%">Terje Norderhaug</td><td width="33%">Vladimir Sedach</td><td width="33%">Juan Jose Garcia Ripoll</td></tr>
-<tr><td width="33%">Alexander Artemenko</td><td width="33%">Spenser Truex</td><td width="33%">Nathan Trapuzzano</td></tr>
-<tr><td width="33%">Brian Downing</td><td width="33%">Mark</td><td width="33%">Jeffrey Cunningham</td></tr>
+<tr><td width="33%">Matthias Koeppe</td><td width="33%">Joao Tavora</td><td width="33%">Nikodemus Siivola</td></tr>
+<tr><td width="33%">Alan Ruttenberg</td><td width="33%">Attila Lendvai</td><td width="33%">Dan Barlow</td></tr>
+<tr><td width="33%">Luís Oliveira</td><td width="33%">Andras Simon</td><td width="33%">Martin Simmons</td></tr>
+<tr><td width="33%">Geo Carncross</td><td width="33%">Christophe Rhodes</td><td width="33%">Peter Seibel</td></tr>
+<tr><td width="33%">Mark Evenson</td><td width="33%">Juho Snellman</td><td width="33%">Douglas Crosher</td></tr>
+<tr><td width="33%">Wolfgang Jenkner</td><td width="33%">R Primus</td><td width="33%">Javier Olaechea</td></tr>
+<tr><td width="33%">Edi Weitz</td><td width="33%">Zach Shaftel</td><td width="33%">James Bielman</td></tr>
+<tr><td width="33%">Daniel Kochmanski</td><td width="33%">Chris Schafmeister</td><td width="33%">Luís Oliveira</td></tr>
+<tr><td width="33%">Terje Norderhaug</td><td width="33%">Mark</td><td width="33%">Vladimir Sedach</td></tr>
+<tr><td width="33%">Pierre Neidhardt</td><td width="33%">Juan Jose Garcia Ripoll</td><td width="33%">Alexander Artemenko</td></tr>
+<tr><td width="33%">Spenser Truex</td><td width="33%">Nathan Trapuzzano</td><td width="33%">Jan Moringen</td></tr>
+<tr><td width="33%">Brian Downing</td><td width="33%">Luís Borges de Oliveira</td><td width="33%">Jeffrey Cunningham</td></tr>
 <tr><td width="33%">Espen Wiborg</td><td width="33%">Paul M. Rodriguez</td><td width="33%">Masataro Asai</td></tr>
-<tr><td width="33%">Jan Moringen</td><td width="33%">Sébastien Villemot</td><td width="33%">Samuel Freilich</td></tr>
-<tr><td width="33%">Raymond Toy</td><td width="33%">Pierre Neidhardt</td><td width="33%">Phil Hargett</td></tr>
-<tr><td width="33%">Paulo Madeira</td><td width="33%">Kris Katterjohn</td><td width="33%">Jonas Bernoulli</td></tr>
-<tr><td width="33%">Ivan Shvedunov</td><td width="33%">Gábor Melis</td><td width="33%">Francois-Rene Rideau</td></tr>
+<tr><td width="33%">Sébastien Villemot</td><td width="33%">Stefan Monnier</td><td width="33%">Samuel Freilich</td></tr>
+<tr><td width="33%">Raymond Toy</td><td width="33%">Phil Hargett</td><td width="33%">Paulo Madeira</td></tr>
+<tr><td width="33%">Kris Katterjohn</td><td width="33%">Jonas Bernoulli</td><td width="33%">Ivan Shvedunov</td></tr>
+<tr><td width="33%">Gábor Melis</td><td width="33%">Francois-Rene Rideau</td><td width="33%">Douglas Katzman</td></tr>
 <tr><td width="33%">Christophe Junke</td><td width="33%">Bozhidar Batsov</td><td width="33%">Bart Botta</td></tr>
-<tr><td width="33%">Wilfredo Velázquez-Rodríguez</td><td width="33%">Tianxiang Xiong</td><td width="33%">Syohei YOSHIDA</td></tr>
-<tr><td width="33%">Stefan Monnier</td><td width="33%">Rommel MARTINEZ</td><td width="33%">Pavel Kulyov</td></tr>
-<tr><td width="33%">Paul A. Patience</td><td width="33%">Olof-Joachim Frahm</td><td width="33%">Mike Clarke</td></tr>
-<tr><td width="33%">Michał Herda</td><td width="33%">Mark H. David</td><td width="33%">Mario Lang</td></tr>
-<tr><td width="33%">Manfred Bergmann</td><td width="33%">Leo Liu</td><td width="33%">Koga Kazuo</td></tr>
+<tr><td width="33%">Zachary Beane</td><td width="33%">Wilfredo Velázquez-Rodríguez</td><td width="33%">Tianxiang Xiong</td></tr>
+<tr><td width="33%">The Gendl Project</td><td width="33%">Syohei YOSHIDA</td><td width="33%">Rommel MARTINEZ</td></tr>
+<tr><td width="33%">Pavel Kulyov</td><td width="33%">Paul A. Patience</td><td width="33%">Olof-Joachim Frahm</td></tr>
+<tr><td width="33%">Nathan Ringo</td><td width="33%">Mike Clarke</td><td width="33%">Michał Herda</td></tr>
+<tr><td width="33%">Michael Kirkland</td><td width="33%">Mark H. David</td><td width="33%">Marius Gerbershagen</td></tr>
+<tr><td width="33%">Mario Lang</td><td width="33%">Manfred Bergmann</td><td width="33%">Luis Oliveira</td></tr>
+<tr><td width="33%">Leo Liu</td><td width="33%">Koga Kazuo</td><td width="33%">Karsten Poeck</td></tr>
 <tr><td width="33%">Jon Oddie</td><td width="33%">John Stracke</td><td width="33%">Joe Robertson</td></tr>
-<tr><td width="33%">Grant Shangreaux</td><td width="33%">Graham Dobbins</td><td width="33%">Eric Timmons</td></tr>
-<tr><td width="33%">Douglas Katzman</td><td width="33%">Dmitry Igrishin</td><td width="33%">Dmitrii Korobeinikov</td></tr>
+<tr><td width="33%">Jingtao Xu</td><td width="33%">Grant Shangreaux</td><td width="33%">Graham Dobbins</td></tr>
+<tr><td width="33%">Eric Timmons</td><td width="33%">Dmitry Igrishin</td><td width="33%">Dmitrii Korobeinikov</td></tr>
 <tr><td width="33%">Deokhwan Kim</td><td width="33%">Denis Budyak</td><td width="33%">Chunyang Xu</td></tr>
-<tr><td width="33%">Cayman</td><td width="33%">Angelo Rossi</td><td width="33%">Andrew Kirkpatrick</td></tr>
+<tr><td width="33%">Christian Schafmeister</td><td width="33%">Cayman</td><td width="33%">Angelo Rossi</td></tr>
+<tr><td width="33%">Andrew Kirkpatrick</td></tr>
 </table>
 
 <p>... not counting the bundled code from &lsquo;<tt>hyperspec.el</tt>&rsquo;,
@@ -5039,8 +5090,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-B"><code>B</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.4 Miscellaneous Commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-C">C</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C"><code>C</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.4 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-c"><code>c</code></a></td><td valign="top"><a href="#Restarts">6.3.2 Invoking restarts</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C"><code>C</code></a></td><td valign="top"><a href="#Miscellaneous">6.3.4 Miscellaneous Commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003a"><code>C-c :</code></a></td><td valign="top"><a href="#Evaluation">4.1 Evaluating code</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003c"><code>C-c &lt;</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_003e"><code>C-c &gt;</code></a></td><td valign="top"><a href="#Cross_002dreferencing">5.2 Cross-referencing</a></td></tr>
@@ -5077,7 +5128,7 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dx-c"><code>C-c C-x c</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dx-n"><code>C-c C-x n</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dx-p"><code>C-c C-x p</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dz"><code>C-c C-z</code></a></td><td valign="top"><a href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C_002dc-C_002dz"><code>C-c C-z</code></a></td><td valign="top"><a href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-E"><code>C-c E</code></a></td><td valign="top"><a href="#Evaluation">4.1 Evaluating code</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-I"><code>C-c I</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-M_002dc"><code>C-c M-c</code></a></td><td valign="top"><a href="#Compilation">4.2 Compiling functions and files</a></td></tr>
@@ -5087,7 +5138,7 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002dc-M_002do"><code>C-c M-o</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-T"><code>C-c T</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dc-_007e"><code>C-c ~</code></a></td><td valign="top"><a href="#Recovery">5.8 Abort/Recovery commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-C_002dc-_007e-1"><code>C-c ~</code></a></td><td valign="top"><a href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-C_002dc-_007e-1"><code>C-c ~</code></a></td><td valign="top"><a href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dj"><code>C-j</code></a></td><td valign="top"><a href="#Scratch-Buffer">9.2.2 Scratch Buffer</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dk"><code>C-k</code></a></td><td valign="top"><a href="#Trace-Dialog">6.4 Trace Dialog</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-C_002dM_002dn"><code>C-M-n</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
@@ -5103,8 +5154,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-C_002d_005f"><code>C-_</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-D">D</a></th><td></td><td></td></tr>
-<tr><td></td><td valign="top"><a href="#index-D"><code>D</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-d"><code>d</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-D"><code>D</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-D-1"><code>D</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-d-1"><code>d</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
@@ -5168,8 +5219,8 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-T">T</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-t"><code>t</code></a></td><td valign="top"><a href="#Examining-frames">6.3.1 Examining frames</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">5.3 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB"><code>TAB</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-tab"><code>tab</code></a></td><td valign="top"><a href="#Completion">5.3 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-TAB-1"><code>TAB</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Key-_0028Character_0029-Index_ky_letter-V">V</a></th><td></td><td></td></tr>
@@ -5360,17 +5411,17 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td></td><td valign="top"><a href="#index-sly_002dmacroexpand_002d1_002dinplace-1"><code>sly-macroexpand-1-inplace</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmacroexpand_002dall"><code>sly-macroexpand-all</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmacroexpand_002dundo"><code>sly-macroexpand-undo</code></a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dmrepl"><code>sly-mrepl</code></a></td><td valign="top"><a href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dmrepl"><code>sly-mrepl</code></a></td><td valign="top"><a href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dclear_002drecent_002doutput"><code>sly-mrepl-clear-recent-output</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dclear_002drepl"><code>sly-mrepl-clear-repl</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dcopy_002dpart_002dto_002drepl"><code>sly-mrepl-copy-part-to-repl</code></a></td><td valign="top"><a href="#Inspector">6.2 The Inspector</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dindent_002dand_002dcomplete_002dsymbol"><code>sly-mrepl-indent-and-complete-symbol</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dnew"><code>sly-mrepl-new</code></a></td><td valign="top"><a href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dnew"><code>sly-mrepl-new</code></a></td><td valign="top"><a href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dnext_002dinput_002dor_002dbutton"><code>sly-mrepl-next-input-or-button</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dprevious_002dinput_002dor_002dbutton"><code>sly-mrepl-previous-input-or-button</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dreturn"><code>sly-mrepl-return</code></a></td><td valign="top"><a href="#REPL-commands">6.1.1 REPL commands</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dsync"><code>sly-mrepl-sync</code></a></td><td valign="top"><a href="#Recovery">5.8 Abort/Recovery commands</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dsync-1"><code>sly-mrepl-sync</code></a></td><td valign="top"><a href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-sly_002dmrepl_002dsync-1"><code>sly-mrepl-sync</code></a></td><td valign="top"><a href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dnext_002dcompletion"><code>sly-next-completion</code></a></td><td valign="top"><a href="#Completion">5.3 Auto-completion</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dnext_002dconnection"><code>sly-next-connection</code></a></td><td valign="top"><a href="#Multiple-connections">5.6 Multiple connections</a></td></tr>
 <tr><td></td><td valign="top"><a href="#index-sly_002dnext_002dnote"><code>sly-next-note</code></a></td><td valign="top"><a href="#Compilation">4.2 Compiling functions and files</a></td></tr>
@@ -5483,7 +5534,7 @@ Martin&rsquo;s initial work on the LispWorks backend!
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-L">L</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-LATIN_002d1">LATIN-1</a></td><td valign="top"><a href="#Defcustom-variables">7.1.3 Defcustom variables</a></td></tr>
-<tr><td></td><td valign="top"><a href="#index-Listener">Listener</a></td><td valign="top"><a href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a></td></tr>
+<tr><td></td><td valign="top"><a href="#index-Listener">Listener</a></td><td valign="top"><a href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a></td></tr>
 <tr><td colspan="3"> <hr></td></tr>
 <tr><th><a name="Variable-and-Concept-Index_vr_letter-M">M</a></th><td></td><td></td></tr>
 <tr><td></td><td valign="top"><a href="#index-Macros">Macros</a></td><td valign="top"><a href="#Macro_002dexpansion">4.6 Macro-expansion commands</a></td></tr>
@@ -5606,9 +5657,9 @@ using that port number instead
     <li><a name="toc-Temporary-buffers-1" href="#Temporary-buffers">5.9 Temporary buffers</a></li>
     <li><a name="toc-Multi_002dthreading-1" href="#Multi_002dthreading">5.10 Multi-threading</a></li>
   </ul></li>
-  <li><a name="toc-SLY-REPL-and-other-special-buffers-1" href="#SLY-REPL-and-other-special-buffers">6. SLY REPL and other special buffers</a>
+  <li><a name="toc-The-REPL-and-other-special-buffers-1" href="#The-REPL-and-other-special-buffers">6. The REPL and other special buffers</a>
   <ul class="toc">
-    <li><a name="toc-SLY-REPL_003a-the-_0060_0060top-level_0027_0027" href="#REPL">6.1 SLY REPL: the &ldquo;top level&rdquo;</a>
+    <li><a name="toc-The-REPL_003a-the-_0060_0060top-level_0027_0027" href="#REPL">6.1 The REPL: the &ldquo;top level&rdquo;</a>
     <ul class="toc">
       <li><a name="toc-REPL-commands-1" href="#REPL-commands">6.1.1 REPL commands</a></li>
       <li><a name="toc-REPL-output-1" href="#REPL-output">6.1.2 REPL output</a></li>
@@ -5684,7 +5735,7 @@ using that port number instead
 </tr></table>
 <h1>About This Document</h1>
 <p>
-  This document was generated by <em>Joao</em> on <em>December 29, 2020</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao</em> on <em>February 4, 2021</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
 </p>
 <p>
   The buttons in the navigation panels have the following meaning:
@@ -5786,7 +5837,7 @@ using that port number instead
 <hr size="1">
 <p>
  <font size="-1">
-  This document was generated by <em>Joao</em> on <em>December 29, 2020</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
+  This document was generated by <em>Joao</em> on <em>February 4, 2021</em> using <a href="http://www.nongnu.org/texi2html/"><em>texi2html 1.82</em></a>.
  </font>
  <br>
 
