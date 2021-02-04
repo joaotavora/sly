@@ -30,7 +30,7 @@
    (pending-errors :initform nil :accessor mrepl-pending-errors))
   (:documentation "A listener implemented in terms of a channel.")
   (:default-initargs
-   :initial-env `((cl:*package* . ,(find-package :COMMON-LISP-USER))
+   :initial-env `((cl:*package* . ,cl:*package*)
                   (*) (**) (***)
                   (/) (//) (///)
                   (+) (++) (+++)
