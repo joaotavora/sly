@@ -31,6 +31,8 @@
   (:documentation "A listener implemented in terms of a channel.")
   (:default-initargs
    :initial-env `((cl:*package* . ,cl:*package*)
+                  (cl:*default-pathname-defaults*
+                   . ,cl:*default-pathname-defaults*)
                   (*) (**) (***)
                   (/) (//) (///)
                   (+) (++) (+++)
@@ -265,11 +267,13 @@ Set this to NIL to turn this feature off.")
     ;; *HISTORY* will get incorrectly clobbered to their pre-debugger
     ;; values, whereas we want to serialize this history.
     ;;
-    ;; However, as an exception, we /do/ want *PACKAGE* to be
-    ;; clobbered if the evaluation of STRING eventually completes.
+    ;; However, as an exception, we /do/ want /some/ special symbols
+    ;; to be clobbered if the evaluation of STRING eventually
+    ;; completes.  Currently, those are *PACKAGE* and
+    ;; *DEFAULT-PATHNAME-DEFAULTS*.
     ;;
     ;; Another way to see this is: the forms that the user inputs can
-    ;; only change the *PACKAGE* binding of the listener's
+    ;; only change binding of those special symbols in the listener's
     ;; environment. Everything else in there is handled automatically.
     ;;
     (with-listener-bindings repl
@@ -294,8 +298,9 @@ Set this to NIL to turn this feature off.")
                                           (setq +++ ++ ++ + + form))))))
                     finally
                     (return values))))
-        (setf (cdr (assoc '*package* (slot-value repl 'slynk::env)))
-              *package*)))))
+        (dolist (special-sym '(*package* *default-pathname-defaults*))
+          (setf (cdr (assoc special-sym (slot-value repl 'slynk::env)))
+                (symbol-value special-sym)))))))
 
 (defun set-external-mode (repl new-mode)
   (with-slots (mode remote-id) repl

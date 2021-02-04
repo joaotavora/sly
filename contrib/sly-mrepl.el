@@ -1312,10 +1312,27 @@ When setting this variable outside of the Customize interface,
   (interactive)
   (let ((directory (read-directory-name "New directory: "
                                         default-directory nil t)))
-    (sly-mrepl--save-and-copy-for-repl
-     `(slynk:set-default-directory ,directory)
-     :before (format "Setting directory to %s" directory))
+    (sly-mrepl--eval-for-repl
+     `(slynk:set-default-directory ,directory))
+    (sly-mrepl--insert-note (format "Setting directory to %s" directory))
     (cd directory)))
+
+(advice-add
+ 'sly-cd :around
+ (lambda (oldfun r)
+   (interactive (lambda (oldspec)
+                  (if (or (not (eq major-mode 'sly-mrepl-mode))
+                          (sly-y-or-n-p
+                           (substitute-command-keys
+                            "This won't set the REPL's directory (use \
+ \\[sly-mrepl-set-directory] for that).  Proceed?")))
+                      (list (advice-eval-interactive-spec oldspec))
+                    (keyboard-quit))))
+   (apply oldfun r))
+ '((name . sly-mrepl--be-aware-of-sly-cd)))
+
+
+
 
 (defun sly-mrepl-shortcut ()
   (interactive)
