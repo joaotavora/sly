@@ -1331,9 +1331,6 @@ When setting this variable outside of the Customize interface,
    (apply oldfun r))
  '((name . sly-mrepl--be-aware-of-sly-cd)))
 
-
-
-
 (defun sly-mrepl-shortcut ()
   (interactive)
   (let* ((string (sly-completing-read "Command: "
