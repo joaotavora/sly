@@ -31,7 +31,7 @@
 (defun sly-button-at (&optional pos type no-error)
   (let ((button (button-at (or pos
                                (if (mouse-event-p last-input-event)
-                                   (posn-point (event-end last-input-event))
+                                   (posn-point (event-start last-input-event))
                                  (point))))))
     (cond ((and button type
                 (button-type-subtype-p (button-type button) type))
