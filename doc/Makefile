@@ -14,7 +14,7 @@ INSTALL_CMD=install -m 644
 # Info files generated here.
 infofiles=sly.info
 
-TEXI = sly.texi contributors.texi
+TEXI = sly.texi
 
 help:
 	@echo -e "\
@@ -48,14 +48,16 @@ html.tgz: html/index.html
 
 DOCDIR=/project/sly/public_html/doc
 
-publish: sly.html
-	rm -rf gh-pages
+gh-pages:
 	git clone git@github.com:joaotavora/sly.git --branch gh-pages --single-branch gh-pages
+
+publish: sly.html gh-pages
 	cp sly.html gh-pages/index.html
 	cp -Rf images/*.png gh-pages/images
-	cd gh-pages \
-	&& git add index.html images/*\
-	&& git commit -a -m "Automatic documentation update" \
+	cd gh-pages						\
+	&& git add index.html images/*				\
+	&& git commit -a -m "Automatic documentation update" 	\
+	&& git pull --rebase 					\
 	&& git push origin gh-pages
 
 sly.pdf: $(TEXI)
