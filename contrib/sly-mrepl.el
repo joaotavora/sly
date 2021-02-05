@@ -1311,12 +1311,15 @@ When setting this variable outside of the Customize interface,
 
 (defun sly-mrepl-set-directory ()
   (interactive)
-  (let ((directory (read-directory-name "New directory: "
-                                        default-directory nil t)))
+  (let ((dir (read-directory-name "New directory: "
+                                  default-directory nil t)))
+    ;; repeats logic in `sly-cd'.
     (sly-mrepl--eval-for-repl
-     `(slynk:set-default-directory ,directory))
-    (sly-mrepl--insert-note (format "Setting directory to %s" directory))
-    (cd directory)))
+     `(slynk:set-default-directory
+       (slynk-backend:filename-to-pathname
+        ,(sly-to-lisp-filename dir))))
+    (sly-mrepl--insert-note (format "Setting directory to %s" dir))
+    (cd dir)))
 
 (advice-add
  'sly-cd :around

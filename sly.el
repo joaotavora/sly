@@ -4424,7 +4424,8 @@ The functions are called with the new (absolute) directory.")
 Return whatever slynk:set-default-directory returns."
   (let ((dir (expand-file-name directory)))
     (prog1 (sly-eval `(slynk:set-default-directory
-                       ,(sly-to-lisp-filename dir)))
+                       (slynk-backend:filename-to-pathname
+                        ,(sly-to-lisp-filename dir))))
       (sly-with-connection-buffer nil (cd-absolute dir))
       (run-hook-with-args 'sly-change-directory-hooks dir))))
 
