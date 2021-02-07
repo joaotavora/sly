@@ -6479,8 +6479,9 @@ was called originally."
 
 (defun sly-restart-connection-at-point (connection)
   (interactive (list (sly--connection-at-point)))
-  (let ((sly-dispatching-connection connection))
-    (sly-restart-inferior-lisp)))
+  (when (sly-y-or-n-p "Really restart '%s'" (sly-connection-name connection))
+    (let ((sly-dispatching-connection connection))
+      (sly-restart-inferior-lisp))))
 
 (defun sly-connection-list-make-default ()
   "Make the connection at point the default connection."
