@@ -1,5 +1,5 @@
 ;; -*- lexical-binding: t; -*-
-(require 'sly-indentation)
+(require 'sly-indentation "contrib/sly-indentation")
 (require 'sly-tests "lib/sly-tests")
 
 (sly-define-common-lisp-style "common-lisp-indent-test"

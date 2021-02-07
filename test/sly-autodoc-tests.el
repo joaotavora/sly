@@ -1,5 +1,5 @@
 ;; -*- lexical-binding: t; -*-
-(require 'sly-autodoc)
+(require 'sly-autodoc "contrib/sly-autodoc")
 (require 'sly-tests "lib/sly-tests")
 (require 'cl-lib)
 

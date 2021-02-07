@@ -1,5 +1,5 @@
 ;; -*- lexical-binding: t; -*-
-(require 'sly-mrepl)
+(require 'sly-mrepl "contrib/sly-mrepl")
 (require 'sly-tests "lib/sly-tests")
 (require 'cl-lib)
 (require 'ert-x)

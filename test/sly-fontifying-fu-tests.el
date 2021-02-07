@@ -1,7 +1,7 @@
 ;; -*- lexical-binding: t; -*-
-(require 'sly-fontifying-fu)
+(require 'sly-fontifying-fu "contrib/sly-fontifying-fu")
 (require 'sly-tests "lib/sly-tests")
-(require 'sly-autodoc)
+(require 'sly-autodoc "contrib/sly-autodoc")
 
 (cl-defun sly-initialize-lisp-buffer-for-test-suite
     (&key (font-lock-magic t) (autodoc t))

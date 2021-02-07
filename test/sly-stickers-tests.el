@@ -1,5 +1,5 @@
 ;; -*- lexical-binding: t; -*-
-(require 'sly-stickers)
+(require 'sly-stickers "contrib/sly-stickers")
 (require 'sly-tests "lib/sly-tests")
 (require 'cl-lib)
 (require 'ert-x)
