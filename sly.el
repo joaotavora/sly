@@ -1434,24 +1434,11 @@ Fall back to `sly-init-using-slynk-loader' if ASDF fails."
            (setq sly-connect-retry-timer
                  (run-with-timer
                   sly-connection-poll-interval nil
-                  #'sly-timer-call #'sly-attempt-connection
-                  `((sly-ignore-protocol-mismatches . ,sly-ignore-protocol-mismatches))
-                  process (and retries (1- retries))
-                  (1+ attempt)))))))
-
-(defun sly-timer-call (fun env &rest args)
-  "Call function FUN with ARGS, reporting all errors.
-
-FUN is called with the overriding dynamic environment in ENV, an
-alist of bindings.
-
-The default condition handler for timer functions (see
-`timer-event-handler') ignores errors."
-  (condition-case data
-      (cl-progv (mapcar #'car env) (mapcar #'cdr env)
-        (apply fun args))
-    ((debug error)
-     (debug nil (list "Error in timer" fun args data)))))
+                  (lambda ()
+                    (let ((sly-ignore-protocol-mismatches
+                           sly-ignore-protocol-mismatches))
+                      (sly-attempt-connection process (and retries (1- retries))
+                                              (1+ attempt))))))))))
 
 (defun sly-cancel-connect-retry-timer ()
   (when sly-connect-retry-timer
