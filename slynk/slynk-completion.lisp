@@ -9,7 +9,9 @@
    #:flex-completions
    #:simple-completions
    #:flex-matches
-   #:*completion-sort-predicate*))
+   #:*completion-sort-predicate*
+   #:*current-package*
+   #:*current-pattern*))
 
 ;; for testing package-local nicknames
 #+sbcl
@@ -264,19 +266,40 @@ Return non-nil if match was collected, nil otherwise."
                      indexes
                      score)))))
 
-(defparameter *completion-sort-predicate* nil
+(defvar *completion-sort-predicate* nil
   "If non-nil, use this function to sort completions.
 Value is a function of two symbols A and B that should return non-nil
 if A should sort before B.  Leave to nil to sort by completion
 score.")
 
+(defparameter *current-package* nil
+  "Will be set to a buffer package when user is doing autocompletion.
+
+You can use this variable to do implement additional logic in the sort
+predicate.")
+
+(defparameter *current-pattern* nil
+  "Will be set to a string with a text to autocomplete.
+
+You can use this variable to do implement additional logic in the sort
+predicate.")
+
 (defun sort-by-score (matches)
   "Sort MATCHES by SCORE, highest score first.
 
 Matches are produced by COLLECT-IF-MATCHES (which see)."
-  (if *completion-sort-predicate*
-      (sort matches *completion-sort-predicate* :key #'second)
-      (sort matches #'> :key #'fourth)))
+  (let ((result (sort (copy-list matches)
+                      #'>
+                      :key #'fourth)))
+    (when *completion-sort-predicate*
+      (setf result
+            ;; Here we use stable sort
+            ;; to make-it posible for predicate
+            ;; to keep some ordering, based on score:
+            (stable-sort result
+                         *completion-sort-predicate*
+                         :key #'second)))
+    result))
 
 (defun keywords-matching (pattern)
   "Find keyword symbols flex-matching PATTERN.
@@ -410,16 +433,17 @@ Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
 \(STRING SCORE CHUNKS CLASSIFICATION-STRING)."
   (when (plusp (length pattern))
     (list (loop
-            with package = (guess-buffer-package package-name)
+            with *current-package* = (guess-buffer-package package-name)
+            with *current-pattern* = pattern
             with upcasepat = (string-upcase pattern)
             for (string symbol indexes score)
               in
               (loop with (external internal)
-                      = (multiple-value-list (qualified-matching upcasepat package))
+                      = (multiple-value-list (qualified-matching upcasepat *current-package*))
                     for e in (append (sort-by-score
                                       (keywords-matching upcasepat))
                                      (sort-by-score
-                                      (append (accessible-matching upcasepat package)
+                                      (append (accessible-matching upcasepat *current-package*)
                                               external))
                                      (sort-by-score
                                       internal))
