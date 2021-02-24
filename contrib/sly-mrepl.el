@@ -497,8 +497,8 @@ current ERROR-LEVEL."
   :type 'function
   :group 'sly)
 
-(defun sly-mrepl--insert-prompt (package nickname error-level next-entry-idx
-                                         &optional condition)
+(defun sly-mrepl--insert-prompt (package nickname error-level
+                                         &optional next-entry-idx condition)
   (sly-mrepl--accept-process-output)
   (overlay-put sly-mrepl--last-prompt-overlay 'face 'bold)
   (when condition
