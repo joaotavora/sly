@@ -1178,24 +1178,22 @@ Doesn't clear input history."
 (defun sly-mrepl-next-prompt ()
   "Go to the beginning of the next REPL prompt."
   (interactive)
-  (let ((pos (next-single-char-property-change (line-beginning-position 2)
-                                               'sly-mrepl--prompt)))
-    (goto-char pos))
+  (let ((at-prompt-p (get-text-property (point) 'sly-mrepl--prompt)))
+    (dotimes (_ (if at-prompt-p 1 2))
+      (goto-char (next-single-char-property-change (point) 'sly-mrepl--prompt))))
   (end-of-line))
 
 (defun sly-mrepl-previous-prompt ()
   "Go to the beginning of the previous REPL prompt."
   (interactive)
-  ;; This has two wrinkles around the first prompt: (1) when going to
-  ;; the first prompt it leaves point at column 0 (1) when called from
-  ;; frist prompt goes to beginning of buffer.  The correct fix is to
-  ;; patch comint.el's comint-next-prompt and comint-previous-prompt
-  ;; anyway...
-  (let* ((inhibit-field-text-motion t)
-         (pos (previous-single-char-property-change (1- (line-beginning-position))
-                                                   'sly-mrepl--prompt)))
-    (goto-char pos)
-    (goto-char (line-beginning-position)))
+  (let ((at-prompt (let ((inhibit-field-text-motion t))
+                     (get-text-property (line-beginning-position) 'sly-mrepl--prompt))))
+    (when at-prompt
+      (let ((inhibit-field-text-motion t))
+        (beginning-of-line)
+        (forward-char)))
+    (dotimes (_ (if at-prompt 2 1))
+      (goto-char (previous-single-char-property-change (point) 'sly-mrepl--prompt))))
   (end-of-line))
 
 
