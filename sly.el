@@ -7464,7 +7464,7 @@ and replace `sly-editing-mode' with `slime-lisp-mode-hook'.")))
     (with-current-buffer buffer
       (when (eq major-mode 'lisp-mode)
         (sly-editing-mode 1)
-        (ignore-errors (funcall 'slime-mode -1))))))
+        (ignore-errors (and (featurep 'slime) (funcall 'slime-mode -1)))))))
  (t
   (warn
    "`sly.el' loaded OK. To use SLY, customize `lisp-mode-hook' and remove `slime-lisp-mode-hook'.")))
