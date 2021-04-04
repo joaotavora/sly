@@ -1010,7 +1010,7 @@ EXECUTABLE and ARGS are strings."
   :type 'string
   :group 'sly-lisp)
 
-(defvar sly-lisp-implementations nil
+(defcustom sly-lisp-implementations nil
   "*A list of known Lisp implementations.
 The list should have the form:
   ((NAME (PROGRAM PROGRAM-ARGS...) &key KEYWORD-ARGS) ...)
@@ -1021,7 +1021,30 @@ For KEYWORD-ARGS see `sly-start'.
 
 Here's an example:
  ((cmucl (\"/opt/cmucl/bin/lisp\" \"-quiet\") :init sly-init-command)
-  (acl (\"acl7\") :coding-system emacs-mule))")
+  (acl (\"acl7\") :coding-system emacs-mule))"
+  :type '(repeat
+          :tag "Implementations"
+          (list
+           :indent 4
+           :tag "Implementation"
+           (symbol :tag "Name")
+           (cons :indent 8
+                 :tag "Command"
+                 (file :tag "Program")
+                 (repeat :tag "Arguments"
+                         (string :format "%v")))
+           (plist :inline t
+                  :indent 8
+                  :tag "Additional parameters"
+                  :options ((:directory directory)
+                            (:coding-system coding-system)
+                            (:init function)
+                            (:buffer (string :tag "Buffer name"))
+                            (:init-function function)
+                            (:env (repeat
+                                   :tag "Process environment"
+                                   (string :format "%v")))))))
+  :group 'sly-mode)
 
 (defcustom sly-command-switch-to-existing-lisp 'ask
   "Should the `sly' command start new lisp if one is available?"
