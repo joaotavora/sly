@@ -1010,7 +1010,7 @@ EXECUTABLE and ARGS are strings."
   :type 'string
   :group 'sly-lisp)
 
-(defvar sly-lisp-implementations nil
+(defcustom sly-lisp-implementations nil
   "*A list of known Lisp implementations.
 The list should have the form:
   ((NAME (PROGRAM PROGRAM-ARGS...) &key KEYWORD-ARGS) ...)
@@ -1021,7 +1021,20 @@ For KEYWORD-ARGS see `sly-start'.
 
 Here's an example:
  ((cmucl (\"/opt/cmucl/bin/lisp\" \"-quiet\") :init sly-init-command)
-  (acl (\"acl7\") :coding-system emacs-mule))")
+  (acl (\"acl7\") :coding-system emacs-mule))"
+  :type '(repeat
+          (cons (symbol :tag "Name")
+                (cons (cons (file :must-watch t :tag "Program")
+                            (repeat :tag "Program arguments"
+                                    (string :tag "Program argument")))
+                      (plist :options ((:directory directory)
+                                       (:coding-system coding-system)
+                                       (:init function)
+                                       (:buffer (string :tag "Buffer name"))
+                                       (:init-function function)
+                                       (:env (repeat :tag "Process environment"
+                                                     (string :tag "Env variable"))))))))
+  :group 'sly-mode)
 
 (defcustom sly-command-switch-to-existing-lisp 'ask
   "Should the `sly' command start new lisp if one is available?"
@@ -2707,7 +2720,7 @@ Debugged requests are ignored."
 ;;;;; Event logging to *sly-events*
 ;;;
 ;;; The *sly-events* buffer logs all protocol messages for debugging
-;;; purposes. 
+;;; purposes.
 
 (defvar sly-log-events t
   "*Log protocol events to the *sly-events* buffer.")
