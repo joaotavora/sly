@@ -2392,6 +2392,10 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
           (lambda ()
             (unless (eq (process-status (sly-connection)) 'open)
               (error "Lisp connection closed unexpectedly"))))
+         (redisplay-timer (run-at-time
+                           0.5 nil
+                           (lambda () (let ((inhibit-redisplay nil))
+                                        (redisplay)))))
          (retval
           (unwind-protect
               (catch catch-tag
@@ -2417,7 +2421,8 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
                        ;; thus even with `inhibit-quit' set to t, quit
                        ;; happens immediately.
                        (unwind-protect
-                           (let ((inhibit-quit t)) (while (sit-for 30)))
+                           (let ((inhibit-quit t)) (while (sit-for 30 t)))
+                         (cancel-timer redisplay-timer)
                          (setq cancelled t))
                        (funcall check-conn))
                       (t
