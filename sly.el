@@ -7464,7 +7464,7 @@ and replace `sly-editing-mode' with `slime-lisp-mode-hook'.")))
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
       (when (eq major-mode 'lisp-mode)
-        (sly-editing-mode 1)
+        (unless sly-editing-mode (sly-editing-mode 1))
         (ignore-errors (and (featurep 'slime) (funcall 'slime-mode -1)))))))
  (t
   (warn
