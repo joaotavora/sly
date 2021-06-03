@@ -331,7 +331,7 @@ In that case, moving a sexp backward does nothing."
         (forward-sexp n))))
 
 (defun sly-mrepl--syntax-propertize (beg end)
-  "Make everything up to currentn prompt comment syntax."
+  "Make everything up to current prompt comment syntax."
   (remove-text-properties beg end '(syntax-table nil))
   (let ((end (min end (sly-mrepl--safe-mark)))
         (beg (min beg end)))
