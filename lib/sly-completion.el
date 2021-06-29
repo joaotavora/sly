@@ -161,11 +161,12 @@ immediately."
 (defun sly--completion-request-completions (pattern slyfun)
   "Request completions for PATTERN using SLYFUN.
 SLYFUN takes two arguments, a pattern and a package."
-  (let* ((sly-current-thread t))
-    (sly--responsive-eval
-        (completions `(,slyfun ,(substring-no-properties pattern)
-                               ',(sly-current-package)))
-      completions)))
+  (when (sly-connected-p)
+    (let* ((sly-current-thread t))
+      (sly--responsive-eval
+          (completions `(,slyfun ,(substring-no-properties pattern)
+				 ',(sly-current-package)))
+	completions))))
 
 (defun sly-simple-completions (prefix)
   "Return (COMPLETIONS COMMON) where COMPLETIONS complete the PREFIX.
