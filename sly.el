@@ -592,12 +592,18 @@ interactive command.\".")
   ;; See gh#166
   (set (make-local-variable 'company-tooltip-align-annotations) t))
 
+(defun sly--lisp-indent-function (&rest args)
+  (let ((fn (if (fboundp 'sly-common-lisp-indent-function)
+                #'sly-common-lisp-indent-function
+              #'lisp-indent-function)))
+    (apply fn args)))
+
 ;;;###autoload
 (define-minor-mode sly-editing-mode
   "Minor mode for editing `lisp-mode' buffers."
   nil nil nil
   (sly-mode 1)
-  (setq-local lisp-indent-function 'sly-common-lisp-indent-function))
+  (setq-local lisp-indent-function #'sly--lisp-indent-function))
 
 (define-minor-mode sly-popup-buffer-mode
   "Minor mode for all read-only SLY buffers"
