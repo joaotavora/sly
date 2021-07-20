@@ -237,6 +237,10 @@ for output printed to the REPL (not for evaluation results)")
              (add-text-properties (1- sly-mrepl--read-mark) (point)
                                   `(face bold read-only t)))
            (setq sly-mrepl--read-mark nil)
+           ;; github#456 need to flush any output that has overtaken
+           ;; the set-read-mode rpc.
+           (when sly-mrepl--pending-output
+             (sly-mrepl--insert-output "\n"))
            (sly-message "REPL back to normal evaluation mode")))))))
 
 (sly-define-channel-method listener :prompt (&rest prompt-args)
