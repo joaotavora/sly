@@ -340,7 +340,7 @@ In that case, moving a sexp backward does nothing."
   "Keep everything up to current prompt comment syntax."
   (when (<= beg (point-min))
     (add-text-properties beg (1+ beg) `(syntax-table ,(string-to-syntax "!"))))
-  (let ((prev-end sly-mrepnl--syntax-propertize-end)
+  (let ((prev-end sly-mrepl--syntax-propertize-end)
         (end (setq sly-mrepl--syntax-propertize-end
                    (min end (sly-mrepl--safe-mark)))))
     (when prev-end
