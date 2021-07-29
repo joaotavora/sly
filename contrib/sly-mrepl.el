@@ -334,20 +334,17 @@ In that case, moving a sexp backward does nothing."
       (let ((forward-sexp-function nil))
         (forward-sexp n))))
 
-(defvar sly-mrepl--syntax-propertize-end nil)
-
 (defun sly-mrepl--syntax-propertize (beg end)
-  "Keep everything up to current prompt comment syntax."
-  (when (<= beg (point-min))
-    (add-text-properties beg (1+ beg) `(syntax-table ,(string-to-syntax "!"))))
-  (let ((prev-end sly-mrepl--syntax-propertize-end)
-        (end (setq sly-mrepl--syntax-propertize-end
-                   (min end (sly-mrepl--safe-mark)))))
-    (when prev-end
-      (remove-text-properties (1- prev-end) prev-end
-                              '(syntax-table nil face nil)))
-    (add-text-properties (1- end) end
-                         `(syntax-table ,(string-to-syntax "!")))))
+  "Make everything up to current prompt comment syntax."
+  (remove-text-properties beg end '(syntax-table nil))
+  (let ((end (min end (sly-mrepl--safe-mark)))
+        (beg beg))
+    (when (> end beg)
+      (unless (nth 8 (syntax-ppss beg))
+        (add-text-properties beg (1+ beg)
+                             `(syntax-table ,(string-to-syntax "!"))))
+      (add-text-properties (1- end) end
+                           `(syntax-table ,(string-to-syntax "!"))))))
 
 (defun sly-mrepl--call-with-repl (repl-buffer fn)
   (with-current-buffer repl-buffer
