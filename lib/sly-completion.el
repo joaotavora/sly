@@ -234,11 +234,8 @@ ANNOTATION) describing each completion possibility."
 		  (car new))
 	  (cadr new))))
 
-;; TODO: this `basic' completion style is actually a `backend'
-;; completion style, meaning a completion style where the filtering is
-;; done entirely by the backend.
-(when (boundp 'completion-category-defaults)
-  (add-to-list 'completion-category-defaults
+(when (boundp 'completion-category-overrides)
+  (add-to-list 'completion-category-overrides
                '(sly-completion (styles . (backend)))))
 
 (defun sly--completion-function-wrapper (fn)
