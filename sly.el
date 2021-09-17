@@ -5733,7 +5733,8 @@ If MORE is non-nil, more frames are on the Lisp stack."
 
     (define-key map "\C-c\C-c" 'sly-db-recompile-frame-source)
 
-    (set-keymap-parent map sly-part-button-keymap)
+    ;; temporarily comment: See issue #466
+    ;; (set-keymap-parent map sly-part-button-keymap)
     map))
 
 (defvar sly-db-frame-menu-map
