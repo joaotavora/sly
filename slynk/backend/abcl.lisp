@@ -500,11 +500,11 @@
     (backtrace start end)))
 
 ;; Don't count on JSS being loaded, but if it is then there's some more stuff we can do
-+#+#.(slynk-backend:with-symbol 'invoke-restargs 'jss)
+#+#.(slynk-backend:with-symbol 'invoke-restargs 'jss)
 (defun jss-p ()
   (and (member "JSS" *modules* :test 'string=) (intern "INVOKE-RESTARGS" "JSS")))
 
-+#+#.(slynk-backend:with-symbol 'invoke-restargs 'jss)
+#+#.(slynk-backend:with-symbol 'invoke-restargs 'jss)
 (defun matches-jss-call (form)
   (flet ((gensymp (s) (and (symbolp s) (null (symbol-package s))))
          (invokep (s)  (and (symbolp s) (eq s (jss-p)))))
