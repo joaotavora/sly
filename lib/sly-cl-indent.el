@@ -1409,39 +1409,53 @@ environment\\|more\
 
 ;; Regexps matching various varieties of loop macro keyword ...
 (defvar sly--common-lisp-body-introducing-loop-macro-keyword
-  "\\(#?:\\)?\\(do\\(ing\\)?\\|finally\\|initially\\)"
+  (concat "\\(?:\\_<\\|#?:\\)"
+          (regexp-opt '("do" "doing" "finally" "initially"))
+          "\\_>")
   "Regexp matching loop macro keywords which introduce body forms.")
 
 ;; Not currently used
-(defvar sly--common-lisp-accumlation-loop-macro-keyword
-  "\\(#?:\\)?\\(collect\\(ing\\)?\\|append\\(ing\\)?\\|nconc\\(ing\\)?\\|\
-count\\(ing\\)?\\|sum\\(ming\\)?\\|maximiz\\(e\\|ing\\)\\|\
-minimiz\\(e\\|ing\\)\\)"
+(defvar sly--common-lisp-accumulation-loop-macro-keyword
+  (concat "\\(?:\\_<\\|#?:\\)"
+          (regexp-opt '("collect" "collecting"
+                        "append" "appending"
+                        "nconc" "nconcing"
+                        "sum" "summing"
+                        "count" "counting"
+                        "maximize" "maximizing"
+                        "minimize" "minimizing"))
+          "\\_>")
   "Regexp matching loop macro keywords which introduce accumulation clauses.")
 
 ;; This is so "and when" and "else when" get handled right
 ;; (not to mention "else do" !!!)
 (defvar sly--common-lisp-prefix-loop-macro-keyword
-  "\\(#?:\\)?\\(and\\|else\\)"
+  (concat "\\(?:\\_<\\|#?:\\)" (regexp-opt '("and" "else")) "\\_>")
   "Regexp matching loop macro keywords which are prefixes.")
 
 (defvar sly--common-lisp-indent-clause-joining-loop-macro-keyword
-  "\\(#?:\\)?and"
+  "\\(?:\\_<\\|#?:\\)and\\_>"
   "Regexp matching 'and', and anything else there ever comes to be like it.")
 
 (defvar sly--common-lisp-indent-indented-loop-macro-keyword
-  "\\(#?:\\)?\\(\\(up\\|down\\)?(from\\|to)\\|below\\|above\\|in\\(to\\)?\\|\
-on\\|=\\|then\\|across\\|being\\|each\\|the\\|of\\|using\\|\
-\\(present-\\|external-\\)?symbols?\\|fixnum\\|float\\|t\\|nil\\|of-type\\)"
+  (concat "\\(?:\\_<\\|#?:\\)"
+          (regexp-opt '("upfrom" "downfrom" "upto" "downto" "below" "above"
+                        "into" "in" "on" "by" "from" "to" "by" "across" "being"
+                        "each" "the" "then" "hash-key" "hash-keys" "hash-value"
+                        "hash-values" "present-symbol" "present-symbols"
+                        "external-symbol" "external-symbols" "using" "symbol"
+                        "symbols" "float" "fixnum" "t" "nil" "of-type" "of" "="))
+          "\\_>")
   "Regexp matching keywords introducing loop subclauses.
 Always indented two.")
 
 (defvar sly--common-lisp-indenting-loop-macro-keyword
-  "\\(#?:\\)?\\(when\\|unless\\|if\\)"
+  (concat "\\(?:\\_<\\|#?:\\)" (regexp-opt '("when" "unless" "if")) "\\_>")
   "Regexp matching keywords introducing conditional clauses.
 Cause subsequent clauses to be indented.")
 
-(defvar sly--lisp-indent-loop-macro-else-keyword "\\(#?:\\)?else")
+(defvar sly--lisp-indent-loop-macro-else-keyword
+  "\\(?:\\_<\\|#?:\\)else\\_>")
 
 ;;; Attempt to indent the loop macro ...
 (defun sly--lisp-indent-loop-part-indentation (indent-point state type)
