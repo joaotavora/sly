@@ -208,6 +208,8 @@ thenret x
 
 (loop for x in foo
       for y in quux
+      initially
+      (princ "hi!")
       finally (foo)
               (fo)
               (zoo)
@@ -223,6 +225,8 @@ thenret x
 
 (loop for x in foo
       for y in quux
+      initially
+         (princ "hi!")
       finally (foo)
               (fo)
               (zoo)
@@ -238,6 +242,8 @@ thenret x
 
 (loop for x in foo
       for y in quux
+      initially
+         (princ "hi!")
       finally (foo)
               (fo)
               (zoo)
