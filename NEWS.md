@@ -1,6 +1,14 @@
 Upcoming version
 ----------------
 
+### Remove `sly-completing-read`
+
+SLY no longer bypasses `completing-read-function` to provide basic
+`ido` completion.  This used to make sense when fewer fancy
+well-behaved completion packages existed.  That's no longer the case
+so we shouldn't override the user's preference.
+
+
 SLY 1.0.42 (December 2020)
 ------------------------------
 

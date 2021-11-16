@@ -843,7 +843,7 @@ move to make TARGET visible."
 If ALLOW-BLANK may return nil to signal no particular package
 selected."
   (let* ((completion-ignore-case t)
-         (res (sly-completing-read
+         (res (completing-read
                (concat "[sly] " prompt)
                (sly-eval
                 `(slynk:list-all-package-names t))
@@ -1130,7 +1130,7 @@ Helper for M-x sly"
                        (sly--guess-inferior-lisp-program t))
                     (list :program program :program-args args)))))
         ((eq current-prefix-arg '-)
-         (let ((key (sly-completing-read
+         (let ((key (completing-read
                      "Lisp name: " (mapcar (lambda (x)
                                              (list (symbol-name (car x))))
                                            sly-lisp-implementations)
@@ -2123,7 +2123,7 @@ Respect `sly-keep-buffers-on-connection-close'."
                                      connection-names)
                              connection-names))
          (connection-name (and connection-names
-                               (sly-completing-read
+                               (completing-read
                                 (or prompt "Connection: ")
                                 connection-names
                                 nil (not dont-require-match))))
@@ -2776,7 +2776,7 @@ Debugged requests are ignored."
 With prefix argument, prompt for MODE"
   (interactive
    (list (if current-prefix-arg
-             (intern (sly-completing-read
+             (intern (completing-read
                       "Switch to most recent buffer in what mode? "
                       (mapcar #'symbol-name '(lisp-mode
                                               emacs-lisp-mode))
@@ -4669,9 +4669,9 @@ TODO"
   (interactive
    (let ((file (sly-info--file)))
      (list file
-           (sly-completing-read "Manual node? (`Top' to read the whole manual): "
-                                (remove '("*") (sly-info--node-names file))
-                                nil t))))
+           (completing-read "Manual node? (`Top' to read the whole manual): "
+                            (remove '("*") (sly-info--node-names file))
+                            nil t))))
   (info (if node (format "(%s)%s" file node) file)))
 
 
@@ -6095,9 +6095,9 @@ Interactively get the number from a button at point."
 
 (defun sly-db-invoke-restart-by-name (restart-name)
   (interactive (list (let ((completion-ignore-case t))
-                       (sly-completing-read "Restart: " sly-db-restarts nil t
-                                            ""
-                                            'sly-db-invoke-restart-by-name))))
+                       (completing-read "Restart: " sly-db-restarts nil t
+                                        ""
+                                        'sly-db-invoke-restart-by-name))))
   (sly-db-invoke-restart (cl-position restart-name sly-db-restarts
                                       :test 'string= :key 'first)))
 
@@ -6151,8 +6151,8 @@ Return the net process, or nil."
                               (sly-connection-name p) (sly-pid p))))
          (candidates (mapcar (lambda (p) (cons (funcall to-string p) p))
                              sly-net-processes)))
-    (cdr (assoc (sly-completing-read prompt candidates
-                                     nil t (funcall to-string initial-value))
+    (cdr (assoc (completing-read prompt candidates
+                                 nil t (funcall to-string initial-value))
                 candidates))))
 
 (defun sly-db-step (frame-number)
@@ -6538,9 +6538,9 @@ was called originally."
                                      (eq major-mode 'sly-inspector-mode)))
                          when (buffer-local-value 'sly--this-inspector-name b)
                          collect it))
-         (result (sly-completing-read "Inspector name: " (cons "default"
-                                                               names)
-                                      nil nil nil nil "default")))
+         (result (completing-read "Inspector name: " (cons "default"
+                                                           names)
+                                  nil nil nil nil "default")))
     (unless (string= result "default")
       result)))
 
@@ -6996,7 +6996,7 @@ if/when you fix the error" (cl-third n))))
 (defun sly-contrib--read-contrib-name ()
   (let ((names (cl-loop for c in (sly-contrib--all-contribs) collect
                         (symbol-name (sly-contrib--name c)))))
-    (intern (sly-completing-read "Contrib: " names nil t))))
+    (intern (completing-read "Contrib: " names nil t))))
 
 (defun sly-enable-contrib (name)
   "Attempt to enable contrib NAME."

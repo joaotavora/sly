@@ -81,25 +81,6 @@ SIT-FOR is has the semantincs of `minibuffer-message-timeout', which see."
                            (or (cl-position ?\n string) most-positive-fixnum)
                            (1- (window-width (minibuffer-window))))))
 
-(defun sly-completing-read (prompt choices &optional
-                                   predicate
-                                   require-match
-                                   initial-input
-                                   hist
-                                   def
-                                   inherit-input-method)
-  "Like `completing-read', but tweak `completing-read-function'.
-Specifically, if the `completion-read-function' has not been
-tweaked, and `icomplete-mode' is not being used, use
-`ido-completing-read' to provide a better UX."
-  (let ((completing-read-function
-         (if (and (eq completing-read-function 'completing-read-default)
-                  (not icomplete-mode))
-             #'ido-completing-read
-           completing-read-function)))
-    (completing-read prompt choices predicate require-match initial-input hist def
-                     inherit-input-method)))
-
 (defun sly-y-or-n-p (format-string &rest args)
   (let ((prompt (apply #'format (concat "[sly] "
                                         format-string)
