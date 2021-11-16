@@ -1,6 +1,12 @@
 Upcoming version
 ----------------
 
+### Remove `sly-completing-read`
+
+`Sly` no longer uses `ido-completing-read` to provide better ux when
+`completing-read-function` is set to the default value.  Thus it no longer
+override completion packages that doesn't set this variable.
+
 SLY 1.0.42 (December 2020)
 ------------------------------
 
