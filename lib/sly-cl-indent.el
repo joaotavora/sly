@@ -1498,11 +1498,14 @@ Cause subsequent clauses to be indented.")
            (list (+ loop-indentation 9) loop-start)))))
 
 (defun sly--lisp-indent-loop-advance-past-keyword-on-line ()
-  (forward-word 1)
-  (while (and (looking-at "\\s-") (not (eolp)))
-    (forward-char 1))
-  (unless (eolp)
-    (current-column)))
+  (when (looking-at (eval-when-compile
+                      (concat "\\s-*\\(?:#?:\\|\\_<\\)"
+                              lisp-mode-symbol-regexp "\\_>\\s-*")))
+    ;; go past the keyword and all following whitespace
+    (goto-char (match-end 0))
+    (unless (or (eolp)
+                (not (eq (point) (save-excursion (forward-comment 1) (point)))))
+      (current-column))))
 
 (defun sly--lisp-indent-loop-macro-1 (parse-state indent-point)
   (catch 'return-indentation
@@ -1511,6 +1514,7 @@ Cause subsequent clauses to be indented.")
       ;; base column for indentation
       (goto-char (sly--lisp-indent-parse-state-start parse-state))
       (let ((loop-start-column (current-column)))
+        (forward-char 1)                ;skip the open paren
         (sly--lisp-indent-loop-advance-past-keyword-on-line)
 
         (when (eolp)
