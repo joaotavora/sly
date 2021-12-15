@@ -95,7 +95,7 @@ Exits Emacs when finished. The exit code is the number of failed tests."
                        (string-match "test/sly-\\(.*\\)\.elc?$" file-name))
                   (list 'contrib (intern (match-string 1 file-name)))
                 '(core)))))
-  
+
   (defmacro define-sly-ert-test (name &rest args)
     "Like `ert-deftest', but set tags automatically.
 Also don't error if `ert.el' is missing."
@@ -209,9 +209,8 @@ conditions (assertions)."
 (defun sly-wait-condition (name predicate timeout &optional cleanup)
   (let ((end (time-add (current-time) (seconds-to-time timeout))))
     (while (not (funcall predicate))
-      (let ((now (current-time)))
-        (sly-message "waiting for condition: %s [%s.%06d]" name
-                     (format-time-string "%H:%M:%S" now) (cl-third now)))
+      (sly-message "waiting for condition: %s [%s]" name
+                   (format-time-string "%H:%M:%S.%6N"))
       (cond ((time-less-p end (current-time))
              (unwind-protect
                  (error "Timeout waiting for condition: %S" name)
@@ -1314,7 +1313,7 @@ Reconnect afterwards."
       (with-current-buffer mrepl-buffer
         ;; FIXME: suboptimal: wait one second for the lisp
         ;; to reply.
-        (sit-for 1) 
+        (sit-for 1)
         (unless (and (string-match "^; +SLY" (buffer-string))
                      (string-match "CL-USER> *$" (buffer-string)))
           (die (format "MREPL prompt: %s" (buffer-string))))))))
@@ -1447,7 +1446,7 @@ Reconnect afterwards."
                                    (sly-test--eval-now "(.fn3.)"))
                              '("nil" "nil")))
           ;; Recompile now
-          ;; 
+          ;;
           (with-current-buffer xref-buffer
             (sly-recompile-all-xrefs)
             (sly-wait-condition "Compilation finished"
