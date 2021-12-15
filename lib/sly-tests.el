@@ -209,9 +209,8 @@ conditions (assertions)."
 (defun sly-wait-condition (name predicate timeout &optional cleanup)
   (let ((end (time-add (current-time) (seconds-to-time timeout))))
     (while (not (funcall predicate))
-      (let ((now (current-time)))
-        (sly-message "waiting for condition: %s [%s.%06d]" name
-                     (format-time-string "%H:%M:%S" now) (cl-third now)))
+      (sly-message "waiting for condition: %s [%s]" name
+                   (format-time-string "%H:%M:%S.%6N"))
       (cond ((time-less-p end (current-time))
              (unwind-protect
                  (error "Timeout waiting for condition: %S" name)
