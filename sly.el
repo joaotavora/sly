@@ -3910,7 +3910,10 @@ For insertion in the `compilation-mode' buffer"
 
 (defun sly-push-definition-stack ()
   "Add point to find-tag-marker-ring."
-  (ring-insert find-tag-marker-ring (point-marker)))
+  (require 'etags)
+  (if (fboundp 'xref-push-marker-stack)
+      (xref-push-marker-stack)
+    (ring-insert find-tag-marker-ring (point-marker))))
 
 (defun sly-pop-find-definition-stack ()
   "Pop the edit-definition stack and goto the location."
