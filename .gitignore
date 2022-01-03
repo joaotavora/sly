@@ -40,3 +40,4 @@ doc/gh-pages
 /dist/
 /sly-pkg.el
 /sly-autoloads.el
+*.abcl-tmp
