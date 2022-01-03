@@ -10,7 +10,7 @@
 ;;;
 
 (defpackage slynk/abcl
-  (:use cl slynk/backend)
+  (:use cl slynk-backend)
   (:import-from :java
                 #:jcall #:jstatic
                 #:jmethod
@@ -19,14 +19,14 @@
                 #:jnew-array #:jarray-length #:jarray-ref #:jnew-array-from-array
                 #:jclass #:jnew #:java-object 
                 ;; be conservative and add any import java functions only for later lisps
-                #+#.(slynk/backend:with-symbol 'jfield-name 'java) #:jfield-name
-                #+#.(slynk/backend:with-symbol 'jinstance-of-p 'java) #:jinstance-of-p
-                #+#.(slynk/backend:with-symbol 'jclass-superclass 'java) #:jclass-superclass
-                #+#.(slynk/backend:with-symbol 'jclass-interfaces 'java) #:jclass-interfaces
-                #+#.(slynk/backend:with-symbol 'java-exception 'java) #:java-exception
-                #+#.(slynk/backend:with-symbol 'jobject-class 'java) #:jobject-class
-                #+#.(slynk/backend:with-symbol 'jclass-name 'java) #:jclass-name
-                #+#.(slynk/backend:with-symbol 'java-object-p 'java) #:java-object-p))
+                #+#.(slynk-backend:with-symbol 'jfield-name 'java) #:jfield-name
+                #+#.(slynk-backend:with-symbol 'jinstance-of-p 'java) #:jinstance-of-p
+                #+#.(slynk-backend:with-symbol 'jclass-superclass 'java) #:jclass-superclass
+                #+#.(slynk-backend:with-symbol 'jclass-interfaces 'java) #:jclass-interfaces
+                #+#.(slynk-backend:with-symbol 'java-exception 'java) #:java-exception
+                #+#.(slynk-backend:with-symbol 'jobject-class 'java) #:jobject-class
+                #+#.(slynk-backend:with-symbol 'jclass-name 'java) #:jclass-name
+                #+#.(slynk-backend:with-symbol 'java-object-p 'java) #:java-object-p))
 
 (in-package slynk/abcl)
 
@@ -67,7 +67,7 @@
 ;;; and potentially with other REPLs, we export a functional toggle
 ;;; for the user to call after loading these definitions.
 (defun enable-cl-inspect-in-emacs ()
-  (slynk::wrap 'cl:inspect :use-sly :replace 'slynk::inspect-in-emacs))
+  (slynk-backend:wrap 'cl:inspect :use-sly :replace (read-from-string "slynk:inspect-in-emacs")))
 
 ;; ??? repair bare print object so inspector titles show java class
 (defun %print-unreadable-object-java-too (object stream type identity body)
@@ -97,7 +97,7 @@
 
 ;;; TODO: move such invocations out of toplevel?  
 (eval-when (:load-toplevel)
-  (unless (get 'sys::%print-unreadable-object 'sly-backend::sly-wrap)
+  (unless (get 'sys::%print-unreadable-object 'slynk-backend::sly-wrap)
     (wrap 'sys::%print-unreadable-object :more-informative :replace '%print-unreadable-object-java-too)))
 
 (defimplementation call-with-compilation-hooks (function)
@@ -111,6 +111,7 @@
 (defclass standard-slot-definition ()())
 
 (defun slot-definition-documentation (slot)
+  #-abcl-introspect
   (declare (ignore slot))
   #+abcl-introspect
   (documentation slot 't))
@@ -160,7 +161,7 @@
    standard-slot-definition ;;dummy
    cl:method
    cl:standard-class
-   #+#.(slynk/backend:with-symbol
+   #+#.(slynk-backend:with-symbol
            'compute-applicable-methods-using-classes 'mop)
    mop:compute-applicable-methods-using-classes
    ;; standard-class readers
@@ -206,7 +207,7 @@
    slot-boundp-using-class
    slot-value-using-class
    set-slot-value-using-class
-   #+#.(slynk/backend:with-symbol
+   #+#.(slynk-backend:with-symbol
            'slot-makunbound-using-class 'mop)
    mop:slot-makunbound-using-class))
 
@@ -457,8 +458,8 @@
                             :key (lambda (frame)
                                    (first (sys:frame-to-list frame)))))
             (car sys::*saved-backtrace*)))
-         #+#.(slynk/backend:with-symbol *debug-condition* 'ext)
-         (ext::*debug-condition* slynk::*slynk-debugger-condition*))
+         #+#.(slynk-backend:with-symbol *debug-condition* 'ext)
+         (ext::*debug-condition* (read-from-string "slynk::*slynk-debugger-condition*")))
     (funcall debugger-loop-fn)))
 
 (defun backtrace (start end)
@@ -476,16 +477,16 @@
     (backtrace start end)))
 
 ;; Don't count on JSS being loaded, but if it is then there's some more stuff we can do
-+#+#.(slynk/backend:with-symbol 'invoke-restargs 'jss)
++#+#.(slynk-backend:with-symbol 'invoke-restargs 'jss)
 (defun jss-p ()
   (and (member "JSS" *modules* :test 'string=) (intern "INVOKE-RESTARGS" "JSS")))
 
-+#+#.(slynk/backend:with-symbol 'invoke-restargs 'jss)
++#+#.(slynk-backend:with-symbol 'invoke-restargs 'jss)
 (defun matches-jss-call (form)
   (flet ((gensymp (s) (and (symbolp s) (null (symbol-package s))))
          (invokep (s)  (and (symbolp s) (eq s (jss-p)))))
     (let ((method
-            (slynk/match::select-match 
+            (slynk-match::select-match 
              form
              (((LAMBDA ((#'gensymp a) &REST (#'gensymp b)) 
                  ((#'invokep fun) (#'stringp c) (#'gensymp d) (#'gensymp e) . args)) . args) '=> c)
@@ -1055,7 +1056,7 @@
                             '(lambda(a v) (eww a))
                             'browse-url-browser-function)))
                         (sly-hyperdoc-lookup ,name))))
-    (slynk::eval-in-emacs form t)))
+    (slynk:eval-in-emacs form t)))
 ;;; END FIXME move into generalized Slynk infrastructure, or add to contrib mechanism
 
 ;;; Although by convention toString() is supposed to be a
@@ -1120,7 +1121,7 @@
          ""))
    (call-next-method)))
 
-#+#.(slynk/backend:with-symbol 'java-exception 'java)
+#+#.(slynk-backend:with-symbol 'java-exception 'java)
 (defmethod emacs-inspect ((o java:java-exception))
   (append (call-next-method)
           (list '(:newline) '(:label "Stack trace")
@@ -1515,7 +1516,7 @@
     (funcall fn)))
 
 ;;;
-#+#.(slynk/backend:with-symbol 'package-local-nicknames 'ext)
+#+#.(slynk-backend:with-symbol 'package-local-nicknames 'ext)
 (defimplementation package-local-nicknames (package)
   (ext:package-local-nicknames package))
 
