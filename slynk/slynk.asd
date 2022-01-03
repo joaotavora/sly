@@ -33,7 +33,8 @@
       (let ((sb-ext:*on-package-variance* '(:warn t)))
         (funcall thunk))))
   :components
-  ((:file "slynk-backend")
+  ((:file "slynk-match")
+   (:file "slynk-backend")
    ;; If/when we require ASDF3, we shall use :if-feature instead
    #+(or cmu sbcl scl)
    (:file "slynk-source-path-parser")
@@ -71,7 +72,6 @@
                  (:file "mkcl")))
    #-armedbear
    (:file "slynk-gray")
-   (:file "slynk-match")
    (:file "slynk-rpc")
    (:file "slynk")
    (:file "slynk-completion")
