@@ -1044,21 +1044,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;; Inspecting
 
-;;; BEGIN FIXME move into generalized Slynk infrastructure, or add to contrib mechanism
-;; this is only for hyperspec request in an inspector window
-;; TODO have sly-hyperspec-lookup respect this variable too
-(defvar *sly-inspector-hyperspec-in-browser* t
-  "If t then invoking hyperspec within the inspector browses the hyperspec in an emacs buffer, otherwise respecting the value of browse-url-browser-function")
-
-(defun hyperspec-do (name)
-  (let ((form `(let ((browse-url-browser-function 
-                       ,(if *sly-inspector-hyperspec-in-browser* 
-                            '(lambda(a v) (eww a))
-                            'browse-url-browser-function)))
-                        (sly-hyperdoc-lookup ,name))))
-    (slynk:eval-in-emacs form t)))
-;;; END FIXME move into generalized Slynk infrastructure, or add to contrib mechanism
-
 ;;; Although by convention toString() is supposed to be a
 ;;; non-computationally expensive operation this isn't always the
 ;;; case, so make its computation a user interaction.
@@ -1189,14 +1174,7 @@
                                 `(:label ,(jcall "getName" field))
                                 ": "
                                 `(:value ,value ,(princ-to-string value))
-                                '(:newline)))))))
-      #+abcl-introspect
-      ,@(when (and (function-name f) (symbolp (function-name f))
-                   (eq (symbol-package (function-name f)) (find-package :cl)))
-          (list '(:newline) (list :action "Lookup in hyperspec"
-                                  (lambda () (hyperspec-do (symbol-name (function-name f))))
-                                  :refreshp nil)
-                '(:newline)))))
+                               '(:newline)))))))))
 
 (defmethod emacs-inspect ((o java:java-object))
   (if (jinstance-of-p o (jclass "java.lang.Class"))
