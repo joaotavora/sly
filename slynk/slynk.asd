@@ -19,17 +19,21 @@
 
 (defsystem :slynk
   :serial t
+  ;; See commit message and GitHub#502, GitHub#501 for the reason
+  ;; for this dedicated sbcl muffling.
+  #+sbcl
+  :around-compile
+  #+sbcl
+  (lambda (thunk)
+    (handler-bind (((and warning (not style-warning))
+                     (lambda (c)
+                       (format *error-output* "~&~@<~S: ~3i~:_~A~:>~%"
+                               (class-name (class-of c)) c)
+                       (muffle-warning c))))
+      (let ((sb-ext:*on-package-variance* '(:warn t)))
+        (funcall thunk))))
   :components
-  ((:file "slynk-backend"
-    ;; If/when we require ASDF3, we can use UIOP:DEFINE-PACKAGE instead or use
-    ;; UIOP:MATCH-CONDITION-P to muffle only the package variance
-    ;; warning. Alternatively, SBCL could export the package variance warning
-    ;; from SB-EXT and we can muffle it directly.
-    #+sbcl :around-compile
-    #+sbcl #1=(lambda (thunk)
-                (handler-bind (((and warning (not style-warning)) #'muffle-warning))
-                  (let ((sb-ext:*on-package-variance* '(:warn t)))
-                    (funcall thunk)))))
+  ((:file "slynk-backend")
    ;; If/when we require ASDF3, we shall use :if-feature instead
    #+(or cmu sbcl scl)
    (:file "slynk-source-path-parser")
@@ -69,9 +73,7 @@
    (:file "slynk-gray")
    (:file "slynk-match")
    (:file "slynk-rpc")
-   (:file "slynk"
-    #+sbcl :around-compile
-    #+sbcl #1#)
+   (:file "slynk")
    (:file "slynk-completion")
    (:file "slynk-apropos")))
 
