@@ -495,7 +495,7 @@ spaces.
 @item PROGRAM-ARGS
 is a list of command line arguments.
 @item CODING-SYSTEM
-the coding system for the connection.  (@pxref{sly-net-coding-system})x
+the coding system for the connection.  (@pxref{sly-net-coding-system})
 @item INIT
 should be a function which takes two arguments: a filename and a
 character encoding.  The function should return a Lisp expression as a
@@ -934,7 +934,7 @@ If @code{sly-autodoc-use-multiline-p} is set to non-nil,
 allow long autodoc messages to resize echo area display.
 
 @code{autodoc-mode} is a SLY extension  and can be turned off if you
-so wish (@pxref{Extensions})
+so wish (@pxref{Extensions}).
 
 @node Semantic indentation
 @section Semantic indentation
@@ -2358,7 +2358,7 @@ File,Init File, Emacs Init File, emacs, The Emacs Manual}).
 
 @SLY{} comes bundled with many extensions (called ``contribs'' for
 historical reasons, @pxref{Extensions}) which you can customize just
-like @SLY{}'s code. To make @kbd{C-c C-c} clear the last REPL prompt's
+like @SLY{}'s code. To make @kbd{C-c C-k} clear the last REPL prompt's
 output, for example, use
 
 @example
@@ -2940,7 +2940,7 @@ contrib to setup the proper translations by simply doing:
 @node Loading Slynk faster
 @section Loading Slynk faster
 
-In this section, a technique to load Slynk faster on South Bank Common
+In this section, a technique to load Slynk faster on Steel Bank Common
 Lisp (SBCL) is presented.  Similar setups should also work for other
 Lisp implementations.
 
