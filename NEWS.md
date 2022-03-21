@@ -54,7 +54,7 @@ CL-USER> (mvbind)         ->  (multiple-value-bind)
 
 Flex completion is on by default, but that can be changed via
 `sly-complete-symbol-function`. The
-[documentation](http://joaotavora.github.io/sly/#Completion) has more
+[documentation](https://joaotavora.github.io/sly/#Completion) has more
 information.
 
 Package-local nicknames are also considered (provided your
@@ -66,7 +66,7 @@ Manual has been reviewed from top to bottom. It should be much easier
 to navigate and nicer read in general, thouch it *still needs quite
 some proofreading*
 
-[A new chapter for existing SLIME users](http://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users)
+[A new chapter for existing SLIME users](https://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users)
 figures prominently in the top-level.
 
 Presently no major omissions (*except maybe for multiple inspectors*).
@@ -192,7 +192,7 @@ SLY 1.0.0-beta-2 (March 2016)
 ### Improved `sly-stickers` contrib:
 
 There is now updated documentation for this contrib. See
-http://joaotavora.github.io/sly/#SLY-Stickers
+https://joaotavora.github.io/sly/#SLY-Stickers
 
 Added a menu to help discover the functionality. 
 
@@ -375,7 +375,7 @@ SLY 1.0.0-alpha-3 (December 2014)
 `sly-stickers` is a live code annotation tool, a replacement for the
 "print" statements that are often included for debugging the value of
 a particular variable or expression. See a much more complete
-description in http://joaotavora.github.io/sly/#SLY-Stickers.
+description in https://joaotavora.github.io/sly/#SLY-Stickers.
 
 Thanks to Artem Malyshev for early testing and ideas.
 
@@ -383,7 +383,7 @@ Thanks to Artem Malyshev for early testing and ideas.
 
 The documentation rewrite is underway (github issue #9), mentioning
 only a residual amount of SLIME-specific functionality. Browse to
-http://joaotavora.github.io/sly for the online version in HTML.
+https://joaotavora.github.io/sly for the online version in HTML.
 
 ### SLY is available in MELPA
 
@@ -510,7 +510,7 @@ There are Sylvesters. See `sly-mrepl-pop-sylvester`.
 
 ### Regexp-capable M-x sly-apropos
 
-If SLY detects that [`cl-ppcre`](http://weitz.de/cl-ppcre/) is
+If SLY detects that [`cl-ppcre`](https://weitz.de/cl-ppcre/) is
 available in the Lisp side it will try to use it for "apropos"
 searches, otherwise the user is hinted at this possibility. As regexp
 searches are slower, this is only triggered if the pattern is a valid
@@ -539,7 +539,7 @@ program will behave in a similar non-intrusive manner.
 
 This change also enables developers to write completely independent
 third-party extensions like
-[in this example](http://github.com/joaotavora/sly-hello-world).
+[in this example](https://github.com/joaotavora/sly-hello-world).
 
 See the CONTRIBUTING.md file for more details on architecture changes.
 
@@ -566,7 +566,7 @@ meaning global keybindings like `C-c T` and `C-c I` work everywhere.
 Interactive commands for inspecting Lisp objects can be prefixed with
 `C-u` to prompt the user for an inspector name. Separate inspector
 streams are kept. An idea by Olof-Joachim Frahm
-(http://macrolet.net/).
+(https://macrolet.net/).
 
 ### Copy function call to REPL
 

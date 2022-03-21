@@ -52,7 +52,7 @@
 ;; FIXME: switch to shared Gray stream implementation when the
 ;; architecture for booting streams allows us to replace the Java-side
 ;; implementation of a Sly{Input,Output}Stream.java classes are
-;; subsumed <http://abcl.org/trac/ticket/373>.
+;; subsumed <https://abcl.org/trac/ticket/373>.
 (progn
   (defimplementation make-output-stream (write-string)
     (ext:make-slime-output-stream write-string))
