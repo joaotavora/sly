@@ -756,7 +756,7 @@ to do this, this factors in the length of the inserted header itself."
 ;;;; Profiling
 
 ;; Per-function profiling based on description in
-;;  http://www.franz.com/support/documentation/8.0/\
+;;  https://www.franz.com/support/documentation/8.0/\
 ;;  doc/runtime-analyzer.htm#data-collection-control-2
 
 (defvar *profiled-functions* ())

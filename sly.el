@@ -22,7 +22,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;;
@@ -7172,7 +7172,7 @@ keys."
 
 (defun sly-trim-whitespace (str)
   "Chomp leading and tailing whitespace from STR."
-  ;; lited from http://www.emacswiki.org/emacs/ElispCookbook
+  ;; lited from https://www.emacswiki.org/emacs/ElispCookbook
   (replace-regexp-in-string (rx (or (: bos (* (any " \t\n")))
                                     (: (* (any " \t\n")) eos)))
                             ""
