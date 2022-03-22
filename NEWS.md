@@ -510,7 +510,7 @@ There are Sylvesters. See `sly-mrepl-pop-sylvester`.
 
 ### Regexp-capable M-x sly-apropos
 
-If SLY detects that [`cl-ppcre`](https://weitz.de/cl-ppcre/) is
+If SLY detects that [`cl-ppcre`](https://edicl.github.io/cl-ppcre/) is
 available in the Lisp side it will try to use it for "apropos"
 searches, otherwise the user is hinted at this possibility. As regexp
 searches are slower, this is only triggered if the pattern is a valid

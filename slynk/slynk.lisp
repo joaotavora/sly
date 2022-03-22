@@ -151,7 +151,8 @@ Bindings appearing earlier in the list take priority"
   `(progn
      (defun ,name ,arglist ,@rest)
      (setf (gethash ',name *slyfuns*) #',name)
-     ;; see <https://www.franz.com/support/documentation/6.2/\
+     ;; see <https://web.archive.org/web/20060627180512/\
+     ;; https://www.franz.com/support/documentation/6.2/\
      ;; doc/pages/variables/compiler/\
      ;; s_cltl1-compile-file-toplevel-compatibility-p_s.htm>
      (eval-when (:compile-toplevel :load-toplevel :execute)
