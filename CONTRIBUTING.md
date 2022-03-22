@@ -322,11 +322,11 @@ TODO
 
 * Read [how to properly contribute to open source projects on Github][1].
 * Use a topic branch to easily amend a pull request later, if necessary.
-* Commit messages should use the syntax of GNU ChangeLog entries.
-* Open a [pull request][2] that relates to *only* one subject with a
+* Commit messages should use the syntax of [GNU ChangeLog entries][2].
+* Open a [pull request][3] that relates to *only* one subject with a
   clear title and description in grammatically correct, complete
   sentences.
 
 [1]: https://gun.io/blog/how-to-github-fork-branch-and-pull-request
-[2]: https://help.github.com/articles/using-pull-requests
-[3]: https://www.gnu.org/prep/standards/html_node/Style-of-Change-Logs.html#Style-of-Change-Logs
+[2]: https://www.gnu.org/prep/standards/html_node/Style-of-Change-Logs.html#Style-of-Change-Logs
+[3]: https://help.github.com/articles/using-pull-requests
