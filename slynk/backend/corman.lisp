@@ -28,9 +28,9 @@
 ;;; =====
 ;;; You will need CCL 2.51, and you will *definitely* need to patch
 ;;; CCL with the patches at
-;;; https://www.grumblesmurf.org/lisp/corman-patches, otherwise SLY
-;;; will blow up in your face.  You should also follow the
-;;; instructions on https://www.grumblesmurf.org/lisp/corman-sly.
+;;; https://web.archive.org/web/20160401182927/https://www.grumblesmurf.org/lisp/corman-patches
+;;; ,otherwise SLY will blow up in your face.  You should also follow
+;;; the instructions on https://www.grumblesmurf.org/lisp/corman-sly.
 ;;;
 ;;; The only communication style currently supported is NIL.
 ;;;
