@@ -1256,14 +1256,12 @@ momentarily diverted to it:
 
 @table @kbd
 @item C-n
-@itemx <down>
 @itemx M-x sly-next-completion
 @kindex C-n
 @findex sly-next-completion
 Select the next completion.
 
 @item C-p
-@itemx <up>
 @itemx M-x sly-prev-completion
 @kindex C-p
 @findex sly-prev-completion
@@ -1277,8 +1275,8 @@ Select the previous completion.
 Choose the currently selected completion and enter it at point.
 @end table
 
-As soon as the user selects a completion or gives up by
-pressing @kbd{C-g} or moves out of the symbol being completed, the
+As soon as the user selects a completion, gives up by pressing
+@kbd{C-g}, or moves out of the symbol being completed, the
 @code{*sly-completions*} buffer is closed.
 
 @node Interactive objects
