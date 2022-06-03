@@ -349,7 +349,6 @@ symbol in the Lisp image if possible."
 ;;
 
 (defun sly-package-fu--search-import-from (package)
-  
   (let* ((normalized-package (sly-package-fu--normalize-name package))
          (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s"
                          (regexp-quote (regexp-quote normalized-package)))))
@@ -357,7 +356,8 @@ symbol in the Lisp image if possible."
 
 
 (defun sly-package-fu--create-new-import-from (package symbol)
-  (sly-goto-package-source-definition (sly-current-package))
+  "Add new :IMPORT-FROM subform for PACKAGE.  Add SYMBOL.
+Assumes point just before start of DEFPACKAGE form"
   (forward-sexp)
   ;; Now, search last :import-from or :use form
   (cond
@@ -391,7 +391,7 @@ package.  For example above, return \"with-gensyms\"."
                                   symbol)))
          (simple-symbol (sly-cl-symbol-name symbol)))
     (save-excursion
-      ;; First go to package definition form
+      ;; First go to just before relevant DEFPACKAGE form
       ;;
       (sly-goto-package-source-definition (sly-current-package))
 
@@ -402,8 +402,8 @@ package.  For example above, return \"with-gensyms\"."
                                                 ,(sly-current-package)
                                                 ,package))
       (if (sly-package-fu--search-import-from package)
-          ;; If the (:import-from PACKAGE... ) subform exists, attempt
-          ;; to insert SYMBOL (qualified as simple-symbol) there.
+          ;; If specific (:IMPORT-FROM PACKAGE... ) subform exists,
+          ;; attempt to insert package-less SYMBOL there.
           (let ((imported-symbols (mapcar #'sly-package-fu--normalize-name
                                           (sly-package-fu--read-symbols))))
             (unless (cl-member simple-symbol
@@ -411,8 +411,9 @@ package.  For example above, return \"with-gensyms\"."
                                :test 'cl-equalp)
               (sly-package-fu--insert-symbol simple-symbol)
               (when sly-package-fu-save-file (save-buffer))))
-        ;; Else add a new :import-from PACKAGE subform, after the last
-        ;; existing :import-from or :use subform.
+        ;; Else, point is unmoved.  Add a new (:IMPORT-FROM PACKAGE)
+        ;; subform after any other existing :IMPORT-FROM or :USE
+        ;; subforms.
         (sly-package-fu--create-new-import-from package
                                                 simple-symbol)
         (when sly-package-fu-save-file (save-buffer)))
