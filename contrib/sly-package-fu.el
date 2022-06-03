@@ -349,16 +349,11 @@ symbol in the Lisp image if possible."
 ;;
 
 (defun sly-package-fu--search-import-from (package)
-  ;; Suppose, we are in the defpackage sexp
+  
   (let* ((normalized-package (sly-package-fu--normalize-name package))
          (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s"
-                         (regexp-quote (regexp-quote normalized-package))))
-         (search-result (re-search-forward regexp nil t)))
-    (message "Normalized: %s, regex: %s" normalized-package
-             regexp)
-    (when search-result
-      ;; import-from clause was found
-      t)))
+                         (regexp-quote (regexp-quote normalized-package)))))
+    (re-search-forward regexp nil t)))
 
 
 (defun sly-package-fu--create-new-import-from (package symbol)
@@ -388,41 +383,36 @@ Accept a string or a symbol like \"alexandria:with-gensyms\",
 and add it to existing (import-from #:alexandria ...) form, or
 create a new one. Return name of the given symbol inside of its
 package.  For example above, return \"with-gensyms\"."
-  (save-excursion
-    ;; First, will go to the package definition
-    (sly-goto-package-source-definition (sly-current-package))
+  (let* ((package (or (funcall sly-import-symbol-package-transform-function
+                               (sly-cl-symbol-package symbol))
+                      ;; We only process symbols in fully qualified form like
+                      ;; weblocks/request:get-parameter
+                      (user-error "`%s' is not a package-qualified symbol."
+                                  symbol)))
+         (simple-symbol (sly-cl-symbol-name symbol)))
+    (save-excursion
+      ;; First go to package definition form
+      ;;
+      (sly-goto-package-source-definition (sly-current-package))
 
-    (let* ((package (funcall sly-import-symbol-package-transform-function
-                             (sly-cl-symbol-package symbol)))
-           (simple-symbol (sly-cl-symbol-name symbol))
-           (import-exists (when package
-                            (sly-package-fu--search-import-from package))))
-
-      ;; We only process symbols in fully qualified form like
-      ;; weblocks/request:get-parameter
-      (unless package
-        (user-error "This only works on symbols with package designator."))
-
-      ;; First ask CL to actually import the symbol (a synchronized
-      ;; eval makes sure that an error aborts the rest of the command)
+      ;; Ask CL to actually import the symbol (a synchronized eval
+      ;; makes sure an error aborts the rest of the command)
       ;;
       (sly-eval `(slynk:import-symbol-for-emacs ,symbol
                                                 ,(sly-current-package)
                                                 ,package))
-
-      (if import-exists
+      (if (sly-package-fu--search-import-from package)
+          ;; If the (:import-from PACKAGE... ) subform exists, attempt
+          ;; to insert SYMBOL (qualified as simple-symbol) there.
           (let ((imported-symbols (mapcar #'sly-package-fu--normalize-name
                                           (sly-package-fu--read-symbols))))
             (unless (cl-member simple-symbol
                                imported-symbols
                                :test 'cl-equalp)
-              ;; If symbol is not imported yet, then just
-              ;; add it to the end
               (sly-package-fu--insert-symbol simple-symbol)
               (when sly-package-fu-save-file (save-buffer))))
-        ;; If there is no import from this package yet,
-        ;; then we'll add it right after the last :import-from
-        ;; or :use construction
+        ;; Else add a new :import-from PACKAGE subform, after the last
+        ;; existing :import-from or :use subform.
         (sly-package-fu--create-new-import-from package
                                                 simple-symbol)
         (when sly-package-fu-save-file (save-buffer)))
