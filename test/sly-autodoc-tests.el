@@ -165,7 +165,7 @@
   ("(labels ((foo (x y) (+ x y))) (foo *HERE*" "(foo ===> x <=== y)")
   ("(labels ((foo (x y) (+ x y))
                  (bar (y) (foo *HERE*"
-   "(foo ===> x <=== y)" :fails-for ("cmucl" "sbcl" "allegro" "ccl")))
+   "(foo ===> x <=== y)" :fails-for ("cmucl" "allegro" "ccl")))
 
 (def-sly-test autodoc-space
     (input-keys expected-message)
