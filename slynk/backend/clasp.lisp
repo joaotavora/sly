@@ -33,7 +33,9 @@
     (pushnew :profile *features*))
   (when (probe-file "sys:serve-event")
     (require :serve-event)
-    (pushnew :serve-event *features*)))
+    (pushnew :serve-event *features*))
+  (when (find-symbol "TEMPORARY-DIRECTORY" "EXT")
+    (pushnew :temporary-directory *features*)))
 
 (declaim (optimize (debug 3)))
 
@@ -265,13 +267,20 @@
       (((or error warning) #'handle-compiler-condition))
     (funcall function)))
 
+(defun mkstemp (name)
+  (ext:mkstemp #+temporary-directory
+               (namestring (make-pathname :name name
+                                          :defaults (ext:temporary-directory)))
+               #-temporary-directory
+               (concatenate 'string "tmp:" name)))
+
 (defimplementation slynk-compile-file (input-file output-file
                                        load-p external-format
                                        &key policy)
   (declare (ignore policy))
   (format t "Compiling file input-file = ~a   output-file = ~a~%" input-file output-file)
   ;; Ignore the output-file and generate our own
-  (let ((tmp-output-file (compile-file-pathname (si:mkstemp "TMP:clasp-slynk-compile-file-"))))
+  (let ((tmp-output-file (compile-file-pathname (mkstemp "clasp-slynk-compile-file-"))))
     (format t "Using tmp-output-file: ~a~%" tmp-output-file)
     (multiple-value-bind (fasl warnings-p failure-p)
         (with-compilation-hooks ()
@@ -298,7 +307,7 @@
   (with-compilation-hooks ()
     (let ((*buffer-name* buffer)        ; for compilation hooks
           (*buffer-start-position* position))
-      (let ((tmp-file (si:mkstemp "TMP:clasp-slynk-tmpfile-"))
+      (let ((tmp-file (mkstemp "clasp-slynk-tmpfile-"))
             (fasl-file)
             (warnings-p)
             (failure-p))
