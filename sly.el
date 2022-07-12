@@ -1032,8 +1032,8 @@ Here's an example:
 (defcustom sly-command-switch-to-existing-lisp 'ask
   "Should the `sly' command start new lisp if one is available?"
   :type '(choice (const :tag "Ask the user" ask)
-                 (const :tag "Always" 'always)
-                 (const :tag "Never" 'never)))
+                 (const :tag "Always" always)
+                 (const :tag "Never" never)))
 
 (defcustom sly-auto-select-connection 'ask
   "Controls auto selection after the default connection was closed."
