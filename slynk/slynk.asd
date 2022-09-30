@@ -33,7 +33,8 @@
       (let ((sb-ext:*on-package-variance* '(:warn t)))
         (funcall thunk))))
   :components
-  ((:file "slynk-backend")
+  ((:file "slynk-match")
+   (:file "slynk-backend")
    ;; If/when we require ASDF3, we shall use :if-feature instead
    #+(or cmu sbcl scl)
    (:file "slynk-source-path-parser")
@@ -71,11 +72,12 @@
                  (:file "mkcl")))
    #-armedbear
    (:file "slynk-gray")
-   (:file "slynk-match")
    (:file "slynk-rpc")
    (:file "slynk")
    (:file "slynk-completion")
-   (:file "slynk-apropos")))
+   (:file "slynk-apropos")
+   #+armedbear
+   (:file "abcl-extras")))
 
 (defmethod perform :after ((o load-op) (c (eql (find-system :slynk))))
   (format *debug-io* "~&SLYNK's ASDF loader finished.")
@@ -119,4 +121,3 @@
 (defsystem :slynk/retro
   :depends-on (:slynk)
   :components ((:file "../contrib/slynk-retro")))
-
