@@ -1384,7 +1384,9 @@ LIST is destructively modified."
                   collect '(:newline)))))))
 
 (defun parts-for-structure-def-slot (def)
-  `((:label ,(string-downcase (sys::dsd-name def))) " reader: " (:value ,(sys::dsd-reader def) ,(string-downcase (string (sys::dsdreader def))))
+  `((:label ,(string-downcase (sys::dsd-name def))) 
+    " reader: " (:value ,(sys::dsd-reader def) 
+                        ,(string-downcase (string (sys::dsd-reader def))))
     ", index: " (:value ,(sys::dsd-index def))
     ,@(if (sys::dsd-initform def)
           `(", initform: " (:value ,(sys::dsd-initform def))))
