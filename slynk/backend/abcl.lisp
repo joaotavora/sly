@@ -1359,7 +1359,7 @@ LIST is destructively modified."
         `("No slots available for inspection."))))
 
 (defmethod emacs-inspect ((object sys::structure-class))
-  (let* ((name (jss::get-java-field object "name" t))
+  (let* ((name (class-name object))
          (def (get name  'system::structure-definition)))
     `((:label "Class: ") (:value ,object) (:newline)
       (:label "Raw defstruct definition: ") (:value ,def  ,(let ((*print-array* nil)) (prin1-to-string def))) (:newline)
