@@ -921,7 +921,8 @@ Assumes all insertions are made at point."
 ;; Interface
 (cl-defmacro sly-with-popup-buffer ((name &key package connection select
                                           same-window-p
-                                          mode)
+                                          mode
+                                          thread)
                                     &body body)
   "Similar to `with-output-to-temp-buffer'.
 Bind standard-output and initialize some buffer-local variables.
@@ -944,13 +945,15 @@ macroexpansion time.
   (let* ((package-sym (cl-gensym "package-"))
          (connection-sym (cl-gensym "connection-"))
          (select-sym (cl-gensym "select"))
-         (major-mode-sym (cl-gensym "select")))
+         (major-mode-sym (cl-gensym "select"))
+         (thread-sym (cl-gensym "thread")))
     `(let ((,package-sym ,(if (eq package t)
                               `(sly-current-package)
                             package))
            (,connection-sym ,(if (eq connection t)
                                  `(sly-current-connection)
                                connection))
+           (,thread-sym ,(if thread thread t))
            (,major-mode-sym major-mode)
            (,select-sym ,select)
            (view-read-only nil))
@@ -963,7 +966,8 @@ macroexpansion time.
                    (t
                     `((sly-popup-buffer-mode 1))))
            (setq sly-buffer-package ,package-sym
-                 sly-buffer-connection ,connection-sym)
+                 sly-buffer-connection ,connection-sym
+                 sly-current-thread ,thread-sym)
            (set-syntax-table lisp-mode-syntax-table)
            ,@body
            (unless (eq ,select-sym :hidden)
@@ -3107,6 +3111,7 @@ Each newlines and following indentation is replaced by a single space."
   (interactive (list (sly-compiler-notes)))
   (sly-with-popup-buffer ((sly-buffer-name :compilation)
                           :mode 'compilation-mode
+                          :thread sly-current-thread
                           :select select)
     (sly--insert-compilation-log successp notes buffer loadp)
     (insert "Compilation "
@@ -4238,6 +4243,7 @@ kill ring."
   ;; FIXME: could easily be achieved with M-x rename-buffer
   (let ((bufname (sly-buffer-name :description)))
     (sly-with-popup-buffer (bufname :package package
+                                    :thread sly-current-thread
                                     :connection t
                                     :select sly-description-autofocus
                                     :mode 'lisp-mode)
@@ -4550,6 +4556,7 @@ TODO"
          (sly-with-popup-buffer ((sly-buffer-name :apropos
                                                   :connection t)
                                  :package package :connection t
+                                 :thread sly-current-thread
                                  :mode 'sly-apropos-mode)
            (if (boundp 'header-line-format)
                (setq header-line-format summary)
@@ -4726,6 +4733,7 @@ The most important commands:
                            :package ,package
                            :connection t
                            :select t
+                           :thread sly-current-defun ; not hygienic
                            :mode 'sly-xref-mode)
      (sly-set-truncate-lines)
      ,@body))
@@ -5082,6 +5090,7 @@ This variable specifies both what was expanded and how.")
 (defun sly-create-macroexpansion-buffer ()
   (let ((name (sly-buffer-name :macroexpansion)))
     (sly-with-popup-buffer (name :package t :connection t
+                                 :thread sly-current-thread
                                  :mode 'lisp-mode)
       (sly-macroexpansion-minor-mode 1)
       (setq font-lock-keywords-case-fold-search t)
@@ -6633,6 +6642,7 @@ buffer should be switched to (defaults to t)"
   (sly-with-popup-buffer ((sly-buffer-name :inspector
                                            :connection t
                                            :suffix inspector-name)
+                          :thread sly-current-thread
                           :mode 'sly-inspector-mode
                           :select switch
                           :same-window-p
