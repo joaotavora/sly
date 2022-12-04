@@ -1070,6 +1070,10 @@ environment\\|more\
 \\)\\>"
   "Regular expression matching lambda-list keywords.")
 
+(defvar sly--lisp-indent-lambda-list-single-arg-keywords-regexp
+  "&\\(whole\\|environment\\)\\>"
+  "Regular expression matching lambda-list keywords which take a single argument.")
+
 (defun sly--lisp-indent-lambda-list
     (indent-point sexp-column containing-form-start)
   (if (not sly-lisp-lambda-list-indentation)
@@ -1124,13 +1128,21 @@ environment\\|more\
                      (if (eolp)
                          (+ col sly-lisp-lambda-list-keyword-parameter-indentation)
                        col))))
-             (if (looking-at sly--lisp-indent-lambda-list-keywords-regexp)
-                 (setq indent
-                       (if sly-lisp-lambda-list-keyword-parameter-alignment
-                           (or indent pos)
-                         (+ col sly-lisp-lambda-list-keyword-parameter-indentation))
-                       next nil)
-               (setq indent col))))
+             (cond
+              ((looking-at sly--lisp-indent-lambda-list-single-arg-keywords-regexp)
+               ;; Some keywords such as &whole have a single argument;
+               ;; following arguments are indented to the beginning of the
+               ;; lambda-list.
+               (setq indent col
+                     next nil))
+              ((looking-at sly--lisp-indent-lambda-list-keywords-regexp)
+               (setq indent
+                     (if sly-lisp-lambda-list-keyword-parameter-alignment
+                         (or indent pos)
+                       (+ col sly-lisp-lambda-list-keyword-parameter-indentation))
+                     next nil))
+              (t
+               (setq indent col)))))
          (or indent (1+ sexp-column)))))))
 
 (defun sly--lisp-indent-lambda-list-initial-value-form-p (point)
