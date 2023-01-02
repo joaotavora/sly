@@ -260,7 +260,7 @@ environment.  Many of the keybindings and interface concepts used to
 interact with Emacs's Elisp machine are reused in @SLY{} to interact
 with the underlying Common Lisp run-times.  Emacs makes requests to
 these processes, asking them to compile files or code snippets; deliver
-introspection information various objects; or invoke commands or
+introspection information about various objects; or invoke commands or
 debugging restarts.
 
 Internally, @SLY{}'s user-interface, written in Emacs Lisp, is connected
@@ -287,7 +287,7 @@ closer to Emacs' own.
 
 To understand the differences between the two projects read
 @SLY{}'s @uref{https://github.com/joaotavora/sly/blob/master/NEWS.md,,NEWS.md}
-file.  For a hand-on approach to these differences you might want to
+file.  For a hand-on approach to these differences you might want to read
 @ref{A SLY tour for SLIME users}.
 
 @node Getting started
@@ -534,7 +534,7 @@ sessions.  This has been completely redesigned in @SLY{}: you can spawn
 multiple REPL sessions with @code{sly-mrepl-new}; copy objects from most
 places directly into it (with @kbd{M-RET} and @kbd{M-S-RET}); use
 powerful incremental history search (with @kbd{C-r}) found in most
-modern shells; and get real-time assistance when ``backreferecing''
+modern shells; and get real-time assistance when ``backreferencing''
 previous evaluation values in your Lisp input.
 
 @*@image{images/tutorial-1,350pt}@*
@@ -557,11 +557,11 @@ Well, a good starting point is always the @emph{apropos} functionality,
 which is a @code{grep} of sorts, but aware of the symbols loaded in your
 Lisp, rather the contents of text files.  Furthermore, in
 @SLY{}, @code{sly-apropos} will do a regular-expression-enabled symbol
-search, which will help us here since we don't yet know any symbols
-names of this mysterious flex feature.
+search, which will help us here since we don't yet know the names of any symbols
+from this mysterious flex feature.
 
-To enable regular expression searches you need the @code{CL-PPCRE}
-library is loaded (else @code{sly-apropos} falls back to regex-less
+To enable regular expression searches you need to have the @code{CL-PPCRE}
+library loaded (otherwise @code{sly-apropos} falls back to regex-less
 mode).  If you have @uref{https://www.quicklisp.org/beta/,Quicklisp}
 installed (you do, right?) you need only type @code{(ql:quickload
 :cl-ppcre)} now from the @REPL{}.
@@ -613,7 +613,7 @@ C-t} on its name, or just entering it in the minibuffer prompt.
 Now let’s return to the REPL by switching to its
 @code{*sly-mrepl ...} buffer or typing @kbd{C-c C-z}.  To exercise the
 code we just traced, let’s type something like @code{desbind}, followed
-by tab, and see if it suggest @code{destructuring-bind} as the top
+by tab, and see if it suggests @code{destructuring-bind} as the top
 match. We could now select some completion from the list, but instead
 let's just type @kbd{C-g} to dismiss the completion, since we wanted to
 test completion, not write any actual @code{destructuring-bind}
