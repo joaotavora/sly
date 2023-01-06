@@ -26,10 +26,6 @@
   (let ((strings (all-simple-completions prefix package)))
     (list strings (longest-common-prefix strings))))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (import 'simple-completions :slynk)
-  (export 'simple-completions :slynk))
-
 (defun all-simple-completions (prefix package)
   (multiple-value-bind (name pname intern) (tokenize-symbol prefix)
     (let* ((extern (and pname (not intern)))

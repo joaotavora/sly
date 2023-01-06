@@ -1006,8 +1006,6 @@ If the arglist is not available, return :NOT-AVAILABLE."))
       :not-available
       (arglist-dispatch (car form) (cdr form))))
 
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (export 'arglist-dispatch))
 (defgeneric arglist-dispatch (operator arguments)
   ;; Default method
   (:method (operator arguments)

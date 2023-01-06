@@ -74,7 +74,159 @@
            #:*find-definitions-left-trim*
            #:*after-toggle-trace-hook*
            #:*echo-number-alist*
-           #:*present-number-alist*))
+           #:*present-number-alist*
+           #:arglist-dispatch
+           ;; defslyfuns from this file.
+           #:ping
+           #:connection-info
+           #:toggle-debug-on-slynk-error
+           #:interactive-eval
+           #:eval-and-grab-output
+           #:interactive-eval-region
+           #:re-evaluate-defvar
+           #:pprint-eval
+           #:set-package
+           #:ed-in-emacs
+           #:inspect-in-emacs
+           #:value-for-editing
+           #:commit-edited-value
+           #:sly-db-break-with-default-debugger
+           #:backtrace
+           #:debugger-info-for-emacs
+           #:invoke-nth-restart
+           #:sly-db-abort
+           #:sly-db-continue
+           #:simple-break
+           #:throw-to-toplevel
+           #:invoke-nth-restart-for-emacs
+           #:eval-string-in-frame
+           #:pprint-eval-string-in-frame
+           #:frame-package-name
+           #:frame-locals-and-catch-tags
+           #:sly-db-disassemble
+           #:sly-db-return-from-frame
+           #:sly-db-break
+           #:toggle-break-on-signals
+           #:sdlb-print-condition
+           #:compile-file-for-emacs
+           #:compile-string-for-emacs
+           #:compile-multiple-strings-for-emacs
+           #:compile-file-if-needed
+           #:load-file
+           #:slynk-require
+           #:slynk-add-load-paths
+           #:slynk-macroexpand-1
+           #:slynk-macroexpand
+           #:slynk-macroexpand-all
+           #:slynk-compiler-macroexpand-1
+           #:slynk-compiler-macroexpand
+           #:slynk-expand-1
+           #:slynk-expand
+           #:slynk-format-string-expand
+           #:disassemble-form
+           #:operator-arglist
+           #:describe-symbol
+           #:describe-function
+           #:describe-definition-for-emacs
+           #:documentation-symbol
+           #:list-all-package-names
+           #:slynk-toggle-trace
+           #:untrace-all
+           #:undefine-function
+           #:unintern-symbol
+           #:slynk-delete-package
+           #:find-definition-for-thing
+           #:find-source-location-for-emacs
+           #:find-definitions-for-emacs
+           #:xref
+           #:xrefs
+           #:init-inspector
+           #:inspector-nth-part
+           #:inspector-nth-part-or-lose
+           #:inspect-nth-part
+           #:inspector-range
+           #:inspector-call-nth-action
+           #:inspector-pop
+           #:inspector-next
+           #:inspector-reinspect
+           #:inspector-toggle-verbose
+           #:inspector-eval
+           #:inspector-history
+           #:quit-inspector
+           #:describe-inspectee
+           #:describe-inspector-part
+           #:pprint-inspector-part
+           #:inspect-in-frame
+           #:inspect-current-condition
+           #:inspect-frame-var
+           #:pprint-frame-var
+           #:describe-frame-var
+           #:eval-for-inspector
+           #:list-threads
+           #:quit-thread-browser
+           #:debug-nth-thread
+           #:kill-nth-thread
+           #:start-slynk-server-in-thread
+           #:mop
+           #:update-indentation-information
+           #:io-speed-test
+           #:flow-control-test
+           #:sly-db-next
+           #:sly-db-out
+           ;; defslyfuns from slynk-completion
+           #:simple-completions
+           ;; defslyfuns from contribs
+           #:compile-for-stickers
+           #:kill-stickers
+           #:toggle-break-on-stickers
+           #:total-recordings
+           #:search-for-recording
+           #:fetch
+           #:forget
+           #:find-recording-or-lose
+           #:inspect-sticker
+           #:inspect-sticker-recording
+           #:time-spec
+           #:untime-spec
+           #:toggle-timing
+           #:timed-spec-p
+           #:untime-all
+           #:report-latest-timings
+           #:clear-timing-tree
+           #:autodoc
+           #:complete-form
+           #:package=
+           #:export-symbol-for-emacs
+           #:import-symbol-for-emacs
+           #:unexport-symbol-for-emacs
+           #:export-structure
+           #:create-mrepl
+           #:globally-save-object
+           #:eval-for-mrepl
+           #:inspect-entry
+           #:describe-entry
+           #:pprint-entry
+           #:guess-and-set-package
+           #:copy-to-repl
+           #:sync-package-and-default-directory
+           #:trace-format
+           #:trace-or-lose
+           #:report-partial-tree
+           #:report-specs
+           #:report-total
+           #:clear-trace-tree
+           #:trace-part-or-lose
+           #:trace-arguments-or-lose
+           #:inspect-trace-part
+           #:pprint-trace-part
+           #:describe-trace-part
+           #:inspect-trace
+           #:trace-location
+           #:dialog-trace
+           #:dialog-untrace
+           #:dialog-toggle-trace
+           #:dialog-traced-p
+           #:dialog-untrace-all))
 
 (in-package :slynk)
 
@@ -4085,97 +4237,6 @@ Collisions are caused because package information is ignored."
       (background-message "flow-control-test: ~d" i))))
 
 
-;;;; The "official" API
-
-(defpackage :slynk-api (:use))
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (let ((api '(#:*emacs-connection*
-               #:*m-x-sly-from-emacs*
-               #:default-connection
-               ;;
-               #:channel
-               #:channel-id
-               #:channel-thread-id
-               #:close-channel
-               #:define-channel-method
-               #:find-channel
-               #:send-to-remote-channel
-               #:*channel*
-               ;;
-               #:listener
-               #:with-listener-bindings
-               #:saving-listener-bindings
-               #:flush-listener-streams
-               #:default-listener
-               #:close-listener
-               ;;
-               #:add-hook
-               #:*connection-closed-hook*
-               #:*after-init-hook*
-               #:*new-connection-hook*
-               #:*pre-reply-hook*
-               #:*after-toggle-trace-hook*
-               #:*eval-for-emacs-wrappers*
-               #:*debugger-extra-options*
-               #:*buffer-readtable*
-               ;;
-               #:defslyfun
-               #:destructure-case
-               #:log-event
-               #:process-requests
-               #:use-threads-p
-               #:wait-for-event
-               #:with-bindings
-               #:with-connection
-               #:with-top-level-restart
-               #:with-sly-interrupts
-               #:with-buffer-syntax
-               #:with-retry-restart
-               #:*loaded-user-init-file*
-               #:load-user-init-file
-               #:make-thread-bindings-aware-lambda
-               ;;
-               #:package-string-for-prompt
-               ;;
-               #:*slynk-wire-protocol-version*
-               ;;
-               #:*slynk-require-hook*
-               ;;
-               #:present-for-emacs
-               ;; packages
-               ;;
-               #:cl-package
-               #:+keyword-package+
-               #:guess-package
-               #:guess-buffer-package
-               #:*exclude-symbol-functions*
-               #:*buffer-package*
-               #:*slynk-io-package*
-               #:parse-package
-               ;; symbols
-               ;;
-               #:tokenize-symbol
-               #:untokenize-symbol
-               #:symbol-external-p
-               #:unparse-name
-               #:excluded-from-searches-p
-               ;;
-               ;;
-               #:slynk-pprint
-               #:slynk-pprint-values
-               #:slynk-pprint-to-line
-               ;;
-               ;;
-               #:background-message
-               #:map-if)))
-    (loop for sym in api
-          for slynk-api-sym = (intern (string sym) :slynk-api)
-          for slynk-sym = (intern (string sym) :slynk)
-          do (unintern slynk-api-sym :slynk-api)
-             (import slynk-sym :slynk-api)
-             (export slynk-sym :slynk-api))))
-
-
 ;;;; INIT, as called from the slynk-loader.lisp and ASDF's loaders
 ;;;;
 (defvar *loaded-user-init-file* nil
@@ -4194,6 +4255,96 @@ Collisions are caused because package information is ignored."
     (pushnew :slynk *features*))
   (setq *loaded-user-init-file* (load-user-init-file))
   (run-hook *after-init-hook*))
+
+
+;;;; The "official" API
+
+(defpackage :slynk-api
+  (:use)
+  (:import-from #:slynk
+                .
+                #1=(#:*emacs-connection*
+                    #:*m-x-sly-from-emacs*
+                    #:default-connection
+                    ;;
+                    #:channel
+                    #:channel-id
+                    #:channel-thread-id
+                    #:close-channel
+                    #:define-channel-method
+                    #:find-channel
+                    #:send-to-remote-channel
+                    #:*channel*
+                    ;;
+                    #:listener
+                    #:with-listener-bindings
+                    #:saving-listener-bindings
+                    #:flush-listener-streams
+                    #:default-listener
+                    #:close-listener
+                    ;;
+                    #:add-hook
+                    #:*connection-closed-hook*
+                    #:*after-init-hook*
+                    #:*new-connection-hook*
+                    #:*pre-reply-hook*
+                    #:*after-toggle-trace-hook*
+                    #:*eval-for-emacs-wrappers*
+                    #:*debugger-extra-options*
+                    #:*buffer-readtable*
+                    ;;
+                    #:defslyfun
+                    #:destructure-case
+                    #:log-event
+                    #:process-requests
+                    #:use-threads-p
+                    #:wait-for-event
+                    #:with-bindings
+                    #:with-connection
+                    #:with-top-level-restart
+                    #:with-sly-interrupts
+                    #:with-buffer-syntax
+                    #:with-retry-restart
+                    #:*loaded-user-init-file*
+                    #:load-user-init-file
+                    #:make-thread-bindings-aware-lambda
+                    ;;
+                    #:package-string-for-prompt
+                    ;;
+                    #:*slynk-wire-protocol-version*
+                    ;;
+                    #:*slynk-require-hook*
+                    ;;
+                    #:present-for-emacs
+                    ;; packages
+                    ;;
+                    #:cl-package
+                    #:+keyword-package+
+                    #:guess-package
+                    #:guess-buffer-package
+                    ;; TODO: Remove:
+                    ;;#:*exclude-symbol-functions*
+                    #:*buffer-package*
+                    #:*slynk-io-package*
+                    #:parse-package
+                    ;; symbols
+                    ;;
+                    #:tokenize-symbol
+                    #:untokenize-symbol
+                    #:symbol-external-p
+                    #:unparse-name
+                    ;; TODO: Remove:
+                    ;;#:excluded-from-searches-p
+                    ;;
+                    ;;
+                    #:slynk-pprint
+                    #:slynk-pprint-values
+                    #:slynk-pprint-to-line
+                    ;;
+                    ;;
+                    #:background-message
+                    #:map-if))
+  (:export . #1#))
 
 ;; Local Variables:
 ;; sly-load-failed-fasl: ask
