@@ -139,10 +139,10 @@
     (error "Cannot use external format ~A~
             without having installed flexi-streams in the inferior-lisp."
            external-format))
-  (funcall (read-from-string "FLEXI-STREAMS:MAKE-FLEXI-STREAM")
+  (funcall (with-standard-io-syntax (read-from-string "FLEXI-STREAMS:MAKE-FLEXI-STREAM"))
            stream
            :external-format
-           (apply (read-from-string "FLEXI-STREAMS:MAKE-EXTERNAL-FORMAT")
+           (apply (with-standard-io-syntax (read-from-string "FLEXI-STREAMS:MAKE-EXTERNAL-FORMAT"))
                   external-format)))
 
 ;;; Coding Systems
