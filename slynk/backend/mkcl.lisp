@@ -154,7 +154,7 @@
 (defvar *inferior-lisp-sleeping-post* nil)
 
 (defimplementation quit-lisp ()
-  (progf (ignore-errors (eval (read-from-string "slynk::*saved-global-streams*"))) ;; restore original IO streams.
+  (progf (ignore-errors (eval (with-standard-io-syntax (read-from-string "slynk::*saved-global-streams*")))) ;; restore original IO streams.
          (when *inferior-lisp-sleeping-post* (mt:semaphore-signal *inferior-lisp-sleeping-post*))
          ;;(mk-ext:quit :verbose t)
          ))

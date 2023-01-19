@@ -79,7 +79,7 @@
 
 (defmethod perform :after ((o load-op) (c (eql (find-system :slynk))))
   (format *debug-io* "~&SLYNK's ASDF loader finished.")
-  (funcall (read-from-string "slynk::init")))
+  (funcall (with-standard-io-syntax (read-from-string "slynk::init"))))
 
 
 ;;; Contrib systems (should probably go into their own file one day)
