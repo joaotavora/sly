@@ -88,7 +88,7 @@
 ;;; and potentially with other REPLs, we export a functional toggle
 ;;; for the user to call after loading these definitions.
 (defun enable-cl-inspect-in-emacs ()
-  (slynk-backend:wrap 'cl:inspect :use-sly :replace (read-from-string "slynk:inspect-in-emacs")))
+  (slynk-backend:wrap 'cl:inspect :use-sly :replace (with-standard-io-syntax (read-from-string "slynk:inspect-in-emacs")))
 
 ;; ??? repair bare print object so inspector titles show java class
 (defun %print-unreadable-object-java-too (object stream type identity body)
@@ -480,7 +480,7 @@
                                    (first (sys:frame-to-list frame)))))
             (car sys::*saved-backtrace*)))
          #+#.(slynk-backend:with-symbol *debug-condition* 'ext)
-         (ext::*debug-condition* (read-from-string "slynk::*slynk-debugger-condition*")))
+         (ext::*debug-condition* (with-standard-io-syntax (read-from-string "slynk::*slynk-debugger-condition*")))
     (funcall debugger-loop-fn)))
 
 (defun backtrace (start end)

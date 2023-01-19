@@ -1479,8 +1479,8 @@ Return :interrupt if an interrupt occurs while waiting."
      (error
       "~s not implemented. Check if ~s = ~s is supported by the implementation."
       'wait-for-input
-      (read-from-string "SLYNK:*COMMUNICATION-STYLE*")
-      (symbol-value (read-from-string "SLYNK:*COMMUNICATION-STYLE*"))))))
+      (with-standard-io-syntax (read-from-string "SLYNK:*COMMUNICATION-STYLE*"))
+      (symbol-value (with-standard-io-syntax (read-from-string "SLYNK:*COMMUNICATION-STYLE*")))))))
 
 
 ;;;;  Locks
