@@ -89,8 +89,7 @@
 ;;; for the user to call after loading these definitions.
 (defun enable-cl-inspect-in-emacs ()
   (slynk-backend:wrap 'cl:inspect :use-sly
-                      :replace (with-standard-io-syntax
-                                 (read-from-string "slynk:inspect-in-emacs"))))
+                      :replace (slynk-backend:find-symbol2 "slynk:inspect-in-emacs")))
 
 ;; ??? repair bare print object so inspector titles show java class
 (defun %print-unreadable-object-java-too (object stream type identity body)
@@ -483,8 +482,7 @@
             (car sys::*saved-backtrace*)))
          #+#.(slynk-backend:with-symbol *debug-condition* 'ext)
          (ext::*debug-condition*
-          (with-standard-io-syntax
-            (read-from-string "slynk::*slynk-debugger-condition*"))))
+          (slynk-backend:find-symbol2 "slynk::*slynk-debugger-condition*")))
     (funcall debugger-loop-fn)))
 
 (defun backtrace (start end)
