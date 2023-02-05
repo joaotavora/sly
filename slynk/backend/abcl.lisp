@@ -679,6 +679,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; source location and users of it
 
+(defimplementation find-source-location (thing)
+  (source-location thing))
+
 (defgeneric source-location (object))
 
 ;; try to find some kind of source for internals
@@ -1017,9 +1020,17 @@
                                       '(:function :generic-function :macro :class :compiler-macro
                                         :type :constant :variable :package :structure :condition))))
            (ismethod (and (consp what) (eq (car what) :method)))
-           (<position> (cond (isfunction (list :function-name (princ-to-string (second what))))
-                                             (ismethod (stringify-method-specs what))
-                                             (t (list :position (1+ (or pos 0))))))
+           ;; `sly-goto-source-location' expects a single position
+           ;; clause.  Prefer :POSITION to the others.
+           (<position> (cond (isfunction
+                              (if pos
+                                  `(:position ,(1+ pos))
+                                  `(:function-name ,(princ-to-string (second what)))))
+                             (ismethod
+                              (if pos
+                                  `(:position ,(1+ pos))
+                                  (stringify-method-specs what)))
+                             (t (list :position (1+ (or pos 0))))))
 
            (path2 (if (eq path :top-level)
                       ;; this is bogus - figure out some way to guess which is the repl associated with :toplevel
