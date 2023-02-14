@@ -3556,7 +3556,6 @@ Return nil if there's no previous object."
     (let* ((history (inspector-%history (current-inspector))))
       (when (> (length history) 1)
         (decf (fill-pointer history))
-        (aref history (fill-pointer history))
         (istate>elisp (current-istate))))))
 
 (defslyfun inspector-next ()
