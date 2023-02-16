@@ -3425,8 +3425,9 @@ DSPEC is a string and LOCATION a source location. NAME is a string."
          (aref history (1- (length history))))))
 
 (defun reset-inspector (&optional (inspector (current-inspector)))
-  ;; FIXME: for some silly reason, this is needed to absolutely lose
-  ;; the references to the history's objects (github##568)
+  #+sbcl
+  ;; FIXME: On SBCL, for some silly reason, this is needed to lose the
+  ;; references to the history's objects (github##568)
   (loop with hist = (inspector-%history inspector)
         for i from 0 below (array-dimension hist 0)
         do (setf (aref hist i) nil))
