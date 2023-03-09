@@ -773,7 +773,7 @@ to do this, this factors in the length of the inserted header itself."
           (saved-ynp (symbol-function 'cl:y-or-n-p)))
      (setf (excl::package-definition-lock pkg) nil
            (symbol-function 'cl:y-or-n-p)
-           (symbol-function (read-from-string "slynk:y-or-n-p-in-emacs")))
+           (symbol-function (slynk-backend:find-symbo2l "slynk:y-or-n-p-in-emacs")))
      (unwind-protect
           (progn ,@body)
        (setf (symbol-function 'cl:y-or-n-p)      saved-ynp

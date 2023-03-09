@@ -139,10 +139,11 @@
     (error "Cannot use external format ~A~
             without having installed flexi-streams in the inferior-lisp."
            external-format))
-  (funcall (read-from-string "FLEXI-STREAMS:MAKE-FLEXI-STREAM")
+  (funcall (slynk-backend:find-symbol2 "FLEXI-STREAMS:MAKE-FLEXI-STREAM")
            stream
            :external-format
-           (apply (read-from-string "FLEXI-STREAMS:MAKE-EXTERNAL-FORMAT")
+           (apply (slynk-backend:find-symbol2
+                    "FLEXI-STREAMS:MAKE-EXTERNAL-FORMAT")
                   external-format)))
 
 ;;; Coding Systems

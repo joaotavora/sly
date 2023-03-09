@@ -142,7 +142,7 @@ subexpressions of the object to stream positions."
 (defun readtable-for-package (package)
   ;; KLUDGE: due to the load order we can't reference the slynk
   ;; package.
-  (funcall (read-from-string "slynk::guess-buffer-readtable")
+  (funcall (slynk-backend:find-symbol2 "slynk::guess-buffer-readtable")
            (string-upcase (package-name package))))
 
 ;; Search STREAM for a "(in-package ...)" form.  Use that to derive

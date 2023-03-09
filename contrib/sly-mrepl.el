@@ -969,6 +969,7 @@ arglist for the most recently enclosed macro or function."
 (put 'sly-mrepl-next-input-or-button 'sly-button-navigation-command t)
 (put 'sly-mrepl-previous-input-or-button 'sly-button-navigation-command t)
 
+;;;###autoload
 (defun sly-mrepl (&optional display-action)
   "Find or create the first useful REPL for the default connection.
 If supplied, DISPLAY-ACTION is called on the

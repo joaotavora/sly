@@ -61,6 +61,8 @@
            ;; auto-flush
            auto-flush-loop
            *auto-flush-interval*
+
+           find-symbol2
            ))
 
 (defpackage slynk-mop
@@ -203,6 +205,12 @@ The portable code calls this function at startup."
   (let ((*print-pretty* t))
     (warn "These Slynk interfaces are unimplemented:~% ~:<~{~A~^ ~:_~}~:>"
           (list (sort (copy-list *unimplemented-interfaces*) #'string<)))))
+
+(defun find-symbol2 (name)
+  ;; FIXME/TODO: Not a very good FIND-SYMBOL alternative, but works
+  ;; for now and localized here so we can fix that some day (adding
+  ;; error reporting for example).
+  (with-standard-io-syntax (read-from-string name)))
 
 (defun import-to-slynk-mop (symbol-list)
   (dolist (sym symbol-list)
@@ -1479,8 +1487,9 @@ Return :interrupt if an interrupt occurs while waiting."
      (error
       "~s not implemented. Check if ~s = ~s is supported by the implementation."
       'wait-for-input
-      (read-from-string "SLYNK:*COMMUNICATION-STYLE*")
-      (symbol-value (read-from-string "SLYNK:*COMMUNICATION-STYLE*"))))))
+      (slynk-backend:find-symbol2 "SLYNK:*COMMUNICATION-STYLE*")
+      (symbol-value
+       (slynk-backend:find-symbol2 "SLYNK:*COMMUNICATION-STYLE*"))))))
 
 
 ;;;;  Locks

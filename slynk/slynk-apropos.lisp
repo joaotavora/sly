@@ -121,12 +121,12 @@ that symbols accessible in the current package go first."
       (cond ((find-package :cl-ppcre)
              (background-message "Using CL-PPCRE for apropos on regexp \"~a\"" pattern)
 
-             (let ((matcher (funcall (read-from-string "cl-ppcre:create-scanner")
+             (let ((matcher (funcall (slynk-backend:find-symbol2 "cl-ppcre:create-scanner")
                                      pattern
                                      :case-insensitive-mode (not case-sensitive))))
                (lambda (symbol-name)
                  (multiple-value-bind (beg end)
-                     (funcall (read-from-string "cl-ppcre:scan")
+                     (funcall (slynk-backend:find-symbol2 "cl-ppcre:scan")
                               matcher
                               symbol-name)
                    (when beg `((,beg ,end)))))))

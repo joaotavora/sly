@@ -3424,8 +3424,14 @@ DSPEC is a string and LOCATION a source location. NAME is a string."
     (and (plusp (length history))
          (aref history (1- (length history))))))
 
-(defun reset-inspector ()
-  (setf (inspector-%history (current-inspector))
+(defun reset-inspector (&optional (inspector (current-inspector)))
+  #+sbcl
+  ;; FIXME: On SBCL, for some silly reason, this is needed to lose the
+  ;; references to the history's objects (github##568)
+  (loop with hist = (inspector-%history inspector)
+        for i from 0 below (array-dimension hist 0)
+        do (setf (aref hist i) nil))
+  (setf (inspector-%history inspector)
         (make-array 10 :adjustable t :fill-pointer 0)))
 
 (defslyfun init-inspector (string)
@@ -3556,7 +3562,6 @@ Return nil if there's no previous object."
     (let* ((history (inspector-%history (current-inspector))))
       (when (> (length history) 1)
         (decf (fill-pointer history))
-        (aref history (fill-pointer history))
         (istate>elisp (current-istate))))))
 
 (defslyfun inspector-next ()

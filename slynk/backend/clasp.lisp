@@ -19,7 +19,7 @@
 ;;    (set slynk:*log-events* t))
 
 (defmacro sly-dbg (fmt &rest args)
-  `(funcall (read-from-string "slynk::log-event")
+  `(funcall (slynk-backend:find-symbol2 "slynk::log-event")
             "sly-dbg ~a ~a~%" mp:*current-process* (apply #'format nil ,fmt ,args)))
 
 ;; Hard dependencies.
