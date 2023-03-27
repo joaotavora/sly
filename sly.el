@@ -6102,7 +6102,7 @@ Interactively get the number from a button at point."
                                         ""
                                         'sly-db-invoke-restart-by-name))))
   (sly-db-invoke-restart (cl-position restart-name sly-db-restarts
-                                      :test 'string= :key 'first)))
+                                      :test 'string= :key #'cl-first)))
 
 (defun sly-db-break-with-default-debugger (&optional dont-unwind)
   "Enter default debugger."
