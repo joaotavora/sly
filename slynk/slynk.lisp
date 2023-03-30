@@ -603,6 +603,8 @@ corresponding values in the CDR of VALUE."
 (defun flush-listener-streams (listener)
   (with-slots (in out) listener
     (force-output out)
+    #-armedbear
+    (slynk-gray::reset-stream-line-column out)
     (clear-input in)))
 
 (defmethod close-listener (l)
