@@ -107,6 +107,11 @@
   (with-slots (sb-impl::output-column) stream
     (setf sb-impl::output-column 0)))
 
+#+cmucl
+(defmethod reset-stream-line-column ((stream system:fd-stream))
+  (with-slots (lisp::char-pos) stream
+    (setf lisp::char-pos 0)))
+
 (defmethod stream-finish-output ((stream sly-output-stream))
   (with-sly-output-stream stream
     (unless (zerop fill-pointer)
