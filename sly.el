@@ -4386,6 +4386,16 @@ in Lisp when committed with \\[sly-edit-value-commit]."
   (sly-eval-async `(slynk:undefine-function ,symbol-name)
     (lambda (result) (sly-message "%s" result))))
 
+(defun sly-remove-method (name qualifiers specializers)
+  "Remove a method from generic function named NAME.
+The method removed is identified by QUALIFIERS and SPECIALIZERS."
+  (interactive (sly--read-method
+                "[sly] Remove method from which generic function: "
+                (lambda (method-name)
+                  (format "[sly] Remove which method from %s: " method-name))))
+  (sly-eval-async `(slynk:undefine-method ,name ',qualifiers ',specializers)
+    (lambda (result) (sly-message "%s" result))))
+
 (defun sly-unintern-symbol (symbol-name package)
   "Unintern the symbol given with SYMBOL-NAME PACKAGE."
   (interactive (list (sly-read-symbol-name "Unintern symbol: " t)

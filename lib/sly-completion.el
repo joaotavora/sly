@@ -757,6 +757,39 @@ symbol at point, or if QUERY is non-nil."
                  (t (funcall do-it))))
           (t sym-at-point))))
 
+(defun sly--read-method (method-name-prompt selectors-prompt-function)
+  (let* ((method-name (sly-read-symbol-name method-name-prompt t))
+         (format-selectors
+          (lambda (selectors)
+            (let ((qualifiers (car selectors)))
+              (if (null qualifiers)
+                  (format "%s" (cadr selectors))
+                (format "%s %s" (string-join qualifiers " ")
+                        (cadr selectors))))))
+         (selectors-alist
+          (mapcar
+           (lambda (selectors)
+             (cons (funcall format-selectors selectors)
+                   selectors))
+           (sly-eval `(slynk:method-selectors ,method-name))))
+         (selectors-at-point (sly-parse-context method-name)))
+    (when (and (eq :defmethod (car selectors-at-point))
+               (equal method-name (cadr selectors-at-point)))
+      (setq selectors-at-point
+            (string-replace
+             "'" "" (string-join (mapcar #'prin1-to-string
+                                         (cddr selectors-at-point))
+                                 " "))))
+    (unless (cl-member selectors-at-point selectors-alist
+                       :key #'car :test #'equal)
+      (setq selectors-at-point nil))
+    (cons method-name
+          (cdr (assoc (completing-read
+                       (funcall selectors-prompt-function method-name)
+                       (mapcar #'car selectors-alist)
+                       nil t selectors-at-point)
+                      selectors-alist))))))
+
 (provide 'sly-completion)
 ;;; sly-completion.el ends here
 

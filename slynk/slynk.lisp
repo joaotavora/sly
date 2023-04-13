@@ -3198,6 +3198,30 @@ If non-nil, called with two arguments SPEC and TRACED-P." )
   (let ((fname (from-string fname-string)))
     (format nil "~S" (fmakunbound fname))))
 
+(defun read-as-function (name)
+  (eval (from-string (format nil "(function ~A)" name))))
+
+(defslyfun undefine-method (method-name qualifiers specializers)
+  (let* ((generic-function (read-as-function method-name))
+         (qualifiers (mapcar #'from-string qualifiers))
+         (specializers (mapcar #'from-string specializers))
+         (method (find-method generic-function qualifiers specializers)))
+    (format nil "~S"
+            (when method
+              (remove-method generic-function method)))))
+
+(defslyfun method-selectors (method-name)
+  (mapcar
+   (lambda (method)
+     (list (mapcar #'prin1-to-string (slynk-mop:method-qualifiers method))
+           (mapcar (lambda (specializer)
+                     (if (typep specializer 'slynk-mop:eql-specializer)
+                         (format nil "(eql ~A)"
+                                 (sb-mop:eql-specializer-object specializer))
+                         (prin1-to-string (class-name specializer))))
+                   (slynk-mop:method-specializers method))))
+   (slynk-mop:generic-function-methods (read-as-function method-name))))
+
 (defslyfun unintern-symbol (name package)
   (let ((pkg (guess-package package)))
     (cond ((not pkg) (format nil "No such package: ~s" package))
