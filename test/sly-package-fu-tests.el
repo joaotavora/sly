@@ -25,9 +25,6 @@
                 #:find))
 (in-package :foo)"
      "cl:position")
-
-    ;; TODO: the output here is incorrect, but we're
-    ;; documenting the current behaviour in this test.
     ("(defpackage :foo
   (:use :cl)
   (:import-from #:bknr.datastore-dummy
@@ -36,9 +33,8 @@
      "(defpackage :foo
   (:use :cl)
   (:import-from #:bknr.datastore-dummy
-                #:find)
-  (:import-from #:bknr.datastore-dummy
-                #:position))
+                #:position
+                #:find))
 (in-package :foo)"
      "bknr.datastore-dummy:position"))
   (let ((file (make-temp-file "sly-package-fu--fixture")))
