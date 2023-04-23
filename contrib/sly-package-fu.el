@@ -351,7 +351,7 @@ symbol in the Lisp image if possible."
 (defun sly-package-fu--search-import-from (package)
   (let* ((normalized-package (sly-package-fu--normalize-name package))
          (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s"
-                         (regexp-quote (regexp-quote normalized-package)))))
+                         (regexp-quote normalized-package))))
     (re-search-forward regexp nil t)))
 
 
