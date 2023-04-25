@@ -27,7 +27,6 @@
 (require 'cl-lib)
 (require 'comint)
 (require 'sly-messages "lib/sly-messages")
-(require 'sly-parse "lib/sly-parse")
 
 
 ;;; Something to move to minibuffer.el, maybe
