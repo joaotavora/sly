@@ -285,7 +285,8 @@ already exported/unexported."
   (let ((symbol-name (sly-format-symbol-for-defpackage symbol-name)))
     (unless (looking-back "^\\s-*" (line-beginning-position) nil)
       (newline-and-indent))
-    (insert symbol-name)))
+    (insert symbol-name)
+    (when (looking-at "\\s_") (insert " "))))
 
 (defun sly-remove-export (symbol-name)
   ;; Assumes we're inside the beginning of a DEFPACKAGE form.
