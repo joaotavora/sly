@@ -361,19 +361,21 @@ Assumes point just before start of DEFPACKAGE form"
   (forward-sexp)
   ;; Now, search last :import-from or :use form
   (cond
-    ((re-search-backward "(:\\(use\\|import-from\\)" nil t)
-     ;; Skip found expression:
-     (forward-sexp)
-     ;; and insert a new (:import-from <package> <symbol>) form.
-     (newline-and-indent)
-     (let ((symbol-name (sly-format-symbol-for-defpackage symbol))
-           (package-name (sly-format-symbol-for-defpackage package)))
-       (insert "(:import-from )")
-       (backward-char)
-       (insert package-name)
-       (newline-and-indent)
-       (insert symbol-name)))
-    (t (error "Unable to find :use form in the defpackage form."))))
+   ((or (re-search-backward "(:\\(use\\|import-from\\)" nil t)
+        (and (re-search-backward "def[[:alnum:]]*package" nil t)
+             (progn (forward-sexp) t)))
+    ;; Skip found expression
+    (forward-sexp)
+    ;; and insert a new (:import-from <package> <symbol>) form.
+    (newline-and-indent)
+    (let ((symbol-name (sly-format-symbol-for-defpackage symbol))
+          (package-name (sly-format-symbol-for-defpackage package)))
+      (insert "(:import-from )")
+      (backward-char)
+      (insert package-name)
+      (newline-and-indent)
+      (insert symbol-name)))
+    (t (error "Can't find suitable place for :import-from defpackage form."))))
 
 
 (defun sly-package-fu--add-or-update-import-from-form (symbol)
