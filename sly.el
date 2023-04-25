@@ -4391,10 +4391,11 @@ in Lisp when committed with \\[sly-edit-value-commit]."
 The method removed is identified by QUALIFIERS and SPECIALIZERS."
   (interactive (sly--read-method
                 "[sly] Remove method from which generic function: "
-                (lambda (method-name)
-                  (format "[sly] Remove which method from %s: " method-name))))
-  (sly-eval-async `(slynk:undefine-method ,name ',qualifiers ',specializers)
-    (lambda (result) (sly-message "%s" result))))
+                "[sly] Remove which method from %s"))
+  (sly-eval `(slynk:remove-method-by-name ,name
+                                          ',qualifiers
+                                          ',specializers))
+  (sly-message "Method removed"))
 
 (defun sly-unintern-symbol (symbol-name package)
   "Unintern the symbol given with SYMBOL-NAME PACKAGE."

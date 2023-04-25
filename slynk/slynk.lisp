@@ -3201,16 +3201,18 @@ If non-nil, called with two arguments SPEC and TRACED-P." )
 (defun read-as-function (name)
   (eval (from-string (format nil "(function ~A)" name))))
 
-(defslyfun undefine-method (method-name qualifiers specializers)
-  (let* ((generic-function (read-as-function method-name))
+(defslyfun remove-method-by-name (generic-name qualifiers specializers)
+  "Remove GENERIC-NAME's method with QUALIFIERS and SPECIALIZERS."
+  (let* ((generic-function (read-as-function generic-name))
          (qualifiers (mapcar #'from-string qualifiers))
          (specializers (mapcar #'from-string specializers))
          (method (find-method generic-function qualifiers specializers)))
-    (format nil "~S"
-            (when method
-              (remove-method generic-function method)))))
+    (remove-method generic-function method)
+    t))
 
-(defslyfun method-selectors (method-name)
+(defslyfun generic-method-specs (generic-name)
+  "Compute ((QUALIFIERS SPECIALIZERS)...) for methods of GENERIC-NAME's gf.
+QUALIFIERS and SPECIALIZERS are lists of strings."
   (mapcar
    (lambda (method)
      (list (mapcar #'prin1-to-string (slynk-mop:method-qualifiers method))
@@ -3220,7 +3222,7 @@ If non-nil, called with two arguments SPEC and TRACED-P." )
                                  (sb-mop:eql-specializer-object specializer))
                          (prin1-to-string (class-name specializer))))
                    (slynk-mop:method-specializers method))))
-   (slynk-mop:generic-function-methods (read-as-function method-name))))
+   (slynk-mop:generic-function-methods (read-as-function generic-name))))
 
 (defslyfun unintern-symbol (name package)
   (let ((pkg (guess-package package)))
