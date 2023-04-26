@@ -47,10 +47,6 @@
       (sly-package-fu--add-or-update-import-from-form
        (pp-to-string symbol-to-import))
 
-      (message "%s" final)
-      (message "%s" (cl-loop initially (goto-char (point-min))
-                             for f = (ignore-errors (read (current-buffer)))
-                             while f collect f))
       (should (equal final
                      (cl-loop initially (goto-char (point-min))
                               for f = (ignore-errors (read (current-buffer)))
