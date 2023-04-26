@@ -354,7 +354,7 @@ symbol in the Lisp image if possible."
 the (:IMPORT-FROM) for package. If no such import-from exists,
 returns nil."
   (let* ((normalized-package (sly-package-fu--normalize-name package))
-         (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s[[:space:]]"
+         (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s[)[:space:]]"
                          (regexp-quote normalized-package))))
     (when (re-search-forward regexp nil t)
       (goto-char (- (point) 1))

@@ -23,6 +23,13 @@
         (:import-from :bar/car :find)
         (:import-from :bar :position))
       (in-package :foo))
+     bar::position)
+    (((defpackage :foo
+        (:import-from :bar))
+      (in-package :foo))
+     ((defpackage :foo
+        (:import-from :bar :position))
+      (in-package :foo))
      bar::position))
   (let ((file (make-temp-file "sly-package-fu--fixture"))
         (sly-export-symbol-representation-auto nil)
@@ -73,6 +80,14 @@
      (equal nil
             (sly-package-fu--search-import-from "bar")))
     (should (equal 1 (point)))))
+
+(define-sly-ert-test package-fu-jump-to-end-even-when-closing-parenthesis ()
+  (with-temp-buffer
+    (insert "(defpackage :foo (:import-from #:bar))")
+    ;; Expect to be here:........................^
+    (goto-char (point-min))
+    (sly-package-fu--search-import-from "bar")
+    (should (equal 37 (point)))))
 
 
 (provide 'sly-package-fu-tests)
