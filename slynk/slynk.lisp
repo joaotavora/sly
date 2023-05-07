@@ -3219,7 +3219,7 @@ QUALIFIERS and SPECIALIZERS are lists of strings."
            (mapcar (lambda (specializer)
                      (if (typep specializer 'slynk-mop:eql-specializer)
                          (format nil "(eql ~A)"
-                                 (sb-mop:eql-specializer-object specializer))
+                                 (slynk-mop:eql-specializer-object specializer))
                          (prin1-to-string (class-name specializer))))
                    (slynk-mop:method-specializers method))))
    (slynk-mop:generic-function-methods (read-as-function generic-name))))
