@@ -520,8 +520,6 @@ that the calling thread is the one that interacts with Emacs."
 
 ;;;; Unix signals
 
-(defconstant +sigint+ 2)
-
 (definterface getpid ()
   "Return the (Unix) process ID of this superior Lisp.")
 

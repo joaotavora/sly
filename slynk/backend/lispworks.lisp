@@ -181,12 +181,12 @@
 (defun set-sigint-handler ()
   ;; Set SIGINT handler on Slynk request handler thread.
   #-win32
-  (sys::set-signal-handler +sigint+ 
+  (sys::set-signal-handler sys::unix-sigint
                            (make-sigint-handler mp:*current-process*)))
 
-#-win32 
+#-win32
 (defimplementation install-sigint-handler (handler)
-  (sys::set-signal-handler +sigint+
+  (sys::set-signal-handler sys::unix-sigint
                            (let ((self mp:*current-process*))
                              (lambda (&rest args)
                                (declare (ignore args))
@@ -311,20 +311,18 @@ Return NIL if the symbol is unbound."
 
 ;;; Debugging
 
-(defclass sly-env (env:environment) 
+(defclass sly-env (env:environment)
   ((debugger-hook :initarg :debugger-hoook)))
 
-(defun sly-env (hook io-bindings) 
-  (make-instance 'sly-env :name "SLY Environment" 
+(defun sly-env (hook io-bindings)
+  (make-instance 'sly-env :name "SLY Environment"
                  :io-bindings io-bindings
                  :debugger-hoook hook))
 
-(defmethod env-internals:environment-display-notifier 
+(defmethod env-internals:environment-display-notifier
     ((env sly-env) &key restarts condition)
-  (declare (ignore restarts condition))
-  (funcall (slynk-sym :slynk-debugger-hook) condition *debugger-hook*)
-  ;;  nil
-  )
+  (declare (ignore restarts))
+  (funcall (slynk-sym :slynk-debugger-hook) condition *debugger-hook*))
 
 (defmethod env-internals:environment-display-debugger ((env sly-env))
   *debug-io*)
@@ -1025,3 +1023,9 @@ function names like \(SETF GET)."
 
 (defimplementation make-weak-value-hash-table (&rest args)
   (apply #'make-hash-table :weak-kind :value args))
+
+;;;; Packages
+
+#+#.(slynk-backend:with-symbol 'package-local-nicknames 'hcl)
+(defimplementation package-local-nicknames (package)
+  (hcl:package-local-nicknames package))
