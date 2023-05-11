@@ -181,12 +181,12 @@
 (defun set-sigint-handler ()
   ;; Set SIGINT handler on Slynk request handler thread.
   #-win32
-  (sys::set-signal-handler +sigint+ 
+  (sys::set-signal-handler sys::unix-sigint
                            (make-sigint-handler mp:*current-process*)))
 
-#-win32 
+#-win32
 (defimplementation install-sigint-handler (handler)
-  (sys::set-signal-handler +sigint+
+  (sys::set-signal-handler sys::unix-sigint
                            (let ((self mp:*current-process*))
                              (lambda (&rest args)
                                (declare (ignore args))
