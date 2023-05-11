@@ -1025,3 +1025,9 @@ function names like \(SETF GET)."
 
 (defimplementation make-weak-value-hash-table (&rest args)
   (apply #'make-hash-table :weak-kind :value args))
+
+;;;; Packages
+
+#+#.(slynk-backend:with-symbol 'package-local-nicknames 'hcl)
+(defimplementation package-local-nicknames (package)
+  (hcl:package-local-nicknames package))
