@@ -6286,7 +6286,7 @@ was called originally."
     (sly-eval-async '(slynk:list-threads)
       #'(lambda (threads)
           (with-current-buffer (current-buffer)
-            (sly--display-threads threads))))))
+            (sly--display-threads (sly--threads-add-info threads)))))))
 
 (defun sly-move-point (position)
   "Move point in the current buffer and in the window the buffer is displayed."
@@ -6294,6 +6294,16 @@ was called originally."
     (goto-char position)
     (when window
       (set-window-point window position))))
+
+(defun sly--threads-add-info (threads)
+  "When TID is present, add running time and CPU usage of THREADS."
+  (when-let ((columns (car threads))
+             (tid-column (seq-position columns :tid)))
+    (setf columns (nconc columns '(:time :%%cpu)))
+    (dolist (thread (cdr threads))
+      (let-alist (process-attributes (nth tid-column thread))
+        (setf thread (nconc thread (list (format-seconds "%Y, %D, %.2h:%z%.2m:%.2s" .etime) (format "%.1f" .pcpu)))))))
+  threads)
 
 (defun sly--display-threads (threads)
   (let* ((inhibit-read-only t)
