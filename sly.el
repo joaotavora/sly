@@ -6295,14 +6295,50 @@ was called originally."
     (when window
       (set-window-point window position))))
 
+(defvar sly--threads-last-update-time nil
+  "Time of the last update to threads cpu usage info.")
+
+(defvar sly--threads-last-cpu-time (make-hash-table)
+  "Hashtable mapping thread ID to CPU usage time.")
+
+;; in emacs 29 this is no longer need, we can use current-cpu-time
+(defvar sly--clocks-per-sec nil
+  "Clock ticks per second.")
+
+(defun sly--thread-cpu-time (tid)
+  "Compute CPU usage in seconds for TID from /proc/pid/task/tid/stat"
+  (unless sly--clocks-per-sec
+    (setq sly--clocks-per-sec (string-to-number (shell-command-to-string "getconf CLK_TCK"))))
+
+  (with-file-contents! (format "/proc/%d/task/%d/stat" (sly-pid) tid)
+    (skip-chars-forward "^)")
+    (forward-word 12)
+    (/ (float (+ (string-to-number (current-word))
+                 (progn (forward-word)
+                        (string-to-number (current-word)))))
+       sly--clocks-per-sec)))
+
 (defun sly--threads-add-info (threads)
   "When TID is present, add running time and CPU usage of THREADS."
-  (when-let ((columns (car threads))
-             (tid-column (seq-position columns :tid)))
-    (setf columns (nconc columns '(:time :%%cpu)))
-    (dolist (thread (cdr threads))
-      (let-alist (process-attributes (nth tid-column thread))
-        (setf thread (nconc thread (list (format-seconds "%Y, %D, %.2h:%z%.2m:%.2s" .etime) (format "%.1f" .pcpu)))))))
+  (when (eq system-type 'gnu/linux)
+    (let (cpu-times)
+     (when-let ((columns (car threads))
+                (tid-column (seq-position columns :tid)))
+       (setf columns (nconc columns '(:time :%%cpu)))
+       (dolist (thread (cdr threads))
+         (let* ((tid (nth tid-column thread))
+                (etime (alist-get 'etime (process-attributes tid)))
+                (cpu-time (sly--thread-cpu-time tid)))
+           (push (cons tid cpu-time) cpu-times)
+           (setf thread (nconc thread (list (format-seconds "%Y, %D, %.2h:%z%.2m:%.2s" etime)
+                                            (if-let (last-cpu-time (gethash tid sly--threads-last-cpu-time))
+                                                (format "%.1f" (* 100 (/ (- cpu-time last-cpu-time)
+                                                                         (time-to-seconds (time-subtract (current-time) sly--threads-last-update-time)))))
+                                              "-"))))))
+       (setq sly--threads-last-update-time (current-time))
+       (clrhash sly--threads-last-cpu-time)
+       (cl-loop for (tid . time) in cpu-times
+                do (puthash tid time sly--threads-last-cpu-time)))))
   threads)
 
 (defun sly--display-threads (threads)
