@@ -200,18 +200,18 @@ Backend code should treat the connection structure as opaque.")
 ;;;; Connections
 ;;;
 ;;; Connection structures represent the network connections between
-;;; Emacs and Lisp. 
+;;; Emacs and Lisp.
 ;;;
 (defstruct (connection
              (:constructor %make-connection)
              (:conc-name connection-)
              (:print-function print-connection))
   ;; The listening socket. (usually closed)
-  ;; 
+  ;;
   (socket           (missing-arg) :type t :read-only t)
   ;; Character I/O stream of socket connection.  Read-only to avoid
   ;; race conditions during initialization.
-  ;; 
+  ;;
   (socket-io        (missing-arg) :type stream :read-only t)
   ;; An alist of (ID . CHANNEL) entries. Channels are good for
   ;; streaming data over the wire (see their description in sly.el)
@@ -225,19 +225,19 @@ Backend code should treat the connection structure as opaque.")
   ;; A list of INSPECTOR objects. Each inspector has its own history
   ;; of inspected objects. An inspector might also be tied to a
   ;; specific thread.
-  ;; 
+  ;;
   (inspectors '() :type list)
   ;;Cache of macro-indentation information that
   ;; has been sent to Emacs.  This is used for preparing deltas to
   ;; update Emacs's knowledge.  Maps: symbol ->
   ;; indentation-specification
-  ;; 
+  ;;
   (indentation-cache (make-hash-table :test 'eq) :type hash-table)
   ;; The list of packages represented in the cache:
-  ;; 
+  ;;
   (indentation-cache-packages '())
   ;; The communication style used.
-  ;; 
+  ;;
   (communication-style nil :type (member nil :spawn :sigio :fd-handler))
   )
 
@@ -461,11 +461,11 @@ The list of patterns is searched for a HEAD `eq' to the car of
 VALUE. If one is found, the BODY is executed with ARGS bound to the
 corresponding values in the CDR of VALUE."
   (let ((operator (gensym "op-"))
-	(operands (gensym "rand-"))
-	(tmp (gensym "tmp-")))
+        (operands (gensym "rand-"))
+        (tmp (gensym "tmp-")))
     `(let* ((,tmp ,value)
-	    (,operator (car ,tmp))
-	    (,operands (cdr ,tmp)))
+            (,operator (car ,tmp))
+            (,operands (cdr ,tmp)))
        (case ,operator
          ,@(loop for (pattern . body) in patterns collect
                  (if (eq pattern t)
@@ -551,7 +551,7 @@ corresponding values in the CDR of VALUE."
 
 (defmacro listeners () `(connection-listeners *emacs-connection*))
 
-(defmethod initialize-instance :after ((l listener) &key initial-env) 
+(defmethod initialize-instance :after ((l listener) &key initial-env)
   (with-slots (out in env) l
     (let ((io (make-two-way-stream in out)))
       (setf env
@@ -702,7 +702,7 @@ corresponding values in the CDR of VALUE."
              (with-slynk-error-handler (connection)
                (with-default-listener (connection)
                  (call-with-debugger-hook #'slynk-debugger-hook
-                                          function))))))))
+                  function))))))))
 
 (defun call-with-retry-restart (msg thunk)
   (loop (with-simple-restart (retry "~a" msg)
@@ -1304,12 +1304,12 @@ point the thread terminates and CHANNEL is closed."
        (cond ((and ch thread)
               (send-event thread `(:emacs-channel-send ,ch ,msg)))
              (ch
-              (encode-message 
+              (encode-message
                (list :invalid-channel channel-id
                      "No suitable threads for channel")
                (current-socket-io)))
              (t
-              (encode-message 
+              (encode-message
                (list :invalid-channel channel-id "Channel not found")
                (current-socket-io))))))
     ((:reader-error packet condition)
@@ -1416,10 +1416,10 @@ event was found."
 ;;; FIXME: Make this use SLYNK-MATCH.
 (defun event-match-p (event pattern)
   (cond ((or (keywordp pattern) (numberp pattern) (stringp pattern)
-	     (member pattern '(nil t)))
-	 (equal event pattern))
-	((symbolp pattern) t)
-	((consp pattern)
+             (member pattern '(nil t)))
+         (equal event pattern))
+        ((symbolp pattern) t)
+        ((consp pattern)
          (case (car pattern)
            ((or) (some (lambda (p) (event-match-p event p)) (cdr pattern)))
            (t (and (consp event)
@@ -1639,13 +1639,13 @@ converted to lower case."
         (t
          (force-output)
          (let ((tag (make-tag)))
-	   (send-to-emacs `(:eval ,(current-thread-id) ,tag
-				  ,(process-form-for-emacs form)))
-	   (let ((value (caddr (wait-for-event `(:emacs-return ,tag result)))))
-	     (destructure-case value
-	       ((:ok value) value)
+           (send-to-emacs `(:eval ,(current-thread-id) ,tag
+                                  ,(process-form-for-emacs form)))
+           (let ((value (caddr (wait-for-event `(:emacs-return ,tag result)))))
+             (destructure-case value
+               ((:ok value) value)
                ((:error kind . data) (error "~a: ~{~a~}" kind data))
-	       ((:abort) (abort))))))))
+               ((:abort) (abort))))))))
 
 (defun sly-version-string ()
   "Return a string identifying the SLY version.
@@ -1851,9 +1851,9 @@ considered to represent a symbol internal to some current package.)"
   (untokenize-symbol \"quux\" t \"foo\")   ==> \"quux::foo\"
   (untokenize-symbol nil nil \"foo\")    ==> \"foo\"
 "
-  (cond ((not package-name) 	symbol-name)
-        (internal-p 		(cat package-name "::" symbol-name))
-        (t 			(cat package-name ":" symbol-name))))
+  (cond ((not package-name)     symbol-name)
+        (internal-p             (cat package-name "::" symbol-name))
+        (t                      (cat package-name ":" symbol-name))))
 
 (defun char-casifier (string)
   "Return a function which converts characters in STRING according to `readtable-case'."
@@ -1980,7 +1980,7 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
                                      ;; (setq result (apply (car form) (cdr form)))
                                      (eval form)))
                               ;; Honour *EVAL-FOR-EMACS-WRAPPERS*
-                              ;; 
+                              ;;
                               (loop for lambda = #'eval-it then
                                                            (handler-case
                                                                (apply wrapper lambda extra-rex-options)
@@ -2280,7 +2280,7 @@ MAP -- rewrite the chars in STRING according to this alist."
 (defvar *canonical-package-nicknames*
   `((:common-lisp-user . :cl-user))
   "Canonical package names to use instead of shortest name/nickname.")
-  
+
 (defvar *auto-abbreviate-dotted-packages* t
   "Abbreviate dotted package names to their last component if T.")
 
@@ -2554,7 +2554,7 @@ conditions are simply reported."
   ;; JT@15/08/24: FIXME: Actually, with a nice and proper method-combination for
   ;; interfaces (as was once quite bravely attempted by Helmut, this variable
   ;; could go away and contribs could simply add methods to CONDITION-EXTRAS)
-  ;; 
+  ;;
   "A property list of extra options describing a condition.
 This works much like the CONDITION-EXTRAS interface, but can be
 dynamically bound by contribs when invoking the debugger.")
@@ -3420,7 +3420,7 @@ DSPEC is a string and LOCATION a source location. NAME is a string."
    (name :initarg :name :initform (error "Name this INSPECTOR!") :accessor inspector-name)))
 
 (defmethod print-object ((i inspector) s)
-  (print-unreadable-object (i s :type t) 
+  (print-unreadable-object (i s :type t)
     (format s "~a/~a" (inspector-name i) (length (inspector-%history i)))))
 
 (defmethod initialize-instance :after ((i inspector) &key name)
@@ -3826,7 +3826,7 @@ Example:
   (when (and *emacs-connection*
              (use-threads-p)
              ;; FIXME: hardcoded thread name
-             (equalp (thread-name (current-thread)) "slynk-worker")) 
+             (equalp (thread-name (current-thread)) "slynk-worker"))
     (setf *thread-list* (delete (current-thread) *thread-list*)))
   (let* ((plist (thread-attributes (car *thread-list*)))
          (labels (loop for (key) on plist by #'cddr
