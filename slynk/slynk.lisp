@@ -1943,7 +1943,8 @@ Fall back to the current if no such package exists."
   (or (and string (guess-package string))
       *package*))
 
-(defvar *eval-for-emacs-wrappers* nil
+(defvar *eval-for-emacs-wrappers*
+  (list 'wrap-to-allow-user-debugger-hooks)
   "List of functions for fine-grained control over form evaluation.
 Each element must be a function taking an arbitrary number of
 arguments, the first of which is a function of no arguments, call it
@@ -2414,6 +2415,29 @@ at least SECONDS."
 
 
 ;;;; Debugger
+
+(defvar *debugger-hook-override* nil
+  "When non-nil, Slynk will make sure that this function is used as the
+`*debugger-hook*'. It should be automatically set by an
+`eval-for-emacs' wrapper function such as
+`wrap-to-allow-user-debugger-hooks'.")
+
+(defun wrap-to-allow-user-debugger-hooks (in-function &rest extra-rex-options)
+  "If evaluating `in-function' causes the `*debugger-hook*' to change,
+make certain that Slynk respects this change. This allows end-users to
+roll their own `*debugger-hook*' at the top-level."
+  (flet ((out-function ()
+           (let* ((*debugger-hook*
+                    (or *debugger-hook-override* *debugger-hook*))
+                  (*debugger-hook-before* *debugger-hook*))
+             (prog1
+                 (funcall in-function)
+               (let ((*debugger-hook-after* *debugger-hook*))
+                 (when (not (eq *debugger-hook-before*
+                                *debugger-hook-after*))
+                   (setf *debugger-hook-override*
+                         *debugger-hook-after*)))))))
+    #'out-function))
 
 (defun invoke-sly-debugger (condition)
   "Sends a message to Emacs declaring that the debugger has been entered,
