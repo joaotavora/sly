@@ -3745,8 +3745,11 @@ thus also honour `sly-xref--popup-method'."
       (sly--when-let (fname (cl-getf hints :call-site))
         (sly-search-call-site fname))
       (when (cl-getf hints :align)
-        (sly-forward-sexp)
-        (beginning-of-sexp)))
+        (condition-case nil
+            (progn
+              (sly-forward-sexp)
+              (beginning-of-sexp))
+          (error (goto-char 0)))))
     (point)))
 
 
