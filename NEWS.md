@@ -1,6 +1,10 @@
 Upcoming version
 ----------------
 
+### New `M-x sly-remove-method`
+
+A very practical way to remove methods from generic functions.
+
 ### Remove `sly-completing-read`
 
 SLY no longer bypasses `completing-read-function` to provide basic

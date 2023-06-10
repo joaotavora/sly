@@ -762,6 +762,42 @@ symbol at point, or if QUERY is non-nil."
                  (t (funcall do-it))))
           (t sym-at-point))))
 
+(defun sly--read-method (prompt-for-generic
+                         prompt-for-method-within-generic)
+  "Read triplet (GENERIC-NAME QUALIFIERS SPECIALIZERS) for a method."
+  (let* ((generic-name (sly-read-symbol-name prompt-for-generic t))
+         (format-spec (lambda (spec)
+                        (let ((qualifiers (car spec)))
+                          (if (null qualifiers)
+                              (format "%s" (cadr spec))
+                            (format "%s %s" (string-join qualifiers " ")
+                                    (cadr spec))))))
+         (methods-by-formatted-name
+          (cl-loop for spec in (sly-eval `(slynk:generic-method-specs ,generic-name))
+                   collect (cons (funcall format-spec spec) spec)))
+         (context-at-point (sly-parse-context generic-name))
+         (probe (and (eq :defmethod (car context-at-point))
+                     (equal generic-name (cadr context-at-point))
+                     (string-replace
+                      "'" "" (mapconcat #'prin1-to-string (cddr context-at-point)
+                                        " "))))
+         default
+         (reordered
+          (cl-loop for e in methods-by-formatted-name
+                   if (cl-equalp (car e) probe) do (setq default e)
+                   else collect e into others
+                   finally (cl-return (if default (cons default others)
+                                        others)))))
+    (unless reordered
+      (sly-user-error "Generic `%s' doesn't have any methods!" generic-name))
+    (cons generic-name
+          (cdr (assoc (completing-read
+                       (concat (format prompt-for-method-within-generic generic-name)
+                               (if default (format " (default %s)" (car default)))
+                               ": ")
+                       (mapcar #'car reordered)
+                       nil t nil nil (car default))
+                      reordered)))))
+
 (provide 'sly-completion)
 ;;; sly-completion.el ends here
-

@@ -128,11 +128,16 @@
       (sly-test-expect "Not suppressed by reader conditional?"
                          'sly-reader-conditional-face
                          (get-text-property (point) 'face)
-                         #'(lambda (x y) (not (eq x y)))))
+                         (lambda (x y)
+                           (let ((y (if (listp y) y (list y))))
+                             (not (memq x y))))))
     (goto-char (point-max))
     (when (search-backward "*YES*" nil t)
       (sly-test-expect "Suppressed by reader conditional?"
                          'sly-reader-conditional-face
-                         (get-text-property (point) 'face)))))
+                         (get-text-property (point) 'face)
+                         (lambda (x y)
+                           (let ((y (if (listp y) y (list y))))
+                             (memq x y)))))))
 
 (provide 'sly-fontifying-fu-tests)

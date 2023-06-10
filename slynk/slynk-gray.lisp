@@ -99,6 +99,19 @@
 (defmethod stream-line-column ((stream sly-output-stream))
   (with-sly-output-stream stream column))
 
+(defmethod reset-stream-line-column ((stream sly-output-stream))
+  (with-sly-output-stream stream (setf column 0)))
+
+#+sbcl
+(defmethod reset-stream-line-column ((stream sb-sys:fd-stream))
+  (with-slots (sb-impl::output-column) stream
+    (setf sb-impl::output-column 0)))
+
+#+cmucl
+(defmethod reset-stream-line-column ((stream system:fd-stream))
+  (with-slots (lisp::char-pos) stream
+    (setf lisp::char-pos 0)))
+
 (defmethod stream-finish-output ((stream sly-output-stream))
   (with-sly-output-stream stream
     (unless (zerop fill-pointer)

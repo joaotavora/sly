@@ -568,12 +568,10 @@ deliver output to Emacs."
                      ;; socket whenever it sees fit.
                      ;;
                      #-(or sbcl cmucl)
-                     (if (eq *dedicated-output-stream-buffering* :line)
-                         (slynk-backend:make-output-stream
-                          (lambda (string)
-                            (write-sequence string dedicated)
-                            (force-output dedicated)))
-                         dedicated)))
+                     (slynk-backend:make-output-stream
+                      (lambda (string)
+                        (write-sequence string dedicated)
+                        (force-output dedicated)))))
                (prog1 result
                  (format result
                          "~&; Dedicated output stream setup (port ~a)~%"

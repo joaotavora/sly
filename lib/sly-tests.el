@@ -91,7 +91,7 @@ Exits Emacs when finished. The exit code is the number of failed tests."
     (append '(sly)
             (let ((file-name (or load-file-name
                                  byte-compile-current-file)))
-              (if (and file-name
+              (if (and (stringp file-name)
                        (string-match "test/sly-\\(.*\\)\.elc?$" file-name))
                   (list 'contrib (intern (match-string 1 file-name)))
                 '(core)))))

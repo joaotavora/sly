@@ -828,6 +828,9 @@ in Lisp when committed with @kbd{C-c C-c}.
 Undefine the function, with @code{fmakunbound}, for the symbol at
 point.
 
+@cmditem{sly-remove-method}
+Remove a specific method of a generic function at point.
+
 @end table
 
 @node Compilation

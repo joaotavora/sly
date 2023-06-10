@@ -285,7 +285,8 @@ already exported/unexported."
   (let ((symbol-name (sly-format-symbol-for-defpackage symbol-name)))
     (unless (looking-back "^\\s-*" (line-beginning-position) nil)
       (newline-and-indent))
-    (insert symbol-name)))
+    (insert symbol-name)
+    (when (looking-at "\\s_") (insert " "))))
 
 (defun sly-remove-export (symbol-name)
   ;; Assumes we're inside the beginning of a DEFPACKAGE form.
@@ -351,7 +352,7 @@ symbol in the Lisp image if possible."
 (defun sly-package-fu--search-import-from (package)
   (let* ((normalized-package (sly-package-fu--normalize-name package))
          (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s"
-                         (regexp-quote (regexp-quote normalized-package)))))
+                         (regexp-quote normalized-package))))
     (re-search-forward regexp nil t)))
 
 
@@ -361,19 +362,21 @@ Assumes point just before start of DEFPACKAGE form"
   (forward-sexp)
   ;; Now, search last :import-from or :use form
   (cond
-    ((re-search-backward "(:\\(use\\|import-from\\)" nil t)
-     ;; Skip found expression:
-     (forward-sexp)
-     ;; and insert a new (:import-from <package> <symbol>) form.
-     (newline-and-indent)
-     (let ((symbol-name (sly-format-symbol-for-defpackage symbol))
-           (package-name (sly-format-symbol-for-defpackage package)))
-       (insert "(:import-from )")
-       (backward-char)
-       (insert package-name)
-       (newline-and-indent)
-       (insert symbol-name)))
-    (t (error "Unable to find :use form in the defpackage form."))))
+   ((or (re-search-backward "(:\\(use\\|import-from\\)" nil t)
+        (and (re-search-backward "def[[:alnum:]]*package" nil t)
+             (progn (forward-sexp) t)))
+    ;; Skip found expression
+    (forward-sexp)
+    ;; and insert a new (:import-from <package> <symbol>) form.
+    (newline-and-indent)
+    (let ((symbol-name (sly-format-symbol-for-defpackage symbol))
+          (package-name (sly-format-symbol-for-defpackage package)))
+      (insert "(:import-from )")
+      (backward-char)
+      (insert package-name)
+      (newline-and-indent)
+      (insert symbol-name)))
+    (t (error "Can't find suitable place for :import-from defpackage form."))))
 
 
 (defun sly-package-fu--add-or-update-import-from-form (symbol)
