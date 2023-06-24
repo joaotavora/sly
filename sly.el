@@ -6481,7 +6481,7 @@ was called originally."
       (when (time-less-p end (current-time))
         (sly-message "Quit timeout expired.  Disconnecting.")
         (delete-process connection))
-      (sit-for 0 100)))
+      (sit-for 0.1)))
   (sly-update-connection-list))
 
 (defun sly-restart-connection-at-point (connection)
