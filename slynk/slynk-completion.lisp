@@ -402,7 +402,9 @@ Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
   (when (plusp (length pattern))
     (list (loop
             with package = (guess-buffer-package package-name)
-            with upcasepat = (string-upcase pattern)
+            with upcasepat = (if (eq :UPCASE (readtable-case *readtable*))
+                                 (string-upcase pattern)
+                               pattern)
             for (string symbol indexes score)
               in
               (loop with (external internal)
@@ -417,9 +419,11 @@ Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
                     for i upto limit
                     collect e)
             collect
-            (list (if (every #'common-lisp:upper-case-p pattern)
-                      (string-upcase string)
-                      (string-downcase string))
+            (list (case (readtable-case *readtable*)
+                    (:UPCASE (string-upcase string))
+                    (:downcase (string-downcase string))
+                    (t string) ; FIXME: what about :invert mode?
+                    )
                   score
                   (to-chunks string indexes)
                   (readably-classify symbol)))

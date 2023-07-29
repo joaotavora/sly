@@ -1487,9 +1487,11 @@ Return :interrupt if an interrupt occurs while waiting."
      (error
       "~s not implemented. Check if ~s = ~s is supported by the implementation."
       'wait-for-input
-      (slynk-backend:find-symbol2 "SLYNK:*COMMUNICATION-STYLE*")
+      (slynk-backend:find-symbol2 #1=#.(if (eq :UPCASE (readtable-case *readtable*))
+                                           "SLYNK:*COMMUNICATION-STYLE*"
+                                           "slynk:*communication-style*"))
       (symbol-value
-       (slynk-backend:find-symbol2 "SLYNK:*COMMUNICATION-STYLE*"))))))
+       (slynk-backend:find-symbol2 #1#))))))
 
 
 ;;;;  Locks

@@ -902,7 +902,12 @@ keywords: :BOUNDP, :FBOUNDP, :CONSTANT, :GENERIC-FUNCTION,
       (when (find-class symbol nil)     (push :class result))
       (when (macro-function symbol)     (push :macro result))
       (when (special-operator-p symbol) (push :special-operator result))
-      (when (find-package symbol)       (push :package result))
+      (when #-allegro (find-package symbol)
+            #+allegro (handler-case (find-package symbol)
+                        (error (e)
+                          (log-event "classify-symbol: error raised in find-package (allegro)")
+                          nil))
+            (push :package result))
       (when (and (fboundp symbol)
                  (typep (ignore-errors (fdefinition symbol))
                         'generic-function))
@@ -1625,7 +1630,10 @@ converted to lower case."
                   (process-form-for-emacs (cdr form))))
     (character (format nil "?~C" form))
     (symbol (concatenate 'string (when (eq (symbol-package form)
-                                           #.(find-package "KEYWORD"))
+                                           #.(find-package
+                                              (if (eq :UPCASE (readtable-case *readtable*))
+                                                  "KEYWORD"
+                                                  "keyword")))
                                    ":")
                          (string-downcase (symbol-name form))))
     (number (let ((*print-base* 10))
@@ -2966,11 +2974,19 @@ soon once non-ASDF loading is removed. (see github#134)")
 Receives a module name as argument and should return non-nil if it
 managed to load it.")
   (:method ((method (eql :slynk-loader)) module)
-    (funcall (intern "REQUIRE-MODULE" :slynk-loader) module))
+    (funcall (intern #.(if (eq :UPCASE (readtable-case *readtable*))
+                           "REQUIRE-MODULE"
+                         "require-module")
+                     :slynk-loader)
+             module))
   (:method ((method (eql :asdf)) module)
     (unless *asdf-load-in-progress*
       (let ((*asdf-load-in-progress* t))
-        (funcall (intern "LOAD-SYSTEM" :asdf) module)))))
+        (funcall (intern #.(if (eq :UPCASE (readtable-case *readtable*))
+                               "LOAD-SYSTEM"
+                             "load-system")
+                         :asdf)
+                 module)))))
 
 (defun add-to-load-path-1 (path load-path-var)
   (pushnew path (symbol-value load-path-var) :test #'equal))
@@ -2979,9 +2995,15 @@ managed to load it.")
   (:documentation
    "Using METHOD, consider PATH when searching for modules.")
   (:method ((method (eql :slynk-loader)) path)
-    (add-to-load-path-1 path (intern "*LOAD-PATH*" :slynk-loader)))
+    (add-to-load-path-1 path (intern #.(if (eq :UPCASE (readtable-case *readtable*))
+                                           "*LOAD-PATH*"
+                                         "*load-path*")
+                                     :slynk-loader)))
   (:method ((method (eql :asdf)) path)
-    (add-to-load-path-1 path (intern "*CENTRAL-REGISTRY*" :asdf))))
+    (add-to-load-path-1 path (intern #.(if (eq :UPCASE (readtable-case *readtable*))
+                                           "*CENTRAL-REGISTRY*"
+                                         "*central-registry*")
+                                     :asdf))))
 
 (defvar *slynk-require-hook* '()
   "Functions run after SLYNK-REQUIRE. Called with new modules.")
@@ -3219,7 +3241,9 @@ QUALIFIERS and SPECIALIZERS are lists of strings."
            (mapcar (lambda (specializer)
                      (if (typep specializer 'slynk-mop:eql-specializer)
                          (format nil "(eql ~A)"
-                                 (slynk-mop:eql-specializer-object specializer))
+                                 (funcall #+allegro 'mop:eql-specializer-object
+                                          #+sbcl    'sb-mop:eql-specializer-object
+                                          specializer))
                          (prin1-to-string (class-name specializer))))
                    (slynk-mop:method-specializers method))))
    (slynk-mop:generic-function-methods (read-as-function generic-name))))
