@@ -167,7 +167,7 @@ If it's not in the cache, the cache will be updated asynchronously."
 
 (define-minor-mode sly-autodoc-mode
   "Toggle echo area display of Lisp objects at point."
-  nil nil nil
+  :global nil
   (cond (sly-autodoc-mode
          (set (make-local-variable 'eldoc-documentation-function) 'sly-autodoc)
          (set (make-local-variable 'eldoc-minor-mode-string) "")
