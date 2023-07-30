@@ -242,13 +242,30 @@ Point is placed before the first expression in the list."
   (forward-list 1)
   (down-list -1))
 
-(defun sly-parse-toplevel-form ()
+(defun sly-parse-toplevel-form (&optional match)
   (ignore-errors                        ; (foo)
-    (save-excursion
-      (goto-char (car (sly-region-for-defun-at-point)))
-      (down-list 1)
-      (forward-sexp 1)
-      (sly-parse-context (read (current-buffer))))))
+   (let ((start (car (sly-region-for-defun-at-point))))
+     (or (save-excursion
+          (goto-char start)
+          (down-list 1)
+          (forward-sexp 1)
+          (let ((context (sly-parse-context (read (current-buffer)))))
+            (when (or (not match)
+                      (member (car context) match))
+              context)))
+         (when match
+           (save-excursion
+            (cl-loop while (> (point) start)
+                     thereis
+                     (progn
+                       (backward-up-list)
+                       (ignore-errors
+                        (save-excursion
+                         (down-list 1)
+                         (forward-sexp 1)
+                         (let ((context (sly-parse-context (read (current-buffer)))))
+                           (when (member (car context) match)
+                             context))))))))))))
 
 (defun sly-arglist-specializers (arglist)
   (cond ((or (null arglist)
@@ -263,12 +280,15 @@ Point is placed before the first expression in the list."
 
 (defun sly-definition-at-point (&optional only-functional)
   "Return object corresponding to the definition at point."
-  (let ((toplevel (sly-parse-toplevel-form)))
+  (let* ((functional '(:defun :defgeneric :defmethod :defmacro :define-compiler-macro))
+         (all '(:defun :defgeneric :defmacro :define-modify-macro :define-compiler-macro
+                :defmethod :defparameter :defvar :defconstant :defclass :defstruct :defpackage))
+         (toplevel (sly-parse-toplevel-form (if only-functional
+                                                functional
+                                                all))))
     (if (or (symbolp toplevel)
             (and only-functional
-                 (not (member (car toplevel)
-                              '(:defun :defgeneric :defmethod
-                                       :defmacro :define-compiler-macro)))))
+                 (not (member (car toplevel) functional))))
         (error "Not in a definition")
       (sly-dcase toplevel
         (((:defun :defgeneric) symbol)
