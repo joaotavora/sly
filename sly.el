@@ -6306,11 +6306,12 @@ was called originally."
   "Clock ticks per second.")
 
 (defun sly--thread-cpu-time (tid)
-  "Compute CPU usage in seconds for TID from /proc/pid/task/tid/stat"
+  "Compute CPU usage in seconds for TID from /proc/pid/task/tid/stat."
   (unless sly--clocks-per-sec
     (setq sly--clocks-per-sec (string-to-number (shell-command-to-string "getconf CLK_TCK"))))
-
-  (with-file-contents! (format "/proc/%d/task/%d/stat" (sly-pid) tid)
+  (with-temp-buffer
+    (insert-file-contents (format "/proc/%d/task/%d/stat"
+                                  (sly-pid) tid))
     (skip-chars-forward "^)")
     (forward-word 12)
     (/ (float (+ (string-to-number (current-word))
