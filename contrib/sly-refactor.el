@@ -3,12 +3,12 @@
 ;;; sly-refactor.el -- refactoring shortcuts
 ;;;
 
+(require 'sly)
+
 (define-sly-contrib sly-refactor
   "Refactor threading macros"
   (:authors "Almost entirely copied from clojure-mode and clj-refactor")
   (:license "GPL"))
-
-(require 'sly)
 
 (defun sly--fix-sexp-whitespace (&optional move-out)
   "Fix whitespace after unwinding a threading form.
