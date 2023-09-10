@@ -79,7 +79,7 @@
          `((define-key sly-part-button-keymap ,key
              '(menu-item "" ,action
                          :filter (lambda (cmd)
-                                   (let ((button (sly-button-at)))
+                                   (let ((button (sly-button-at nil nil 'no-error)))
                                      (and button
                                           (button-get button ',action)
                                           cmd)))))))
