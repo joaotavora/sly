@@ -79,13 +79,13 @@
          `((define-key sly-part-button-keymap ,key
              '(menu-item "" ,action
                          :filter (lambda (cmd)
-                                   (let ((button (sly-button-at)))
+                                   (let ((button (sly-button-at nil nil 'no-error)))
                                      (and button
                                           (button-get button ',action)
                                           cmd)))))))
      (define-key sly-button-popup-part-menu-keymap
        [,action] '(menu-item ,label ,action
-                             :visible (let ((button (sly-button-at)))
+                             :visible (let ((button (sly-button-at nil nil 'no-error)))
                                         (and button
                                              (button-get button ',action)))))))
 
