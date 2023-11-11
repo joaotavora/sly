@@ -2696,10 +2696,14 @@ Operation was KERNEL::DIVISION, operands (1 0).\"
         (invoke-restart-interactively restart)))))
 
 (defslyfun sly-db-abort ()
-  (invoke-restart (find 'abort *sly-db-restarts* :key #'restart-name)))
+  (let ((restart (find 'abort *sly-db-restarts* :key #'restart-name)))
+    (when restart
+      (invoke-restart restart))))
 
 (defslyfun sly-db-continue ()
-  (invoke-restart (find 'continue *sly-db-restarts* :key #'restart-name)))
+  (let ((restart (find 'continue *sly-db-restarts* :key #'restart-name)))
+    (when restart
+      (invoke-restart restart))))
 
 (defun coerce-to-condition (datum args)
   (etypecase datum
