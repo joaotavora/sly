@@ -650,7 +650,8 @@ that returns one such construct.")
                                           (n "-")
                                           (t "*"))))
          (package-name (and pkg
-                            (sly--pretty-package-name pkg)))
+                            (replace-regexp-in-string
+                             "%" "%%" (sly--pretty-package-name pkg) t t)))
          (pending (and conn
                        (length (sly-rex-continuations conn))))
          (sly-dbs (and conn (length (sly-db-buffers conn)))))
