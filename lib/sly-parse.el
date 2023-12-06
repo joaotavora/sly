@@ -215,7 +215,11 @@ The pattern can have the form:
                always (ignore-errors
                         (cl-etypecase p
                           (symbol (sly-beginning-of-list)
-                                  (eq (read (current-buffer)) p))
+                                  (let ((x (read (current-buffer))))
+                                    (and (symbolp x)
+                                         (eq (compare-strings (symbol-name x) 0 nil
+                                                              (symbol-name p) 0 nil t)
+                                             t))))
                           (number (backward-up-list p)
                                   t)))))))
 
