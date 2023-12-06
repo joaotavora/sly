@@ -3094,8 +3094,13 @@ designator. Returns a list of all modules available."
 (defslyfun disassemble-form (form)
   (with-buffer-syntax ()
     (with-output-to-string (*standard-output*)
-      (let ((*print-readably* nil))
-        (disassemble (eval (read-from-string form)))))))
+      (let ((*print-readably* nil)
+            (definition (find-definition form)))
+        (disassemble (if (typep definition 'method)
+                         (or #+#.(slynk-backend:with-symbol '%method-function-fast-function 'sb-pcl)
+                             (sb-pcl::%method-function-fast-function (slynk-mop:method-function definition))
+                             (slynk-mop:method-generic-function definition))
+                         definition))))))
 
 
 ;;;; Simple arglist display
@@ -3490,10 +3495,37 @@ DSPEC is a string and LOCATION a source location. NAME is a string."
   (setf (inspector-%history inspector)
         (make-array 10 :adjustable t :fill-pointer 0)))
 
+(defun find-definition (string)
+  "Evaluate STRING, unless it reads as (:DEFMETHOD NAME QUALIFIERS...
+SPECIALIZERS), in which case return that method."
+  (let ((sexp (read-from-string string)))
+    (typecase sexp
+      ((cons (eql :defmethod))
+       (pop sexp)
+       (let ((gf (pop sexp))
+             (qualifiers)
+             (specializers))
+         (loop for x = (pop sexp)
+               when (listp x)
+               do (setf specializers x)
+                  (return)
+               else do (push x qualifiers)
+               while sexp)
+         (find-method (fdefinition gf) qualifiers
+                      (mapcar (lambda (spec)
+                                (etypecase spec
+                                  (symbol (find-class spec))
+                                  ((cons (eql eql))
+                                   (make-instance 'slynk-mop:eql-specializer
+                                                  :object (eval (second spec))))))
+                              specializers))))
+      (t
+       (eval sexp)))))
+
 (defslyfun init-inspector (string)
   (with-buffer-syntax ()
     (with-retry-restart (:msg "Retry SLY inspection request.")
-      (inspect-object (eval (read-from-string string))))))
+      (inspect-object (find-definition string)))))
 
 (defun inspect-object (o)
   (let* ((inspector (target-inspector))
