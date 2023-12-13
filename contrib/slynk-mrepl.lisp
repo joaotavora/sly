@@ -30,14 +30,15 @@
    (pending-errors :initform nil :accessor mrepl-pending-errors))
   (:documentation "A listener implemented in terms of a channel.")
   (:default-initargs
-   :initial-env `((cl:*package* . ,cl:*package*)
-                  (cl:*default-pathname-defaults*
-                   . ,cl:*default-pathname-defaults*)
-                  (*) (**) (***)
-                  (/) (//) (///)
-                  (+) (++) (+++)
-                  (*history* . ,(make-array 40 :fill-pointer 0
-                                               :adjustable t)))))
+   :initial-env (copy-tree ; github#626
+                 `((cl:*package* . ,cl:*package*)
+                   (cl:*default-pathname-defaults*
+                    . ,cl:*default-pathname-defaults*)
+                   (*) (**) (***)
+                   (/) (//) (///)
+                   (+) (++) (+++)
+                   (*history* . ,(make-array 40 :fill-pointer 0
+                                             :adjustable t))))))
 
 (defmethod print-object ((r mrepl) stream)
   (print-unreadable-object (r stream :type t)
