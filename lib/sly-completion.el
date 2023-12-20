@@ -262,12 +262,13 @@ ANNOTATION) describing each completion possibility."
                        (display-sort-function . identity)
                        (category . sly-completion)))
           ;; all completions
-          (`t (car (all)))
+          (`t (copy-sequence (car (all))))
           ;; try completion
           (`nil (try))
           (`(try-completion . ,point)
            (cons 'try-completion (cons string point)))
-          (`(all-completions . ,_point) (cons 'all-completions (car (all))))
+          (`(all-completions . ,_point) (cons 'all-completions
+                                              (copy-sequence (car (all)))))
           (`(boundaries . ,thing)
            (completion-boundaries string (all) pred thing))
 
