@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/joaotavora/sly.png?branch=master)](https://travis-ci.org/joaotavora/sly)
-[![MELPA](http://melpa.org/packages/sly-badge.svg)](http://melpa.org/#/sly)
+[![MELPA](https://melpa.org/packages/sly-badge.svg)](https://melpa.org/#/sly)
 
 ```lisp
           _____    __   __  __        
@@ -56,21 +56,21 @@ _Obligatory animated gif section_
 -----------------------------------
 
 <a name="company-flex-completion"></a>
-[Flex completion](http://joaotavora.github.io/sly/#Completion)
+[Flex completion](https://joaotavora.github.io/sly/#Completion)
 
 ![company-flex-completion](./doc/animations/company-flex-completion.gif)
 
 <a name="repl"></a>
-[Backreferences](http://joaotavora.github.io/sly/#REPL-backreferences)
+[Backreferences](https://joaotavora.github.io/sly/#REPL-backreferences)
 
 ![backreferences](./doc/animations/backreferences.gif)
 
-[Reverse i-search](http://joaotavora.github.io/sly/#REPL-commands)
+[Reverse i-search](https://joaotavora.github.io/sly/#REPL-commands)
 
 ![reverse-isearch](./doc/animations/reverse-isearch.gif)
 
 <a name="stickers"></a>
-[Stickers](http://joaotavora.github.io/sly/#Stickers)
+[Stickers](https://joaotavora.github.io/sly/#Stickers)
 
 ![stickers-example](./doc/animations/stickers-example.gif)
 
@@ -170,13 +170,13 @@ Contributing
 [Open an issue or a pull request][4], but at least have a quick look at the
 first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 
-[1]: http://www.common-lisp.net/project/slime/
+[1]: https://www.common-lisp.net/project/slime/
 [2]: https://github.com/joaotavora/sly/blob/master/README.md#fork
 [4]: https://github.com/joaotavora/sly/issues
 [5]: https://github.com/joaotavora/sly/blob/master/CONTRIBUTING.md
 [6]: https://github.com/joaotavora/sly/blob/master/NEWS.md
 [7]: https://www.youtube.com/watch?v=xqWkVvubnSI
-[8]: http://common-lisp.net/project/slime/doc/html/Credits.html#Credits
+[8]: https://common-lisp.net/project/slime/doc/html/Credits.html#Credits
 [9]: https://github.com/joaotavora/sly/blob/master/CONTRIBUTING.md#architecture
 [10]: https://github.com/milkypostman/melpa
 [11]: https://github.com/joaotavora/sly-named-readtables
@@ -186,10 +186,10 @@ first part [CONTRIBUTING.md][5] file for instructions on how to contribute.
 [15]: https://github.com/emacs-helm/helm-sly
 [16]: https://zenodo.org/record/3742759
 [17]: https://github.com/joaotavora/sly-stepper
-[documentation]: http://joaotavora.github.io/sly
-[instasly]: http://joaotavora.github.io/sly/#Loading-Slynk-faster
-[trace-dialog]: http://joaotavora.github.io/sly/#Trace-Dialog
-[tutorial]: http://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users
+[documentation]: https://joaotavora.github.io/sly
+[instasly]: https://joaotavora.github.io/sly/#Loading-Slynk-faster
+[trace-dialog]: https://joaotavora.github.io/sly/#Trace-Dialog
+[tutorial]: https://joaotavora.github.io/sly/#A-SLY-tour-for-SLIME-users
 
 <!-- Local Variables: -->
 <!-- fill-column: 80 -->

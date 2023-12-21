@@ -921,7 +921,7 @@ SPECIAL-OPERATOR groups."
 (defun format-iso8601-time (time-value &optional include-timezone-p)
   "Formats a universal time TIME-VALUE in ISO 8601 format, with
     the time zone included if INCLUDE-TIMEZONE-P is non-NIL"
-  ;; Taken from http://www.pvv.ntnu.no/~nsaa/ISO8601.html
+  ;; Taken from https://www.pvv.ntnu.no/~nsaa/ISO8601.html
   ;; Thanks, Nikolai Sandved and Thomas Russ!
   (flet ((format-iso8601-timezone (zone)
            (if (zerop zone)

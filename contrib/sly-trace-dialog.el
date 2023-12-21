@@ -679,7 +679,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 (defun sly-trace-dialog-toggle-trace (&optional using-context-p)
   "Toggle the dialog-trace of the spec at point.
 
-When USING-CONTEXT-P, attempt to decipher lambdas. methods and
+When USING-CONTEXT-P, attempt to decipher lambdas, methods and
 other complicated function specs."
   (interactive "P")
   ;; Notice the use of "spec strings" here as opposed to the
