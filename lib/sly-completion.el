@@ -291,6 +291,11 @@ ANNOTATION) describing each completion possibility."
                              (when suggestion
                                (delete-region (- (point) (length obj)) (point))
                                (insert suggestion))))
+          :company-kind (lambda (str)
+                          (let* ((annotation (sly-completion-annotation str))
+                                 (kind (car (split-string annotation " " t))))
+                            (intern kind)
+                            ))
           :company-docsig
           (lambda (obj)
             (when (sit-for 0.1)
