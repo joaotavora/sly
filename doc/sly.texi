@@ -3248,3 +3248,8 @@ End:
 
 @c  LocalWords:  RET backreferences defun Autodoc autodoc minibuffer
 @c  LocalWords:  backreference
+
+@c Local Variables:
+@c mode: texinfo
+@c TeX-master: t
+@c End:
