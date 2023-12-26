@@ -287,7 +287,7 @@ closer to Emacs' own.
 
 To understand the differences between the two projects read
 @SLY{}'s @uref{https://github.com/joaotavora/sly/blob/master/NEWS.md,,NEWS.md}
-file.  For a hand-on approach to these differences you might want to read
+file.  For a hands-on approach to these differences you might want to
 @ref{A SLY tour for SLIME users}.
 
 @node Getting started
