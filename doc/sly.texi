@@ -901,7 +901,7 @@ Remove all annotations from the buffer.
 @kbditem{C-x `, next-error}
 Visit the next-error message.  This is not actually a @SLY{} command
 but @SLY{} creates a hidden buffer so that most of the Compilation
-mode commands (@inforef{Compilation Mode,, emacs}) work similarly for
+mode commands (@pxref{Compilation Mode,,,emacs}) work similarly for
 Lisp as for batch compilers.
 
 @end table
@@ -2916,8 +2916,8 @@ file system in such a fashion that a filename like
 @file{/opt/project/source.lisp} refers to the same file on both
 machines. Unfortunately NFS is usually slow, often buggy, and not
 always feasible. Fortunately we have an ssh connection and Emacs'
-@code{tramp-mode} can do the rest.
-(See @inforef{Top, TRAMP User Manual,tramp}.)
+@code{tramp-mode} can do the rest
+(@pxref{Top, TRAMP User Manual,tramp}).
 
 What we do is teach Emacs how to take a filename on the remote machine
 and translate it into something that tramp can understand and access
