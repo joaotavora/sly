@@ -4365,7 +4365,7 @@ in Lisp when committed with \\[sly-edit-value-commit]."
 \\(See `sly-edit-value'.)"
   (interactive)
   (if (null sly-edit-form-string)
-      (error "Not editing a value.")
+      (user-error "Not editing a value.")
     (let ((value (buffer-substring-no-properties (point-min) (point-max))))
       (let ((buffer (current-buffer)))
         (sly-eval-async `(slynk:commit-edited-value ,sly-edit-form-string
@@ -4483,21 +4483,21 @@ Return whatever slynk:set-default-directory returns."
   "Describe the symbol at point."
   (interactive (list (sly-read-symbol-name "Describe symbol: ")))
   (when (not symbol-name)
-    (error "No symbol given"))
+    (user-error "No symbol given"))
   (sly-eval-describe `(slynk:describe-symbol ,symbol-name)))
 
 (defun sly-documentation (symbol-name)
   "Display function- or symbol-documentation for SYMBOL-NAME."
   (interactive (list (sly-read-symbol-name "Documentation for symbol: ")))
   (when (not symbol-name)
-    (error "No symbol given"))
+    (user-error "No symbol given"))
   (sly-eval-describe
    `(slynk:documentation-symbol ,symbol-name)))
 
 (defun sly-describe-function (symbol-name)
   (interactive (list (sly-read-symbol-name "Describe symbol's function: ")))
   (when (not symbol-name)
-    (error "No symbol given"))
+    (user-error "No symbol given"))
   (sly-eval-describe `(slynk:describe-function ,symbol-name)))
 
 (defface sly-apropos-symbol
@@ -6450,7 +6450,7 @@ was called originally."
 
 (defun sly--connection-at-point ()
   (or (get-text-property (point) 'tabulated-list-id)
-      (error "No connection at point")))
+      (user-error "No connection at point")))
 
 (defvar sly-connection-list-button-action nil)
 
