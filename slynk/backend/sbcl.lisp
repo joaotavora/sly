@@ -1757,9 +1757,19 @@ stack."
     (princ-to-string (sb-thread:thread-name thread)))
 
   (defimplementation thread-status (thread)
-    (if (sb-thread:thread-alive-p thread)
-        "Running"
-        "Stopped"))
+    #+sb-thread
+    (let ((waiting (sb-thread::thread-waiting-for thread)))
+      (cond ((and (typep waiting 'sb-thread:mutex)
+                  (let ((owner (sb-thread:mutex-owner waiting)))
+                    (and owner
+                         (format nil "Waiting on a mutex~@[ (~a)~] held by ~a~@[ ~a~]"
+                                 (sb-thread:mutex-name waiting)
+                                 (thread-id owner)
+                                 (thread-name owner))))))
+            ((sb-thread:thread-alive-p thread)
+             "Running")
+            (t
+             "Stopped"))))
 
   (defimplementation make-lock (&key name)
     (sb-thread:make-mutex :name name))
