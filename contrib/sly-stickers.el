@@ -603,8 +603,8 @@ With interactive prefix arg PREFIX always delete stickers.
     (sly-message "No point placing stickers in string literals or comments"))))
 
 (defun sly-stickers-toggle-conditional-breakpoint (&optional point)
-  "Toggle a conditional form for a sticker at point.
-Set a conditional form for the current sticker at point, or delete it if it
+  "Toggle a conditional breakpoint for a sticker at point.
+Set a conditional breakpoint for the current sticker at point, or delete it if it
 already exists.
 "
   (interactive "d")
@@ -625,7 +625,7 @@ already exists.
                (progn
                  (button-put sticker 'sly-stickers--conditional-breakpoint nil)
                  (sly-message "Removed conditional breakpoint form from sticker"))
-               (let ((conditional-breakpoint (read-from-minibuffer "Conditional form: ")))
+               (let ((conditional-breakpoint (read-from-minibuffer "conditional form for the breakpoint: ")))
                  (button-put sticker 'sly-stickers--conditional-breakpoint conditional-breakpoint)
                  (sly-message "Added conditional breakpoint form to sticker")))))
         (t
