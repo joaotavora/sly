@@ -602,6 +602,35 @@ With interactive prefix arg PREFIX always delete stickers.
    (t
     (sly-message "No point placing stickers in string literals or comments"))))
 
+(defun sly-stickers-toggle-conditional-breakpoint (&optional point)
+  "Toggle a conditional form for a sticker at point.
+Set a conditional form for the current sticker at point, or delete it if it
+already exists.
+"
+  (interactive "d")
+  (save-excursion
+    (goto-char (or point (point)))
+    (let* ((bounds (sly-bounds-of-sexp-at-point))
+           (beg (car bounds))
+           (end (cdr bounds))
+           (matching (and bounds
+                          (sly-stickers--stickers-exactly-at beg end))))
+      (cond
+        ((not bounds)
+         (sly-message "Nothing here to place sticker on, apparently"))
+        (matching
+         (let* ((sticker (car matching))
+                (conditional-breakpoint (button-get sticker 'sly-stickers--conditional-breakpoint)))
+           (if conditional-breakpoint
+               (progn
+                 (button-put sticker 'sly-stickers--conditional-breakpoint nil)
+                 (sly-message "Removed conditional breakpoint form from sticker"))
+               (let ((conditional-breakpoint (read-from-minibuffer "Conditional form: ")))
+                 (button-put sticker 'sly-stickers--conditional-breakpoint conditional-breakpoint)
+                 (sly-message "Added conditional breakpoint form to sticker")))))
+        (t
+         (sly-message "No sticker at point"))))))
+
 (defun sly-stickers--sticker-by-id (sticker-id)
   "Return the sticker for STICKER-ID, or return NIL.
 Perform some housecleaning tasks for stickers that have been
@@ -1236,11 +1265,15 @@ a fallback.  If FLASH, flash the compiled region."
                       do (overlay-put overlay 'sly-stickers--sticker sticker))
              (cl-loop for overlay in (overlays-in (point-min) (point-max))
                       for sticker = (overlay-get overlay 'sly-stickers--sticker)
+                      for conditional-breakpoint = (button-get sticker 'sly-stickers--conditional-breakpoint)
                       do
                       (sly-stickers--arm-sticker sticker)
                       (goto-char (overlay-start overlay))
-                      (insert (format "(slynk-stickers:record %d "
-                                      (sly-stickers--sticker-id sticker)))
+                      (if conditional-breakpoint
+                          (insert (format "(slynk-stickers:record-conditionally %d %s"
+                                          (sly-stickers--sticker-id sticker) conditional-breakpoint))
+                          (insert (format "(slynk-stickers:record %d "
+                                          (sly-stickers--sticker-id sticker))))
                       (goto-char (overlay-end overlay))
                       (insert ")"))
              ;; Now send both the instrumented and uninstrumented
