@@ -204,20 +204,23 @@ COMPLETIONS is a list of propertized strings."
                                                completion))
            (add-text-properties 0
                                 (length completion)
-                                `(sly--annotation
-                                  ,(format "%s %5.2f%%"
-                                           classification
-                                           (* score 100))
-                                  sly--suggestion
-                                  ,suggestion)
+                                `(sly--classification ,classification
+                                  sly--score ,score
+                                  sly--suggestion ,suggestion)
                                 completion)
 
            collect completion into formatted
            finally return (list formatted nil)))
 
 (defun sly-completion-annotation (completion)
-  "Grab the annotation of COMPLETION, a string, if any"
-  (get-text-property 0 'sly--annotation completion))
+  "Compute annotation of COMPLETION as a string.
+Return the empty string if none exists."
+  (let ((classification (get-text-property 0 'sly--classification completion))
+        (score (get-text-property 0 'sly--score completion)))
+    (string-join
+     (delete nil `(,classification
+                   ,(and score (format "%5.2f%%" (* score 100)))))
+     " ")))
 
 ;;; backward-compatibility
 (defun sly-fuzzy-completions (pattern)
@@ -281,50 +284,67 @@ ANNOTATION) describing each completion possibility."
 (defun sly--completions-complete-symbol-1 (fn)
   (let* ((beg (sly-symbol-start-pos))
          (end (sly-symbol-end-pos)))
-    (list beg end
-          (sly--completion-function-wrapper fn)
-          :annotation-function #'sly-completion-annotation
-          :exit-function (lambda (obj _status)
-                           (let ((suggestion
-                                  (get-text-property 0 'sly--suggestion
-                                                     obj)))
-                             (when suggestion
-                               (delete-region (- (point) (length obj)) (point))
-                               (insert suggestion))))
-          :company-docsig
-          (lambda (obj)
-            (when (sit-for 0.1)
-              (sly--responsive-eval (arglist `(slynk:operator-arglist
-                                               ,(substring-no-properties obj)
-                                               ,(sly-current-package)))
-                (or (and arglist
-                         (sly-autodoc--fontify arglist))
-                    "no autodoc information"))))
-          :company-no-cache t
-          :company-doc-buffer
-          (lambda (obj)
-            (when (sit-for 0.1)
-              (sly--responsive-eval (doc `(slynk:describe-symbol
-                                           ,(substring-no-properties obj)))
-                (when doc
-                  (with-current-buffer (get-buffer-create " *sly-completion doc*")
-                    (erase-buffer)
-                    (insert doc)
-                    (current-buffer))))))
-          :company-require-match 'never
-          :company-match
-          (lambda (obj)
-            (get-text-property 0 'sly-completion-chunks obj))
-          :company-location
-          (lambda (obj)
-            (save-window-excursion
-              (let* ((buffer (sly-edit-definition
-                              (substring-no-properties obj))))
-                (when (buffer-live-p buffer) ; on the safe side
-                  (cons buffer (with-current-buffer buffer
-                                 (point)))))))
-          :company-prefix-length
-          (and (sly--completion-inside-string-or-comment-p) 0))))
+    (append
+     (list beg end
+           (sly--completion-function-wrapper fn)
+           :annotation-function #'sly-completion-annotation
+           :exit-function (lambda (obj _status)
+                            (let ((suggestion
+                                   (get-text-property 0 'sly--suggestion
+                                                      obj)))
+                              (when suggestion
+                                (delete-region (- (point) (length obj)) (point))
+                                (insert suggestion))))
+           :company-docsig
+           (lambda (obj)
+             (when (sit-for 0.1)
+               (sly--responsive-eval (arglist `(slynk:operator-arglist
+                                                ,(substring-no-properties obj)
+                                                ,(sly-current-package)))
+                 (or (and arglist
+                          (sly-autodoc--fontify arglist))
+                     "no autodoc information"))))
+           :company-no-cache t
+           :company-doc-buffer
+           (lambda (obj)
+             (when (sit-for 0.1)
+               (sly--responsive-eval (doc `(slynk:describe-symbol
+                                            ,(substring-no-properties obj)))
+                 (when doc
+                   (with-current-buffer (get-buffer-create " *sly-completion doc*")
+                     (erase-buffer)
+                     (insert doc)
+                     (current-buffer))))))
+           :company-require-match 'never
+           :company-match
+           (lambda (obj)
+             (get-text-property 0 'sly-completion-chunks obj))
+           :company-location
+           (lambda (obj)
+             (save-window-excursion
+               (let* ((buffer (sly-edit-definition
+                               (substring-no-properties obj))))
+                 (when (buffer-live-p buffer) ; on the safe side
+                   (cons buffer (with-current-buffer buffer
+                                  (point)))))))
+           :company-prefix-length
+           (and (sly--completion-inside-string-or-comment-p) 0))
+     (when (eq sly-complete-symbol-function 'sly-flex-completions)
+       (list
+        :company-kind
+        (lambda (obj)
+          (pcase (get-text-property 0 'sly--classification obj)
+            ("fn" 'function)
+            ("generic-fn" 'function)
+            ("generic-fn,cla" 'method)
+            ("cla,type" 'class)
+            ("cla" 'class)
+            ("special-op" 'operator)
+            ("type" 'struct)
+            ("constant" 'constant)
+            ("var" 'variable)
+            ("pak" 'module)
+            ("macro" 'macro))))))))
 
 (defun sly-simple-complete-symbol ()
   "Prefix completion on the symbol at point.
@@ -601,8 +621,7 @@ Intended to go into `completion-at-point-functions'"
              sly--completion-explanation))
     (cl-loop with first = (point)
              for completion in completions
-             for annotation = (or (get-text-property 0 'sly--annotation completion)
-                                  "")
+             for annotation = (sly-completion-annotation completion)
              for start = (point)
              do
              (cl-loop for (beg . end) in
