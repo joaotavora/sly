@@ -33,29 +33,28 @@
 
 ;;; Backend completion
 
-;; This "completion style" delegates all the work to the completion
-;; table which is then free to implement its own completion style.
-;; Typically this is used to take advantage of some external tool which
-;; already has its own completion system and doesn't give you efficient
-;; access to the prefix completion needed by other completion styles.
+;; This predates Emacs's 29's external-completion.el, generally
+;; the same idea.  Maybe use that some day
 
 (add-to-list 'completion-styles-alist
-             '(backend
-               completion-backend-try-completion
-               completion-backend-all-completions
-               "Ad-hoc completion style provided by the completion table"))
+             '(sly--external-completion
+               sly--external-tryc
+               sly--external-allc
+               "Ad-hoc \"external completion\" style  (SLY flavor)"))
 
-(defun completion--backend-call (op string table pred point)
-  (when (functionp table)
-    (let ((res (funcall table string pred (cons op point))))
-      (when (eq op (car-safe res))
-        (cdr res)))))
+(defun sly--external-allc (string table pred _point)
+  "Like `completion-all-completions', ask table for all completions."
+  (funcall table string pred t)) 
 
-(defun completion-backend-try-completion (string table pred point)
-  (completion--backend-call 'try-completion string table pred point))
-
-(defun completion-backend-all-completions (string table pred point)
-  (completion--backend-call 'all-completions string table pred point))
+(defun sly--external-tryc (pat table pred point)
+  "Like `completion-try-completions', but knowing how SLY works."
+  (let* ((all (funcall table pat pred t)) ; invoke all-completions!
+         (probe (car all)))
+    (cond ((and probe (null (cdr all)))
+           (if (string= pat probe)
+               t
+             (cons probe (length probe))))
+           (t (cons pat point)))))
 
 
 ;;; Forward declarations (later replace with a `sly-common' lib)
@@ -239,24 +238,17 @@ ANNOTATION) describing each completion possibility."
 
 (when (boundp 'completion-category-overrides)
   (add-to-list 'completion-category-overrides
-               '(sly-completion (styles . (backend)))))
+               '(sly-completion (styles . (sly--external-completion)))))
 
 (defun sly--completion-function-wrapper (fn)
   (let ((cache (make-hash-table :test #'equal)))
-    (lambda (string pred action)
+    (lambda (pattern pred action)
       (cl-labels ((all
                    ()
-                   (let ((probe (gethash string cache :missing)))
+                   (let ((probe (gethash pattern cache :missing)))
                      (if (eq probe :missing)
-                         (puthash string (funcall fn string) cache)
-                       probe)))
-                  (try ()
-                       (let ((all (all)))
-                         (and (car all)
-                              (if (and (null (cdr (car all)))
-                                       (string= string (caar all)))
-                                  t
-                                string)))))
+                         (puthash pattern (funcall fn pattern) cache)
+                       probe))))
         (pcase action
           ;; identify this to the custom `sly--completion-in-region-function'
           (`sly--identify t)
@@ -267,13 +259,9 @@ ANNOTATION) describing each completion possibility."
           ;; all completions
           (`t (car (all)))
           ;; try completion
-          (`nil (try))
-          (`(try-completion . ,point)
-           (cons 'try-completion (cons string point)))
-          (`(all-completions . ,_point) (cons 'all-completions (car (all))))
+          (`nil (try-completion pattern (car (all))))
           (`(boundaries . ,thing)
-           (completion-boundaries string (all) pred thing))
-
+           (completion-boundaries pattern (car (all)) pred thing))
           ;; boundaries or any other value
           (_ nil))))))
 
