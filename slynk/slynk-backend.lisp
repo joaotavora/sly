@@ -1688,3 +1688,7 @@ to be passed to the FIND-SOURCE-LOCATION interface."
                 nil)
                (prop-value t)
                (t nil)))))
+
+(definterface augment-features ()
+  "*features* or something else "
+  *features*)
