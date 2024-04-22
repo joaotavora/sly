@@ -28,4 +28,5 @@
 @item Douglas Katzman @tab Dmitry Igrishin @tab Dmitrii Korobeinikov
 @item Deokhwan Kim @tab Denis Budyak @tab Chunyang Xu
 @item Cayman @tab Angelo Rossi @tab Andrew Kirkpatrick
+@item Jin-Cheng Guu
 @end multitable
