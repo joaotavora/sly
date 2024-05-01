@@ -7475,11 +7475,25 @@ can be found."
 ;;;###autoload
 (add-hook 'lisp-mode-hook 'sly-editing-mode)
 
+(defcustom sly-replace-slime 'ask
+  "Specify whether SLY should replace SLIME at load time.
+
+This only has an effect if parts of SLIME components are already
+loaded (e.g. in `lisp-mode-hook').
+
+If `ask' prompt the user at load-time; if nil never replace; if t or
+other non-nil value to unconditionally replace SLIME."
+  :type '(choice (const :tag "Ask user" ask)
+                 (const :tag "Do not replace SLIME" nil)
+                 (const :tag "Do replace SLIME" t)))
+
 (cond
  ((or (not (memq 'slime-lisp-mode-hook lisp-mode-hook))
       noninteractive
       (prog1
-          (y-or-n-p "[sly] SLIME detected in `lisp-mode-hook', causes keybinding conflicts.  Remove it for this Emacs session?")
+          (if (eq sly-replace-slime 'ask)
+              (y-or-n-p "[sly] SLIME detected in `lisp-mode-hook', causes keybinding conflicts.  Remove it for this Emacs session?")
+            sly-replace-slime)
         (warn "To restore SLIME in this session, customize `lisp-mode-hook'
 and replace `sly-editing-mode' with `slime-lisp-mode-hook'.")))
   (remove-hook 'lisp-mode-hook 'slime-lisp-mode-hook)
