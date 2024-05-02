@@ -1994,7 +1994,8 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
     (unwind-protect
          (let ((*buffer-package* (guess-buffer-package buffer-package))
                (*buffer-readtable* (guess-buffer-readtable buffer-package))
-               (*pending-continuations* (cons id *pending-continuations*)))
+               (*pending-continuations* (cons id *pending-continuations*))
+               (*pre-reply-hook* *pre-reply-hook*))
            (check-type *buffer-package* package)
            (check-type *buffer-readtable* readtable)
            (handler-bind ((t (lambda (c) (setf condition c))))
