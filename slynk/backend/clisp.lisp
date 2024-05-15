@@ -925,3 +925,11 @@ Execute BODY with NAME's function slot set to FUNCTION."
                 ,@(if restart-function
                       `((:init-function ,restart-function))))))
     (apply #'ext:saveinitmem args)))
+
+;; Sadly, CLISP has no hook that runs before saveinitmem, so reset
+;; the log stream when the image starts.  SLYNK isn't loaded yet when
+;; reading this file.
+(pushnew (lambda ()
+           (setf (symbol-value (find-symbol2 "slynk::*log-output*")) nil)
+           (funcall (find-symbol2 "slynk::init-log-output")))
+         custom:*init-hooks*)
