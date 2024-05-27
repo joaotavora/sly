@@ -76,11 +76,11 @@ use `sly-export-symbol-representation-function'.")
       (sly-eval `(slynk:package= ,designator1 ,designator2))))
 
 (defun sly-export-symbol (symbol package)
-  "Unexport `symbol' from `package' in the Lisp image."
+  "Export `symbol' from `package' in the Lisp image."
   (sly-eval `(slynk:export-symbol-for-emacs ,symbol ,package)))
 
 (defun sly-unexport-symbol (symbol package)
-  "Export `symbol' from `package' in the Lisp image."
+  "Unexport `symbol' from `package' in the Lisp image."
   (sly-eval `(slynk:unexport-symbol-for-emacs ,symbol ,package)))
 
 
