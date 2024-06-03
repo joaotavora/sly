@@ -141,6 +141,27 @@
                               (body filled to comment))
 
 ;;; Test: indent-12
+;;
+;; sly-lisp-loop-indent-subclauses: t
+
+(loop for x below 3
+      if foo
+        unless bar
+          collect (fubar)
+          and do (moo)
+          and
+            if (not t)
+              do (nothing)
+            end
+        else
+          do (some more work)
+          and do (even more work)
+          and
+            if some-condition
+              do (unnecessary amount more work)
+            else do (necessary amount more work ??))
+
+;;; Test: indent-13
 
 (defun foo (x)
   (tagbody
@@ -170,7 +191,7 @@
               (lose
                3))))))
 
-;;; Test: indent-13
+;;; Test: indent-14
 
 (if* (eq t nil)
    then ()
@@ -180,12 +201,12 @@ thenret x
    else (balbkj)
         (sdf))
 
-;;; Test: indent-14
+;;; Test: indent-15
 
 (list foo #+foo (foo)
           #-foo (no-foo))
 
-;;; Test: indent-15
+;;; Test: indent-16
 ;;
 ;; sly-lisp-loop-indent-subclauses: t
 
@@ -193,7 +214,7 @@ thenret x
       for y in quux1
       )
 
-;;; Test: indent-16
+;;; Test: indent-17
 ;;
 ;; sly-lisp-loop-indent-subclauses: nil
 
@@ -201,7 +222,7 @@ thenret x
       for y in quux1
       )
 
-;;; Test: indent-17
+;;; Test: indent-18
 ;;
 ;; sly-lisp-loop-indent-subclauses: nil
 ;; sly-lisp-loop-indent-forms-like-keywords: t
@@ -218,26 +239,9 @@ thenret x
       (print y)
       (print 'ok!))
 
-;;; Test: indent-18
-;;
-;; sly-lisp-loop-indent-subclauses: nil
-;; sly-lisp-loop-indent-forms-like-keywords: nil
-
-(loop for x in foo
-      for y in quux
-      initially
-         (princ "hi!")
-      finally (foo)
-              (fo)
-              (zoo)
-      do
-         (print x)
-         (print y)
-         (print 'ok!))
-
 ;;; Test: indent-19
 ;;
-;; sly-lisp-loop-indent-subclauses: t
+;; sly-lisp-loop-indent-subclauses: nil
 ;; sly-lisp-loop-indent-forms-like-keywords: nil
 
 (loop for x in foo
@@ -254,6 +258,23 @@ thenret x
 
 ;;; Test: indent-20
 ;;
+;; sly-lisp-loop-indent-subclauses: t
+;; sly-lisp-loop-indent-forms-like-keywords: nil
+
+(loop for x in foo
+      for y in quux
+      initially
+         (princ "hi!")
+      finally (foo)
+              (fo)
+              (zoo)
+      do
+         (print x)
+         (print y)
+         (print 'ok!))
+
+;;; Test: indent-21
+;;
 ;; sly-lisp-loop-indent-subclauses: nil
 ;; sly-lisp-loop-indent-forms-like-keywords: nil
 
@@ -263,7 +284,7 @@ thenret x
       do (foo) (bar)
          (quux))
 
-;;; Test: indent-21
+;;; Test: indent-22
 ;;
 ;; sly-lisp-loop-indent-subclauses: t
 
@@ -273,18 +294,18 @@ thenret x
       do (foo) (bar)
          (quux))
 
-;;; Test: indent-22
+;;; Test: indent-23
 
 (defsetf foo bar
   "the doc string")
 
-;;; Test: indent-23
+;;; Test: indent-24
 
 (defsetf foo
     bar
   "the doc string")
 
-;;; Test: indent-24
+;;; Test: indent-25
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 
@@ -293,21 +314,21 @@ thenret x
     (a b c)
   stuff)
 
-;;; Test: indent-25
+;;; Test: indent-26
 ;;
 ;; sly-lisp-align-keywords-in-calls: t
 
 (make-instance 'foo :bar t :quux t
                     :zot t)
 
-;;; Test: indent-26
+;;; Test: indent-27
 ;;
 ;; sly-lisp-align-keywords-in-calls: nil
 
 (make-instance 'foo :bar t :quux t
                :zot t)
 
-;;; Test: indent-27
+;;; Test: indent-28
 ;;
 ;; sly-lisp-lambda-list-indentation: nil
 
@@ -318,7 +339,7 @@ thenret x
                 k3 k4)
   'hello)
 
-;;; Test: indent-28
+;;; Test: indent-29
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -330,7 +351,7 @@ thenret x
     foo
   body)
 
-;;; Test: indent-29
+;;; Test: indent-30
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -341,19 +362,19 @@ thenret x
        &rest more)
   body)
 
-;;; Test: indent-30
+;;; Test: indent-31
 
 (foo fii
      (or x
          y) t
      bar)
 
-;;; Test: indent-31
+;;; Test: indent-32
 
 (foo
  (bar))
 
-;;; Test: indent-32
+;;; Test: indent-33
 ;;
 ;; comment-indent-function: (lambda () nil)
 ;; comment-column: nil
@@ -368,7 +389,7 @@ thenret x
          (
           quux))
 
-;;; Test: indent-33
+;;; Test: indent-34
 
 (complex-indent.1 ((x z
                     f
@@ -384,7 +405,7 @@ thenret x
   (bodyform)
   (another))
 
-;;; Test: indent-34
+;;; Test: indent-35
 
 (complex-indent.2 (bar quux
                        zot)
@@ -393,7 +414,7 @@ thenret x
   (form1)
   (form2))
 
-;;; Test: indent-35
+;;; Test: indent-36
 
 (complex-indent.3 (:wait fii
                          (this is
@@ -401,7 +422,7 @@ thenret x
   (bodyform)
   (another))
 
-;;; Test: indent-36
+;;; Test: indent-37
 
 (defmacro foo (body)
   `(let (,@(stuff)
@@ -410,14 +431,14 @@ thenret x
          (foo foo))
      ,@bofy))
 
-;;; Test: indent-37
+;;; Test: indent-38
 
 (defun foo ()
   `(list foo bar
          ,@(quux fo
                  foo)))
 
-;;; Test: indent-38
+;;; Test: indent-39
 
 (defmacro foofoo (body)
   `(foo
@@ -427,7 +448,7 @@ thenret x
            (foo foo))
        ,@bofy)))
 
-;;; Test: indent-39
+;;; Test: indent-40
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -441,7 +462,7 @@ thenret x
   zot
   fii)
 
-;;; Test: indent-40
+;;; Test: indent-41
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -450,7 +471,7 @@ thenret x
                                  y)
   (list zot))
 
-;;; Test: indent-41
+;;; Test: indent-42
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -460,7 +481,7 @@ thenret x
                                    y)
     (list fii)))
 
-;;; Test: indent-42
+;;; Test: indent-43
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -472,7 +493,7 @@ thenret x
                                     y)
       (list a b x y))))
 
-;;; Test: indent-43
+;;; Test: indent-44
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -482,7 +503,7 @@ thenret x
                           b)
     (list x y a b)))
 
-;;; Test: indent-44
+;;; Test: indent-45
 
 (let (definer
       foo
@@ -490,7 +511,7 @@ thenret x
       quux)
   ...)
 
-;;; Test: indent-45
+;;; Test: indent-46
 
 (let (definition
       foo
@@ -498,20 +519,20 @@ thenret x
       quux)
   ...)
 
-;;; Test: indent-46
+;;; Test: indent-47
 
 (let (foo bar
       quux)
   ...)
 
-;;; Test: indent-47
+;;; Test: indent-48
 
 (with-compilation-unit
     (:foo t
      :quux nil)
   ...)
 
-;;; Test: indent-48
+;;; Test: indent-49
 
 (cond
   ((> x y) (foo)
@@ -527,7 +548,7 @@ thenret x
   (t (foo)
      (bar)))
 
-;;; Test: indent-49
+;;; Test: indent-50
 
 (cond ((> x y) (foo)
        ;; This isn't ideal -- I at least would align with (FOO here.
@@ -539,25 +560,13 @@ thenret x
       (t (foo)
          (bar)))
 
-;;; Test: indent-50
+;;; Test: indent-51
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: nil
 ;; sly-lisp-lambda-list-keyword-alignment: nil
 
 (defun foo (x &optional opt1
                 opt2
-            &rest rest
-            &allow-other-keys)
-  (list opt1 opt2
-        rest))
-
-;;; Test: indent-51
-;;
-;; sly-lisp-lambda-list-keyword-parameter-alignment: t
-;; sly-lisp-lambda-list-keyword-alignment: nil
-
-(defun foo (x &optional opt1
-                        opt2
             &rest rest
             &allow-other-keys)
   (list opt1 opt2
@@ -565,6 +574,18 @@ thenret x
 
 ;;; Test: indent-52
 ;;
+;; sly-lisp-lambda-list-keyword-parameter-alignment: t
+;; sly-lisp-lambda-list-keyword-alignment: nil
+
+(defun foo (x &optional opt1
+                        opt2
+            &rest rest
+            &allow-other-keys)
+  (list opt1 opt2
+        rest))
+
+;;; Test: indent-53
+;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: nil
 ;; sly-lisp-lambda-list-keyword-alignment: t
 
@@ -575,7 +596,7 @@ thenret x
   (list opt1 opt2
         rest))
 
-;;; Test: indent-53
+;;; Test: indent-54
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -587,7 +608,7 @@ thenret x
   (list opt1 opt2
         rest))
 
-;;; Test: indent-54
+;;; Test: indent-55
 ;;
 
 (loop (foo)
@@ -595,31 +616,31 @@ thenret x
       (bar)
       (quux))
 
-;;; Test: indent-55
+;;; Test: indent-56
 ;;
 
 (loop ;; comment
       (foo)
       (bar))
 
-;;; Test: indent-56
-;;
-
-(loop
-  (foo)
-  ;; comment
-  (bar))
-
-
 ;;; Test: indent-57
 ;;
 
 (loop
+  (foo)
+  ;; comment
+  (bar))
+
+
+;;; Test: indent-58
+;;
+
+(loop
   ;; comment
   (foo)
   (bar))
 
-;;; Test: indent-58
+;;; Test: indent-59
 ;;
 ;; sly-lisp-loop-indent-subclauses: t
 
@@ -628,7 +649,7 @@ thenret x
       do (foo foo)
          (foo))
 
-;;; Test: indent-59
+;;; Test: indent-60
 ;;
 ;; sly-lisp-loop-indent-subclauses: nil
 
@@ -637,7 +658,7 @@ thenret x
       do (foo foo)
          (foo))
 
-;;; Test: indent-60
+;;; Test: indent-61
 ;;
 ;; sly-lisp-loop-indent-subclauses: t
 ;; sly-indentation--test-function: indent-region
@@ -647,7 +668,7 @@ thenret x
   with foo = t
   do (foo foo))
 
-;;; Test: indent-61
+;;; Test: indent-62
 ;;
 ;; sly-lisp-loop-indent-subclauses: nil
 
@@ -657,7 +678,7 @@ thenret x
   do (foo foo)
      (foo))
 
-;;; Test: indent-62
+;;; Test: indent-63
 ;;
 ;; sly-lisp-loop-indent-subclauses: t
 
@@ -666,7 +687,7 @@ thenret x
          ;; comment inside clause
          (bar))
 
-;;; Test: indent-63
+;;; Test: indent-64
 ;;
 ;; sly-lisp-loop-indent-subclauses: nil
 
@@ -676,7 +697,7 @@ thenret x
          (bar))
 
 
-;;; Test: indent-64
+;;; Test: indent-65
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -685,7 +706,7 @@ thenret x
                                         y)
   (list zot))
 
-;;; Test: indent-65
+;;; Test: indent-66
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -694,7 +715,7 @@ thenret x
     :around (zot &key x y)
   (list zot))
 
-;;; Test: indent-66
+;;; Test: indent-67
 ;;
 
 (define-condition
@@ -704,7 +725,7 @@ thenret x
   ()
   (:report "foo"))
 
-;;; Test: indent-67
+;;; Test: indent-68
 ;;
 
 (defclass
@@ -715,24 +736,10 @@ thenret x
   (:metaclass foo-class))
 
 
-;;; Test: indent-68
+;;; Test: indent-69
 ;;
 ;; sly-lisp-loop-indent-subclauses: nil
 ;; sly-indentation--test-function: indent-region
-
-(progn
-  (loop
-    repeat 1000
-    do ;; This is the
-       ;; beginning
-       (foo))
-  (loop repeat 100 ;; This too
-                   ;; is a beginning
-        do (foo)))
-
-;;; Test: indent-69
-;;
-;; sly-lisp-loop-indent-subclauses: t
 
 (progn
   (loop
@@ -746,6 +753,20 @@ thenret x
 
 ;;; Test: indent-70
 ;;
+;; sly-lisp-loop-indent-subclauses: t
+
+(progn
+  (loop
+    repeat 1000
+    do ;; This is the
+       ;; beginning
+       (foo))
+  (loop repeat 100 ;; This too
+                   ;; is a beginning
+        do (foo)))
+
+;;; Test: indent-71
+;;
 ;; sly-lisp-loop-indent-subclauses: nil
 
 (progn
@@ -758,7 +779,7 @@ thenret x
                      ;; is a beginning
         :do (foo)))
 
-;;; Test: indent-71
+;;; Test: indent-72
 ;;
 ;; sly-lisp-loop-indent-subclauses: t
 
@@ -772,25 +793,13 @@ thenret x
                     ;; is a beginning
         #:do (foo)))
 
-;;; Test: indent-72
+;;; Test: indent-73
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: nil
 ;; sly-lisp-lambda-list-keyword-alignment: nil
 
 (flet ((foo (foo &optional opt1
                    opt2
-             &rest rest)
-         (list foo opt1 opt2
-               rest)))
-  ...)
-
-;;; Test: indent-73
-;;
-;; sly-lisp-lambda-list-keyword-parameter-alignment: t
-;; sly-lisp-lambda-list-keyword-alignment: nil
-
-(flet ((foo (foo &optional opt1
-                           opt2
              &rest rest)
          (list foo opt1 opt2
                rest)))
@@ -798,6 +807,18 @@ thenret x
 
 ;;; Test: indent-74
 ;;
+;; sly-lisp-lambda-list-keyword-parameter-alignment: t
+;; sly-lisp-lambda-list-keyword-alignment: nil
+
+(flet ((foo (foo &optional opt1
+                           opt2
+             &rest rest)
+         (list foo opt1 opt2
+               rest)))
+  ...)
+
+;;; Test: indent-75
+;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: nil
 ;; sly-lisp-lambda-list-keyword-alignment: t
 
@@ -808,7 +829,7 @@ thenret x
                rest)))
   ...)
 
-;;; Test: indent-75
+;;; Test: indent-76
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -820,7 +841,7 @@ thenret x
                rest)))
   ...)
 
-;;; Test: indent-76
+;;; Test: indent-77
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -836,7 +857,7 @@ thenret x
                    rest)))
   ...)
 
-;;; Test: indent-77
+;;; Test: indent-78
 ;;
 ;; sly-lisp-align-keywords-in-calls: t
 
@@ -846,7 +867,7 @@ thenret x
            #-quux nil
      :zot t)
 
-;;; Test: indent-78
+;;; Test: indent-79
 ;;
 ;; sly-lisp-align-keywords-in-calls: t
 
@@ -856,12 +877,12 @@ thenret x
                  #+zot nil
            :zot t)
 
-;;; Test: indent-79
+;;; Test: indent-80
 
 (foo #+quux :quux #+quux t
      #-quux :zoo #-quux t)
 
-;;; Test: indent-80
+;;; Test: indent-81
 ;;
 ;; sly-lisp-align-keywords-in-calls: t
 
@@ -870,7 +891,7 @@ thenret x
            #+quux :quux #+quux t
            :zot t)
 
-;;; Test: indent-81
+;;; Test: indent-82
 ;;
 ;; sly-lisp-align-keywords-in-calls: t
 
@@ -879,7 +900,7 @@ thenret x
            #+quux #+quux :quux t
            :zot t)
 
-;;; Test: indent-82
+;;; Test: indent-83
 ;;
 ;; sly-lisp-align-keywords-in-calls: t
 
@@ -889,7 +910,7 @@ thenret x
            :quux #+quux t
            :zot t)
 
-;;; Test: indent-83
+;;; Test: indent-84
 ;;
 ;; sly-lisp-align-keywords-in-calls: t
 
@@ -899,27 +920,27 @@ thenret x
            :quux t
            :zot t)
 
-;;; Test: indent-84
+;;; Test: indent-85
 
 (and ;; Foo
      (something)
      ;; Quux
      (more))
 
-;;; Test: indent-85
+;;; Test: indent-86
 
 (and      ;; Foo
      (something)
      ;; Quux
      (more))
 
-;;; Test: indent-86
+;;; Test: indent-87
 
 (foo (
       bar quux
       zor))
 
-;;; Test: indent-87
+;;; Test: indent-88
 ;;
 ;; sly-lisp-lambda-list-keyword-parameter-alignment: t
 ;; sly-lisp-lambda-list-keyword-alignment: t
@@ -935,7 +956,7 @@ thenret x
   (list foo opt1 opt2
         rest))
 
-;;; Test: indent-88
+;;; Test: indent-89
 
 (defstruct (foo
             (:constructor make-foo
@@ -944,19 +965,19 @@ thenret x
   bar
   quux)
 
-;;; Test: indent-89
+;;; Test: indent-90
 
 (define-tentative-thing foo
     (bar)
   quux)
 
-;;; Test: indent-90
+;;; Test: indent-91
 
 (define-tentative-thing foo
   bar
   quux)
 
-;;; Test: indent-91
+;;; Test: indent-92
 ;;
 ;; sly-lisp-loop-indent-body-forms-relative-to-loop-start: t
 
@@ -966,7 +987,7 @@ thenret x
           bar
           baz))
 
-;;; Test: indent-92
+;;; Test: indent-93
 ;;
 ;; sly-lisp-loop-indent-body-forms-relative-to-loop-start: t
 ;; sly-lisp-loop-clauses-indentation: 4
@@ -978,7 +999,7 @@ thenret x
           bar
           baz))
 
-;;; Test: indent-93
+;;; Test: indent-94
 ;;
 ;; sly-lisp-loop-clauses-indentation: 4
 
@@ -989,7 +1010,7 @@ thenret x
               bar
               baz))
 
-;;; Test: indent-94
+;;; Test: indent-95
 ;;
 ;; sly-lisp-loop-clauses-indentation: 4
 ;; sly-lisp-loop-body-forms-indentation: 1
@@ -1001,7 +1022,7 @@ thenret x
            bar
            baz))
 
-;;; Test: indent-95
+;;; Test: indent-96
 ;;
 ;; sly-lisp-loop-body-forms-indentation: 1
 ;; sly-lisp-loop-indent-body-forms-relative-to-loop-start: t
