@@ -1454,8 +1454,16 @@ Always indented two.")
   "Regexp matching keywords introducing conditional clauses.
 Cause subsequent clauses to be indented.")
 
+(defvar sly--common-lisp-dedendenting-loop-macro-keyword
+  (concat "\\(?:\\_<\\|#?:\\)" (regexp-opt '("else" "end")) "\\_>")
+  "Regexp matching keywords concluding conditional clauses.
+Cause current and subsequent clauses to be dedented.")
+
 (defvar sly--lisp-indent-loop-macro-else-keyword
   "\\(?:\\_<\\|#?:\\)else\\_>")
+
+(defvar sly--lisp-indent-loop-macro-end-keyword
+  "\\(?:\\_<\\|#?:\\)end\\_>")
 
 ;;; Attempt to indent the loop macro ...
 (defun sly--lisp-indent-loop-part-indentation (indent-point state type)
@@ -1604,8 +1612,12 @@ Cause subsequent clauses to be indented.")
                   default-value)))
            ((looking-at sly--common-lisp-indent-indented-loop-macro-keyword)
             indented-clause-indentation)
-           ((looking-at sly--common-lisp-indent-clause-joining-loop-macro-keyword)
-            (let ((stolen-indent-column nil))
+           ((or (looking-at sly--common-lisp-indent-clause-joining-loop-macro-keyword)
+                (looking-at sly--common-lisp-dedendenting-loop-macro-keyword))
+            (let ((conditionalp
+                   (not (looking-at-p sly--common-lisp-indent-clause-joining-loop-macro-keyword)))
+                  (conditional-nesting 1)
+                  (stolen-indent-column nil))
               (forward-line -1)
               (while (and (null stolen-indent-column)
                           (> (point) loop-macro-first-clause))
@@ -1613,9 +1625,15 @@ Cause subsequent clauses to be indented.")
                 (if (and (< (current-column) loop-body-indentation)
                          (looking-at "\\(#?:\\)?\\sw"))
                     (progn
-                      (if (looking-at sly--lisp-indent-loop-macro-else-keyword)
-                          (sly--lisp-indent-loop-advance-past-keyword-on-line))
-                      (setq stolen-indent-column (current-column)))
+                      (when (looking-at sly--common-lisp-dedendenting-loop-macro-keyword)
+                        (cl-incf conditional-nesting)
+                        (when (or (looking-at sly--lisp-indent-loop-macro-else-keyword))
+                          (sly--lisp-indent-loop-advance-past-keyword-on-line)))
+                      (if (or (not conditionalp)
+                              (and (looking-at sly--common-lisp-indenting-loop-macro-keyword)
+                                   (zerop (cl-decf conditional-nesting))))
+                          (setq stolen-indent-column (current-column))
+                        (forward-line -1)))
                   (forward-line -1)))
               (or stolen-indent-column default-value)))
            (t default-value)))))))
