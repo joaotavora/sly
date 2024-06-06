@@ -3,7 +3,7 @@
 ;; Copyright (C) 2016  João Távora
 
 ;; Author: João Távora
-;; Keywords: 
+;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; 
+;;
 
 ;;; Code:
 ;;;
@@ -130,7 +130,7 @@ displays the buffer specified by BUFFER-OR-NAME before running BODY."
 
 ;;; Customization
 ;;;
-(defcustom sly-complete-symbol-function 'sly-flex-completions
+(defcustom sly-complete-symbol-function 'sly-adapter-completions
   "Function reponsible for SLY completion.
 When called with one argument, a pattern, returns a (possibly
 propertized) list of strings the complete that pattern,
@@ -177,7 +177,7 @@ COMMON a string, the common prefix."
            for completion in completions
            do (put-text-property first-difference-pos
                                  (min (1+ first-difference-pos)
-                                      (1- (length completion))) 
+                                      (1- (length completion)))
                                  'face
                                  'completions-first-difference
                                  completion)
@@ -210,6 +210,14 @@ COMPLETIONS is a list of propertized strings."
 
            collect completion into formatted
            finally return (list formatted nil)))
+
+(defun sly-adapter-completions (pattern)
+  "Complete PATTERN with `sly-simple-completions' or `sly-flex-completions'.
+This is an adapter, it will complete directly with `sly-simple-completions',
+and will only complete with `sly-flex-completions' when any dot in pattern."
+  (if (not (string-match-p "\\." pattern))
+      (sly-simple-completions pattern)
+    (sly-flex-completions (string-replace "." ""  pattern))))
 
 (defun sly-completion-annotation (completion)
   "Compute annotation of COMPLETION as a string.
@@ -375,13 +383,13 @@ Intended to go into `completion-at-point-functions'"
 
 ;;; TODO: Most of the stuff emulates `completion--in-region' and its
 ;;; callees in Emacs's minibuffer.el
-;;; 
+;;;
 (defvar sly--completion-transient-data nil)  ; similar to `completion-in-region--data'
 
 (defvar sly--completion-transient-completions nil) ; not used
 
 ;;; TODO: not tested with other functions in `completion-at-point-functions'
-;;; 
+;;;
 (defun sly--completion-in-region-function (beg end function pred)
   (cond
    ((funcall function nil nil 'sly--identify)
