@@ -125,10 +125,10 @@
               ;; the body is ...
               (indented to the above comment)
               (ZMACS gets this wrong)
-           and do this
-           and do that
+           and do (this)
+           and do (that)
            and when foo
-                 do the-other
+                 do (the-other)
                  and cry
       when this-is-a-short-condition do
         (body code of the when)
