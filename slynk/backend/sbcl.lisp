@@ -1003,7 +1003,9 @@ QUALITIES is an alist with (quality . value)"
                       '(:position 1)
                       (when (eql type :function)
                         `(:snippet ,(format nil "(defun ~a "
-                                            (symbol-name name))))))
+                                            (etypecase name
+                                              (symbol (symbol-name name))
+                                              (string name)))))))
       (:invalid
        (error "DEFINITION-SOURCE of ~(~A~) ~A did not contain ~
                meaningful information."
