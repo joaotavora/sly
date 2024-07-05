@@ -199,6 +199,12 @@ For other contexts we return the symbol at point."
           (t
            name))))
 
+(defun sly-symbols-match-p (a b)
+  (and (symbolp a)
+       (symbolp b)
+       (eq (compare-strings (symbol-name a) 0 nil
+                            (symbol-name b) 0 nil t)
+           t)))
 
 (defun sly-in-expression-p (pattern)
   "A helper function to determine the current context.
@@ -216,10 +222,7 @@ The pattern can have the form:
                         (cl-etypecase p
                           (symbol (sly-beginning-of-list)
                                   (let ((x (read (current-buffer))))
-                                    (and (symbolp x)
-                                         (eq (compare-strings (symbol-name x) 0 nil
-                                                              (symbol-name p) 0 nil t)
-                                             t))))
+                                    (sly-symbols-match-p x p)))
                           (number (backward-up-list p)
                                   t)))))))
 
@@ -274,7 +277,8 @@ Point is placed before the first expression in the list."
 
 (defun sly-arglist-specializers (arglist)
   (cond ((or (null arglist)
-	     (member (cl-first arglist) '(&optional &key &rest &aux)))
+             (cl-member (cl-first arglist) '(&optional &key &rest &aux)
+                        :test #'sly-symbols-match-p))
 	 (list))
 	((consp (cl-first arglist))
 	 (cons (cl-second (cl-first arglist))
