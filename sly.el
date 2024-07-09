@@ -5387,7 +5387,6 @@ Navigation commands:
 
 Commands to examine and operate on the selected frame:\\<sly-db-frame-map>
    \\[sly-db-show-frame-source]   - show frame source
-   \\[sly-db-goto-source]   - go to frame source
    \\[sly-db-toggle-details] - toggle details
    \\[sly-db-disassemble]   - dissassemble frame
    \\[sly-db-eval-in-frame]   - prompt for a form to eval in frame
@@ -5731,7 +5730,6 @@ If MORE is non-nil, more frames are on the Lisp stack."
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "t")   'sly-db-toggle-details)
     (define-key map (kbd "v")   'sly-db-show-frame-source)
-    (define-key map (kbd ".")   'sly-db-goto-source)
     (define-key map (kbd "D")   'sly-db-disassemble)
     (define-key map (kbd "e")   'sly-db-eval-in-frame)
     (define-key map (kbd "d")   'sly-db-pprint-eval-in-frame)
@@ -5761,8 +5759,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
       (item "Restart" sly-db-restart-frame)
       (item "Return Value" sly-db-return-from-frame)
       (item "Toggle Details" sly-db-toggle-details)
-      (item "Show Source" sly-db-show-frame-source)
-      (item "Go To Source" sly-db-goto-source))
+      (item "Show Source" sly-db-show-frame-source))
     (set-keymap-parent map sly-button-popup-part-menu-keymap)
     map))
 
