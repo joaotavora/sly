@@ -752,7 +752,7 @@ The user is prompted if a prefix argument is in effect, if there is no
 symbol at point, or if QUERY is non-nil."
   (let* ((sym-at-point (sly-symbol-at-point))
          (completion-category-overrides
-          (cons '(sly-completion (styles . (backend)))
+          (cons '(sly-completion (styles . (sly--external-completion)))
                 completion-category-overrides))
          (wrapper (sly--completion-function-wrapper sly-complete-symbol-function))
          (do-it (lambda () (completing-read prompt wrapper nil nil sym-at-point))))
