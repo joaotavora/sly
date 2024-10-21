@@ -3726,6 +3726,11 @@ Return nil if there's no previous object."
     (reset-inspector)
     (inspect-object (frame-var-value frame var))))
 
+(defslyfun inspect-frame-function (frame)
+  (with-buffer-syntax ()
+    (reset-inspector)
+    (inspect-object (frame-function-object frame))))
+
 (defslyfun pprint-frame-var (frame var)
   (with-buffer-syntax ()
     (slynk-pprint (frame-var-value frame var))))

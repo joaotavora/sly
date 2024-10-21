@@ -6025,6 +6025,11 @@ The details include local variable bindings and CATCH-tags."
                  (sly-sexp-at-point))))
   (sly-eval-for-inspector `(slynk:inspect-in-frame ,string ,frame-number)))
 
+(defun sly-db-inspect-frame-function (frame-number)
+  "Inspect the function called in the selected frame."
+  (interactive (list (sly-db-frame-number-at-point)))
+  (sly-eval-for-inspector `(slynk:inspect-frame-function ,frame-number)))
+
 (defun sly-db-inspect-condition ()
   "Inspect the current debugger condition."
   (interactive)
