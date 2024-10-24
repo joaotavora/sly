@@ -6121,6 +6121,12 @@ Interactively get the number from a button at point."
     ((:ok value) (sly-message "Restart returned: %s" value))
     ((:abort _))))
 
+(defun sly-db-inspect-restart (restart-number)
+  "Inspect the restart number RESTART-NUMBER.
+Interactively get the number from a button at point."
+  (interactive (list (button-get (sly-button-at (point)) 'restart-number)))
+  (sly-eval-for-inspector `(slynk:inspect-nth-restart ,restart-number)))
+
 (defun sly-db-invoke-restart-by-name (restart-name)
   (interactive (list (let ((completion-ignore-case t))
                        (completing-read "Restart: " sly-db-restarts nil t
