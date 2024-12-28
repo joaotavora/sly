@@ -1987,6 +1987,18 @@ Be careful when changing this variable since you may mess very basic
 functionality of your Slynk, including the ability to correct any
 errors you make.")
 
+(defmacro with-condition-printing (lines &body body)
+  `(let* ((*print-readably* nil)
+          (*print-pretty* t)
+          (*print-right-margin* 65)
+          (*print-circle* t)
+          (*print-length* (or *print-length* 64))
+          #+#.(slynk-backend:with-symbol '*print-vector-length* 'sb-ext)
+          (sb-ext:*print-vector-length* (or sb-ext:*print-vector-length* 1000))
+          (*print-level* (or *print-level* 6))
+          (*print-lines* (or *print-lines* ,lines)))
+     ,@body))
+
 (defun eval-for-emacs (form buffer-package id &rest extra-rex-options)
   "Bind *BUFFER-PACKAGE* to BUFFER-PACKAGE and evaluate FORM.
 Return the result to the continuation ID.  Errors are trapped and
@@ -2022,7 +2034,8 @@ invoke our debugger.  EXTRA-REX-OPTIONS are passed to the functions of
       (send-to-emacs `(:return ,(current-thread)
                                ,(if ok
                                     `(:ok ,result)
-                                    `(:abort ,(prin1-to-string condition)))
+                                    `(:abort ,(with-condition-printing nil
+                                                (prin1-to-string condition))))
                                ,id)))))
 
 (defun format-integer-length (i) (format nil "~a bit~:p" (integer-length i)))
@@ -2550,15 +2563,7 @@ conditions are simply reported."
   (let ((limit (ash 1 16)))
     (with-string-stream (stream :length limit)
       (handler-case
-          (let ((*print-readably* nil)
-                (*print-pretty* t)
-                (*print-right-margin* 65)
-                (*print-circle* t)
-                (*print-length* (or *print-length* 64))
-                #+#.(slynk-backend:with-symbol '*print-vector-length* 'sb-ext)
-                (sb-ext:*print-vector-length* (or sb-ext:*print-vector-length* 1000))
-                (*print-level* (or *print-level* 6))
-                (*print-lines* (or *print-lines* limit)))
+          (with-condition-printing limit
             (print-condition condition stream))
         (serious-condition (c)
           (ignore-errors
