@@ -1696,3 +1696,8 @@ to be passed to the FIND-SOURCE-LOCATION interface."
 (definterface augment-features ()
   "*features* or something else "
   *features*)
+
+(definterface structure-accessor-p (symbol)
+  "Does SYMBOL name a structure accessor?"
+  (declare (ignore symbol))
+  nil)

@@ -608,9 +608,9 @@ See `methods-by-applicability'.")
 
 (defun symbol-classification-string (symbol)
   "Return a string in the form -f-c---- where each letter stands for
-boundp fboundp generic-function class macro special-operator package"
-  (let ((letters "bfgctmsp")
-        (result (copy-seq "--------")))
+boundp fboundp generic-function class macro special-operator package accessor"
+  (let ((letters "bfgctmspa")
+        (result (copy-seq "---------")))
     (flet ((flip (letter)
              (setf (char result (position letter letters))
                    letter)))
@@ -625,6 +625,7 @@ boundp fboundp generic-function class macro special-operator package"
       (when (macro-function symbol)   (flip #\m))
       (when (special-operator-p symbol) (flip #\s))
       (when (find-package symbol)       (flip #\p))
+      (when (structure-accessor-p symbol) (flip #\a))
       result)))
 
 (defgeneric make-symbols-listing (grouping-kind symbols))

@@ -2136,3 +2136,7 @@ stack."
 
 (defimplementation augment-features ()
   (append *features* #+sb-devel sb-impl:+internal-features+))
+
+(defimplementation structure-accessor-p (symbol)
+  #+#.(slynk-backend:with-symbol 'structure-instance-accessor-p 'sb-kernel)
+  (sb-kernel:structure-instance-accessor-p symbol))
