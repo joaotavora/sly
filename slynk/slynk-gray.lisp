@@ -61,6 +61,7 @@
      (call-with-lock-held lock (lambda () ,@body))))
 
 (defmethod stream-write-char ((stream sly-output-stream) char)
+  (check-type char character)
   (with-sly-output-stream stream
     (setf (schar buffer fill-pointer) char)
     (incf fill-pointer)
