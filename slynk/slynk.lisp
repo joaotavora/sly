@@ -3778,14 +3778,37 @@ Return nil if there's no previous object."
    ('car (car cons))
    ('cdr (cdr cons))))
 
+(defun find-cycle (x)
+  "Return the first cons of circular list X's cycle and its index."
+  (let ((fast x)
+        (slow x))
+    (loop (pop fast)
+          (pop fast)
+          (pop slow)
+          (when (eq fast slow)
+            (return)))
+    (loop for i from 0
+          when (eq x fast)
+            return (values x i)
+          do (pop x)
+             (pop fast))))
+
 (defun inspect-list (list)
   (multiple-value-bind (length tail) (safe-length list)
     (flet ((frob (title list)
              (list* title '(:newline) (inspect-list-aux list))))
       (cond ((not length)
-             (frob "A circular list:"
-                   (cons (car list)
-                         (ldiff (cdr list) list))))
+             (multiple-value-bind (cycle distance) (find-cycle list)
+               (if (= distance 0)
+                   (frob "A circular list:"
+                         (cons (car list)
+                               (ldiff (cdr list) list)))
+                   (frob (format nil "A list containing a cycle, starting from ~
+                                      element ~D:"
+                                 distance)
+                         (append (subseq list 0 distance)
+                                 (cons (car cycle)
+                                       (ldiff (cdr cycle) cycle)))))))
             ((not tail)
              (frob "A proper list:" list))
             (t
