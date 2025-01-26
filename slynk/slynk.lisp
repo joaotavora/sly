@@ -2518,6 +2518,7 @@ after Emacs causes a restart to be invoked."
                             (symbol-value '*buffer-package*))
                        *package*))
         (*sly-db-level* (1+ *sly-db-level*))
+        (*print-readably* nil)
         (*sly-db-stepping-p* nil))
     (force-user-output)
     (call-with-debugging-environment
