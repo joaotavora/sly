@@ -361,10 +361,7 @@ Intended to go into `completion-at-point-functions'"
   (setq-local completion-at-point-functions '(sly-complete-filename-maybe
                                               sly-complete-symbol))
   (add-function :around (local 'completion-in-region-function)
-                (lambda (oldfun &rest args)
-                  (if sly-symbol-completion-mode
-                      (apply #'sly--completion-in-region-function args)
-                    (apply oldfun args)))
+                #'sly--completion-in-region-function
                 '((name . sly--setup-completion))))
 
 (define-minor-mode sly-symbol-completion-mode "Fancy SLY UI for Lisp symbols" t
@@ -382,14 +379,17 @@ Intended to go into `completion-at-point-functions'"
 
 ;;; TODO: not tested with other functions in `completion-at-point-functions'
 ;;; 
-(defun sly--completion-in-region-function (beg end function pred)
+(defun sly--completion-in-region-function (orig-fun beg end collection pred
+                                           &rest rest)
   (cond
-   ((funcall function nil nil 'sly--identify)
+   ((and sly-symbol-completion-mode
+         (functionp collection)
+         (funcall collection nil nil 'sly--identify))
     (let* ((pattern (buffer-substring-no-properties beg end))
            (all
-            (all-completions pattern function pred))
+            (all-completions pattern collection pred))
            (try
-            (try-completion pattern function pred)))
+            (try-completion pattern collection pred)))
       (setq this-command 'completion-at-point) ; even if we started with `minibuffer-complete'!
       (setq sly--completion-transient-completions all)
       (cond ((eq try t)
@@ -404,7 +404,7 @@ Intended to go into `completion-at-point-functions'"
              (let ((pattern-overlay (make-overlay beg end nil nil nil)))
                (setq sly--completion-transient-data
                      `(,pattern-overlay
-                       ,function
+                       ,collection
                        ,pred))
                (overlay-put pattern-overlay 'face 'highlight)
                (sly--completion-pop-up-completions-buffer pattern all)
@@ -413,8 +413,7 @@ Intended to go into `completion-at-point-functions'"
             ((> (length pattern) 0)
              (sly-temp-message 0 2 "No completions for %s" pattern)))))
    (t
-    (funcall (default-value 'completion-in-region-function)
-             beg end function pred))))
+    (apply orig-fun beg end collection pred rest))))
 
 (defvar sly--completion-in-region-overlay
   (let ((ov (make-overlay 0 0)))
