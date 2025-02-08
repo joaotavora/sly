@@ -418,6 +418,13 @@ In that case, moving a sexp backward does nothing."
            ;; If no process yet, fall back to the simpler strategy.
            (sly-mrepl--insert-output string face)))))
 
+(defun sly-mrepl--remove-comint-highlight (start end)
+  "Some `comint' functions force the `comint-highlight-prompt'
+face, which we don't want so we remove it."
+  (font-lock--remove-face-from-text-property
+   start end
+   'font-lock-face 'comint-highlight-prompt))
+
 (defun sly-mrepl--send-input-sexp ()
   (goto-char (point-max))
   (save-excursion
@@ -428,15 +435,18 @@ In that case, moving a sexp backward does nothing."
   (buffer-disable-undo)
   (overlay-put sly-mrepl--last-prompt-overlay 'face 'highlight)
   (set (make-local-variable 'sly-mrepl--dirty-history) t)
-  (sly-mrepl--commiting-text
-      `(field sly-mrepl-input
-              keymap ,(let ((map (make-sparse-keymap)))
-                        (define-key map (kbd "RET") 'sly-mrepl-insert-input)
-                        (define-key map [return] 'sly-mrepl-insert-input)
-                        (define-key map [mouse-2] 'sly-mrepl-insert-input)
-                        map))
-    (comint-send-input))
-  (sly-mrepl--ensure-prompt-face))
+  (let ((previous-comint-last-prompt comint-last-prompt))
+    (sly-mrepl--commiting-text
+        `(field sly-mrepl-input
+                keymap ,(let ((map (make-sparse-keymap)))
+                          (define-key map (kbd "RET") 'sly-mrepl-insert-input)
+                          (define-key map [return] 'sly-mrepl-insert-input)
+                          (define-key map [mouse-2] 'sly-mrepl-insert-input)
+                          map))
+      (prog1 (comint-send-input)
+        (sly-mrepl--remove-comint-highlight
+         (car previous-comint-last-prompt)
+         (cdr previous-comint-last-prompt))))))
 
 (defun sly-mrepl--ensure-newline ()
   (unless (save-excursion
@@ -516,11 +526,21 @@ current ERROR-LEVEL."
                package
                nickname
                error-level
-               next-entry-idx
+               (or next-entry-idx
+                   (let ((last-button (previous-button (point))))
+                     (when (and last-button
+                                (button-type-subtype-p (button-type last-button)
+                                                       'sly-mrepl-part))
+                       (1+ (car (button-get last-button 'part-args)))))
+                   0)
                condition)
       'sly-mrepl--prompt (downcase package)))
+      ;; `comint-output-filter' forces the `comint-highlight-prompt' face, which
+      ;; we don't want, so we remove it here.
+    (let ((prompt-start (save-excursion (forward-line 0) (point)))
+          (inhibit-read-only t))
+      (sly-mrepl--remove-comint-highlight prompt-start (point)))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
-  (sly-mrepl--ensure-prompt-face)
   (buffer-disable-undo)
   (buffer-enable-undo))
 
@@ -735,7 +755,7 @@ recent entry that is discarded."
     (ignore-errors
       ;; uses `sly-connection', which falls back to
       ;; `sly-buffer-connection'. If that is closed it's probably
-      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
+      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so
       (sly-mrepl--send `(:teardown))))
   (set (make-local-variable 'sly-mrepl--remote-channel) nil)
   (when (sly-mrepl--process)
