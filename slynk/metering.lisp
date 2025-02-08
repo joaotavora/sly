@@ -21,7 +21,7 @@
 ;;; This code is in the public domain and is distributed without warranty
 ;;; of any kind.
 ;;;
-;;; This copy is from SLY, http://www.common-lisp.net/project/sly/
+;;; This copy is from SLY, https://github.com/joaotavora/sly/
 ;;;
 ;;;
 

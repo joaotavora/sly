@@ -32,7 +32,7 @@
 ;;; from the CMU AI repository and metering.lisp from CLOCC [1], which
 ;;; are conveniently included in SLY.
 
-;;; [1] http://cvs.sourceforge.net/viewcvs.py/clocc/clocc/src/tools/metering/
+;;; [1] https://cvs.sourceforge.net/viewcvs.py/clocc/clocc/src/tools/metering/
 
 (defpackage slynk-clisp
   (:use cl slynk-backend))
@@ -798,11 +798,11 @@ Execute BODY with NAME's function slot set to FUNCTION."
 ;;;     hash-tables as is the case for *THREAD-PLIST-TABLE*.
 ;;;
 ;;;     See test case at
-;;;       http://thread.gmane.org/gmane.lisp.clisp.devel/20429
+;;;       https://thread.gmane.org/gmane.lisp.clisp.devel/20429
 ;;;
 ;;;     Even though said to be fixed, it's not:
 ;;;
-;;;       http://thread.gmane.org/gmane.lisp.clisp.devel/20429/focus=20443
+;;;       https://thread.gmane.org/gmane.lisp.clisp.devel/20429/focus=20443
 ;;;
 ;;;   - The DYNAMIC-FLET above is an implementation technique that's
 ;;;     probably not sustainable in light of threads. This got to be
