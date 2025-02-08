@@ -1,12 +1,7 @@
 \input texinfo
 @c %**start of header
 @setfilename sly.info
-
-@iftex
 @documentencoding UTF-8
-@codequoteundirected on
-@codequotebacktick on
-@end iftex
 
 @dircategory Emacs
 @direntry
