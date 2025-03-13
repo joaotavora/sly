@@ -372,6 +372,29 @@ conditions (assertions)."
                        (sly-sexp-at-point)
                        #'equal)))
 
+(def-sly-test sexp-at-point.2 (string)
+  "sexp-at-point top comment"
+  '((";\n")
+    ("; x\n")
+    (" ;\n")
+    (" ; x\n")
+    ("\n;\n")
+    ("\n; x\n"))
+  (with-temp-buffer
+    (lisp-mode)
+    (insert string)
+    (sly-test-expect (format "Check sexp `%s' (at %d)..."
+                             (buffer-string) (point))
+                     nil
+                     (sly-sexp-at-point)
+                     #'eq)
+    (goto-char (point-min))
+    (sly-test-expect (format "Check sexp `%s' (at %d)..."
+                             (buffer-string) (point))
+                     nil
+                     (sly-sexp-at-point)
+                     #'eq)))
+
 (def-sly-test narrowing ()
     "Check that narrowing is properly sustained."
     '()

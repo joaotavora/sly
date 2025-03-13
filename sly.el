@@ -7383,19 +7383,29 @@ The returned bounds are either nil or non-empty."
 (defun sly-bounds-of-sexp-at-point (&optional interactive)
   "Return the bounds sexp near point as a pair (or nil).
 With non-nil INTERACTIVE, error if can't find such a thing."
-  (or (sly-bounds-of-symbol-at-point)
-      (and (equal (char-after) ?\()
-           (member (char-before) '(?\' ?\, ?\@))
-           ;; hide stuff before ( to avoid quirks with '( etc.
-           (save-restriction
-             (narrow-to-region (point) (point-max))
-             (bounds-of-thing-at-point 'sexp)))
-      (bounds-of-thing-at-point 'sexp)
-      (and (save-excursion
-             (and (ignore-errors
-                    (backward-sexp 1)
-                    t)
-                  (bounds-of-thing-at-point 'sexp))))
+  (or (let ((bounds
+             (or (sly-bounds-of-symbol-at-point)
+                 (and (equal (char-after) ?\()
+                      (member (char-before) '(?\' ?\, ?\@))
+                      ;; hide stuff before ( to avoid quirks with '( etc.
+                      (save-restriction
+                        (narrow-to-region (point) (point-max))
+                        (bounds-of-thing-at-point 'sexp)))
+                 (bounds-of-thing-at-point 'sexp)
+                 (and (save-excursion
+                        (and (ignore-errors
+                               (backward-sexp 1)
+                               t)
+                             (bounds-of-thing-at-point 'sexp)))))))
+        ;; Regardless of `parse-sexp-ignore-comments', if there are no
+        ;; sexps before or after point, the bounds may include
+        ;; whitespace and comments.  Detect this, and return nil.
+        (unless (and bounds
+                     (= (car bounds) (point-min))
+                     (save-excursion
+                       (goto-char (car bounds))
+                       (looking-at "[;\n[:space:]]")))
+          bounds))
       (when interactive
         (user-error "No sexp near point"))))
 
