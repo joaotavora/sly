@@ -155,8 +155,8 @@ For other contexts we return the symbol at point."
            (backward-up-list 1)
            (sly-parse-context `(setf ,name)))
           ((sly-in-expression-p '(defmethod *))
-           (unless (looking-at "\\s ")
-             (forward-sexp 1)) ; skip over the methodname
+           (sly-beginning-of-list)
+           (forward-sexp 2)
            (let (qualifiers arglist)
              (cl-loop for e = (read (current-buffer))
                       until (listp e) do (push e qualifiers)
