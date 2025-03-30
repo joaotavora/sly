@@ -301,8 +301,8 @@ global variabes in SLYNK."
   (when setup
     (setup)))
 
-(defun dump-image (filename)
-  (init :setup nil)
+(defun dump-image (filename &key load-contribs)
+  (init :setup nil :load-contribs load-contribs)
   (funcall (q "slynk-backend:save-image") filename))
 
 
