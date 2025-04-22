@@ -313,6 +313,7 @@
             (fasl-file)
             (warnings-p)
             (failure-p))
+        (declare (ignorable warnings-p))
         (unwind-protect
             (progn
                (with-open-file (tmp-stream tmp-file :direction :output
@@ -349,29 +350,6 @@
 (defimplementation macroexpand-all (form &optional env)
   (declare (ignore env))
   (macroexpand form))
-
-;;; modified from sbcl.lisp
-(defimplementation collect-macro-forms (form &optional environment)
-  (let ((macro-forms '())
-        (compiler-macro-forms '())
-        (function-quoted-forms '()))
-    (cmp:code-walk
-     (lambda (form environment)
-       (when (and (consp form)
-                  (symbolp (car form)))
-         (cond ((eq (car form) 'function)
-                (push (cadr form) function-quoted-forms))
-               ((member form function-quoted-forms)
-                nil)
-               ((macro-function (car form) environment)
-                (push form macro-forms))
-               ((not (eq form (sys:compiler-macroexpand-1 form environment)))
-                (push form compiler-macro-forms))))
-       form)
-     form environment)
-    (values macro-forms compiler-macro-forms)))
-
-
 
 
 
@@ -527,19 +505,6 @@
 (defimplementation activate-stepping (frame)
   (declare (ignore frame))
   (core:set-breakstep))
-
-(defimplementation sldb-stepper-condition-p (condition)
-  (typep condition 'clasp-debug:step-form))
-
-(defimplementation sldb-step-into ()
-  (invoke-restart 'clasp-debug:step-into))
-
-(defimplementation sldb-step-next ()
-  (invoke-restart 'clasp-debug:step-over))
-
-(defimplementation sldb-step-out ()
-  ;; FIXME: This stops stepping entirely. Clasp does not have step out yet.
-  (invoke-restart 'continue))
 
 #+clasp-working
 (defimplementation gdb-initial-commands ()
