@@ -136,7 +136,7 @@ operating system, and hardware architecture."
 (defun sly-version-string ()
   "Return a string identifying the SLY version.
 Return nil if nothing appropriate is available."
-  (let ((this-file #.(or *compile-file-truename* *load-truename*)))
+  (let ((this-file #.(or #-clasp *compile-file-truename* *load-truename*)))
     (with-open-file (s (make-pathname :name "sly" :type "el"
                                       :directory (butlast
                                                   (pathname-directory this-file)
