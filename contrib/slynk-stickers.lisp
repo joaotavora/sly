@@ -242,7 +242,7 @@ after.")
                                       increment)
   "Return two values: a RECORDING and its position in *RECORDINGS*.
 Start searching from position FROM, an index in *RECORDINGS* which is
-successfuly increased by INCREMENT before using that to index
+successively increased by INCREMENT before using that to index
 *RECORDINGS*."
   (loop for starting-position in `(,from ,(if (plusp increment)
                                               -1
