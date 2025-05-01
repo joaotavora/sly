@@ -7392,7 +7392,7 @@ as nil.  With non-nil STRINGP, only look for strings"
                    (not (eq (syntax-class (syntax-after (car bounds)))
                             (char-syntax ?\"))))
           (if (and interactive
-                   interactive)
+                   errorp)
               (user-error "No string at point")
             (throw 'return nil)))
         (when interactive
