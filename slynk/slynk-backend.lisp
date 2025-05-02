@@ -196,7 +196,7 @@ Backends implement these functions using DEFIMPLEMENTATION."
        (if (member ',sym *interface-functions*)
            (setq *unimplemented-interfaces*
                  (remove ',sym *unimplemented-interfaces*))
-           (warn "DEFIMPLEMENTATION of undefined interface (~S)" ',sym))
+           (warn "DEFIMPLEMENTATION of undefined interface (~S)" ',name))
        ',sym)))
 
 (defun warn-unimplemented-interfaces ()
