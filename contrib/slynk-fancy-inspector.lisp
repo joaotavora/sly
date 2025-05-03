@@ -88,6 +88,24 @@
             (label-value-line "It names the package" (find-package symbol)))
         (inspect-type-specifier symbol)))))
 
+(defparameter *inspect-string-as-array-temporarily* nil
+  "Temporarily inspect a string as an array")
+
+(defmethod emacs-inspect ((s string))
+  (if *inspect-string-as-array-temporarily*
+      (progn
+        (setf *inspect-string-as-array-temporarily* nil)
+        (call-next-method))
+      (append
+       `("This simple-array is a string "
+         (:action "[Show array representation]"
+                  ,(lambda () (setf *inspect-string-as-array-temporarily* t)))
+         (:newline))
+       (label-value-line*
+        ("Length" (length s)))
+       `((:newline)
+         ,(format nil "~a" s)))))
+
 #-sbcl
 (defun inspect-type-specifier (symbol)
   (declare (ignore symbol)))
