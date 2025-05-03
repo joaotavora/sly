@@ -518,7 +518,7 @@ current ERROR-LEVEL."
                error-level
                next-entry-idx
                condition)
-      'sly-mrepl--prompt (downcase package)))
+      'sly-mrepl--prompt package))
     (move-overlay sly-mrepl--last-prompt-overlay beg (sly-mrepl--mark)))
   (sly-mrepl--ensure-prompt-face)
   (buffer-disable-undo)
