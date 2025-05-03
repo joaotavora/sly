@@ -2171,7 +2171,7 @@ If STREAM is nil, use a string"
            (print-all (s)
              (loop for o in values
                    do (print-one o s)
-                      (terpri))))
+                      (terpri s))))
     (with-bindings *slynk-pprint-bindings*
       (cond ((null values)
              (format stream "; No value"))
