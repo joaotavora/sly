@@ -1184,13 +1184,13 @@ In the resulting @code{*sly-xref*} buffer, these commands are
 available:
 
 @table @kbd
-@kbditem{RET, sly-show-xref}
+@kbditem{Space, sly-xref-show}
 Show definition at point in the other window. Do not leave
-the @code{*sly-xref} buffer.
+the @code{*sly-xref*} buffer.
 
-@kbditem{Space, sly-goto-xref}
+@kbditem{RET, sly-xref-goto}
 Show definition at point in the other window and close
-the @code{*sly-xref} buffer.
+the @code{*sly-xref*} buffer.
 
 @kbditem{C-c C-c, sly-recompile-xref}
 Recompile definition at point. Uses prefix arguments like
@@ -1199,6 +1199,9 @@ Recompile definition at point. Uses prefix arguments like
 @kbditem{C-c C-k, sly-recompile-all-xrefs}
 Recompile all definitions. Uses prefix arguments like
 @code{sly-compile-defun}.
+
+@kbditempair{n, p, M-x sly-xref-next-line, M-x sly-xref-prev-line}
+Move between definitions.
 
 @end table
 
