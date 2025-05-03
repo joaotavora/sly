@@ -266,7 +266,7 @@ forced on the user's Lisp run-time.
 
 This also allows the developer to write completely independent
 third-party extensions to SLY, with both Emacs and Lisp parts. See the
-URL http://github.com/joaotavora/sly-hello-world for an example
+URL https://github.com/joaotavora/sly-hello-world for an example
 extension.
 
 Additionally, if SLY detects that ASDF is not available in the Lisp
@@ -322,11 +322,11 @@ TODO
 
 * Read [how to properly contribute to open source projects on Github][1].
 * Use a topic branch to easily amend a pull request later, if necessary.
-* Commit messages should use the syntax of GNU ChangeLog entries.
-* Open a [pull request][2] that relates to *only* one subject with a
+* Commit messages should use the syntax of [GNU ChangeLog entries][2].
+* Open a [pull request][3] that relates to *only* one subject with a
   clear title and description in grammatically correct, complete
   sentences.
 
-[1]: http://gun.io/blog/how-to-github-fork-branch-and-pull-request
-[2]: https://help.github.com/articles/using-pull-requests
-[3]: http://www.gnu.org/prep/standards/html_node/Style-of-Change-Logs.html#Style-of-Change-Logs
+[1]: https://gun.io/blog/how-to-github-fork-branch-and-pull-request
+[2]: https://www.gnu.org/prep/standards/html_node/Style-of-Change-Logs.html#Style-of-Change-Logs
+[3]: https://help.github.com/articles/using-pull-requests

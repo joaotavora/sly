@@ -11,7 +11,7 @@
 ;;; these conflict, the preamble takes precedence.
 ;;;
 ;;; The LLGPL is also available online at
-;;; http://opensource.franz.com/preamble.html
+;;; https://opensource.franz.com/preamble.html
 
 (defpackage slynk-ccl
   (:use cl slynk-backend))
