@@ -26,6 +26,7 @@
 ;;;
 (require 'cl-lib)
 (require 'comint)
+(require 'subr-x)
 (require 'sly-messages "lib/sly-messages")
 
 
