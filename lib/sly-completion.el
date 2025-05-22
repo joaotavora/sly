@@ -259,7 +259,8 @@ ANNOTATION) describing each completion possibility."
           ;; all completions
           (`t (car (all)))
           ;; try completion
-          (`nil (try-completion pattern (car (all))))
+          (`nil (or (try-completion pattern (car (all)))
+                    pattern))
           (`(boundaries . ,thing)
            (completion-boundaries pattern (car (all)) pred thing))
           ;; boundaries or any other value
