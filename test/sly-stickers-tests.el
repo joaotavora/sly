@@ -43,10 +43,11 @@
   `(sly-stickers--call-with-fixture #'(lambda () ,@body) ,forms ,sticker-prefixes))
 
 (defun sly-stickers--topmost-sticker ()
-  (car (sly-button--overlays-at (point))))
+  (car (sly-button--overlays-at
+        (point) (lambda (o) (eq (button-type o) 'sly-stickers-sticker)))))
 
 (defun sly-stickers--base-face (sticker)
-  (let ((face (button-get sticker 'face)))
+  (let ((face (overlay-get sticker 'face)))
     (if (atom face)
         face
       (plist-get face :inherit))))
@@ -108,10 +109,10 @@
       (ert-fail "Expected invalid FOO sticker to remain unarmed"))
     (ert-simulate-command '(sly-stickers-next-sticker 1))
     (unless (sly-stickers--face-p 'sly-stickers-placed-face)
-      (ert-fail "Expected valid FOO sticker to remain unarmed"))
+      (ert-fail "Expected valid BAR sticker to remain unarmed"))
     (ert-simulate-command '(sly-stickers-next-sticker 1))
     (unless (sly-stickers--face-p 'sly-stickers-placed-face)
-      (ert-fail "Expected valid FOO sticker to remain unarmed"))))
+      (ert-fail "Expected valid BAZ sticker to remain unarmed"))))
 
 (define-sly-ert-test stickers-in-a-file
   "Test compiling a file with some valid and invalid stickers."
