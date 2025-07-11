@@ -12,12 +12,12 @@
    (setq sly-from-lisp-filename-function #'sly-tramp-from-lisp-filename)))
 
 (defcustom sly-filename-translations nil
-  "Assoc list of hostnames and filename translation functions.  
-Each element is of the form (HOSTNAME-REGEXP TO-LISP FROM-LISP).
+  "Assoc list of hostnames and filename translation functions.
+Each element is of the form (HOSTNAME-PREDICATE TO-LISP FROM-LISP).
 
-HOSTNAME-REGEXP is a regexp which is applied to the connection's
-sly-machine-instance. If HOSTNAME-REGEXP maches then the
-corresponding TO-LISP and FROM-LISP functions will be used to
+HOSTNAME-PREDICATE is a predicate function or regex which is
+applied to the connection's sly-machine-instance. If HOSTNAME-PREDICATE
+matches then the corresponding TO-LISP and FROM-LISP functions will
 translate emacs filenames and lisp filenames.
 
 TO-LISP will be passed the filename of an emacs buffer and must
@@ -28,7 +28,7 @@ understand as a filename (this string will be passed to
 find-file).
 
 This list will be traversed in order, so multiple matching
-regexps are possible.
+rules are possible.
 
 Example:
 
@@ -45,13 +45,16 @@ the machine 'soren' and you can connect with the username
 
 See also `sly-create-filename-translator'."
   :type '(repeat (list :tag "Host description"
-                       (regexp :tag "Hostname regexp")
+                       ((or function string) :tag "Hostname predicate")
                        (function :tag "To   lisp function")
                        (function :tag "From lisp function")))
   :group 'sly-lisp)
 
 (defun sly-find-filename-translators (hostname)
-  (cond ((cdr (cl-assoc-if (lambda (regexp) (string-match regexp hostname))
+  (cond ((cdr (cl-assoc-if (lambda (predicate)
+                             (typecase predicate
+                               ((or function symbol) (funcall predicate hostname))
+                               (string (string-match-p predicate hostname))))
                            sly-filename-translations)))
         (t (list #'identity #'identity))))
 
