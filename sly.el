@@ -4152,7 +4152,7 @@ the display stuff that we neither need nor want."
 
 (defun sly-read-from-minibuffer-for-slynk (thread tag prompt initial-value)
   (let ((answer (condition-case nil
-                    (sly-read-from-minibuffer prompt initial-value t)
+                    (sly-read-from-minibuffer prompt initial-value t t)
                   (quit nil))))
     (sly-dispatch-event `(:emacs-return ,thread ,tag ,answer))))
 
