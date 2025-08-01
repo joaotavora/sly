@@ -2713,7 +2713,7 @@ Debugged requests are ignored."
 ;;;;; Event logging to *sly-events*
 ;;;
 ;;; The *sly-events* buffer logs all protocol messages for debugging
-;;; purposes. 
+;;; purposes.
 
 (defvar sly-log-events t
   "*Log protocol events to the *sly-events* buffer.")
@@ -6690,6 +6690,17 @@ If PREV resp. NEXT are true insert more-buttons as needed."
     (when (and next (< end len))
       (sly-inspector-insert-more-button end nil))))
 
+
+(defun sly-interactive-eval-setf (var-name prompt-user)
+  (call-interactively
+   (lambda (string)
+     (interactive (list (sly-read-from-minibuffer
+                         (or prompt-user "SLY Eval: "))))
+     (sly-eval-with-transcript `(slynk:interactive-eval
+                                 ,(format "(setf %s %s)"
+                                          (or var-name (gensym "inspector")) string))))))
+
+
 (defun sly-inspector-insert-ispec (ispec)
   (insert
    (if (stringp ispec) ispec
@@ -6702,8 +6713,13 @@ If PREV resp. NEXT are true insert more-buttons as needed."
         (sly-make-action-button
          string
          #'(lambda (_button)
+             (when (string= string "[add entry hashtable]")
+               (sly-interactive-eval-setf "slynk:*inspector-ht-key*" "Insert key: ") ;set key
+               (sly-interactive-eval-setf "slynk:*inspector-ht-value*" "Insert value: ") ;set value
+               )
              (sly-eval-for-inspector `(slynk::inspector-call-nth-action ,id)
                                      :restore-point t))))))))
+
 
 (defun sly-inspector-position ()
   "Return a pair (Y-POSITION X-POSITION) representing the
