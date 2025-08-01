@@ -534,7 +534,7 @@ sessions.  This has been completely redesigned in @SLY{}: you can spawn
 multiple REPL sessions with @code{sly-mrepl-new}; copy objects from most
 places directly into it (with @kbd{M-RET} and @kbd{M-S-RET}); use
 powerful incremental history search (with @kbd{C-r}) found in most
-modern shells; and get real-time assistance when ``backreferecing''
+modern shells; and get real-time assistance when ``backreferencing''
 previous evaluation values in your Lisp input.
 
 @*@image{images/tutorial-1,350pt}@*
