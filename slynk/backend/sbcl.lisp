@@ -1708,6 +1708,9 @@ stack."
         "Running"
         "Stopped"))
 
+  (defimplementation thread-attributes (thread)
+    (list :tid (sb-thread:thread-os-tid thread)))
+
   (defimplementation make-lock (&key name)
     (sb-thread:make-mutex :name name))
 
