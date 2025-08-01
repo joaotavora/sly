@@ -3,6 +3,7 @@
   (:import-from :slynk-backend :slynk-compile-string)
   (:import-from :slynk :defslyfun :compile-string-for-emacs)
   (:export #:record
+           #:record-conditionally
            #:compile-for-stickers
            #:kill-stickers
            #:inspect-sticker
@@ -185,7 +186,7 @@ after.")
                 (member when *break-on-stickers*)))
        (not (member when (ignore-spec-of sticker)))))
 
-(defun call-with-sticker-recording (id fn)
+(defun call-with-sticker-recording (id fn &key (disable-breakpoint nil))
   (let* ((sticker (gethash id *stickers*))
          (mark (gensym))
          (retval mark)
@@ -197,7 +198,8 @@ after.")
       ;;
       (when sticker
         (incf (hit-count-of sticker))
-        (when (break-on-sticker-p sticker :before)
+        (when (and (not disable-breakpoint)
+                   (break-on-sticker-p sticker :before))
           (invoke-debugger-for-sticker
            sticker (make-condition 'just-before-sticker
                                    :sticker sticker
@@ -219,7 +221,8 @@ after.")
                                :condition (and (eq mark retval)
                                                last-condition)))
           ;; ...and then maybe break after.
-          (when (break-on-sticker-p sticker :after)
+          (when (and (not disable-breakpoint)
+                     (break-on-sticker-p sticker :after))
             (invoke-debugger-for-sticker
              sticker
              (make-condition 'right-after-sticker
@@ -232,6 +235,20 @@ after.")
 
 (defmacro record (id &rest body)
   `(call-with-sticker-recording ,id (lambda () ,@body)))
+
+(defmacro record-conditionally (id conditional-form &rest body)
+  `(call-with-sticker-recording
+    ,id
+    (lambda ()
+      (when ,conditional-form
+        (let ((sticker (gethash ,id *stickers*)))
+          (when (and sticker (break-on-sticker-p sticker :before))
+            (invoke-debugger-for-sticker sticker (make-condition 'just-before-sticker
+                                                                 :sticker sticker
+                                                                 :debugger-extra-options
+                                                                 `((:slynk-before-sticker ,,id)))))))
+      ,@body)
+    :disable-breakpoint t))
 
 (define-setf-expander record (x &environment env)
   (declare (ignore x env))

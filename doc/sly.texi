@@ -2238,6 +2238,7 @@ setting the Lisp-side variable
 @code{SLYNK-STICKERS:*BREAK-ON-STICKERS*} to a list with the
 elements @code{:before} and @code{:after}, making @SLY{} break before a
 sticker, after it, or both.
+To set up a conditional breakpoint, please specify a Lisp form via @code{M-x sly-stickers-toggle-conditional-breakpoint}, which will only trigger a break once the specified Lisp form returns true for the current sticker.
 
 @*@image{images/stickers-4-breaking-stickers,350pt}@*
 
