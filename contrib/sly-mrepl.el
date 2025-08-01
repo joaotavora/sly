@@ -974,11 +974,14 @@ arglist for the most recently enclosed macro or function."
   "Find or create the first useful REPL for the default connection.
 If supplied, DISPLAY-ACTION is called on the
 buffer. Interactively, DISPLAY-ACTION defaults to using
-`switch-to-buffer' unless the intended buffer is already visible
-in some window, in which case that window is selected."
+`switch-to-buffer-other-window' unless the intended buffer is
+already visible in some window, in which case that window is
+selected."
   (interactive (list (lambda (buf)
-                       (let ((w (get-buffer-window buf)))
-                         (if w (select-window w) (switch-to-buffer buf))))))
+                       (let ((win (get-buffer-window buf)))
+                         (if win
+                             (select-window win)
+                           (switch-to-buffer-other-window buf))))))
   (let* ((buffer
           (sly-mrepl--find-create (sly-current-connection))))
     (when display-action
