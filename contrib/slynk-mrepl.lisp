@@ -219,7 +219,18 @@ Set this to NIL to turn this feature off.")
                            (unwind-protect
                                 (funcall previous-hook condition hook)
                              (pop (mrepl-pending-errors repl))))))))
-           (setq results (mrepl-eval-1 repl string)
+           (setq results (flet ((eval-it ()
+                                  (mrepl-eval-1 repl string)))
+                           ;; Honour `*eval-for-emacs-wrappers*'.
+                           (loop for lambda = #'eval-it then
+                                   (handler-case
+                                       (funcall wrapper lambda)
+                                     (error (e)
+                                       (warn "~s ignoring wrapper ~a (~a)"
+                                             'eval-for-emacs wrapper e)
+                                       lambda))
+                                 for wrapper in *eval-for-emacs-wrappers*
+                                 finally (return (funcall lambda))))
                  ;; If somehow the form above MREPL-EVAL-1 exited
                  ;; normally, set ABORTED to nil
                  aborted nil))
