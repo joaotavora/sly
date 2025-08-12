@@ -507,6 +507,12 @@ any command into it using
 Where \"k\" is the key to bind and \"sly-command\" is any
 interactive command.\".")
 
+(defun sly--keymapped-kbd (keymap keys &optional default)
+  (let ((keys-list (where-is-internal keymap)))
+    (if (null keys-list)
+        (concat (kbd default) (kbd keys))
+      (concat (car keys-list) (kbd keys)))))
+
 (defvar sly-prefix-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-r")   'sly-eval-region)
@@ -518,10 +524,10 @@ interactive command.\".")
     (define-key map (kbd "M-d")   'sly-disassemble-symbol)
     (define-key map (kbd "C-t")   'sly-toggle-trace-fdefinition)
     (define-key map (kbd "I")     'sly-inspect)
-    (define-key map (kbd "C-x t") 'sly-list-threads)
-    (define-key map (kbd "C-x n") 'sly-next-connection)
-    (define-key map (kbd "C-x c") 'sly-list-connections)
-    (define-key map (kbd "C-x p") 'sly-prev-connection)
+    (define-key map (sly--keymapped-kbd ctl-x-map "t") 'sly-list-threads)
+    (define-key map (sly--keymapped-kbd ctl-x-map "n") 'sly-next-connection)
+    (define-key map (sly--keymapped-kbd ctl-x-map "c") 'sly-list-connections)
+    (define-key map (sly--keymapped-kbd ctl-x-map "p") 'sly-prev-connection)
     (define-key map (kbd "<")     'sly-list-callers)
     (define-key map (kbd ">")     'sly-list-callees)
     ;; Include DOC keys...
@@ -541,9 +547,12 @@ interactive command.\".")
     (define-key map (kbd "M-,")     'sly-pop-find-definition-stack)
     (define-key map (kbd "M-_")     'sly-edit-uses)    ; for German layout
     (define-key map (kbd "M-?")     'sly-edit-uses)    ; for USian layout
-    (define-key map (kbd "C-x 4 .") 'sly-edit-definition-other-window)
-    (define-key map (kbd "C-x 5 .") 'sly-edit-definition-other-frame)
-    (define-key map (kbd "C-x C-e") 'sly-eval-last-expression)
+    (define-key map (sly--keymapped-kbd ctl-x-map "4 .")
+                'sly-edit-definition-other-window)
+    (define-key map (sly--keymapped-kbd ctl-x-map "5 .")
+                'sly-edit-definition-other-frame)
+    (define-key map (sly--keymapped-kbd ctl-x-map "C-e")
+                'sly-eval-last-expression)
     (define-key map (kbd "C-M-x")   'sly-eval-defun)
     ;; Include PREFIX keys...
     (define-key map (kbd "C-c")     sly-prefix-map)
