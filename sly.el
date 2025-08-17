@@ -7262,10 +7262,7 @@ and skips comments."
     (sly-forward-cruft)
     (forward-sexp)))
 
-(defconst sly-reader-conditionals-regexp
-  ;; #!+, #!- are SBCL specific reader-conditional syntax.
-  ;; We need this for the source files of SBCL itself.
-  (regexp-opt '("#+" "#-" "#!+" "#!-")))
+(defconst sly-reader-conditionals-regexp (regexp-opt '("#+" "#-")))
 
 (defsubst sly-forward-reader-conditional ()
   "Move past any reader conditional (#+ or #-) at point."
