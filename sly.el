@@ -2713,7 +2713,7 @@ Debugged requests are ignored."
 ;;;;; Event logging to *sly-events*
 ;;;
 ;;; The *sly-events* buffer logs all protocol messages for debugging
-;;; purposes. 
+;;; purposes.
 
 (defvar sly-log-events t
   "*Log protocol events to the *sly-events* buffer.")
