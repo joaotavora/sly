@@ -2056,7 +2056,7 @@ This is automatically synchronized from Lisp.")
           (choice
            (const :tag "Debugger" :db)
            (const :tag "Repl" :mrepl)
-           (const :tag "Ispector" :inspector)
+           (const :tag "Inspector" :inspector)
            (const :tag "Stickers replay" :stickers-replay)
            (const :tag "Error" :error)
            (const :tag "Source" :source)
