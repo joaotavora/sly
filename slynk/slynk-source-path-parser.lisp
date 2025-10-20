@@ -99,6 +99,7 @@ The source locations are stored in SOURCE-MAP."
 		     (set-macro-character char wrapper nt rt))))))))
     (let ((rt (copy-readtable readtable)))
       (install-special-sharpdot-reader rt)
+      (slynk-backend:install-special-backquote-readers rt)
       (install-wrappers rt)
       rt)))
 

@@ -1701,3 +1701,9 @@ to be passed to the FIND-SOURCE-LOCATION interface."
   "Does SYMBOL name a structure accessor?"
   (declare (ignore symbol))
   nil)
+
+(definterface install-special-backquote-readers (rt)
+  "Install readers for ` and , in RT that read them as lists.
+The source-path parser uses this where the implementation's own
+backquote objects don't map to source paths.  By default do nothing."
+  (declare (ignore rt)))

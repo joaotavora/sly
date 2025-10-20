@@ -728,11 +728,12 @@ Confirm that the EXPECTED subform is correctly located."
        (/ 1 0)))
   (sly-test--compile-defun program expected))
 
-;; SBCL used to pass this one but since 1.2.2 the backquote/unquote
-;; reader was changed. See
+;; SBCL failed this one from 1.2.2, when its backquote/unquote
+;; reader changed, until Slynk read them as lists itself.  See
 ;; https://bugs.launchpad.net/sbcl/+bug/1361502
 (def-sly-test (compile-defun-with-backquote
-               (:fails-for "sbcl" "allegro" "lispworks" "clisp"))
+               (:fails-for ("sbcl" version< "2.5.10.1")
+                           "allegro" "lispworks" "clisp"))
   (program subform)
   "Compile PROGRAM containing errors.
 Confirm that SUBFORM is correctly located."

@@ -52,7 +52,13 @@
      (let ((sym (find-symbol "META-INFO" "SB-C")))
        (and sym
             (fboundp sym)
-            (funcall sym :setf :inverse ()))))))
+            (funcall sym :setf :inverse ())))))
+
+  (defun sbcl-version>= (&rest subversions)
+    #+#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
+    (values (ignore-errors (apply #'sb-ext:assert-version->= subversions) t))
+    #-#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
+    nil))
 
 ;;; slynk-mop
 
@@ -506,12 +512,6 @@
         (symbol-value symbol)
         (when errorp
           (error "~S does not exist in SLYNK." name)))))
-
-(defun sbcl-version>= (&rest subversions)
-  #+#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
-  (values (ignore-errors (apply #'sb-ext:assert-version->= subversions) t))
-  #-#.(slynk-backend:with-symbol 'assert-version->= 'sb-ext)
-  nil)
 
 (defmacro with-sbcl-version>= (&rest subversions)
   `(if (sbcl-version>= ,@subversions)
@@ -2136,3 +2136,19 @@ stack."
 (defimplementation structure-accessor-p (symbol)
   #+#.(slynk-backend:with-symbol 'structure-instance-accessor-p 'sb-kernel)
   (sb-kernel:structure-instance-accessor-p symbol))
+
+#+#.(slynk-backend:boolean-to-feature-expression
+     (slynk-sbcl::sbcl-version>= 2 5 10 1))
+(defimplementation install-special-backquote-readers (rt)
+  (set-macro-character #\` (lambda (s c)
+                             (declare (ignore c))
+                             (list 'backq (read s t nil t)))
+                       t rt)
+  (set-macro-character #\, (lambda (s c)
+                             (declare (ignore c))
+                             (let ((n (read-char s)))
+                               (case n
+                                 ((#\. #\@))
+                                 (t (unread-char n s)))
+                               (list 'comma (read s t nil t))))
+                       t rt))
