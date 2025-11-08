@@ -69,7 +69,7 @@ check-fancy: compile compile-contrib
 			      (sly-contrib--all-dependencies		\
 				(quote sly-fancy)))"			\
 		--eval '(setq inferior-lisp-program "$(LISP)")'		\
-		--eval '(sly-batch-test (quote $(SELECTOR)))'	
+		--eval '(sly-batch-test (quote $(SELECTOR)))'
 
 
 # Cleanup
