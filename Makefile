@@ -4,8 +4,8 @@
 
 # Variables
 #
-EMACS=emacs
-LISP=sbcl
+EMACS ?= emacs
+LISP ?= sbcl
 
 LOAD_PATH=-L . -L contrib/
 
