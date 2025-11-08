@@ -4209,9 +4209,9 @@ kill ring."
         (let* ((start (point))
                (ppss (syntax-ppss))
                (string-or-comment-p (or (nth 3 ppss) (nth 4 ppss))))
-          (insert output (if string-or-comment-p
-                             ""
-                           " => ") value)
+          (insert output
+                  (if string-or-comment-p "" " => ")
+                  value)
           (unless string-or-comment-p
             (comment-region start (point))))))))
 
