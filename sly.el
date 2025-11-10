@@ -1026,7 +1026,7 @@ PROGRAM and PROGRAM-ARGS are strings used to start the Lisp process.
 For KEYWORD-ARGS see `sly-start'.
 
 Here's an example:
- ((sbcl (\"sbcl\" \"quiet\") :init sly-init-using-slynk-loader)
+ ((sbcl (\"sbcl\" \"--noinform\") :init sly-init-using-slynk-loader)
   (acl (\"acl7\") :coding-system emacs-mule))")
 
 (defcustom sly-command-switch-to-existing-lisp 'ask
