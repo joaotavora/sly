@@ -735,7 +735,7 @@ recent entry that is discarded."
     (ignore-errors
       ;; uses `sly-connection', which falls back to
       ;; `sly-buffer-connection'. If that is closed it's probably
-      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so 
+      ;; because lisp died from (SLYNK:QUIT-LISP) already, and so
       (sly-mrepl--send `(:teardown))))
   (set (make-local-variable 'sly-mrepl--remote-channel) nil)
   (when (sly-mrepl--process)
