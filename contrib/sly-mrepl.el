@@ -1,5 +1,5 @@
 ;; -*- lexical-binding: t -*- An experimental implementation of
-;; multiple REPLs multiplexed over a single Slime socket.  M-x
+;; multiple REPLs multiplexed over a single Sly socket.  M-x
 ;; sly-mrepl or M-x sly-mrepl-new create new REPL buffers.
 ;;
 (require 'sly)
