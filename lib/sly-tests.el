@@ -536,8 +536,8 @@ confronted with nasty #.-fu."
 
 (def-sly-test (find-definition.3
                  (:fails-for "abcl" "allegro" "clisp" "lispworks"
-                             ("sbcl" version< "1.3.0")
-                             "ecl"))
+                           ;; ("sbcl" version< "1.3.0")
+                           "ecl"))
     (name source regexp)
     "Extra tests for defstruct."
     '(("slynk::foo-struct"
