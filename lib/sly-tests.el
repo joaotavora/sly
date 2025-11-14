@@ -95,7 +95,7 @@ Exits Emacs when finished. The exit code is the number of failed tests."
                        (string-match "test/sly-\\(.*\\)\.elc?$" file-name))
                   (list 'contrib (intern (match-string 1 file-name)))
                 '(core)))))
-  
+
   (defmacro define-sly-ert-test (name &rest args)
     "Like `ert-deftest', but set tags automatically.
 Also don't error if `ert.el' is missing."
@@ -1313,7 +1313,7 @@ Reconnect afterwards."
       (with-current-buffer mrepl-buffer
         ;; FIXME: suboptimal: wait one second for the lisp
         ;; to reply.
-        (sit-for 1) 
+        (sit-for 1)
         (unless (and (string-match "^; +SLY" (buffer-string))
                      (string-match "CL-USER> *$" (buffer-string)))
           (die (format "MREPL prompt: %s" (buffer-string))))))))
@@ -1446,7 +1446,7 @@ Reconnect afterwards."
                                    (sly-test--eval-now "(.fn3.)"))
                              '("nil" "nil")))
           ;; Recompile now
-          ;; 
+          ;;
           (with-current-buffer xref-buffer
             (sly-recompile-all-xrefs)
             (sly-wait-condition "Compilation finished"
