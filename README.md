@@ -1,4 +1,3 @@
-[![Build Status](https://travis-ci.org/joaotavora/sly.png?branch=master)](https://travis-ci.org/joaotavora/sly)
 [![MELPA](https://melpa.org/packages/sly-badge.svg)](https://melpa.org/#/sly)
 
 ```lisp
