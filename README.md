@@ -1,3 +1,5 @@
+[![Tests](https://github.com/joaotavora/sly/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/joaotavora/sly/actions/workflows/ci.yml)
+[![MELPA Stable](https://stable.melpa.org/packages/sly-badge.svg)](https://stable.melpa.org/#/sly)
 [![MELPA](https://melpa.org/packages/sly-badge.svg)](https://melpa.org/#/sly)
 
 ```lisp
