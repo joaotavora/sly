@@ -1081,7 +1081,7 @@ the buffer's undo-list."
     (dolist (marker point-markers)
       (search-backward marker)
       (beginning-of-defun)
-      (indent-sexp))
+      (indent-region (point) (progn (end-of-defun) (point))))
     (sly-test-expect "Correct buffer content"
                        buffer-content
                        (substring-no-properties (buffer-string)))))
