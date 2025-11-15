@@ -48,11 +48,9 @@
         (when (string= mess expected)
           (ert-fail "Could not mess up indentation?"))
         (goto-char (point-min))
-        (indent-region (point-min) (point-max)) ;; Used to be
-                                                ;;  ‘indent-sexp’, but
-                                                ;;  was super unstable
-                                                ;;  on travis, for
-                                                ;;  some reason.
+        (if (eq sly-indentation--test-function 'indent-region)
+            (indent-region (point-min) (point-max))
+          (indent-sexp))
         (delete-trailing-whitespace)
         (let ((expected-lines (split-string expected "\n"))
               (observed-lines (split-string (buffer-string) "\n")))
