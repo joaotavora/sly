@@ -1,7 +1,7 @@
 [![MELPA](https://melpa.org/packages/sly-badge.svg)](https://melpa.org/#/sly)
 
 ```lisp
-          _____    __   __  __        
+          _____    __   __  __
          / ___/   / /   \ \/ /               |\      _,,,---,,_
          \__ \   / /     \  /                /,`.-'`'    -.  ;-;;,_
         ___/ /  / /___   / /                |,4-  ) )-,_..;\ (  `'-'
@@ -146,10 +146,10 @@ C. Rittweiler and [many others][8]. I forked SLIME because I used it daily,
 for work, had a long list of hacks developed for myself, and wanted to share
 them with others.
 
-In 2013, SLIME development was stalling, patches and issues rotting. In early 
-2014,  Luís Oliveira and myself moved SLIME to Github and set up its Travis CI 
-system. I brought in the old bug reports from the Launchpad tracker, fixed 
-long-standing problems and submitted many changes, particularly to the 
+In 2013, SLIME development was stalling, patches and issues rotting. In early
+2014,  Luís Oliveira and myself moved SLIME to Github and set up its Travis CI
+system. I brought in the old bug reports from the Launchpad tracker, fixed
+long-standing problems and submitted many changes, particularly to the
 under-curated but popular "contrib" section.
 
 Now, the changes that SLY brings to the table are too deep at the Elisp and Lisp
