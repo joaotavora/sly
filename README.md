@@ -159,7 +159,7 @@ level to be accepted to SLIME, given its current focus on stability (for the
 record, I find this perfectly reasonable). The new features, such as stickers or
 multiple inspectors, cannot be realized well using only the existing "contrib"
 system.  Finally, SLY frees itself from the shackles of Emacs 23 and supports
-Emacs 24.3+ only, allowing for much cleaner code and liberal use of lexical
+Emacs 24.5+ only, allowing for much cleaner code and liberal use of lexical
 binding.
 
 The list of technical reasons is bigger than this though, and you can read up on

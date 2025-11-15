@@ -86,7 +86,7 @@
       (cond (multilinep message)
             (t (sly-oneliner (sly-autodoc--canonicalize-whitespace message)))))))
 
- (defalias 'sly--font-lock-ensure       ; `font-lock-ensure' is not in Emacs 24.3.
+ (defalias 'sly--font-lock-ensure       ; `font-lock-ensure' is not in Emacs 24.5.
    (if (fboundp 'font-lock-ensure)
        #'font-lock-ensure
      (with-no-warnings

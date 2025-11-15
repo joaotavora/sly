@@ -2,7 +2,7 @@
 
 ;; Version: 1.0.43
 ;; URL: https://github.com/joaotavora/sly
-;; Package-Requires: ((emacs "24.3"))
+;; Package-Requires: ((emacs "24.5"))
 ;; Keywords: languages, lisp, sly
 
 ;;     Copyright (C) 2003  Eric Marsden, Luke Gorrie, Helmut Eller
@@ -63,8 +63,8 @@
 (require 'cl-lib)
 
 (eval-and-compile
-  (if (version< emacs-version "24.3")
-      (error "Sly requires at least Emacs 24.3")))
+  (if (version< emacs-version "24.5")
+      (error "Sly requires at least Emacs 24.5")))
 
 (eval-and-compile
   (or (require 'hyperspec nil t)
