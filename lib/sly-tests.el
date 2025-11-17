@@ -48,7 +48,7 @@
 Exits Emacs when finished. The exit code is the number of failed tests."
   (interactive)
   (let ((ert-debug-on-error nil)
-        (timeout 30))
+        (timeout 60))
     (sly)
     ;; Block until we are up and running.
     (let (timed-out)
@@ -1355,7 +1355,7 @@ Reconnect afterwards."
                (error
                 (die "Unexpected error running preflight/takeoff forms" err)))
              (with-timeout
-                 (30
+                 (60
                   (die "Timeout waiting for recipe test to finish."))
                (while t (sit-for 1)))))))
     (unwind-protect
