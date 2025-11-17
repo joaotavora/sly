@@ -3764,7 +3764,7 @@ Return NIL if LIST is circular."
            `((:value ,key) " = " (:value ,value)
              " " (:action "[remove entry]"
                           ,(let ((key key))
-                                (lambda () (remhash key ht))))
+                             (lambda () (remhash key ht))))
              (:newline))))))
 
 ;;;;; Arrays
@@ -4000,8 +4000,8 @@ belonging to PACKAGE."
       (cond (force
              (do-all-symbols (symbol)
                (consider symbol)))
-            ((package-name package) ; don't try to iterate over a
-                                    ; deleted package.
+            ((package-name package)     ; don't try to iterate over a
+                                        ; deleted package.
              (do-symbols (symbol package)
                (when (eq (symbol-package symbol) package)
                  (consider symbol)))))

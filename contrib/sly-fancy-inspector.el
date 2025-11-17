@@ -17,6 +17,6 @@
   "Disassemble definition at point"
   (interactive)
   (sly-eval-describe `(slynk:disassemble-form
-                         ,(sly-definition-at-point t))))
+                       ,(sly-definition-at-point t))))
 
 (provide 'sly-fancy-inspector)

@@ -3,14 +3,14 @@
 
 (defslyfun package= (string1 string2)
   (let* ((pkg1 (guess-package string1))
-	 (pkg2 (guess-package string2)))
+         (pkg2 (guess-package string2)))
     (and pkg1 pkg2 (eq pkg1 pkg2))))
 
 (defslyfun export-symbol-for-emacs (symbol-str package-str)
   (let ((package (guess-package package-str)))
     (when package
       (let ((*buffer-package* package))
-	(export `(,(from-string symbol-str)) package)))))
+        (export `(,(from-string symbol-str)) package)))))
 
 (defslyfun import-symbol-for-emacs (symbol-str
                                     destination-package-str
@@ -27,7 +27,7 @@
   (let ((package (guess-package package-str)))
     (when package
       (let ((*buffer-package* package))
-	(unexport `(,(from-string symbol-str)) package)))))
+        (unexport `(,(from-string symbol-str)) package)))))
 
 #+sbcl
 (defun list-structure-symbols (name)
@@ -65,7 +65,7 @@
     (when *package*
       (let* ((name (from-string name))
              (symbols (cond #+(or sbcl ccl)
-			    ((or (not (find-class name nil))
+                            ((or (not (find-class name nil))
                                  (subtypep name 'structure-object))
                              (list-structure-symbols name))
                             (t

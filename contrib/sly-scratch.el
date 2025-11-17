@@ -37,9 +37,9 @@
                                (find-file sly-scratch-file)
                              (get-buffer-create (sly-buffer-name :scratch)))
         (rename-buffer (sly-buffer-name :scratch))
-	(lisp-mode)
-	(use-local-map sly-scratch-mode-map)
-	(sly-mode t)
-	(current-buffer))))
+        (lisp-mode)
+        (use-local-map sly-scratch-mode-map)
+        (sly-mode t)
+        (current-buffer))))
 
 (provide 'sly-scratch)

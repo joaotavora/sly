@@ -115,7 +115,7 @@ other complicated function specs."
                         (sly-symbol-at-point)))
          (spec-string (read-from-minibuffer "(Un)time: " (format "%s" spec-string))))
     (message "%s" (sly-eval `(slynk-profiler:toggle-timing
-                                (slynk::from-string ,spec-string))))))
+                              (slynk::from-string ,spec-string))))))
 
 (defun sly-profiler (&optional refresh)
   "Show timing dialog and refresh timing collection status.

@@ -38,7 +38,7 @@
                    (/) (//) (///)
                    (+) (++) (+++)
                    (*history* . ,(make-array 40 :fill-pointer 0
-                                             :adjustable t))))))
+                                                :adjustable t))))))
 
 (defmethod print-object ((r mrepl) stream)
   (print-unreadable-object (r stream :type t)
@@ -283,14 +283,14 @@ Set this to NIL to turn this feature off.")
             (with-input-from-string (in string)
               (loop with values
                     for form =
-                    (let ((*readtable* (let ((table (copy-readtable)))
-                                         (if *backreference-character*
-                                             (set-dispatch-macro-character
-                                              #\#
-                                              *backreference-character*
-                                              #'backreference-reader table))
-                                         table)))
-                      (read in nil in))
+                             (let ((*readtable* (let ((table (copy-readtable)))
+                                                  (if *backreference-character*
+                                                      (set-dispatch-macro-character
+                                                       #\#
+                                                       *backreference-character*
+                                                       #'backreference-reader table))
+                                                  table)))
+                               (read in nil in))
                     until (eq form in)
                     do (let ((- form))
                          (setq values (multiple-value-list
@@ -298,7 +298,7 @@ Set this to NIL to turn this feature off.")
                                         (saving-listener-bindings repl
                                           (setq +++ ++ ++ + + form))))))
                     finally
-                    (return values))))
+                       (return values))))
         (dolist (special-sym '(*package* *default-pathname-defaults*))
           (setf (cdr (assoc special-sym (slot-value repl 'slynk::env)))
                 (symbol-value special-sym)))))))
@@ -321,7 +321,7 @@ Set this to NIL to turn this feature off.")
                   (flush-listener-streams repl)
                   (set-external-mode repl :read)
                   (unwind-protect
-                      (catch 'mrepl-read (process-requests nil))
+                       (catch 'mrepl-read (process-requests nil))
                     (set-external-mode repl :finished-reading)))
                  (t
                   (setf mode :read)
@@ -412,7 +412,7 @@ Set this to NIL to turn this feature off.")
     t))
 
 (defmacro with-eval-for-repl ((remote-id &optional mrepl-sym
-                                                   update-mrepl) &body body)
+                                           update-mrepl) &body body)
   (let ((mrepl-sym (or mrepl-sym
                        (gensym))))
     `(let ((,mrepl-sym (find-channel ,remote-id)))

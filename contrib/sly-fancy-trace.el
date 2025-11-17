@@ -41,7 +41,7 @@ The result is a string."
             (let* ((callerstr (prin1-to-string caller))
                    (calleestr (prin1-to-string callee))
                    (answer (sly-read-from-minibuffer "(Un)trace: "
-                                                       calleestr)))
+                                                     calleestr)))
               (cond ((and (string= calleestr answer)
                           (y-or-n-p (concat "(Un)trace only when " calleestr
                                             " is called by " callerstr "? ")))
@@ -50,7 +50,7 @@ The result is a string."
                      answer))))
            (((:labels :flet) &rest _)
             (sly-read-from-minibuffer "(Un)trace local function: "
-                                        (prin1-to-string spec)))
+                                      (prin1-to-string spec)))
            (t (error "Don't know how to trace the spec %S" spec))))))
 
 (defun sly-toggle-fancy-trace (&optional using-context-p)
@@ -58,7 +58,7 @@ The result is a string."
   (interactive "P")
   (let* ((spec (if using-context-p
                    (sly-extract-context)
-                   (sly-symbol-at-point)))
+                 (sly-symbol-at-point)))
          (spec (sly-trace-query spec)))
     (sly-message "%s" (sly-eval `(slynk:slynk-toggle-trace ,spec)))))
 

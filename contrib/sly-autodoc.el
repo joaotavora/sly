@@ -33,12 +33,12 @@
   (let ((arglist (sly-autodoc--retrieve-arglist name)))
     (if (eq arglist :not-available)
         (error "Arglist not available")
-        (message "%s" (sly-autodoc--fontify arglist)))))
+      (message "%s" (sly-autodoc--fontify arglist)))))
 
 (defun sly-autodoc--retrieve-arglist (name)
   (let ((name (cl-etypecase name
-		(string name)
-		(symbol (symbol-name name)))))
+                (string name)
+                (symbol (symbol-name name)))))
     (car (sly-eval `(slynk:autodoc '(,name ,sly-cursor-marker))))))
 
 (defun sly-autodoc-manually ()
@@ -46,7 +46,7 @@
   (interactive)
   (let ((doc (sly-autodoc t)))
     (cond (doc (eldoc-message (format "%s" doc)))
-	  (t (eldoc-message nil)))))
+          (t (eldoc-message nil)))))
 
 ;; Must call eldoc-add-command otherwise (eldoc-display-message-p)
 ;; returns nil and eldoc clears the echo area instead.
@@ -86,13 +86,13 @@
       (cond (multilinep message)
             (t (sly-oneliner (sly-autodoc--canonicalize-whitespace message)))))))
 
- (defalias 'sly--font-lock-ensure       ; `font-lock-ensure' is not in Emacs 24.5.
-   (if (fboundp 'font-lock-ensure)
-       #'font-lock-ensure
-     (with-no-warnings
-       (lambda (&optional _beg _end)
-         (when font-lock-mode
-           (font-lock-fontify-buffer))))))
+(defalias 'sly--font-lock-ensure       ; `font-lock-ensure' is not in Emacs 24.5.
+  (if (fboundp 'font-lock-ensure)
+      #'font-lock-ensure
+    (with-no-warnings
+      (lambda (&optional _beg _end)
+        (when font-lock-mode
+          (font-lock-fontify-buffer))))))
 
 (defun sly-autodoc--fontify (string)
   "Fontify STRING as `font-lock-mode' does in Lisp mode."
@@ -131,16 +131,16 @@ If it's not in the cache, the cache will be updated asynchronously."
               (cons
                (sly-current-connection)
                (sly-autodoc--parse-context))))
-	(when (car context)
-	  (let* ((cached (and (equal context sly-autodoc--cache-last-context)
+        (when (car context)
+          (let* ((cached (and (equal context sly-autodoc--cache-last-context)
                               sly-autodoc--cache-last-autodoc))
-		 (multilinep (or force-multiline
-				 eldoc-echo-area-use-multiline-p)))
-	    (cond (cached (sly-autodoc--format cached multilinep))
-		  (t
-		   (when (sly-background-activities-enabled-p)
-		     (sly-autodoc--async context multilinep))
-		   nil))))))))
+                 (multilinep (or force-multiline
+                                 eldoc-echo-area-use-multiline-p)))
+            (cond (cached (sly-autodoc--format cached multilinep))
+                  (t
+                   (when (sly-background-activities-enabled-p)
+                     (sly-autodoc--async context multilinep))
+                   nil))))))))
 
 ;; Return the context around point that can be passed to
 ;; slynk:autodoc.  nil is returned if nothing reasonable could be
@@ -152,7 +152,7 @@ If it's not in the cache, the cache will be updated asynchronously."
 (defun sly-autodoc--async (context multilinep)
   (sly-eval-async
       `(slynk:autodoc ',(cdr context) ;; FIXME: misuse of quote
-		      :print-right-margin ,(window-width (minibuffer-window)))
+                      :print-right-margin ,(window-width (minibuffer-window)))
     (sly-curry #'sly-autodoc--async% context multilinep)))
 
 (defun sly-autodoc--async% (context multilinep doc)
@@ -164,7 +164,7 @@ If it's not in the cache, the cache will be updated asynchronously."
       ;; Now that we've got our information,
       ;; get it to the user ASAP.
       (when (eldoc-display-message-p)
-	(eldoc-message (format "%s" (sly-autodoc--format doc multilinep)))))))
+        (eldoc-message (format "%s" (sly-autodoc--format doc multilinep)))))))
 
 
 ;;; Minor mode definition

@@ -7,10 +7,10 @@
 ;;; Fontify WITH-FOO, DO-FOO, and DEFINE-FOO like standard macros.
 ;;; Fontify CHECK-FOO like CHECK-TYPE.
 (defvar sly-additional-font-lock-keywords
- '(("(\\(\\(\\s_\\|\\w\\)*:\\(define-\\|do-\\|with-\\|without-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
-   ("(\\(\\(define-\\|do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
-   ("(\\(check-\\(\\s_\\|\\w\\)*\\)" 1 font-lock-warning-face)
-   ("(\\(assert-\\(\\s_\\|\\w\\)*\\)" 1 font-lock-warning-face)))
+  '(("(\\(\\(\\s_\\|\\w\\)*:\\(define-\\|do-\\|with-\\|without-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+    ("(\\(\\(define-\\|do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+    ("(\\(check-\\(\\s_\\|\\w\\)*\\)" 1 font-lock-warning-face)
+    ("(\\(assert-\\(\\s_\\|\\w\\)*\\)" 1 font-lock-warning-face)))
 
 ;;;; Specially fontify forms suppressed by a reader conditional.
 (defcustom sly-highlight-suppressed-forms t
@@ -103,32 +103,32 @@ Fontify CHECK-FOO like CHECK-TYPE."
 (defun sly-search-directly-preceding-reader-conditional ()
   "Search for a directly preceding reader conditional. Return its
 position, or nil."
-  ;;; We search for a preceding reader conditional. Then we check that
-  ;;; between the reader conditional and the point where we started is
-  ;;; no other intervening sexp, and we check that the reader
-  ;;; conditional is at the same nesting level.
+  ;; We search for a preceding reader conditional. Then we check that
+  ;; between the reader conditional and the point where we started is
+  ;; no other intervening sexp, and we check that the reader
+  ;; conditional is at the same nesting level.
   (condition-case nil
       (let* ((orig-pt (point))
-	     (reader-conditional-pt
-	      (search-backward-regexp sly-reader-conditionals-regexp
-				      ;; We restrict the search to the
-				      ;; beginning of the /previous/ defun.
-				      (save-excursion
-					(beginning-of-defun)
-					(point))
-				      t)))
-	(when reader-conditional-pt
+             (reader-conditional-pt
+              (search-backward-regexp sly-reader-conditionals-regexp
+                                      ;; We restrict the search to the
+                                      ;; beginning of the /previous/ defun.
+                                      (save-excursion
+                                        (beginning-of-defun)
+                                        (point))
+                                      t)))
+        (when reader-conditional-pt
           (let* ((parser-state
                   (parse-partial-sexp
-		   (progn (goto-char (+ reader-conditional-pt 2))
-			  (forward-sexp) ; skip feature expr.
-			  (point))
-		   orig-pt))
+                   (progn (goto-char (+ reader-conditional-pt 2))
+                          (forward-sexp) ; skip feature expr.
+                          (point))
+                   orig-pt))
                  (paren-depth  (car  parser-state))
                  (last-sexp-pt (cl-caddr  parser-state)))
             (if (and paren-depth
-		     (not (cl-plusp paren-depth)) ; no '(' in between?
-                     (not last-sexp-pt)) ; no complete sexp in between?
+                     (not (cl-plusp paren-depth)) ; no '(' in between?
+                     (not last-sexp-pt))          ; no complete sexp in between?
                 reader-conditional-pt
               nil))))
     (scan-error nil)))			; improper feature expression
@@ -190,8 +190,8 @@ position, or nil."
 
   (add-hook 'lisp-mode-hook
             (lambda ()
-                (add-hook 'font-lock-extend-region-functions
-                          'sly-extend-region-for-font-lock t t))))
+              (add-hook 'font-lock-extend-region-functions
+                        'sly-extend-region-for-font-lock t t))))
 
 
 ;;; Compile hotspots

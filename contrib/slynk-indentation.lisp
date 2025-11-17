@@ -36,7 +36,7 @@ in Emacs."
     ((has-application-indentation-hint-p symbol)
      (application-indentation-hint symbol))
     ((and (macro-function symbol)
-             (not (known-to-emacs-p symbol)))
+          (not (known-to-emacs-p symbol)))
      (let ((arglist (arglist symbol)))
        (etypecase arglist
          ((member :not-available)

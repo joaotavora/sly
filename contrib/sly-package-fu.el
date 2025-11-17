@@ -19,7 +19,7 @@
 
 (defvar sly-package-file-candidates
   (mapcar #'file-name-nondirectory
-	  '("package.lisp" "packages.lisp" "pkgdcl.lisp"
+          '("package.lisp" "packages.lisp" "pkgdcl.lisp"
             "defpackage.lisp")))
 
 (defvar sly-export-symbol-representation-function
@@ -53,18 +53,18 @@ use `sly-export-symbol-representation-function'.")
 
 (defun sly-find-package-definition-rpc (package)
   (sly-eval `(slynk:find-definition-for-thing
-                (slynk::guess-package ,package))))
+              (slynk::guess-package ,package))))
 
 (defun sly-find-package-definition-regexp (package)
   (save-excursion
     (save-match-data
       (goto-char (point-min))
       (cl-block nil
-	(while (re-search-forward sly-defpackage-regexp nil t)
-	  (when (sly-package-equal package (sly-sexp-at-point))
+        (while (re-search-forward sly-defpackage-regexp nil t)
+          (when (sly-package-equal package (sly-sexp-at-point))
             (backward-sexp)
-	    (cl-return (make-sly-file-location (buffer-file-name)
-                                                 (1- (point))))))))))
+            (cl-return (make-sly-file-location (buffer-file-name)
+                                               (1- (point))))))))))
 
 (defun sly-package-equal (designator1 designator2)
   ;; First try to be lucky and compare the strings themselves (for the
@@ -86,37 +86,37 @@ use `sly-export-symbol-representation-function'.")
 
 (defun sly-find-possible-package-file (file-name)
   (cl-labels ((file-name-subdirectory (dirname)
-                                      (expand-file-name
-                                       (concat (file-name-as-directory (sly-to-lisp-filename dirname))
-                                               (file-name-as-directory ".."))))
+                (expand-file-name
+                 (concat (file-name-as-directory (sly-to-lisp-filename dirname))
+                         (file-name-as-directory ".."))))
               (try (dirname)
-                   (cl-dolist (package-file-name sly-package-file-candidates)
-                     (let ((f (sly-to-lisp-filename
-                               (concat dirname package-file-name))))
-                       (when (file-readable-p f)
-                         (cl-return f))))))
+                (cl-dolist (package-file-name sly-package-file-candidates)
+                  (let ((f (sly-to-lisp-filename
+                            (concat dirname package-file-name))))
+                    (when (file-readable-p f)
+                      (cl-return f))))))
     (when file-name
       (let ((buffer-cwd (file-name-directory file-name)))
-	(or (try buffer-cwd)
-	    (try (file-name-subdirectory buffer-cwd))
-	    (try (file-name-subdirectory
+        (or (try buffer-cwd)
+            (try (file-name-subdirectory buffer-cwd))
+            (try (file-name-subdirectory
                   (file-name-subdirectory buffer-cwd))))))))
 
 (defun sly-goto-package-source-definition (package)
   "Tries to find the DEFPACKAGE form of `package'. If found,
 places the cursor at the start of the DEFPACKAGE form."
   (cl-labels ((try (location)
-                   (when (sly-location-p location)
-                     (sly-move-to-source-location location)
-                     t)))
+                (when (sly-location-p location)
+                  (sly-move-to-source-location location)
+                  t)))
     (or (try (sly-find-package-definition-rpc package))
-	(try (sly-find-package-definition-regexp package))
-	(try (sly--when-let
+        (try (sly-find-package-definition-regexp package))
+        (try (sly--when-let
                  (package-file (sly-find-possible-package-file
                                 (buffer-file-name)))
-	       (with-current-buffer (find-file-noselect package-file t)
-		 (sly-find-package-definition-regexp package))))
-	(sly-error "Couldn't find source definition of package: %s" package))))
+               (with-current-buffer (find-file-noselect package-file t)
+                 (sly-find-package-definition-regexp package))))
+        (sly-error "Couldn't find source definition of package: %s" package))))
 
 (defun sly-at-expression-p (pattern)
   (when (ignore-errors
@@ -133,22 +133,22 @@ places the cursor at the start of the DEFPACKAGE form."
   (let ((point))
     (save-excursion
       (cl-block nil
-	(while (ignore-errors (sly-forward-sexp) t)
+        (while (ignore-errors (sly-forward-sexp) t)
           (skip-chars-forward " \n\t")
-	  (when (sly-at-expression-p '(:export *))
-	    (setq point (point))
-	    (cl-return)))))
+          (when (sly-at-expression-p '(:export *))
+            (setq point (point))
+            (cl-return)))))
     (if point
-	(goto-char point)
+        (goto-char point)
       (error "No next (:export ...) clause found"))))
 
 (defun sly-search-exports-in-defpackage (symbol-name)
   "Look if `symbol-name' is mentioned in one of the :EXPORT clauses."
   ;; Assumes we're inside the beginning of a DEFPACKAGE form.
   (cl-labels ((target-symbol-p (symbol)
-                               (string-match-p (format "^\\(\\(#:\\)\\|:\\)?%s$"
-                                                       (regexp-quote symbol-name))
-                                               symbol)))
+                (string-match-p (format "^\\(\\(#:\\)\\|:\\)?%s$"
+                                        (regexp-quote symbol-name))
+                                symbol)))
     (save-excursion
       (cl-block nil
         (while (ignore-errors (sly-goto-next-export-clause) t)
@@ -171,10 +171,10 @@ For example, in this situation.
 
 this will return (\"bar\" \"minor\" \"(again 123)\")"
   (cl-labels ((read-sexp ()
-                         (ignore-errors
-                           (forward-comment (point-max))
-                           (buffer-substring-no-properties
-                            (point) (progn (forward-sexp) (point))))))
+                (ignore-errors
+                  (forward-comment (point-max))
+                  (buffer-substring-no-properties
+                   (point) (progn (forward-sexp) (point))))))
     (save-excursion
       (cl-loop for sexp = (read-sexp) while sexp collect sexp))))
 
@@ -293,11 +293,11 @@ already exported/unexported."
   (let ((point))
     (while (setq point (sly-search-exports-in-defpackage symbol-name))
       (save-excursion
-	(goto-char point)
-	(backward-sexp)
-	(delete-region (point) point)
-	(beginning-of-line)
-	(when (looking-at "^\\s-*$")
+        (goto-char point)
+        (backward-sexp)
+        (delete-region (point) point)
+        (beginning-of-line)
+        (when (looking-at "^\\s-*$")
           (join-line)
           (delete-trailing-whitespace (point) (line-end-position)))))))
 
@@ -321,8 +321,8 @@ symbol in the Lisp image if possible."
                               symbol package where)
                (sly-message "Symbol `%s' is not exported from `%s' in %s"
                             symbol package where)))
-	   (sly-unexport-symbol symbol package))
-	  (t
+           (sly-unexport-symbol symbol package))
+          (t
            (let* ((attempt (sly-frob-defpackage-form package :export symbol))
                   (howmany (car attempt))
                   (where (buffer-file-name (cdr attempt))))
@@ -331,17 +331,17 @@ symbol in the Lisp image if possible."
                               symbol package where)
                (sly-message "Symbol `%s' already exported from `%s' in %s"
                             symbol package where)))
-	   (sly-export-symbol symbol package)))))
+           (sly-export-symbol symbol package)))))
 
 (defun sly-export-class (name)
   "Export acessors, constructors, etc. associated with a structure or a class"
   (interactive (list (sly-read-from-minibuffer "Export structure named: "
-                                                 (sly-symbol-at-point))))
+                                               (sly-symbol-at-point))))
   (let* ((package (sly-current-package))
          (symbols (sly-eval `(slynk:export-structure ,name ,package))))
     (sly-message "%s symbols exported from `%s'"
-             (car (sly-frob-defpackage-form package :export symbols))
-             package)))
+                 (car (sly-frob-defpackage-form package :export symbols))
+                 package)))
 
 (defalias 'sly-export-structure 'sly-export-class)
 
@@ -376,7 +376,7 @@ Assumes point just before start of DEFPACKAGE form"
       (insert package-name)
       (newline-and-indent)
       (insert symbol-name)))
-    (t (error "Can't find suitable place for :import-from defpackage form."))))
+   (t (error "Can't find suitable place for :import-from defpackage form."))))
 
 
 (defun sly-package-fu--add-or-update-import-from-form (symbol)

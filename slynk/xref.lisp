@@ -953,10 +953,10 @@ Rooted calling trees:
   (when (and (null (pathname-type filename))
 	     (not  (probe-file filename)))
     (cond ((stringp filename)
-	   (setf filename (concatenate 'string filename ".lisp")))
-	  ((pathnamep filename)
-	   (setf filename (merge-pathnames filename
-					   (make-pathname :type "lisp"))))))
+	       (setf filename (concatenate 'string filename ".lisp")))
+	      ((pathnamep filename)
+	       (setf filename (merge-pathnames filename
+					                       (make-pathname :type "lisp"))))))
   (when clear-tables (clear-tables))
   (let ((count 0)
 	(old-package *package*)
@@ -996,8 +996,7 @@ Rooted calling trees:
 (defvar *callees-database-includes-variables* nil)
 
 (defun record-callers (filename form
-				&optional pattern parent (environment nil)
-				funcall)
+				       &optional pattern parent (environment nil) funcall)
   "RECORD-CALLERS is the main routine used to walk down the code. It matches
    the PATTERN against the FORM, possibly adding statements to the database.
    PARENT is the name defined by the current outermost definition; it is
@@ -1006,141 +1005,140 @@ Rooted calling trees:
    of variable assignment and hence how the environment should be modified.
    RECORD-CALLERS handles atomic patterns and simple list-structure patterns.
    For complex list-structure pattern destructuring, it calls RECORD-CALLERS*."
-;  (when form)
+                                        ;  (when form)
   (unless pattern (setq pattern 'FORM))
   (cond ((symbolp pattern)
-	 (case pattern
-	   (:IGNORE
-	    ;; Ignores the rest of the form.
-	    (values t parent environment))
-	   (NAME
-	    ;; This is the name of a new definition.
-	    (push filename (source-file form))
-	    (values t form   environment))
-	   ((FUNCTION MACRO)
-	    ;; This is the name of a call.
-	    (cond ((and *handle-function-forms* (consp form))
-		   ;; If we're a cons and special handling is on,
-		   (when (eq (car form) 'lambda)
-		     (pushnew filename (callers-list :unnamed-lambda :file))
-		     (when parent
-		       (pushnew parent (callers-list :unnamed-lambda
-						     :callers))
-		       (pushnew :unnamed-lambda (callers-list parent
-							      :callees))))
-		   (record-callers filename form 'form parent environment))
-		  (t
-		   ;; If we're just a regular function name call.
-		   (pushnew filename (callers-list form :file))
-		   (when parent
-		     (pushnew parent (callers-list form :callers))
-		     (pushnew form (callers-list parent :callees)))
-		   (values t parent environment))))
-	   (VAR
-	    ;; This is the name of a new variable definition.
-	    ;; Includes arglist parameters.
-	    (when (and (symbolp form) (not (keywordp form))
-		       (not (member form lambda-list-keywords)))
-	      (pushnew form (car environment))
-	      (pushnew filename (callers-list form :file))
-	      (when parent
-;		  (pushnew form (callers-list parent :callees))
-		(pushnew parent (callers-list form :setters)))
-	      (values t parent environment)))
-	   (VARIABLE
-	    ;; VAR reference
-	    (pushnew filename (callers-list form :file))
-	    (when (and parent (not (lookup form environment)))
-	      (pushnew parent (callers-list form :readers))
-	      (when *callees-database-includes-variables*
-		(pushnew form (callers-list parent :callees))))
-	    (values t parent environment))
-	   (FORM
-	    ;; A random form (var or funcall).
-	    (cond ((consp form)
-		   ;; Get new pattern from TAG.
-		   (let ((new-pattern (lookup-caller-pattern (car form))))
-		     (pushnew filename (callers-list (car form) :file))
-		     (when parent
-		       (pushnew parent (callers-list (car form) :callers))
-		       (pushnew (car form) (callers-list parent :callees)))
-		     (cond ((and new-pattern (cdr form))
-			    ;; Special Pattern and there's stuff left
-			    ;; to be processed. Note that we check if
-			    ;; a pattern is defined for the form before
-			    ;; we check to see if we can macroexpand it.
-			    (record-callers filename (cdr form) new-pattern
-					    parent environment :funcall))
-			   ((and *handle-macro-forms*
-				 (symbolp (car form)) ; pnorvig 9/9/93
-				 (macro-function (car form)))
-			    ;; The car of the form is a macro and
-			    ;; macro processing is turned on. Macroexpand-1
-			    ;; the form and try again.
-			    (record-callers filename
-					    (macroexpand-1 form)
-					    'form parent environment
-					    :funcall))
-			   ((null (cdr form))
-			    ;; No more left to be processed. Note that
-			    ;; this must occur after the macros clause,
-			    ;; since macros can expand into more code.
-			    (values t parent environment))
-			   (t
-			    ;; Random Form. We assume it is a function call.
-			    (record-callers filename (cdr form)
-					    '((:star FORM))
-					    parent environment :funcall)))))
-		  (t
-		   (when (and (not (lookup form environment))
-			      (not (numberp form))
-			      ;; the following line should probably be
-			      ;; commented out?
-			      (not (keywordp form))
-			      (not (stringp form))
-			      (not (eq form t))
-			      (not (eq form nil)))
-		     (pushnew filename (callers-list form :file))
-		     ;; ??? :callers
-		     (when parent
-		       (pushnew parent (callers-list form :readers))
-		       (when *callees-database-includes-variables*
-			 (pushnew form (callers-list parent :callees)))))
-		   (values t parent environment))))
-	   (otherwise
-	    ;; Pattern Substitution
-	    (let ((new-pattern (lookup-pattern-substitution pattern)))
-	      (if new-pattern
-		  (record-callers filename form new-pattern
-				  parent environment)
-		  (when (eq pattern form)
-		    (values t parent environment)))))))
-	((consp pattern)
-	 (case (car pattern)
-	   (:eq    (when (eq (second pattern) form)
-		     (values t parent environment)))
-	   (:test  (when (funcall (eval (second pattern)) form)
-		     (values t parent environment)))
-	   (:typep (when (typep form (second pattern))
-		     (values t parent environment)))
-	   (:or    (dolist (subpat (rest pattern))
-		     (multiple-value-bind (processed parent environment)
-			 (record-callers filename form subpat
-					 parent environment)
-		       (when processed
-			 (return (values processed parent environment))))))
-	   (:rest			; (:star :plus :optional :rest)
-	    (record-callers filename form (second pattern)
-			    parent environment))
-	   (otherwise
-	    (multiple-value-bind (d p env)
-		(record-callers* filename form pattern
-				 parent (cons nil environment))
-	      (values d p (if funcall environment env))))))))
+	     (case pattern
+	       (:IGNORE
+            ;; Ignores the rest of the form.
+	        (values t parent environment))
+	       (NAME
+            ;; This is the name of a new definition.
+	        (push filename (source-file form))
+	        (values t form   environment))
+	       ((FUNCTION MACRO)
+            ;; This is the name of a call.
+	        (cond ((and *handle-function-forms* (consp form))
+                   ;; If we're a cons and special handling is on,
+		           (when (eq (car form) 'lambda)
+		             (pushnew filename (callers-list :unnamed-lambda :file))
+		             (when parent
+		               (pushnew parent (callers-list :unnamed-lambda
+						                             :callers))
+		               (pushnew :unnamed-lambda (callers-list parent
+							                                  :callees))))
+		           (record-callers filename form 'form parent environment))
+		          (t
+                   ;; If we're just a regular function name call.
+		           (pushnew filename (callers-list form :file))
+		           (when parent
+		             (pushnew parent (callers-list form :callers))
+		             (pushnew form (callers-list parent :callees)))
+		           (values t parent environment))))
+	       (VAR
+            ;; This is the name of a new variable definition.
+            ;; Includes arglist parameters.
+	        (when (and (symbolp form) (not (keywordp form))
+		               (not (member form lambda-list-keywords)))
+	          (pushnew form (car environment))
+	          (pushnew filename (callers-list form :file))
+	          (when parent
+                                        ;		  (pushnew form (callers-list parent :callees))
+		        (pushnew parent (callers-list form :setters)))
+	          (values t parent environment)))
+	       (VARIABLE
+            ;; VAR reference
+	        (pushnew filename (callers-list form :file))
+	        (when (and parent (not (lookup form environment)))
+	          (pushnew parent (callers-list form :readers))
+	          (when *callees-database-includes-variables*
+		        (pushnew form (callers-list parent :callees))))
+	        (values t parent environment))
+	       (FORM
+            ;; A random form (var or funcall).
+	        (cond ((consp form)
+                   ;; Get new pattern from TAG.
+		           (let ((new-pattern (lookup-caller-pattern (car form))))
+		             (pushnew filename (callers-list (car form) :file))
+		             (when parent
+		               (pushnew parent (callers-list (car form) :callers))
+		               (pushnew (car form) (callers-list parent :callees)))
+		             (cond ((and new-pattern (cdr form))
+                            ;; Special Pattern and there's stuff left
+                            ;; to be processed. Note that we check if
+                            ;; a pattern is defined for the form before
+                            ;; we check to see if we can macroexpand it.
+			                (record-callers filename (cdr form) new-pattern
+					                        parent environment :funcall))
+			               ((and *handle-macro-forms*
+				                 (symbolp (car form)) ; pnorvig 9/9/93
+				                 (macro-function (car form)))
+                            ;; The car of the form is a macro and
+                            ;; macro processing is turned on. Macroexpand-1
+                            ;; the form and try again.
+			                (record-callers filename
+					                        (macroexpand-1 form)
+					                        'form parent environment
+					                        :funcall))
+			               ((null (cdr form))
+                            ;; No more left to be processed. Note that
+                            ;; this must occur after the macros clause,
+                            ;; since macros can expand into more code.
+			                (values t parent environment))
+			               (t
+                            ;; Random Form. We assume it is a function call.
+			                (record-callers filename (cdr form)
+					                        '((:star FORM))
+					                        parent environment :funcall)))))
+		          (t
+		           (when (and (not (lookup form environment))
+			                  (not (numberp form))
+                              ;; the following line should probably be
+                              ;; commented out?
+			                  (not (keywordp form))
+			                  (not (stringp form))
+			                  (not (eq form t))
+			                  (not (eq form nil)))
+		             (pushnew filename (callers-list form :file))
+                     ;; ??? :callers
+		             (when parent
+		               (pushnew parent (callers-list form :readers))
+		               (when *callees-database-includes-variables*
+			             (pushnew form (callers-list parent :callees)))))
+		           (values t parent environment))))
+	       (otherwise
+            ;; Pattern Substitution
+	        (let ((new-pattern (lookup-pattern-substitution pattern)))
+	          (if new-pattern
+		          (record-callers filename form new-pattern
+				                  parent environment)
+		          (when (eq pattern form)
+		            (values t parent environment)))))))
+	    ((consp pattern)
+	     (case (car pattern)
+	       (:eq    (when (eq (second pattern) form)
+		             (values t parent environment)))
+	       (:test  (when (funcall (eval (second pattern)) form)
+		             (values t parent environment)))
+	       (:typep (when (typep form (second pattern))
+		             (values t parent environment)))
+	       (:or    (dolist (subpat (rest pattern))
+		             (multiple-value-bind (processed parent environment)
+			             (record-callers filename form subpat
+					                     parent environment)
+		               (when processed
+			             (return (values processed parent environment))))))
+	       (:rest                       ; (:star :plus :optional :rest)
+	        (record-callers filename form (second pattern)
+			                parent environment))
+	       (otherwise
+	        (multiple-value-bind (d p env)
+		        (record-callers* filename form pattern
+				                 parent (cons nil environment))
+	          (values d p (if funcall environment env))))))))
 
 (defun record-callers* (filename form pattern parent environment
-				 &optional continuation
-				 in-optionals in-keywords)
+				        &optional continuation in-optionals in-keywords)
   "RECORD-CALLERS* handles complex list-structure patterns, such as
    ordered lists of subpatterns, patterns involving :star, :plus,
    &optional, &key, &rest, and so on. CONTINUATION is a stack of
@@ -1148,87 +1146,87 @@ Rooted calling trees:
    stacks which determine whether &rest or &key has been seen yet in
    the current pattern."
   ;; form must be a cons or nil.
-;  (when form)
+                                        ;  (when form)
   (if (null pattern)
       (if (null continuation)
-	  (values t parent environment)
-	  (record-callers* filename form (car continuation) parent environment
-			   (cdr continuation)
-			   (cdr in-optionals)
-			   (cdr in-keywords)))
+	      (values t parent environment)
+	      (record-callers* filename form (car continuation) parent environment
+			               (cdr continuation)
+			               (cdr in-optionals)
+			               (cdr in-keywords)))
       (let ((pattern-elt (car pattern)))
-	(cond ((car-eq pattern-elt :optional)
-	       (if (null form)
-		   (values t parent environment)
-		   (multiple-value-bind (processed par env)
-		       (record-callers* filename form (cdr pattern-elt)
-					parent environment
-					(cons (cdr pattern) continuation)
-					(cons (car in-optionals) in-optionals)
-					(cons (car in-keywords) in-keywords))
-		     (if processed
-			 (values processed par env)
-			 (record-callers* filename form (cdr pattern)
-					  parent environment continuation
-					  in-optionals in-keywords)))))
-	      ((car-eq pattern-elt :star)
-	       (if (null form)
-		   (values t parent environment)
-		   (multiple-value-bind (processed par env)
-		       (record-callers* filename form (cdr pattern-elt)
-					parent environment
-					(cons pattern continuation)
-					(cons (car in-optionals) in-optionals)
-					(cons (car in-keywords) in-keywords))
-		     (if processed
-			 (values processed par env)
-			 (record-callers* filename form (cdr pattern)
-					  parent environment continuation
-					  in-optionals in-keywords)))))
-	      ((car-eq pattern-elt :plus)
-	       (record-callers* filename form (cdr pattern-elt)
-				parent environment
-				(cons (cons (cons :star (cdr pattern-elt))
-					    (cdr pattern))
-				      continuation)
-				(cons (car in-optionals) in-optionals)
-				(cons (car in-keywords) in-keywords)))
-	      ((car-eq pattern-elt :rest)
-	       (record-callers filename form pattern-elt parent environment))
-	      ((eq pattern-elt '&optional)
-	       (record-callers* filename form (cdr pattern)
-				parent environment continuation
-				(cons t in-optionals)
-				(cons (car in-keywords) in-keywords)))
-	      ((eq pattern-elt '&rest)
-	       (record-callers filename form (second pattern)
-			       parent environment))
-	      ((eq pattern-elt '&key)
-	       (record-callers* filename form (cdr pattern)
-				parent environment continuation
-				(cons (car in-optionals) in-optionals)
-				(cons t in-keywords)))
-	      ((null form)
-	       (when (or (car in-keywords) (car in-optionals))
-		 (values t parent environment)))
-	      ((consp form)
-	       (multiple-value-bind (processed parent environment)
-		   (record-callers filename (if (car in-keywords)
-						(cadr form)
-						(car form))
-				   pattern-elt
-				   parent environment)
-		 (cond (processed
-			(record-callers* filename (if (car in-keywords)
-						      (cddr form)
-						      (cdr form))
-					 (cdr pattern)
-					 parent environment
-					 continuation
-					 in-optionals in-keywords))
-		       ((or (car in-keywords)
-			    (car in-optionals))
-			(values t parent environment)))))))))
+	    (cond ((car-eq pattern-elt :optional)
+	           (if (null form)
+		           (values t parent environment)
+		           (multiple-value-bind (processed par env)
+		               (record-callers* filename form (cdr pattern-elt)
+					                    parent environment
+					                    (cons (cdr pattern) continuation)
+					                    (cons (car in-optionals) in-optionals)
+					                    (cons (car in-keywords) in-keywords))
+		             (if processed
+			             (values processed par env)
+			             (record-callers* filename form (cdr pattern)
+					                      parent environment continuation
+					                      in-optionals in-keywords)))))
+	          ((car-eq pattern-elt :star)
+	           (if (null form)
+		           (values t parent environment)
+		           (multiple-value-bind (processed par env)
+		               (record-callers* filename form (cdr pattern-elt)
+					                    parent environment
+					                    (cons pattern continuation)
+					                    (cons (car in-optionals) in-optionals)
+					                    (cons (car in-keywords) in-keywords))
+		             (if processed
+			             (values processed par env)
+			             (record-callers* filename form (cdr pattern)
+					                      parent environment continuation
+					                      in-optionals in-keywords)))))
+	          ((car-eq pattern-elt :plus)
+	           (record-callers* filename form (cdr pattern-elt)
+				                parent environment
+				                (cons (cons (cons :star (cdr pattern-elt))
+					                        (cdr pattern))
+				                      continuation)
+				                (cons (car in-optionals) in-optionals)
+				                (cons (car in-keywords) in-keywords)))
+	          ((car-eq pattern-elt :rest)
+	           (record-callers filename form pattern-elt parent environment))
+	          ((eq pattern-elt '&optional)
+	           (record-callers* filename form (cdr pattern)
+				                parent environment continuation
+				                (cons t in-optionals)
+				                (cons (car in-keywords) in-keywords)))
+	          ((eq pattern-elt '&rest)
+	           (record-callers filename form (second pattern)
+			                   parent environment))
+	          ((eq pattern-elt '&key)
+	           (record-callers* filename form (cdr pattern)
+				                parent environment continuation
+				                (cons (car in-optionals) in-optionals)
+				                (cons t in-keywords)))
+	          ((null form)
+	           (when (or (car in-keywords) (car in-optionals))
+		         (values t parent environment)))
+	          ((consp form)
+	           (multiple-value-bind (processed parent environment)
+		           (record-callers filename (if (car in-keywords)
+						                        (cadr form)
+						                        (car form))
+				                   pattern-elt
+				                   parent environment)
+		         (cond (processed
+			            (record-callers* filename (if (car in-keywords)
+						                              (cddr form)
+						                              (cdr form))
+					                     (cdr pattern)
+					                     parent environment
+					                     continuation
+					                     in-optionals in-keywords))
+		               ((or (car in-keywords)
+			                (car in-optionals))
+			            (values t parent environment)))))))))
 
 
 ;;; ********************************
@@ -1449,12 +1447,12 @@ Rooted calling trees:
   (when trees
     (dolist (tree trees)
       (cond ((and (listp tree) (eq (car tree) :xref-list))
-	     (format t "~&~VT~A" indent (cdr tree)))
-	    ((listp tree)
-	     (format t "~&~VT~A" indent (car tree))
-	     (print-indented-tree (cadr tree) (+ indent *indent-amount*)))
-	    (t
-	     (format t "~&~VT~A" indent tree))))))
+	         (format t "~&~VT~A" indent (cdr tree)))
+	        ((listp tree)
+	         (format t "~&~VT~A" indent (car tree))
+	         (print-indented-tree (cadr tree) (+ indent *indent-amount*)))
+	        (t
+	         (format t "~&~VT~A" indent tree))))))
 
 (defun print-caller-trees (&key (mode *default-graphing-mode*)
 				(types-to-ignore *types-to-ignore*)

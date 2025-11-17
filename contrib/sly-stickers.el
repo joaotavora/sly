@@ -93,8 +93,8 @@
 
 (eval-when-compile
   (when (version< emacs-version "26")
-      ;; Using `cl-defstruct' needs `cl' on older Emacsen. See issue
-      ;; https://github.com/joaotavora/sly/issues/54
+    ;; Using `cl-defstruct' needs `cl' on older Emacsen. See issue
+    ;; https://github.com/joaotavora/sly/issues/54
     (require 'cl)))
 
 (require 'cl-lib)
@@ -277,8 +277,8 @@ render the underlying text unreadable."
          (not-contained (cl-set-difference intersecting contained))
          (containers nil))
     (unless (cl-every (lambda (e)
-                          (and (< (button-start e) from)
-                               (> (button-end e) to)))
+                        (and (< (button-start e) from)
+                             (> (button-end e) to)))
                       not-contained)
       (sly-error "Cannot place a sticker that partially overlaps other stickers"))
     (when (sly-stickers--stickers-exactly-at from to)
@@ -359,9 +359,9 @@ render the underlying text unreadable."
                                                              (indent 0)
                                                              (prefix "=> "))
   (cl-flet ((indent (str)
-                    (concat (make-string indent ? )str))
+              (concat (make-string indent ? )str))
             (prefix (str)
-                    (concat prefix str)))
+              (concat prefix str)))
     (let ((descs (sly-stickers--recording-value-descriptions recording)))
       (cond ((sly-stickers--recording-exited-non-locally-p recording)
              (indent (propertize "exited non locally" 'face 'sly-action-face)))
@@ -461,13 +461,13 @@ render the underlying text unreadable."
     (if (< (- end beg) 20)
         (format "sticker around %s" (buffer-substring-no-properties beg end))
       (cl-labels ((word (point direction)
-                        (apply #'buffer-substring-no-properties
-                               (sort (list
-                                      point
-                                      (save-excursion (goto-char point)
-                                                      (forward-word direction)
-                                                      (point)))
-                                     #'<))))
+                    (apply #'buffer-substring-no-properties
+                           (sort (list
+                                  point
+                                  (save-excursion (goto-char point)
+                                                  (forward-word direction)
+                                                  (point)))
+                                 #'<))))
         (format "sticker from \"%s...\" to \"...%s\""
                 (word beg 1)
                 (word end -1))))))
@@ -719,13 +719,13 @@ veryfying `sly-stickers--recording-void-p' is created."
   (let ((map (make-sparse-keymap)))
     (cl-flet
         ((def
-          (key binding &optional desc)
-          (define-key map (kbd key) binding)
-          (setf
-           (cl-getf sly-stickers--replay-help binding)
-           (cons (cons key (car (cl-getf sly-stickers--replay-help binding)))
-                 (or desc
-                     (cdr (cl-getf sly-stickers--replay-help binding)))))))
+           (key binding &optional desc)
+           (define-key map (kbd key) binding)
+           (setf
+            (cl-getf sly-stickers--replay-help binding)
+            (cons (cons key (car (cl-getf sly-stickers--replay-help binding)))
+                  (or desc
+                      (cdr (cl-getf sly-stickers--replay-help binding)))))))
       (def "n" 'sly-stickers-replay-next
            "Scan recordings forward")
       (def "SPC" 'sly-stickers-replay-next)
@@ -804,66 +804,66 @@ buffer"
   (cl-labels
       ((paragraph () (if sly-stickers--replay-expanded-help "\n\n" "\n"))
        (describe-ignored-stickers
-        ()
-        (let ((ignored-ids (cl-getf (sly-stickers--replay-data)
-                                    :ignored-ids))
-              (ignore-zombies-p (cl-getf (sly-stickers--replay-data)
-                                         :ignore-zombies-p)))
-          (if (or ignored-ids ignore-zombies-p)
-              (format "%s%s%s"
-                      (paragraph)
-                      (if ignore-zombies-p
-                          "Skipping recordings of deleted stickers. " "")
-                      (if ignored-ids
-                          (format "Skipping recordings of sticker%s %s."
-                                  (if (cl-rest ignored-ids) "s" "")
-                                  (concat (mapconcat #'pp-to-string
-                                                     (butlast ignored-ids)
-                                                     ", ")
-                                          (and (cl-rest ignored-ids) " and ")
-                                          (pp-to-string
-                                           (car (last ignored-ids)))))
-                        ""))
-            "")))
+         ()
+         (let ((ignored-ids (cl-getf (sly-stickers--replay-data)
+                                     :ignored-ids))
+               (ignore-zombies-p (cl-getf (sly-stickers--replay-data)
+                                          :ignore-zombies-p)))
+           (if (or ignored-ids ignore-zombies-p)
+               (format "%s%s%s"
+                       (paragraph)
+                       (if ignore-zombies-p
+                           "Skipping recordings of deleted stickers. " "")
+                       (if ignored-ids
+                           (format "Skipping recordings of sticker%s %s."
+                                   (if (cl-rest ignored-ids) "s" "")
+                                   (concat (mapconcat #'pp-to-string
+                                                      (butlast ignored-ids)
+                                                      ", ")
+                                           (and (cl-rest ignored-ids) " and ")
+                                           (pp-to-string
+                                            (car (last ignored-ids)))))
+                         ""))
+             "")))
        (describe-help
-        ()
-        (format "%s%s"
-                (paragraph)
-                (if sly-stickers--replay-expanded-help
-                    (substitute-command-keys "\\{sly-stickers--replay-mode-map}")
-                  "n => next, p => previous, x => ignore, h => help, q => quit")))
+         ()
+         (format "%s%s"
+                 (paragraph)
+                 (if sly-stickers--replay-expanded-help
+                     (substitute-command-keys "\\{sly-stickers--replay-mode-map}")
+                   "n => next, p => previous, x => ignore, h => help, q => quit")))
        (describe-number-of-recordings
-        (new-total)
-        (let* ((old-total (cl-getf (sly-stickers--replay-data) :old-total))
-               (diff (and old-total (- new-total old-total))))
-          (format "%s total recordings%s"
-                  new-total
-                  (cond ((and diff
-                              (cl-plusp diff))
-                         (propertize (format ", %s new in the meantime"
-                                             diff)
-                                     'face 'bold))
-                        (t
-                         "")))))
+         (new-total)
+         (let* ((old-total (cl-getf (sly-stickers--replay-data) :old-total))
+                (diff (and old-total (- new-total old-total))))
+           (format "%s total recordings%s"
+                   new-total
+                   (cond ((and diff
+                               (cl-plusp diff))
+                          (propertize (format ", %s new in the meantime"
+                                              diff)
+                                      'face 'bold))
+                         (t
+                          "")))))
        (describe-playhead
-        (recording)
-        (let ((new-total (cl-getf (sly-stickers--replay-data) :total))
-              (index (cl-getf (sly-stickers--replay-data) :index)))
-          (cond
-           ((and new-total
-                 recording)
-            (format "Playhead at recording %s of %s"
-                    (ignore-errors (1+ index))
-                    (describe-number-of-recordings new-total)))
-           (new-total
-            (format "Playhead detached (ignoring too many stickers?) on %s"
-                    (describe-number-of-recordings new-total)))
-           (recording
-            (substitute-command-keys
-             "Playhead confused (perhaps hit \\[sly-stickers-replay-refresh])"))
-           (t
-            (format
-             "No recordings! Perhaps you need to run some sticker-aware code first"))))))
+         (recording)
+         (let ((new-total (cl-getf (sly-stickers--replay-data) :total))
+               (index (cl-getf (sly-stickers--replay-data) :index)))
+           (cond
+            ((and new-total
+                  recording)
+             (format "Playhead at recording %s of %s"
+                     (ignore-errors (1+ index))
+                     (describe-number-of-recordings new-total)))
+            (new-total
+             (format "Playhead detached (ignoring too many stickers?) on %s"
+                     (describe-number-of-recordings new-total)))
+            (recording
+             (substitute-command-keys
+              "Playhead confused (perhaps hit \\[sly-stickers-replay-refresh])"))
+            (t
+             (format
+              "No recordings! Perhaps you need to run some sticker-aware code first"))))))
     (sly-refreshing ()
       (let ((rec (cl-getf (sly-stickers--replay-data) :recording)))
         (insert (describe-playhead rec) (paragraph))
@@ -1092,26 +1092,26 @@ See also `sly-stickers-replay'."
   (interactive)
   (sly-eval-async `(slynk-stickers:fetch ',(sly-stickers--zombies))
     (lambda (result)
-        (sly-stickers--reset-zombies)
-        (let ((message
-               (format "Fetched recordings for %s armed stickers"
-                       (length result))))
-          (cl-loop for sticker-description in result
-                   ;; Although we are analysing sticker descriptions
-                   ;; here, recordings are made to pass to
-                   ;; `sly-stickers--sticker-by-id', even if they are
-                   ;; are `sly-stickers--recording-void-p', which is
-                   ;; the case if the sticker has never been
-                   ;; traversed.
-                   ;;
-                   for recording =
-                   (sly-stickers--make-recording sticker-description)
-                   for sticker =
-                   (sly-stickers--sticker-by-id
-                    (sly-stickers--recording-sticker-id recording))
-                   when sticker
-                   do (sly-stickers--populate-sticker sticker recording))
-          (sly-message message)))
+      (sly-stickers--reset-zombies)
+      (let ((message
+             (format "Fetched recordings for %s armed stickers"
+                     (length result))))
+        (cl-loop for sticker-description in result
+                 ;; Although we are analysing sticker descriptions
+                 ;; here, recordings are made to pass to
+                 ;; `sly-stickers--sticker-by-id', even if they are
+                 ;; are `sly-stickers--recording-void-p', which is
+                 ;; the case if the sticker has never been
+                 ;; traversed.
+                 ;;
+                 for recording =
+                 (sly-stickers--make-recording sticker-description)
+                 for sticker =
+                 (sly-stickers--sticker-by-id
+                  (sly-stickers--recording-sticker-id recording))
+                 when sticker
+                 do (sly-stickers--populate-sticker sticker recording))
+        (sly-message message)))
     "CL_USER"))
 
 (defun sly-stickers-forget (&optional howmany interactive)

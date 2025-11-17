@@ -7,16 +7,16 @@
   "Nickname all SLYNK-* package to SWANK-*"
   (declare (ignore ignored))
   (loop for package in (list-all-packages)
-      for package-name = (package-name package)
-      when (search "SLYNK" package-name :test #'char-equal)
-        do (rename-package package
-                           package-name
-                           (remove-duplicates
-                            (cons
-                             (format nil "SWANK~a"
-                                     (subseq package-name 5))
-                             (package-nicknames package))
-                            :test #'string-equal))))
+        for package-name = (package-name package)
+        when (search "SLYNK" package-name :test #'char-equal)
+          do (rename-package package
+                             package-name
+                             (remove-duplicates
+                              (cons
+                               (format nil "SWANK~a"
+                                       (subseq package-name 5))
+                               (package-nicknames package))
+                              :test #'string-equal))))
 
 (defun load-swankrcs-maybe ()
   (find-if (lambda (homedir-file)

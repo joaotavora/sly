@@ -12,81 +12,81 @@
         (and package (find-symbol (string symbol) package))
       (declare (ignore _symbol))
       (append
-        (label-value-line "Its name is" (symbol-name symbol))
-        ;;
-        ;; Value
-        (cond ((boundp symbol)
-               (append
-                (label-value-line (if (constantp symbol)
-                                      "It is a constant of value"
-                                      "It is a global variable bound to")
-                                  (symbol-value symbol) :newline nil)
-                ;; unbinding constants might be not a good idea, but
-                ;; implementations usually provide a restart.
-                `(" " (:action "[unbind]"
-                               ,(lambda () (makunbound symbol))))
-                '((:newline))))
-              (t '("It is unbound." (:newline))))
-        (docstring-ispec "Documentation" symbol 'variable)
-        (multiple-value-bind (expansion definedp) (macroexpand symbol)
-          (if definedp
-              (label-value-line "It is a symbol macro with expansion"
-                                expansion)))
-        ;;
-        ;; Function
-        (if (fboundp symbol)
-            (append (if (macro-function symbol)
-                        `("It a macro with macro-function: "
-                          (:value ,(macro-function symbol)))
-                        `("It is a function: "
-                          (:value ,(symbol-function symbol))))
-                    `(" " (:action "[unbind]"
-                                   ,(lambda () (fmakunbound symbol))))
-                    `((:newline)))
-            `("It has no function value." (:newline)))
-        (docstring-ispec "Function documentation" symbol 'function)
-        (when (compiler-macro-function symbol)
-            (append
-             (label-value-line "It also names the compiler macro"
-                               (compiler-macro-function symbol) :newline nil)
-             `(" " (:action "[remove]"
-                            ,(lambda ()
-                               (setf (compiler-macro-function symbol) nil)))
-                   (:newline))))
-        (docstring-ispec "Compiler macro documentation"
-                         symbol 'compiler-macro)
-        ;;
-        ;; Package
-        (if package
-            `("It is " ,(string-downcase (string status))
-                       " to the package: "
-                       (:value ,package ,(package-name package))
-                       ,@(if (eq :internal status)
-                             `(" "
-                               (:action "[export]"
-                                        ,(lambda () (export symbol package)))))
-                       " "
-                       (:action "[unintern]"
-                                ,(lambda () (unintern symbol package)))
-                       (:newline))
-            '("It is a non-interned symbol." (:newline)))
-        ;;
-        ;; Plist
-        (label-value-line "Property list" (symbol-plist symbol))
-        ;;
-        ;; Class
-        (if (find-class symbol nil)
-            `("It names the class "
-              (:value ,(find-class symbol) ,(string symbol))
-              " "
-              (:action "[remove]"
-                       ,(lambda () (setf (find-class symbol) nil)))
-              (:newline)))
-        ;;
-        ;; More package
-        (if (find-package symbol)
-            (label-value-line "It names the package" (find-package symbol)))
-        (inspect-type-specifier symbol)))))
+       (label-value-line "Its name is" (symbol-name symbol))
+       ;;
+       ;; Value
+       (cond ((boundp symbol)
+              (append
+               (label-value-line (if (constantp symbol)
+                                     "It is a constant of value"
+                                     "It is a global variable bound to")
+                                 (symbol-value symbol) :newline nil)
+               ;; unbinding constants might be not a good idea, but
+               ;; implementations usually provide a restart.
+               `(" " (:action "[unbind]"
+                              ,(lambda () (makunbound symbol))))
+               '((:newline))))
+             (t '("It is unbound." (:newline))))
+       (docstring-ispec "Documentation" symbol 'variable)
+       (multiple-value-bind (expansion definedp) (macroexpand symbol)
+         (if definedp
+             (label-value-line "It is a symbol macro with expansion"
+                               expansion)))
+       ;;
+       ;; Function
+       (if (fboundp symbol)
+           (append (if (macro-function symbol)
+                       `("It a macro with macro-function: "
+                         (:value ,(macro-function symbol)))
+                       `("It is a function: "
+                         (:value ,(symbol-function symbol))))
+                   `(" " (:action "[unbind]"
+                                  ,(lambda () (fmakunbound symbol))))
+                   `((:newline)))
+           `("It has no function value." (:newline)))
+       (docstring-ispec "Function documentation" symbol 'function)
+       (when (compiler-macro-function symbol)
+         (append
+          (label-value-line "It also names the compiler macro"
+                            (compiler-macro-function symbol) :newline nil)
+          `(" " (:action "[remove]"
+                         ,(lambda ()
+                            (setf (compiler-macro-function symbol) nil)))
+                (:newline))))
+       (docstring-ispec "Compiler macro documentation"
+                        symbol 'compiler-macro)
+       ;;
+       ;; Package
+       (if package
+           `("It is " ,(string-downcase (string status))
+                      " to the package: "
+                      (:value ,package ,(package-name package))
+                      ,@(if (eq :internal status)
+                            `(" "
+                              (:action "[export]"
+                                       ,(lambda () (export symbol package)))))
+                      " "
+                      (:action "[unintern]"
+                               ,(lambda () (unintern symbol package)))
+                      (:newline))
+           '("It is a non-interned symbol." (:newline)))
+       ;;
+       ;; Plist
+       (label-value-line "Property list" (symbol-plist symbol))
+       ;;
+       ;; Class
+       (if (find-class symbol nil)
+           `("It names the class "
+             (:value ,(find-class symbol) ,(string symbol))
+             " "
+             (:action "[remove]"
+                      ,(lambda () (setf (find-class symbol) nil)))
+             (:newline)))
+       ;;
+       ;; More package
+       (if (find-package symbol)
+           (label-value-line "It names the package" (find-package symbol)))
+       (inspect-type-specifier symbol)))))
 
 #-sbcl
 (defun inspect-type-specifier (symbol)
@@ -190,8 +190,8 @@
 
 (defmethod emacs-inspect ((object standard-object))
   (let ((class (class-of object)))
-            `("Class: " (:value ,class) (:newline)
-              ,@(all-slots-for-inspector object))))
+    `("Class: " (:value ,class) (:newline)
+                ,@(all-slots-for-inspector object))))
 
 (defvar *gf-method-getter* 'methods-by-applicability
   "This function is called to get the methods of a generic function.
@@ -229,7 +229,7 @@ See `methods-by-applicability'.")
                      (length doc))))
 
 (defstruct (inspector-checklist (:conc-name checklist.)
-                                 (:constructor %make-checklist (buttons)))
+                                (:constructor %make-checklist (buttons)))
   (buttons nil :type (or null simple-vector))
   (count   0))
 
@@ -250,7 +250,7 @@ See `methods-by-applicability'.")
                    "[X]"
                    "[ ]")
               ,(lambda ()
-                   (setf (svref buttons i) (not (svref buttons i))))
+                 (setf (svref buttons i) (not (svref buttons i))))
               :refreshp t)))
 
 (defmacro do-checklist ((idx checklist) &body body)
@@ -258,8 +258,8 @@ See `methods-by-applicability'.")
   (let ((buttons (gensym "buttons")))
     `(let ((,buttons (checklist.buttons ,checklist)))
        (dotimes (,idx (length ,buttons))
-          (when (svref ,buttons ,idx)
-            ,@body)))))
+         (when (svref ,buttons ,idx)
+           ,@body)))))
 
 (defun box (thing) (cons :box thing))
 (defun ref (box)
@@ -282,20 +282,20 @@ See `methods-by-applicability'.")
          (direct-slots    (slynk-mop:class-direct-slots class))
          (effective-slots (slynk-mop:class-slots class))
          (longest-slot-name-length
-          (loop for slot :in effective-slots
-                maximize (length (symbol-name
-                                  (slynk-mop:slot-definition-name slot)))))
+           (loop for slot :in effective-slots
+                 maximize (length (symbol-name
+                                   (slynk-mop:slot-definition-name slot)))))
          (checklist
-          (reinitialize-checklist
-           (ensure-istate-metadata object :checklist
-                                   (make-checklist (length effective-slots)))))
+           (reinitialize-checklist
+            (ensure-istate-metadata object :checklist
+                                    (make-checklist (length effective-slots)))))
          (grouping-kind
-          ;; We box the value so we can re-set it.
-          (ensure-istate-metadata object :grouping-kind
-                                  (box *inspector-slots-default-grouping*)))
+           ;; We box the value so we can re-set it.
+           (ensure-istate-metadata object :grouping-kind
+                                   (box *inspector-slots-default-grouping*)))
          (sort-order
-          (ensure-istate-metadata object :sort-order
-                                  (box *inspector-slots-default-order*)))
+           (ensure-istate-metadata object :sort-order
+                                   (box *inspector-slots-default-order*)))
          (sort-predicate (ecase (ref sort-order)
                            (:alphabetically #'string<)
                            (:unsorted (constantly nil))))
@@ -303,36 +303,36 @@ See `methods-by-applicability'.")
                              sort-predicate
                              :key #'slynk-mop:slot-definition-name))
          (effective-slots
-          (ecase (ref grouping-kind)
-            (:all sorted-slots)
-            (:inheritance (stable-sort-by-inheritance sorted-slots
-                                                      class sort-predicate)))))
+           (ecase (ref grouping-kind)
+             (:all sorted-slots)
+             (:inheritance (stable-sort-by-inheritance sorted-slots
+                                                       class sort-predicate)))))
     `("--------------------"
       (:newline)
       " Group slots by inheritance "
       (:action ,(ecase (ref grouping-kind)
-                       (:all "[ ]")
-                       (:inheritance "[X]"))
+                  (:all "[ ]")
+                  (:inheritance "[X]"))
                ,(lambda ()
-                        ;; We have to do this as the order of slots will
-                        ;; be sorted differently.
-                        (fill (checklist.buttons checklist) nil)
-                        (setf (ref grouping-kind)
-                              (ecase (ref grouping-kind)
-                                (:all :inheritance)
-                                (:inheritance :all))))
+                  ;; We have to do this as the order of slots will
+                  ;; be sorted differently.
+                  (fill (checklist.buttons checklist) nil)
+                  (setf (ref grouping-kind)
+                        (ecase (ref grouping-kind)
+                          (:all :inheritance)
+                          (:inheritance :all))))
                :refreshp t)
       (:newline)
       " Sort slots alphabetically  "
       (:action ,(ecase (ref sort-order)
-                       (:unsorted "[ ]")
-                       (:alphabetically "[X]"))
+                  (:unsorted "[ ]")
+                  (:alphabetically "[X]"))
                ,(lambda ()
-                        (fill (checklist.buttons checklist) nil)
-                        (setf (ref sort-order)
-                              (ecase (ref sort-order)
-                                (:unsorted :alphabetically)
-                                (:alphabetically :unsorted))))
+                  (fill (checklist.buttons checklist) nil)
+                  (setf (ref sort-order)
+                        (ecase (ref sort-order)
+                          (:unsorted :alphabetically)
+                          (:alphabetically :unsorted))))
                :refreshp t)
       (:newline)
       ,@ (case (ref grouping-kind)
@@ -350,16 +350,16 @@ See `methods-by-applicability'.")
       (:newline)
       (:action "[set value]"
                ,(lambda ()
-                        (do-checklist (idx checklist)
-                          (query-and-set-slot class object
-                                              (nth idx effective-slots))))
+                  (do-checklist (idx checklist)
+                    (query-and-set-slot class object
+                                        (nth idx effective-slots))))
                :refreshp t)
       "  "
       (:action "[make unbound]"
                ,(lambda ()
-                        (do-checklist (idx checklist)
-                          (slynk-mop:slot-makunbound-using-class
-                           class object (nth idx effective-slots))))
+                  (do-checklist (idx checklist)
+                    (slynk-mop:slot-makunbound-using-class
+                     class object (nth idx effective-slots))))
                :refreshp t)
       (:newline))))
 
@@ -434,7 +434,7 @@ See `methods-by-applicability'.")
 (defun stable-sort-by-inheritance (slots class predicate)
   (stable-sort slots predicate
                :key (lambda (s)
-                        (class-name (slot-home-class-using-class s class)))))
+                      (class-name (slot-home-class-using-class s class)))))
 
 (defun query-and-set-slot (class object slot)
   (let* ((slot-name (slynk-mop:slot-definition-name slot))
@@ -450,25 +450,25 @@ See `methods-by-applicability'.")
 (defmethod emacs-inspect ((gf standard-generic-function))
   (flet ((lv (label value) (label-value-line label value)))
     (append
-      (lv "Name" (slynk-mop:generic-function-name gf))
-      (lv "Arguments" (slynk-mop:generic-function-lambda-list gf))
-      (docstring-ispec "Documentation" gf t)
-      (lv "Method class" (slynk-mop:generic-function-method-class gf))
-      (lv "Method combination"
-          (slynk-mop:generic-function-method-combination gf))
-      `("Methods: " (:newline))
-      (loop for method in (funcall *gf-method-getter* gf) append
-            `((:value ,method ,(inspector-princ
+     (lv "Name" (slynk-mop:generic-function-name gf))
+     (lv "Arguments" (slynk-mop:generic-function-lambda-list gf))
+     (docstring-ispec "Documentation" gf t)
+     (lv "Method class" (slynk-mop:generic-function-method-class gf))
+     (lv "Method combination"
+         (slynk-mop:generic-function-method-combination gf))
+     `("Methods: " (:newline))
+     (loop for method in (funcall *gf-method-getter* gf) append
+           `((:value ,method ,(inspector-princ
                                ;; drop the name of the GF
                                (cdr (method-for-inspect-value method))))
-              " "
-              (:action "[remove method]"
-                       ,(let ((m method)) ; LOOP reassigns method
-                          (lambda ()
-                            (remove-method gf m))))
-              (:newline)))
-      `((:newline))
-      (all-slots-for-inspector gf))))
+             " "
+             (:action "[remove method]"
+                      ,(let ((m method)) ; LOOP reassigns method
+                         (lambda ()
+                           (remove-method gf m))))
+             (:newline)))
+     `((:newline))
+     (all-slots-for-inspector gf))))
 
 (defmethod emacs-inspect ((method standard-method))
   `(,@(if (slynk-mop:method-generic-function method)
@@ -478,19 +478,19 @@ See `methods-by-applicability'.")
                       (slynk-mop:generic-function-name
                        (slynk-mop:method-generic-function method)))))
           '("Method without a generic function"))
-      (:newline)
-      ,@(docstring-ispec "Documentation" method t)
-      "Lambda List: " (:value ,(slynk-mop:method-lambda-list method))
-      (:newline)
-      "Specializers: " (:value ,(slynk-mop:method-specializers method)
-                               ,(inspector-princ
-                                 (method-specializers-for-inspect method)))
-      (:newline)
-      "Qualifiers: " (:value ,(slynk-mop:method-qualifiers method))
-      (:newline)
-      "Method function: " (:value ,(slynk-mop:method-function method))
-      (:newline)
-      ,@(all-slots-for-inspector method)))
+    (:newline)
+    ,@(docstring-ispec "Documentation" method t)
+    "Lambda List: " (:value ,(slynk-mop:method-lambda-list method))
+    (:newline)
+    "Specializers: " (:value ,(slynk-mop:method-specializers method)
+                             ,(inspector-princ
+                               (method-specializers-for-inspect method)))
+    (:newline)
+    "Qualifiers: " (:value ,(slynk-mop:method-qualifiers method))
+    (:newline)
+    "Method function: " (:value ,(slynk-mop:method-function method))
+    (:newline)
+    ,@(all-slots-for-inspector method)))
 
 (defun specializer-direct-methods (class)
   (sort (copy-seq (slynk-mop:specializer-direct-methods class))
@@ -557,7 +557,7 @@ See `methods-by-applicability'.")
                                  (method-for-inspect-value method)))
               collect '(:newline)
               if (documentation method t)
-              collect "    Documentation: " and
+                collect "    Documentation: " and
               collect (abbrev-doc (documentation method t)) and
               collect '(:newline))))
     "Prototype: " ,(if (slynk-mop:class-finalized-p class)
@@ -636,7 +636,7 @@ concise string representation of what each symbol
 represents (see SYMBOL-CLASSIFICATION-STRING)"
   (let ((max-length (loop for s in symbols
                           maximizing (length (symbol-name s))))
-        (distance 10)) ; empty distance between name and classification
+        (distance 10))          ; empty distance between name and classification
     (flet ((string-representations (symbol)
              (let* ((name (symbol-name symbol))
                     (length (length name))
@@ -647,23 +647,23 @@ represents (see SYMBOL-CLASSIFICATION-STRING)"
                              (make-string (+ padding distance)
                                           :initial-element #\Space))
                 (symbol-classification-string symbol)))))
-      `(""                           ; 8 is (length "Symbols:")
+      `(""                              ; 8 is (length "Symbols:")
         "Symbols:" ,(make-string (+ -8 max-length distance)
                                  :initial-element #\Space)
         "Flags:"
         (:newline)
-        ,(concatenate 'string        ; underlining dashes
+        ,(concatenate 'string           ; underlining dashes
                       (make-string (+ max-length distance -1)
                                    :initial-element #\-)
                       " "
                       (symbol-classification-string '#:foo))
         (:newline)
-        ,@(loop for symbol in symbols appending
-               (multiple-value-bind (symbol-string classification-string)
-                   (string-representations symbol)
-                 `((:value ,symbol ,symbol-string) ,classification-string
-                   (:newline)
-                   )))))))
+        ,@(loop for symbol in symbols
+                appending
+                (multiple-value-bind (symbol-string classification-string)
+                    (string-representations symbol)
+                  `((:value ,symbol ,symbol-string) ,classification-string
+                    (:newline))))))))
 
 (defmethod make-symbols-listing ((grouping-kind (eql :classification)) symbols)
   "For each possible classification (cf. CLASSIFY-SYMBOL), group
@@ -686,11 +686,11 @@ SPECIAL-OPERATOR groups."
                     (substitute :function :fboundp classifications))
                    (t (remove :fboundp classifications)))))
       (loop for symbol in symbols do
-            (loop for classification in
-                  (normalize-classifications (classify-symbol symbol))
-                  ;; SYMBOLS are supposed to be sorted alphabetically;
-                  ;; this property is preserved here except for reversing.
-                  do (push symbol (gethash classification table)))))
+        (loop for classification in (normalize-classifications
+                                     (classify-symbol symbol))
+              ;; SYMBOLS are supposed to be sorted alphabetically;
+              ;; this property is preserved here except for reversing.
+              do (push symbol (gethash classification table)))))
     (let* ((classifications (loop for k being each hash-key in table
                                   collect k))
            (classifications (sort classifications
@@ -718,21 +718,21 @@ SPECIAL-OPERATOR groups."
 
 (defmethod emacs-inspect ((%container %package-symbols-container))
   (with-struct (%container. title description symbols grouping-kind) %container
-            `(,title (:newline) (:newline)
-              ,@description
-              (:newline)
-              "  " ,(ecase grouping-kind
-                           (:symbol
-                            `(:action "[Group by classification]"
-                                      ,(lambda ()
-                                         (setf grouping-kind :classification))
-                                      :refreshp t))
-                           (:classification
-                            `(:action "[Group by symbol]"
-                                      ,(lambda () (setf grouping-kind :symbol))
-                                      :refreshp t)))
-              (:newline) (:newline)
-              ,@(make-symbols-listing grouping-kind symbols))))
+    `(,title (:newline) (:newline)
+             ,@description
+             (:newline)
+             "  " ,(ecase grouping-kind
+                     (:symbol
+                      `(:action "[Group by classification]"
+                                ,(lambda ()
+                                   (setf grouping-kind :classification))
+                                :refreshp t))
+                     (:classification
+                      `(:action "[Group by symbol]"
+                                ,(lambda () (setf grouping-kind :symbol))
+                                :refreshp t)))
+             (:newline) (:newline)
+             ,@(make-symbols-listing grouping-kind symbols))))
 
 (defun display-link (type symbols length &key title description)
   (if (null symbols)
@@ -882,18 +882,18 @@ SPECIAL-OPERATOR groups."
   `(,(if (wild-pathname-p pathname)
          "A wild pathname."
          "A pathname.")
-     (:newline)
-     ,@(label-value-line*
-        ("Namestring" (namestring pathname))
-        ("Host"       (pathname-host pathname))
-        ("Device"     (pathname-device pathname))
-        ("Directory"  (pathname-directory pathname))
-        ("Name"       (pathname-name pathname))
-        ("Type"       (pathname-type pathname))
-        ("Version"    (pathname-version pathname)))
-     ,@ (unless (or (wild-pathname-p pathname)
-                    (not (probe-file pathname)))
-          (label-value-line "Truename" (truename pathname)))))
+    (:newline)
+    ,@(label-value-line*
+       ("Namestring" (namestring pathname))
+       ("Host"       (pathname-host pathname))
+       ("Device"     (pathname-device pathname))
+       ("Directory"  (pathname-directory pathname))
+       ("Name"       (pathname-name pathname))
+       ("Type"       (pathname-type pathname))
+       ("Version"    (pathname-version pathname)))
+    ,@ (unless (or (wild-pathname-p pathname)
+                   (not (probe-file pathname)))
+         (label-value-line "Truename" (truename pathname)))))
 
 (defmethod emacs-inspect ((pathname logical-pathname))
   (append
@@ -943,7 +943,7 @@ SPECIAL-OPERATOR groups."
 (defmethod emacs-inspect ((i integer))
   (append
    `(,(format nil "Value: ~D = #x~8,'0X = #o~O = #b~,,' ,8:B~@[ = ~E~]"
-	      i i i i (ignore-errors (coerce i 'float)))
+              i i i i (ignore-errors (coerce i 'float)))
      (:newline))
    (when (< -1 i char-code-limit)
      (label-value-line "Code-char" (code-char i)))
@@ -963,26 +963,25 @@ SPECIAL-OPERATOR groups."
    ("As float" (float r))))
 
 (defmethod emacs-inspect ((f float))
-  (cond
-    ((float-nan-p f)
-     ;; try NaN first because the next tests may perform operations
-     ;; that are undefined for NaNs.
-     (list "Not a Number."))
-    ((not (float-infinity-p f))
-     (multiple-value-bind (significand exponent sign) (decode-float f)
-       (append
-	`("Scientific: " ,(format nil "~E" f) (:newline)
-			 "Decoded: "
-			 (:value ,sign) " * "
-			 (:value ,significand) " * "
-			 (:value ,(float-radix f)) "^"
-			 (:value ,exponent) (:newline))
-	(label-value-line "Digits" (float-digits f))
-	(label-value-line "Precision" (float-precision f)))))
-    ((> f 0)
-     (list "Positive infinity."))
-    ((< f 0)
-     (list "Negative infinity."))))
+  (cond ((float-nan-p f)
+         ;; try NaN first because the next tests may perform operations
+         ;; that are undefined for NaNs.
+         (list "Not a Number."))
+        ((not (float-infinity-p f))
+         (multiple-value-bind (significand exponent sign) (decode-float f)
+           (append
+            `("Scientific: " ,(format nil "~E" f) (:newline)
+                             "Decoded: "
+                             (:value ,sign) " * "
+                             (:value ,significand) " * "
+                             (:value ,(float-radix f)) "^"
+                             (:value ,exponent) (:newline))
+            (label-value-line "Digits" (float-digits f))
+            (label-value-line "Precision" (float-precision f)))))
+        ((> f 0)
+         (list "Positive infinity."))
+        ((< f 0)
+         (list "Negative infinity."))))
 
 (defun make-pathname-ispec (pathname position)
   `("Pathname: "
@@ -1020,9 +1019,9 @@ SPECIAL-OPERATOR groups."
                                                          `(:value ,v))))
   (butlast
    (loop
-      for i in list
-      collect (funcall callback i)
-      collect ", ")))
+     for i in list
+     collect (funcall callback i)
+     collect ", ")))
 
 (defun inspector-princ (list)
   "Like princ-to-string, but don't rewrite (function foo) as #'foo.
