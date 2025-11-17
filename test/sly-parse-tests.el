@@ -37,7 +37,7 @@
        ("defun" "" ,sly-cursor-marker))
       ("(defun #-(and) (bar) f*HERE*"
        ("defun" "f" ,sly-cursor-marker))
-      ("(remove-if #'(lambda (x)*HERE*"
+      ("(remove-if (lambda (x)*HERE*"
        ("remove-if" ("lambda" ("x") ,sly-cursor-marker)))
       ("`(remove-if ,(lambda (x)*HERE*"
        ("remove-if" ("lambda" ("x") ,sly-cursor-marker)))

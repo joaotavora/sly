@@ -499,7 +499,7 @@
           ;; declaration. So we strip those as long as there's no
           ;; better way. (FIXME)
           `(&any ,@(remove-if-not
-                    #'(lambda (qualifier)
+                    (lambda (qualifier)
                         (find-symbol (symbol-name (first qualifier)) :cl))
                     flags :key #'ensure-list))
           (call-next-method)))))

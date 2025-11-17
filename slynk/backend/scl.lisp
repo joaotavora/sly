@@ -1586,7 +1586,7 @@ The `symbol-value' of each element is a type tag.")
 (defimplementation find-thread (id)
   (block find-thread
     (thread:map-over-threads
-     #'(lambda (thread)
+     (lambda (thread)
          (when (eql (getf (thread:thread-plist thread) 'id) id)
            (return-from find-thread thread))))))
 
@@ -1609,11 +1609,11 @@ The `symbol-value' of each element is a type tag.")
 
 (defimplementation all-threads ()
   (let ((all-threads nil))
-    (thread:map-over-threads #'(lambda (thread) (push thread all-threads)))
+    (thread:map-over-threads (lambda (thread) (push thread all-threads)))
     all-threads))
 
 (defimplementation interrupt-thread (thread fn)
-  (thread:thread-interrupt thread #'(lambda ()
+  (thread:thread-interrupt thread (lambda ()
                                       (sys:with-interrupts
                                         (funcall fn)))))
 

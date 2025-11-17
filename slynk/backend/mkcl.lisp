@@ -251,13 +251,13 @@
           (*compile-filename* input-file))
       (handler-bind (#|
                      (compiler::compiler-note
-                      #'(lambda (n)
+                      (lambda (n)
                           (format t "~%slynk saw a compiler note: ~A~%" n) (finish-output) nil))
                      (compiler::compiler-warning
-                      #'(lambda (w)
+                      (lambda (w)
                           (format t "~%slynk saw a compiler warning: ~A~%" w) (finish-output) nil))
                      (compiler::compiler-error
-                      #'(lambda (e)
+                      (lambda (e)
                           (format t "~%slynk saw a compiler error: ~A~%" e) (finish-output) nil))
                      |#
                      )
@@ -750,7 +750,7 @@
       (setf (gethash thread *id-thread-map*) id))
     (mt:thread-preset
      thread
-     #'(lambda ()
+     (lambda ()
          (unwind-protect
               (progn
                 ;;(format t "~&Starting thread: ~S.~%" name) (finish-output)

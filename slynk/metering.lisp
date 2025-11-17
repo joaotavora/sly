@@ -535,7 +535,7 @@ Estimated total monitoring overhead: 0.88 seconds
 (defun required-arguments (name)
   (let* ((function (symbol-function name))
          (args (ccl:arglist function))
-         (pos (position-if #'(lambda (x)
+         (pos (position-if (lambda (x)
                                (and (symbolp x)
                                     (let ((name (symbol-name x)))
                                       (and (>= (length name) 1)
@@ -560,7 +560,7 @@ Estimated total monitoring overhead: 0.88 seconds
       (core:function-lambda-list name)
     (if foundp
         (let ((position-and
-               (position-if #'(lambda (x)
+               (position-if (lambda (x)
                                 (and (symbolp x)
                                      (let ((name (symbol-name x)))
                                        (and (>= (length name) 1)
@@ -802,7 +802,7 @@ adjusted for overhead."
 	 (pushnew name *monitored-functions*)
 
 	 (setf (place-function name)
-	       #'(lambda (,@required-args
+	       (lambda (,@required-args
 			  ,@(when optionals-p
                               `(&rest optional-args)))
 		   (let ((prev-total-time *total-time*)
@@ -861,14 +861,14 @@ adjusted for overhead."
 		:name name
 		:old-definition old-definition
 		:new-definition (place-function name)
-		:read-metering #'(lambda ()
+		:read-metering (lambda ()
 				   (values inclusive-time
 					   inclusive-cons
 					   exclusive-time
 					   exclusive-cons
 					   calls
 					   nested-calls))
-		:reset-metering #'(lambda ()
+		:reset-metering (lambda ()
 				    (setq inclusive-time 0
 					  inclusive-cons 0
 					  exclusive-time 0
@@ -950,7 +950,7 @@ adjusted for overhead."
    and ignore it. See also unmonitor, report-monitoring,
    display-monitoring-results and reset-time."
   `(progn
-     ,@(mapcar #'(lambda (name) `(monitoring-encapsulate ',name)) names)
+     ,@(mapcar (lambda (name) `(monitoring-encapsulate ',name)) names)
      *monitored-functions*))
 
 (defmacro UNMONITOR (&rest names)

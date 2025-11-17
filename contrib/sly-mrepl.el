@@ -55,7 +55,7 @@
    ;; The connection list is also tweaked
    ;;
    (setq sly-connection-list-button-action
-         #'(lambda (process)
+         (lambda (process)
              (let ((sly-default-connection process))
                (sly-mrepl 'pop-to-buffer)))))
   (:on-unload
@@ -269,19 +269,19 @@ for output printed to the REPL (not for evaluation results)")
 ;;;
 (define-button-type 'sly-mrepl-part :supertype 'sly-part
   'sly-button-inspect
-  #'(lambda (entry-idx value-idx)
+  (lambda (entry-idx value-idx)
       (sly-eval-for-inspector `(slynk-mrepl:inspect-entry
                                 ,sly-mrepl--remote-channel
                                 ,entry-idx
                                 ,value-idx)
                               :inspector-name (sly-maybe-read-inspector-name)))
   'sly-button-describe
-  #'(lambda (entry-idx value-idx)
+  (lambda (entry-idx value-idx)
       (sly-eval-describe `(slynk-mrepl:describe-entry ,sly-mrepl--remote-channel
                                                       ,entry-idx
                                                       ,value-idx)))
   'sly-button-pretty-print
-  #'(lambda (entry-idx value-idx)
+  (lambda (entry-idx value-idx)
       (sly-eval-describe `(slynk-mrepl:pprint-entry ,sly-mrepl--remote-channel
                                                     ,entry-idx
                                                     ,value-idx)))
@@ -359,7 +359,7 @@ In that case, moving a sexp backward does nothing."
 
 (defmacro sly-mrepl--with-repl (repl-buffer &rest body)
   (declare (indent 1) (debug (sexp &rest form)))
-  `(sly-mrepl--call-with-repl ,repl-buffer #'(lambda () ,@body)))
+  `(sly-mrepl--call-with-repl ,repl-buffer (lambda () ,@body)))
 
 (defun sly-mrepl--insert (string &optional face)
   (sly-mrepl--commiting-text (when face
@@ -789,7 +789,7 @@ REPL is the REPL buffer to return the objects to."
   (sly-eval-async
       `(slynk-mrepl:globally-save-object ',(car slyfun-and-args)
                                          ,@(cdr slyfun-and-args))
-    #'(lambda (_ignored)
+    (lambda (_ignored)
         (sly-mrepl--copy-globally-saved-to-repl :before before
                                                 :after after
                                                 :repl repl))))
@@ -876,8 +876,8 @@ history entry navigated to."
   (unless (eq isearch-search-fun-function
               'isearch-search-fun-default)
     (set (make-local-variable 'isearch-search-fun-function)
-         #'(lambda ()
-             #'(lambda (&rest args)
+         (lambda ()
+             (lambda (&rest args)
                  (cl-letf
                      (((symbol-function
                         'comint-line-beginning-position)
@@ -1125,7 +1125,7 @@ prefix argument is given."
                         (sly-to-lisp-filename directory)))
      :insert-p nil
      :before-prompt
-     #'(lambda (results)
+     (lambda (results)
          (cl-destructuring-bind (package-2 directory-2) results
            (sly-mrepl--insert-note
             (cond ((and package directory)
@@ -1139,7 +1139,7 @@ prefix argument is given."
                    (format "Remaining in package %s and directory %s"
                            package-2 directory-2))))))
      :after-prompt
-     #'(lambda (_results)
+     (lambda (_results)
          (when expression
            (goto-char (point-max))
            (let ((saved (point)))
@@ -1243,14 +1243,14 @@ Doesn't clear input history."
   (sly-mrepl--save-and-copy-for-repl
    `(slynk-backend:frame-arguments ,frame-id)
    :before (format "The actual arguments passed to frame %s" frame-id)
-   :after #'(lambda (objects)
+   :after (lambda (objects)
               (sly-mrepl--insert-call spec objects))))
 
 (defun sly-trace-dialog-copy-call-to-repl (trace-id spec)
   (sly-mrepl--save-and-copy-for-repl
    `(slynk-trace-dialog:trace-arguments-or-lose ,trace-id)
    :before (format "The actual arguments passed to trace %s" trace-id)
-   :after #'(lambda (objects)
+   :after (lambda (objects)
               (sly-mrepl--insert-call spec objects))))
 
 (defun sly-mrepl-inside-string-or-comment-p ()

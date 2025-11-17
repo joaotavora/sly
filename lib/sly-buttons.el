@@ -164,7 +164,7 @@
 ;;;
 (defun sly-button--overlays-in (beg end &optional filter)
   "Return overlays overlapping positions BEG and END"
-  (cl-remove-if-not #'(lambda (button)
+  (cl-remove-if-not (lambda (button)
                         (and
 			 ;; Workaround fragility in Emacs' buttons:
 			 ;; `button-type-subtype-p' errors when
@@ -179,14 +179,14 @@
 
 (defun sly-button--overlays-between (beg end &optional filter)
   "Return overlays contained entirely between BEG and END"
-  (cl-remove-if-not #'(lambda (button)
+  (cl-remove-if-not (lambda (button)
                         (and (>= (button-start button) beg)
                              (<= (button-end button) end)))
                     (sly-button--overlays-in beg end filter)))
 
 (defun sly-button--overlays-exactly-at (beg end &optional filter)
   "Return overlays exactly between BEG and END"
-  (cl-remove-if-not #'(lambda (button)
+  (cl-remove-if-not (lambda (button)
                         (and (= (button-start button) beg)
                              (= (button-end button) end)))
                     (sly-button--overlays-in beg end filter)))
@@ -226,7 +226,7 @@
 
 (defun sly-button--searchable-buttons-starting-at (&optional point filter)
   (let ((point (or point (point))))
-    (cl-remove-if-not #'(lambda (button)
+    (cl-remove-if-not (lambda (button)
                           (= (button-start button) point))
                       (sly-button--searchable-buttons-at point filter))))
 
@@ -288,7 +288,7 @@ at exactly the same spot, they are both visited simultaneously,
                   (apply (button-get button 'sly-button-echo)
                          button
                          (cl-remove-if-not
-                          #'(lambda (b)
+                          (lambda (b)
                               (= (button-start b) (button-start button)))
                           (cdr buttons))))
                  (t

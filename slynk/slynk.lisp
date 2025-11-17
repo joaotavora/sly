@@ -592,7 +592,7 @@ corresponding values in the CDR of VALUE."
   (let ((listener-sym (gensym))
         (body-fn-sym (gensym)))
     `(let ((,listener-sym (default-listener ,connection))
-           (,body-fn-sym #'(lambda () ,@body)))
+           (,body-fn-sym (lambda () ,@body)))
        (if ,listener-sym
            (with-listener-bindings ,listener-sym
              (funcall ,body-fn-sym))
@@ -1174,7 +1174,7 @@ point the thread terminates and CHANNEL is closed."
             (escape-non-ascii (safe-condition-message condition)))
     (let ((*emacs-connection* c))
       (format *log-output* "~&;; closing ~a channels~%" (length (connection-channels c)))
-      (mapc #'(lambda (c) (close-channel c :force t)) (connection-channels c))
+      (mapc (lambda (c) (close-channel c :force t)) (connection-channels c))
       (format *log-output* "~&;; closing ~a listeners~%" (length (connection-listeners c)))
       (ignore-errors
        (mapc #'close-listener (connection-listeners c))))
@@ -2062,7 +2062,7 @@ May insert newlines between each of VALUES.  Considers
           (t
            (let ((strings (loop for v in values
                                 collect (funcall fn v))))
-             (if (some #'(lambda (s) (find #\Newline s))
+             (if (some (lambda (s) (find #\Newline s))
                        strings)
                  (format nil "~{~a~^~%~}" strings)
                  (format nil "~{~a~^, ~}" strings)))))))
@@ -2665,7 +2665,7 @@ Operation was KERNEL::DIVISION, operands (1 0).\"
                             (format nil "~a" (or prompt
                                                  "[restart prompt] :"))))))
                 (make-output-stream
-                 #'(lambda (s)
+                 (lambda (s)
                      (setq prompt
                            (concatenate 'string
                                         (or prompt "")

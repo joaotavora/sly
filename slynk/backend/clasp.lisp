@@ -156,13 +156,13 @@
 (defun make-interrupt-handler (real-handler)
   (let ((main-thread (find 'si:top-level (mp:all-processes)
                            :key #'mp:process-name)))
-    #'(lambda (&rest args)
+    (lambda (&rest args)
         (declare (ignore args))
         (mp:interrupt-process main-thread real-handler))))
 
 #-threads
 (defun make-interrupt-handler (real-handler)
-  #'(lambda (&rest args)
+  (lambda (&rest args)
       (declare (ignore args))
       (funcall real-handler)))
 
@@ -196,7 +196,7 @@
                   for fd = (socket-fd s)
                   collect (cons fd s)
                   do (serve-event:add-fd-handler fd :input
-                                                 #'(lambda (fd)
+                                                 (lambda (fd)
                                                      (push fd active-fds))))))
       (serve-event:serve-event timeout)
       (loop for fd in active-fds collect (cdr (assoc fd fd-stream-alist)))))
@@ -398,7 +398,7 @@
 
 (defun make-invoke-debugger-hook (hook)
   (when hook
-    #'(lambda (condition old-hook)
+    (lambda (condition old-hook)
         ;; Regard *debugger-hook* if set by user.
         (if *debugger-hook*
             nil         ; decline, *DEBUGGER-HOOK* will be tried next.

@@ -358,7 +358,7 @@ Return NIL if the symbol is unbound."
                                  fspec)))))))
 
 (defimplementation find-definitions (name)
-  (mapcar #'(lambda (e) (fspec-location name e))
+  (mapcar (lambda (e) (fspec-location name e))
           (documentation name 'sys::file)))
 
 (defun trim-whitespace (string)

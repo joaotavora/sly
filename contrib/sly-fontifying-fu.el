@@ -189,7 +189,7 @@ position, or nil."
    `((sly-search-suppressed-forms 0 ,''sly-reader-conditional-face t)))
 
   (add-hook 'lisp-mode-hook
-            #'(lambda ()
+            (lambda ()
                 (add-hook 'font-lock-extend-region-functions
                           'sly-extend-region-for-font-lock t t))))
 

@@ -69,7 +69,7 @@ Flash the resulting region if FLASH-P"
                          ,dont-erase
                          ,recover-point-p
                          ,flash-p
-                         #'(lambda () ,@body)))
+                         (lambda () ,@body)))
 
 
 (provide 'sly-common)

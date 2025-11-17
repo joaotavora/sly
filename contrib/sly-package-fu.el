@@ -23,7 +23,7 @@
             "defpackage.lisp")))
 
 (defvar sly-export-symbol-representation-function
-  #'(lambda (n) (format "#:%s" n)))
+  (lambda (n) (format "#:%s" n)))
 
 (defvar sly-import-symbol-package-transform-function
   'identity

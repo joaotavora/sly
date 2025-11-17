@@ -1207,7 +1207,7 @@ LIST is destructively modified."
   (loop
      for super = (java::jobject-class object) then (jclass-superclass super)
      while super
-        ;;; NOTE: In the next line, if I write #'(lambda.... then I
+        ;;; NOTE: In the next line, if I write (lambda.... then I
         ;;; get an error compiling "Attempt to throw to the
         ;;; nonexistent tag DUPLICATABLE-CODE-P.". WTF
      for fields

@@ -1123,7 +1123,7 @@ returns.")
   (let ((gblock (gensym "CONVERTING-ERRORS+")))
     `(block ,gblock
        (handler-bind ((error
-                       #'(lambda (e)
+                       (lambda (e)
                             (if *debug-slynk-backend*
                                 nil     ;decline
                                 (return-from ,gblock

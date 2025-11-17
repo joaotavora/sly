@@ -98,12 +98,12 @@ a list for each collection, in order.
              \(foo \(first x\)\)
              \(bar \(second x\)\)\)\)
 Returns two values: \(A B C\) and \(1 2 3\)."
-  (let ((vars (mapcar #'(lambda (x) (gensym (symbol-name x))) collectors))
+  (let ((vars (mapcar (lambda (x) (gensym (symbol-name x))) collectors))
         (initial-values (mapcar (constantly nil) collectors)))
     `(let ,(mapcar #'list vars initial-values)
-       (flet ,(mapcar #'(lambda (c v) `(,c (x) (push x ,v) (values))) collectors vars)
+       (flet ,(mapcar (lambda (c v) `(,c (x) (push x ,v) (values))) collectors vars)
          ,@body
-         (values ,@(mapcar #'(lambda (v) `(reverse ,v)) vars))))))
+         (values ,@(mapcar (lambda (v) `(reverse ,v)) vars))))))
 
 (defun to-chunks (string indexes)
   "Return chunks of STRING in as specified by INDEXES."

@@ -249,7 +249,7 @@ See `methods-by-applicability'.")
     `(:action ,(if (svref buttons i)
                    "[X]"
                    "[ ]")
-              ,#'(lambda ()
+              ,(lambda ()
                    (setf (svref buttons i) (not (svref buttons i))))
               :refreshp t)))
 
@@ -433,7 +433,7 @@ See `methods-by-applicability'.")
 
 (defun stable-sort-by-inheritance (slots class predicate)
   (stable-sort slots predicate
-               :key #'(lambda (s)
+               :key (lambda (s)
                         (class-name (slot-home-class-using-class s class)))))
 
 (defun query-and-set-slot (class object slot)

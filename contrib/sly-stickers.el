@@ -276,7 +276,7 @@ render the underlying text unreadable."
          (contained (sly-stickers--stickers-between from to))
          (not-contained (cl-set-difference intersecting contained))
          (containers nil))
-    (unless (cl-every #'(lambda (e)
+    (unless (cl-every (lambda (e)
                           (and (< (button-start e) from)
                                (> (button-end e) to)))
                       not-contained)
@@ -339,11 +339,11 @@ render the underlying text unreadable."
   'sly-button-inspect
   'sly-stickers--inspect-recording
   ;; 'sly-button-pretty-print
-  ;; #'(lambda (id) ...)
+  ;; (lambda (id) ...)
   ;; 'sly-button-describe
-  ;; #'(lambda (id) ...)
+  ;; (lambda (id) ...)
   ;; 'sly-button-show-source
-  ;; #'(lambda (id) ...)
+  ;; (lambda (id) ...)
   )
 
 (defun sly-stickers--recording-part (label sticker-id recording vindex
@@ -1091,7 +1091,7 @@ Non-interactively, set the `:recording' slot of
 See also `sly-stickers-replay'."
   (interactive)
   (sly-eval-async `(slynk-stickers:fetch ',(sly-stickers--zombies))
-    #'(lambda (result)
+    (lambda (result)
         (sly-stickers--reset-zombies)
         (let ((message
                (format "Fetched recordings for %s armed stickers"

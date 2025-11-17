@@ -13,7 +13,7 @@
 
 (defun compose (&rest functions)
   "Compose FUNCTIONS right-associatively, returning a function"
-  #'(lambda (x)
+  (lambda (x)
       (reduce #'funcall functions :initial-value x :from-end t)))
 
 (defun length= (seq n)
@@ -708,7 +708,7 @@ reference packages."
 	    do      (setf (gethash p package-use-table) (shiftf bfn (1+ bfn)))
 	    and do  (setf queue (nconc queue (copy-list (package-use-list p))))
 	  while queue)
-    #'(lambda (p1 p2)
+    (lambda (p1 p2)
 	(let ((bfn1 (gethash p1 package-use-table))
 	      (bfn2 (gethash p2 package-use-table)))
 	  (cond ((and bfn1 bfn2) (<= bfn1 bfn2))
@@ -949,7 +949,7 @@ If the arglist is not available, return :NOT-AVAILABLE."))
                              (list 'function)
                              :optional-args
                              (append
-                              (mapcar #'(lambda (arg)
+                              (mapcar (lambda (arg)
                                           (make-optional-arg arg nil))
                                       (arglist.required-args function-arglist))
                               (arglist.optional-args function-arglist))
@@ -1158,7 +1158,7 @@ wrapped in ===> X <===.
 
 Second, a boolean value telling whether the returned string can be cached."
   (handler-bind ((serious-condition
-                   #'(lambda (c)
+                   (lambda (c)
                        (unless (debug-on-slynk-error)
                          (let ((*print-right-margin* print-right-margin))
                            (return-from autodoc
@@ -1352,7 +1352,7 @@ object."
     (extract-local-op-arglists 'cl:labels args)))
 
 (defun %collect-op/argl-alist (defs)
-  (setq defs (remove-if-not #'(lambda (x)
+  (setq defs (remove-if-not (lambda (x)
                                 ;; Well-formed FLET/LABELS def?
                                 (and (consp x) (second x)))
                             defs))

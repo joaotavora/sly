@@ -129,7 +129,7 @@ Also don't error if `ert.el' is missing."
                     (if (cl-find-if
                          (lambda (impl)
                            (unless (listp impl)
-                             (setq impl (list impl #'(lambda (&rest _ign) t))))
+                             (setq impl (list impl (lambda (&rest _ign) t))))
                            (and (equal (car impl) (sly-lisp-implementation-name))
                                 (funcall
                                  (cadr impl)
@@ -360,7 +360,7 @@ conditions (assertions)."
   '(("foo")
     ("#:foo")
     ("#'foo")
-    ("#'(lambda (x) x)")
+    ("(lambda (x) x)")
     ("()"))
   (with-temp-buffer
     (lisp-mode)
@@ -1343,7 +1343,7 @@ Reconnect afterwards."
                         ,(when (null landing) '(kill-emacs 0))
                         (add-hook
                          'sly-connected-hook
-                         #'(lambda ()
+                         (lambda ()
                              (condition-case err
                                  (progn
                                    ,@landing

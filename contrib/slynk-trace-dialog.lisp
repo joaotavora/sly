@@ -86,7 +86,7 @@ program.")
                   args))
     (slynk-backend:call-with-lock-held
      *trace-lock*
-     #'(lambda ()
+     (lambda ()
          (setf (slot-value entry 'id) (fill-pointer *traces*))
          (vector-push-extend entry *traces*)))))
 
@@ -101,7 +101,7 @@ program.")
 
 (defun useful-backtrace ()
   (slynk-backend:call-with-debugging-environment
-   #'(lambda ()
+   (lambda ()
        (loop for i from 0
              for frame in (slynk-backend:compute-backtrace 0 20)
              collect (list i (slynk::frame-to-string frame))))))
@@ -192,7 +192,7 @@ program.")
         *unfinished-traces* nil)
   (slynk-backend:call-with-lock-held
    *trace-lock*
-   #'(lambda () (setf (fill-pointer *traces*) 0)))
+   (lambda () (setf (fill-pointer *traces*) 0)))
   nil)
 
 (defslyfun trace-part-or-lose (id part-id type)
@@ -284,7 +284,7 @@ program.")
 ;;;; Hook onto emacs
 ;;;;
 (setq slynk:*after-toggle-trace-hook*
-      #'(lambda (spec traced-p)
+      (lambda (spec traced-p)
           (when *dialog-trace-follows-trace*
             (cond (traced-p
                    (dialog-trace spec)

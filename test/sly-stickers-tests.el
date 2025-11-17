@@ -40,7 +40,7 @@
 
 (cl-defmacro sly-stickers--with-fixture ((forms sticker-prefixes) &rest body)
   (declare (indent defun) (debug (sexp &rest form)))
-  `(sly-stickers--call-with-fixture #'(lambda () ,@body) ,forms ,sticker-prefixes))
+  `(sly-stickers--call-with-fixture (lambda () ,@body) ,forms ,sticker-prefixes))
 
 (defun sly-stickers--topmost-sticker ()
   (car (sly-button--overlays-at

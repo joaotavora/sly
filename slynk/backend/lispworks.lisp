@@ -798,7 +798,7 @@ function names like \(SETF GET)."
                              :fill-pointer 0
                              :adjustable t)))
     (hcl:sweep-all-objects
-     #'(lambda (object)
+     (lambda (object)
          (when (and #+Harlequin-PC-Lisp (low:compiled-code-p object)
                     #+Harlequin-Unix-Lisp (sys:callablep object)
                     #-(or Harlequin-PC-Lisp Harlequin-Unix-Lisp)
@@ -816,7 +816,7 @@ function names like \(SETF GET)."
   (let ((callees '()))
     (system::find-constant$funcallable
      'junk name
-     :test #'(lambda (junk constant)
+     :test (lambda (junk constant)
                (declare (ignore junk))
                (when (and (symbolp constant)
                           (fboundp constant))

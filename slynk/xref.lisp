@@ -1249,7 +1249,7 @@ Rooted calling trees:
    files in which the symbol is called, :readers to get variable references,
    and :setters to get variable binding and assignments. Ignores functions
    of types listed in types-to-ignore."
-  (maphash #'(lambda (name callers)
+  (maphash (lambda (name callers)
 	       (unless (or (member (pattern-caller-type name)
 				   types-to-ignore)
 			   ;; When we're doing fancy package crap,
@@ -1274,27 +1274,27 @@ Rooted calling trees:
    through the code, so this can save some time.)"
   (with-open-file (stream filename :direction :output)
     (format stream "~&(clear-tables)")
-    (maphash #'(lambda (x y)
+    (maphash (lambda (x y)
 		 (format stream "~&(setf (source-file '~S) '~S)"
 			 x y))
 	     *source-file*)
-    (maphash #'(lambda (x y)
+    (maphash (lambda (x y)
 		 (format stream "~&(setf (callers-list '~S :file) '~S)"
 			 x y))
 	     *file-callers-database*)
-    (maphash #'(lambda (x y)
+    (maphash (lambda (x y)
 		 (format stream "~&(setf (callers-list '~S :callers) '~S)"
 			 x y))
 	     *callers-database*)
-    (maphash #'(lambda (x y)
+    (maphash (lambda (x y)
 		 (format stream "~&(setf (callers-list '~S :callees) '~S)"
 			 x y))
 	     *callees-database*)
-    (maphash #'(lambda (x y)
+    (maphash (lambda (x y)
 		 (format stream "~&(setf (callers-list '~S :readers) '~S)"
 			 x y))
 	     *readers-database*)
-    (maphash #'(lambda (x y)
+    (maphash (lambda (x y)
 		 (format stream "~&(setf (callers-list '~S :setters) '~S)"
 			 x y))
 	     *setters-database*)))
@@ -1310,7 +1310,7 @@ Rooted calling trees:
   "Makes a copy of the hash table in which (name value*) pairs
    are inverted to (value name*) pairs."
   (let ((target (make-hash-table :test #'equal)))
-    (maphash #'(lambda (key values)
+    (maphash (lambda (key values)
 		 (dolist (value values)
 		   (unless (member (pattern-caller-type key)
 				   types-to-ignore)
@@ -1324,7 +1324,7 @@ Rooted calling trees:
    DATABASE. This function may be useful for automatically resolving
    file references for automatic creation of a system definition (defsystem)."
   (let ((file-ref-ht  (make-hash-table :test #'equal)))
-    (maphash #'(lambda (key values)
+    (maphash (lambda (key values)
 		 (let ((key-file (source-file key)))
 		   (when key
 		     (dolist (value values)
@@ -1340,7 +1340,7 @@ Rooted calling trees:
   "Prints a list of file dependencies for the references listed in DATABASE.
    This function may be useful for automatically computing file loading
    constraints for a system definition tool."
-  (maphash #'(lambda (key value) (format t "~&~S --> ~S" key value))
+  (maphash (lambda (key value) (format t "~&~S --> ~S" key value))
 	   (determine-file-dependencies database)))
 
 ;;; The following functions demonstrate a possible way to interface
@@ -1405,7 +1405,7 @@ Rooted calling trees:
 	(other-database (ecase mode
 			  (:call-graph   *callees-database*)
 			  (:caller-graph *callers-database*))))
-    (maphash #'(lambda (name value)
+    (maphash (lambda (name value)
 		 (declare (ignore value))
 		 (unless (member (pattern-caller-type name)
 				 types-to-ignore)
@@ -1566,7 +1566,7 @@ Rooted calling trees:
       (with-open-file (*standard-output* file :direction :output)
 	(psgraph:psgraph start
 			 #'clos::class-direct-subclasses
-			 #'(lambda (x)
+			 (lambda (x)
 			     (list (format nil "~A" (clos::class-name x))))
 			 t nil #'eq)))))
 

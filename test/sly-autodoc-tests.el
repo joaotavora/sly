@@ -94,13 +94,13 @@
    "(create-socket ===> host <=== port &key backlog)")
 
   ;; Test with syntactic sugar
-  ("#'(lambda () (slynk::create-socket*HERE*"
+  ("(lambda () (slynk::create-socket*HERE*"
    "(create-socket host port &key backlog)")
   ("`(lambda () ,(slynk::create-socket*HERE*"
    "(create-socket host port &key backlog)")
-  ("(remove-if #'(lambda () (slynk::create-socket*HERE*"
+  ("(remove-if (lambda () (slynk::create-socket*HERE*"
    "(create-socket host port &key backlog)")
-  ("`(remove-if #'(lambda () ,@(slynk::create-socket*HERE*"
+  ("`(remove-if (lambda () ,@(slynk::create-socket*HERE*"
    "(create-socket host port &key backlog)")
 
   ;; Test &optional

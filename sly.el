@@ -188,7 +188,7 @@ in `sly-contribs.'")
            ;; "forgotten contribs" are the ones the chose not to
            ;; activate but whose definitions we have seen
            ;;
-           (cl-remove-if #'(lambda (contrib)
+           (cl-remove-if (lambda (contrib)
                              (memq contrib all-active-contribs))
                          (sly-contrib--all-contribs))))
     ;; Disable any forgotten contribs that are enabled right now.
@@ -899,7 +899,7 @@ Assumes all insertions are made at point."
 
 (defun sly-compose (&rest functions)
   "Compose unary FUNCTIONS right-associatively, returning a function"
-  #'(lambda (x)
+  (lambda (x)
       (cl-reduce #'funcall functions :initial-value x :from-end t)))
 
 (defun sly-curry (fun &rest args)
@@ -2115,7 +2115,7 @@ Respect `sly-keep-buffers-on-connection-close'."
   (let* ((connections (or connections (sly--purge-connections)))
          (connection-names (cl-loop for process in
                                     (sort connections
-                                          #'(lambda (p1 _p2)
+                                          (lambda (p1 _p2)
                                               (eq p1 (sly-current-connection))))
                                     collect (sly-connection-name process)))
          (connection-names (if dont-require-match
@@ -2206,7 +2206,7 @@ See `sly-next-connection' for other args."
 (defun sly-disconnect-all ()
   "Disconnect all connections."
   (interactive)
-  (mapc #'(lambda (process)
+  (mapc (lambda (process)
             (sly-net-close process "Disconnecting all connections"))
         sly-net-processes))
 
@@ -2908,7 +2908,7 @@ See `sly-compile-and-load-file' for further details."
     (sly-eval-async
         `(slynk:compile-file-for-emacs ,file ,(if load t nil)
                                        . ,(sly-hack-quotes options))
-      #'(lambda (result)
+      (lambda (result)
           (sly-compilation-finished result (current-buffer))))
     (sly-message "Compiling %s..." file)))
 
@@ -2958,7 +2958,7 @@ to it depending on its sign."
           ',position
           ,(if (buffer-file-name) (sly-to-lisp-filename (buffer-file-name)))
           ',sly-compilation-policy)
-      #'(lambda (result)
+      (lambda (result)
           (sly-compilation-finished result nil)))))
 
 (defun sly-compilation-position (start-offset)
@@ -4574,13 +4574,13 @@ TODO"
   'face nil
   'action 'sly-button-goto-source ;default action
   'sly-button-inspect
-  #'(lambda (name _type)
+  (lambda (name _type)
       (sly-inspect (format "(quote %s)" name)))
   'sly-button-goto-source
-  #'(lambda (name _type)
+  (lambda (name _type)
       (sly-edit-definition name 'window))
   'sly-button-describe
-  #'(lambda (name _type)
+  (lambda (name _type)
       (sly-eval-describe `(slynk:describe-symbol ,name))))
 
 (defun sly--package-designator-prefix (designator)
@@ -4642,7 +4642,7 @@ TODO"
                start (point)
                (list 'action 'sly-button-describe
                      'sly-button-describe
-                     #'(lambda (name type)
+                     (lambda (name type)
                          (sly-eval-describe `(slynk:describe-definition-for-emacs ,name
                                                                                   ,type)))
                      'part-args (list item prop)
@@ -4746,9 +4746,9 @@ The most important commands:
 (define-button-type 'sly-xref :supertype 'sly-part
   'action 'sly-button-goto-source ;default action
   'mouse-action 'sly-button-goto-source ;default action
-  'sly-button-show-source #'(lambda (location)
+  'sly-button-show-source (lambda (location)
                               (sly-xref--show-location location))
-  'sly-button-goto-source #'(lambda (location)
+  'sly-button-goto-source (lambda (location)
                               (sly--pop-to-source-location location 'sly-xref)))
 
 (defun sly-xref-button (label location)
@@ -4889,7 +4889,7 @@ See `sly-calls-who' for an implementation-specific alternative."
   "Make multiple XREF requests at once."
   (sly-eval-async
       `(slynk:xrefs ',types ',symbol)
-    #'(lambda (result)
+    (lambda (result)
         (funcall (or continuation
                      #'sly-xref--show-results)
                  (cl-loop for (key . val) in result
@@ -5576,7 +5576,7 @@ pending Emacs continuations."
 (defun sly-db--display-in-prev-sly-db-window (buffer _alist)
   (let ((window
          (get-window-with-predicate
-          #'(lambda (w)
+          (lambda (w)
               (let ((value (window-parameter w 'sly-db)))
                 (and value
                      (not (buffer-live-p value))))))))
@@ -5668,7 +5668,7 @@ RESTARTS should be a list ((NAME DESCRIPTION) ...)."
                  " " (sly-db-in-face restart-number (number-to-string number))
                  ": "  (sly-make-action-button (format "[%s]" name)
                                                (let ((n number))
-                                                 #'(lambda (_button)
+                                                 (lambda (_button)
                                                      (sly-db-invoke-restart n)))
                                                'restart-number number)
                  " " (sly-db-in-face restart string))
@@ -5676,7 +5676,7 @@ RESTARTS should be a list ((NAME DESCRIPTION) ...)."
     (when (< end len)
       (insert (sly-make-action-button
                " --more--"
-               #'(lambda (button)
+               (lambda (button)
                    (let ((inhibit-read-only t))
                      (delete-region (button-start button)
                                     (1+ (button-end button)))
@@ -5684,7 +5684,7 @@ RESTARTS should be a list ((NAME DESCRIPTION) ...)."
                      (sly--when-let (win (get-buffer-window (current-buffer)))
                        (with-selected-window win
                          (sly-recenter (point-max))))))
-               'point-entered #'(lambda (_ new) (push-button new)))
+               'point-entered (lambda (_ new) (push-button new)))
               "\n"))))
 
 (defun sly-db-frame-restartable-p (frame-spec)
@@ -5724,7 +5724,7 @@ If MORE is non-nil, more frames are on the Lisp stack."
                   (sly--when-let (win (get-buffer-window (current-buffer)))
                     (with-selected-window win
                       (sly-recenter (point-max))))))
-              'point-entered #'(lambda (_ new) (push-button new)))))))
+              'point-entered (lambda (_ new) (push-button new)))))))
 
 (defvar sly-db-frame-map
   (let ((map (make-sparse-keymap)))
@@ -5876,15 +5876,15 @@ If MORE is non-nil, more frames are on the Lisp stack."
 ;;;;;; SLY-DB toggle details
 (define-button-type 'sly-db-local-variable :supertype 'sly-part
   'sly-button-inspect
-  #'(lambda (frame-id var-id)
+  (lambda (frame-id var-id)
       (sly-eval-for-inspector `(slynk:inspect-frame-var ,frame-id
                                                         ,var-id)) )
   'sly-button-pretty-print
-  #'(lambda (frame-id var-id)
+  (lambda (frame-id var-id)
       (sly-eval-describe `(slynk:pprint-frame-var ,frame-id
                                                   ,var-id)))
   'sly-button-describe
-  #'(lambda (frame-id var-id)
+  (lambda (frame-id var-id)
       (sly-eval-describe `(slynk:describe-frame-var ,frame-id
                                                     ,var-id))))
 
@@ -6281,7 +6281,7 @@ was called originally."
   (with-current-buffer (or buffer
                            (current-buffer))
     (sly-eval-async '(slynk:list-threads)
-      #'(lambda (threads)
+      (lambda (threads)
           (with-current-buffer (current-buffer)
             (sly--display-threads threads))))))
 
@@ -6450,13 +6450,13 @@ was called originally."
   (interactive)
   (set (make-local-variable 'tabulated-list-entries)
        (mapcar
-        #'(lambda (p)
+        (lambda (p)
             (list p
                   `[,(if (eq sly-default-connection p) "*" " ")
                     (,(file-name-nondirectory (or (sly-connection-name p)
                                                   "unknown"))
                      action
-                     ,#'(lambda (_button)
+                     ,(lambda (_button)
                           (and sly-connection-list-button-action
                                (funcall sly-connection-list-button-action p))))
                     ,(car (process-contact p))
@@ -6603,20 +6603,20 @@ was called originally."
 
 (define-button-type 'sly-inspector-part :supertype 'sly-part
   'sly-button-inspect
-  #'(lambda (id)
+  (lambda (id)
       (sly-eval-for-inspector `(slynk:inspect-nth-part ,id)
                               :inspector-name (sly-maybe-read-inspector-name)))
   'sly-button-pretty-print
-  #'(lambda (id)
+  (lambda (id)
       (sly-eval-describe `(slynk:pprint-inspector-part ,id)))
   'sly-button-describe
-  #'(lambda (id)
+  (lambda (id)
       (sly-eval-describe `(slynk:describe-inspector-part ,id)))
   'sly-button-show-source
-  #'(lambda (id)
+  (lambda (id)
       (sly-eval-async
           `(slynk:find-source-location-for-emacs '(:inspector ,id))
-        #'(lambda (result)
+        (lambda (result)
             (sly--display-source-location result 'noerror)))))
 
 (defun sly-inspector-part-button (label id &rest props)
@@ -6698,7 +6698,7 @@ If PREV resp. NEXT are true insert more-buttons as needed."
        ((:action string id)
         (sly-make-action-button
          string
-         #'(lambda (_button)
+         (lambda (_button)
              (sly-eval-for-inspector `(slynk::inspector-call-nth-action ,id)
                                      :restore-point t))))))))
 

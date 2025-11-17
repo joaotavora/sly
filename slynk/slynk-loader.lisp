@@ -327,7 +327,7 @@ global variabes in SLYNK."
     (unless (provided)
       (let* ((src-file-name (substitute #\- #\/ (string-downcase module)))
              (src-file
-               (some #'(lambda (dir)
+               (some (lambda (dir)
                          (probe-file (make-pathname
                                       :name src-file-name
                                       :type "lisp"
