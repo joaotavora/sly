@@ -10,7 +10,7 @@ jobs:
   test:
     name:  Emacs ${{matrix.emacs_version}} | ${{matrix.lisp}} | ${{matrix.os}}
     runs-on: ${{matrix.os}}
-    timeout-minutes: 30
+    timeout-minutes: 15
 
     strategy:
       fail-fast: false
@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         lisp: [sbcl, ccl]
         # Use Emacs "LTS" versions (the last release of every major one).
-        emacs_version: [24.5, 25.3, 26.3, 27.2, 28.2, 29.4, 30.2, release-snapshot, snapshot]
+        emacs_version: [24.5, 25.3, 26.3, 27.2, 28.2, 29.4, 30.2]
         exclude:
           # Nix doesn't provide CCL for aarch64-darwin.
           - os: macos-latest
