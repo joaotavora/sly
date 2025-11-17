@@ -242,5 +242,3 @@
 ;;             ((all = (x y)) (list x y all))
 ;;             ((a '= b)      (list 'assign a b))
 ;;             ((#'oddp k)     (1+ k)))))
-
-

@@ -14,10 +14,10 @@
   (:import-from :java
                 #:jcall #:jstatic
                 #:jmethod
-                #:jfield 
+                #:jfield
                 #:jconstructor
                 #:jnew-array #:jarray-length #:jarray-ref #:jnew-array-from-array
-                #:jclass #:jnew #:java-object 
+                #:jclass #:jnew #:java-object
                 ;; be conservative and add any import java functions only for later lisps
                 #+#.(slynk-backend:with-symbol 'jfield-name 'java) #:jfield-name
                 #+#.(slynk-backend:with-symbol 'jinstance-of-p 'java) #:jinstance-of-p
@@ -39,7 +39,7 @@
   ;;; Probe and load ABCL-INTROSPECT pushing to *FEATURES* on success
   ;;; allowing us to conditionalize usage via `#+abcl-introspect` forms.
   (when (ignore-errors (and
-                        (fboundp '(setf sys::function-plist)) 
+                        (fboundp '(setf sys::function-plist))
                         (progn
                           (require :abcl-introspect)
                           (find "ABCL-INTROSPECT" *modules* :test
@@ -67,10 +67,10 @@
 (flet ((evil-hack (function &rest args) (apply (read-from-string function) args)))
   (defun %%lcons (car cdr)
     (evil-hack "slynk::%lcons" car (lambda () cdr)))
-  
+
   (defun %%lookup-class-name (&rest args)
     (evil-hack "jss::lookup-class-name" args))
-  
+
   (defun %%ed-in-emacs (what)
     (evil-hack "slynk:ed-in-emacs" what))
 
@@ -117,7 +117,7 @@
   (format stream ">")
   nil)
 
-;;; TODO: move such invocations out of toplevel?  
+;;; TODO: move such invocations out of toplevel?
 (eval-when (:load-toplevel)
   (unless (get 'sys::%print-unreadable-object 'slynk-backend::sly-wrap)
     (wrap 'sys::%print-unreadable-object :more-informative :replace '%print-unreadable-object-java-too)))
@@ -472,7 +472,7 @@
 
 (defimplementation call-with-debugging-environment (debugger-loop-fn)
   (let* ((magic-token (intern "SLYNK-DEBUGGER-HOOK" 'slynk))
-         (*sldb-topframe* 
+         (*sldb-topframe*
            (or
             (second (member magic-token
                             #+abcl-introspect sys::*saved-backtrace*
@@ -509,9 +509,9 @@
   (flet ((gensymp (s) (and (symbolp s) (null (symbol-package s))))
          (invokep (s)  (and (symbolp s) (eq s (jss-p)))))
     (let ((method
-            (slynk-match::select-match 
+            (slynk-match::select-match
              form
-             (((LAMBDA ((#'gensymp a) &REST (#'gensymp b)) 
+             (((LAMBDA ((#'gensymp a) &REST (#'gensymp b))
                  ((#'invokep fun) (#'stringp c) (#'gensymp d) (#'gensymp e) . args)) . args) '=> c)
              (other nil))))
       method)))
@@ -523,7 +523,7 @@
 
 ;; Use princ cs write-string for lisp frames as it respects (print-object (function t))
 ;; Rewrite jss expansions to their unexpanded state
-;; Show java exception frames up to where a java exception happened with a "!" 
+;; Show java exception frames up to where a java exception happened with a "!"
 ;; Check if a java class corresponds to a lisp function and tell us if to
 (defvar *debugger-package* (find-package 'cl-user))
 
@@ -531,7 +531,7 @@
 (defimplementation print-frame (frame stream)
   ;; make clear which functions aren't Common Lisp. Otherwise uses
   ;; default package, which is invisible
-  (let ((*package* (or *debugger-package* *package*))) 
+  (let ((*package* (or *debugger-package* *package*)))
     (if (typep frame 'sys::lisp-stack-frame)
         (if (not (jss-p))
             (princ (system:frame-to-list frame) stream)
@@ -543,7 +543,7 @@
                         for (el . rest) on form
                         for method =  (slynk/abcl::matches-jss-call el)
                         do
-                           (cond (method 
+                           (cond (method
                                   (format stream "(#~s ~{~s~^~})" method (cdr el)))
                                  (t
                                   (prin1 el stream)))
@@ -567,11 +567,11 @@
    (multiple-value-list
     (jvm::parse-lambda-list (ext:arglist operator)))
    values))
-  
+
 (defimplementation frame-locals (index)
   (let ((frame (nth-frame index)))
     ;; FIXME introspect locals in SYS::JAVA-STACK-FRAME
-    (when (typep frame 'sys::lisp-stack-frame) 
+    (when (typep frame 'sys::lisp-stack-frame)
        (loop
           :for id :upfrom 0
           :with frame = (nth-frame-list index)
@@ -599,13 +599,13 @@
 
 (defun frame-function (frame)
   (let ((list (sys::frame-to-list frame)))
-    (cond 
+    (cond
       ((keywordp (car list))
-       (find (getf list :method) 
+       (find (getf list :method)
              (jcall "getDeclaredMethods" (jclass (getf list :class)))
              :key (lambda(e)(jcall "getName" e)) :test 'equal))
       (t (car list) ))))
-       
+
 (defimplementation frame-source-location (index)
   (let ((frame (nth-frame index)))
     (or (source-location (nth-frame index))
@@ -686,7 +686,7 @@
 (defun implementation-source-location (arg)
   (let ((function (cond ((functionp arg)
                          arg)
-                        ((and (symbolp arg) (fboundp arg)) 
+                        ((and (symbolp arg) (fboundp arg))
                          (or (symbol-function arg) (macro-function arg))))))
     (when (typep function 'generic-function)
       (setf function (mop::funcallable-instance-function function)))
@@ -702,9 +702,9 @@
             ;; look for java source
               (let* ((partial-path   (substitute #\/ #\. class))
                      (java-path (concatenate 'string partial-path ".java"))
-                     (found-in-source-path (find-file-in-path java-path *source-path*))) 
+                     (found-in-source-path (find-file-in-path java-path *source-path*)))
                 ;; snippet for finding the internal class within the file
-                (if found-in-source-path 
+                (if found-in-source-path
                     `((:primitive ,local)
                       (:location ,found-in-source-path
                                  (:line 0)
@@ -717,7 +717,7 @@
                     ;; <https://github.com/m0smith/dotfiles/blob/master/.emacs.d/site-lisp/jdc.el>
                     ;; with jad <https://github.com/moparisthebest/jad>
                     ;; Also (setq sys::*disassembler* "jad -a -p")
-                    (let ((class-in-source-path 
+                    (let ((class-in-source-path
                            (find-file-in-path (concatenate 'string partial-path ".class") *source-path*)))
                       ;; no snippet, since internal class is in its own file
                       (when class-in-source-path
@@ -731,7 +731,7 @@
 (defun symbol-defined-in-java (symbol)
   (loop  with internal-name1 = (jcall "replaceAll" (jcall "replaceAll" (string symbol) "\\*" "") "-" "_")
          with internal-name2 = (jcall "replaceAll" (jcall "replaceAll" (string symbol) "\\*" "_") "-" "_")
-         for class in 
+         for class in
                    (load-time-value (mapcar
                                      'jclass
                                      '("org.armedbear.lisp.Package"
@@ -742,7 +742,7 @@
                                        "org.armedbear.lisp.Lisp"
                                        "org.armedbear.lisp.Pathname"
                                        "org.armedbear.lisp.Site")))
-           thereis 
+           thereis
            (or (get-declared-field class internal-name1)
                (get-declared-field class internal-name2))))
 
@@ -833,7 +833,7 @@
 
 (defmethod source-location ((method method))
   #+abcl-introspect
-  (let ((found 
+  (let ((found
          (find `(:method ,@(sys::method-spec-list method))
                (get (function-name method) 'sys::source)
                :key 'car :test 'equalp)))
@@ -878,7 +878,7 @@
           (search-path-property "sun.boot.class.path")))
 
 (defvar *source-path*
-  (remove nil 
+  (remove nil
           (append (search-path-property "user.dir")
                   (jdk-source-path)
                   ;; include lib jar files. contrib has lisp code. Would be good to build abcl.jar with source code as well
@@ -965,9 +965,9 @@
   (if (probe-file path)
       path
       (if (search "/org/armedbear/lisp" path :test 'string=)
-          (let ((jarpath (format nil "jar:file:~a!~a" (namestring (sys::find-system-jar)) 
+          (let ((jarpath (format nil "jar:file:~a!~a" (namestring (sys::find-system-jar))
                                  (subseq path (search "/org/armedbear/lisp" path)))))
-            (if (probe-file jarpath) 
+            (if (probe-file jarpath)
                 jarpath
                 path))
           path)))
@@ -980,9 +980,9 @@
 
 #+abcl-introspect
 (defimplementation find-definitions (symbol)
-  (when (stringp symbol) 
-    ;; allow a string to be passed. If it is package prefixed, remove the prefix 
-    (setq symbol (intern (string-upcase 
+  (when (stringp symbol)
+    ;; allow a string to be passed. If it is package prefixed, remove the prefix
+    (setq symbol (intern (string-upcase
                           (subseq symbol (1+ (or (position #\: symbol :from-end t) -1))))
                          'keyword)))
   (let ((sources nil)
@@ -1056,7 +1056,7 @@
                               (mop:method-generic-function caller))))
                    (mapcar (lambda(s) (sly-location-from-source-annotation thing s))
                            (remove `(:method ,@(sys::method-spec-list caller))
-                                   (get 
+                                   (get
                                     (if (consp name) (second name) name)
                                     'sys::source)
                                    :key 'car :test-not 'equalp)))
@@ -1079,7 +1079,7 @@
                       (jcall "getClass" o))))
     (let ((parts (sys:inspected-parts o)))
       `((:label "Type: ") (:value ,(or class type)) (:Newline)
-        ,@(if jclass 
+        ,@(if jclass
               `((:label "Java type: ") (:value ,jclass) (:newline)))
         ,@(if parts
               (loop :for (label . value) :in parts
@@ -1102,13 +1102,13 @@ LIST is destructively modified."
 
 (defmethod emacs-inspect ((string string))
   (%%prepend-list-to-llist
-   (list 
+   (list
     '(:label "Value: ")  `(:value ,string ,(concatenate 'string "\"" string "\""))  '(:newline)
     (if (ignore-errors (jclass string))
         `(:line "Names java class" ,(jclass string))
         "")
     #+abcl-introspect
-    (if (and (jss-p) 
+    (if (and (jss-p)
              (stringp (%%lookup-class-name string :return-ambiguous t :muffle-warning t)))
         `(:line
            "Abbreviates java class"
@@ -1125,7 +1125,7 @@ LIST is destructively modified."
   (append (call-next-method)
           (list '(:newline) '(:label "Stack trace")
                       '(:newline)
-                      (let ((w (jnew "java.io.StringWriter"))) 
+                      (let ((w (jnew "java.io.StringWriter")))
                         (jcall "printStackTrace" (java:java-exception-cause o) (jnew "java.io.PrintWriter" w))
                         (jcall "toString" w)))))
 
@@ -1280,7 +1280,7 @@ LIST is destructively modified."
      append
        (loop for this across fields
           for pre = (subseq (jcall "toString" this)
-                            0 
+                            0
                             (1+ (position #\. (jcall "toString" this)  :from-end t)))
           collect "  "
           collect (list :value this pre)
@@ -1317,8 +1317,8 @@ LIST is destructively modified."
         (has-interfaces (plusp (length (jclass-interfaces class))))
         (fields (inspector-java-fields class))
         (path (jcall "replaceFirst"
-                     (jcall "replaceFirst"  
-                            (jcall "toString" (jcall "getResource" 
+                     (jcall "replaceFirst"
+                            (jcall "toString" (jcall "getResource"
                                                      class
                                                      (concatenate 'string
                                                                   "/" (substitute #\/ #\. (jcall "getName" class))
@@ -1330,7 +1330,7 @@ LIST is destructively modified."
                          `(:value ,path)
                          " "
                          `(:action "[open in emacs buffer]" ,(lambda() (%%ed-in-emacs `( ,path)))) '(:newline)))
-      ,@(if has-superclasses 
+      ,@(if has-superclasses
             (list* '(:label "Superclasses: ") (butlast (loop for super = (jclass-superclass class) then (jclass-superclass super)
                             while super collect (list :value super (jcall "getName" super)) collect ", "))))
       ,@(if has-interfaces
@@ -1386,15 +1386,15 @@ LIST is destructively modified."
                   collect '(:newline)))))))
 
 (defun parts-for-structure-def-slot (def)
-  `((:label ,(string-downcase (sys::dsd-name def))) 
-    " reader: " (:value ,(sys::dsd-reader def) 
+  `((:label ,(string-downcase (sys::dsd-name def)))
+    " reader: " (:value ,(sys::dsd-reader def)
                         ,(string-downcase (string (sys::dsd-reader def))))
     ", index: " (:value ,(sys::dsd-index def))
     ,@(if (sys::dsd-initform def)
           `(", initform: " (:value ,(sys::dsd-initform def))))
     ,@(if (sys::dsd-read-only def)
          '(", Read only"))))
-  
+
 (defun parts-for-structure-def (name)
   (let ((structure-def (get name 'system::structure-definition )))
     (append
@@ -1409,12 +1409,12 @@ LIST is destructively modified."
            (all (sys::dd-slots structure-def))
            (inherited (set-difference all direct)))
      `((:label "Direct slots: ") (:newline)
-       ,@(loop for slotdef in direct  
+       ,@(loop for slotdef in direct
                append `("  " ,@(parts-for-structure-def-slot slotdef)
                              (:newline)))
-       ,@(if inherited 
+       ,@(if inherited
              (append '((:label "Inherited slots: ") (:newline))
-                     (loop for slotdef in inherited  
+                     (loop for slotdef in inherited
                            append `("  " (:label ,(string-downcase (string (sys::dsd-name slotdef))))
                                          (:value ,slotdef "slot definition")
                                          (:newline))))))))))
@@ -1528,4 +1528,3 @@ LIST is destructively modified."
                (let ((compiled (symbol-function name)))
                  (system::%set-lambda-name compiled (second (sys::lambda-name impl)))
                  (setf (get s 'slynk-backend::implementation) compiled))))))
-

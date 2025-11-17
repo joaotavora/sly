@@ -135,7 +135,7 @@
   'part-menu-keymap sly-button-popup-part-menu-keymap
   'help-echo "RET, mouse-2: Inspect object; mouse-3: Context menu"
   ;; these are ajust here for clarity
-  ;; 
+  ;;
   'sly-button-inspect nil
   'sly-button-describe nil
   'sly-button-pretty-print nil

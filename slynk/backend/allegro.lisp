@@ -33,13 +33,13 @@
 
 ;;;; UTF8
 
-(define-symbol-macro utf8-ef 
-    (load-time-value 
+(define-symbol-macro utf8-ef
+    (load-time-value
      (excl:crlf-base-ef (excl:find-external-format :utf-8))
      t))
 
 (defimplementation string-to-utf8 (s)
-  (excl:string-to-octets s :external-format utf8-ef 
+  (excl:string-to-octets s :external-format utf8-ef
                          :null-terminate nil))
 
 (defimplementation utf8-to-string (u)
@@ -52,7 +52,7 @@
   :spawn)
 
 (defimplementation create-socket (host port &key backlog)
-  (socket:make-socket :connect :passive :local-port port 
+  (socket:make-socket :connect :passive :local-port port
                       :local-host host :reuse-address t
                       :backlog (or backlog 5)))
 
@@ -74,8 +74,8 @@
   (excl::stream-input-handle stream))
 
 (defvar *external-format-to-coding-system*
-  '((:iso-8859-1 
-     "latin-1" "latin-1-unix" "iso-latin-1-unix" 
+  '((:iso-8859-1
+     "latin-1" "latin-1-unix" "iso-latin-1-unix"
      "iso-8859-1" "iso-8859-1-unix")
     (:utf-8 "utf-8" "utf-8-unix")
     (:euc-jp "euc-jp" "euc-jp-unix")
@@ -85,8 +85,8 @@
 (defimplementation find-external-format (coding-system)
   (let ((e (rassoc-if (lambda (x) (member coding-system x :test #'equal))
                       *external-format-to-coding-system*)))
-    (and e (excl:crlf-base-ef 
-            (excl:find-external-format (car e) 
+    (and e (excl:crlf-base-ef
+            (excl:find-external-format (car e)
                                        :try-variant t)))))
 
 ;;;; Unix signals
@@ -140,7 +140,7 @@
 
 (defimplementation describe-definition (symbol namespace)
   (ecase namespace
-    (:variable 
+    (:variable
      (describe symbol))
     ((:function :generic-function)
      (describe (symbol-function symbol)))
@@ -245,7 +245,7 @@
                          (car (debugger:frame-expression frame))))))))))
 
 (defun function-source-location (fun)
-  (cadr (car (fspec-definition-locations 
+  (cadr (car (fspec-definition-locations
               (xref::object-to-function-name fun)))))
 
 #+(version>= 8 2)
@@ -310,7 +310,7 @@
 (defun source-paths-of (whole part)
   (let ((result '()))
     (labels ((walk (form path)
-               (cond ((eq form part) 
+               (cond ((eq form part)
                       (push (reverse path) result))
                      ((consp form)
                       (loop for i from 0 while (consp form) do
@@ -339,9 +339,9 @@
 
 (defimplementation return-from-frame (frame-number form)
   (let ((frame (nth-frame frame-number)))
-    (multiple-value-call #'debugger:frame-return 
-      frame (debugger:eval-form-in-context 
-             form 
+    (multiple-value-call #'debugger:frame-return
+      frame (debugger:eval-form-in-context
+             form
              (debugger:environment-of-frame frame)))))
 
 (defimplementation frame-restartable-p (frame)
@@ -451,7 +451,7 @@
   (multiple-value-bind (pathname position)
       (condition-pathname-and-position condition)
     (cond (*buffer-name*
-           (make-location 
+           (make-location
             (list :buffer *buffer-name*)
             (if position
                 (list :offset 1 (1- position))
@@ -474,14 +474,14 @@
           (dolist (loc locs)
             (multiple-value-bind (pos file) (ecase (length loc)
                                               (2 (values-list loc))
-                                              (3 (destructuring-bind 
+                                              (3 (destructuring-bind
                                                        (start end file) loc
                                                    (declare (ignore end))
                                                    (values start file))))
               (signal-compiler-condition
                :original-condition condition
                :severity :warning
-               :message (format nil "Undefined function referenced: ~S" 
+               :message (format nil "Undefined function referenced: ~S"
                                 fname)
                :location (make-location (list :file file)
                                         #+(version>= 9 0)
@@ -495,7 +495,7 @@
                  (reader-error  #'handle-compiler-warning))
     (funcall function)))
 
-(defimplementation slynk-compile-file (input-file output-file 
+(defimplementation slynk-compile-file (input-file output-file
                                        load-p external-format
                                        &key policy)
   (declare (ignore policy))
@@ -551,14 +551,14 @@ to do this, this factors in the length of the inserted header itself."
                                            (length position-form-string))
                                         :initial-element #\;)))
       (write-string source-pathname-string stream)
-      (write-string position-form-string stream)  
+      (write-string position-form-string stream)
       (write-string padding-string stream)
       (write-char #\newline stream))))
 
 (defun compile-from-temp-file (string buffer offset file)
-  (call-with-temp-file 
+  (call-with-temp-file
    (lambda (stream filename)
-     (when (and file offset (probe-file file)) 
+     (when (and file offset (probe-file file))
        (write-tracking-preamble stream file offset))
      (write-string string stream)
      (finish-output stream)
@@ -597,13 +597,13 @@ to do this, this factors in the length of the inserted header itself."
 
 (defun buffer-or-file (file file-fun buffer-fun)
   (let* ((probe (gethash file *temp-file-map*)))
-    (cond (probe 
+    (cond (probe
            (destructuring-bind (buffer start) probe
              (funcall buffer-fun buffer start)))
           (t (funcall file-fun (namestring (truename file)))))))
 
 (defun buffer-or-file-location (file offset)
-  (buffer-or-file file 
+  (buffer-or-file file
                   (lambda (filename)
                     (make-location `(:file ,filename)
                                    `(:position ,(1+ offset))))
@@ -645,7 +645,7 @@ to do this, this factors in the length of the inserted header itself."
                  (t
                   (find-definition-in-file fspec type file top-level)))))
         ((member :top-level)
-         (make-error-location "Defined at toplevel: ~A" 
+         (make-error-location "Defined at toplevel: ~A"
                               (fspec->string fspec))))
     (error (e)
       (make-error-location "Error: ~A" e))))
@@ -678,9 +678,9 @@ to do this, this factors in the length of the inserted header itself."
        (if (null defs)
            (list
             (list fspec
-                  (make-error-location "Unknown source location for ~A" 
+                  (make-error-location "Unknown source location for ~A"
                                        (fspec->string fspec))))
-           (loop for (fspec type file top-level) in defs collect 
+           (loop for (fspec type file top-level) in defs collect
                  (list (list type fspec)
                        (find-fspec-location fspec type file top-level))))))))
 
@@ -718,7 +718,7 @@ to do this, this factors in the length of the inserted header itself."
        (max (excl::function-constant-count function)))
       ((= i max))
     (let ((c (excl::function-constant function i)))
-      (cond ((and (functionp c) 
+      (cond ((and (functionp c)
                   (not (eq c function))
                   (plusp depth))
              (map-function-constants c fn (1- depth)))
@@ -726,12 +726,12 @@ to do this, this factors in the length of the inserted header itself."
              (funcall fn c))))))
 
 (defun in-constants-p (fun symbol)
-  (map-function-constants fun 
-                          (lambda (c) 
-                            (when (eq c symbol) 
+  (map-function-constants fun
+                          (lambda (c)
+                            (when (eq c symbol)
                               (return-from in-constants-p t)))
                           3))
- 
+
 (defun function-callers (name)
   (let ((callers '()))
     (do-all-symbols (sym)
@@ -756,7 +756,7 @@ to do this, this factors in the length of the inserted header itself."
 ;;;; Profiling
 
 ;; Per-function profiling based on description in
-;; https://web.archive.org/web/20111021161131/http://franz.com/support/documentation/8.0/doc/runtime-analyzer.htm 
+;; https://web.archive.org/web/20111021161131/http://franz.com/support/documentation/8.0/doc/runtime-analyzer.htm
 
 (defvar *profiled-functions* ())
 (defvar *profile-depth* 0)
@@ -797,7 +797,7 @@ to do this, this factors in the length of the inserted header itself."
            (prof:start-sampling)
            (unwind-protect (excl:call-next-fwrapper)
              (prof:stop-sampling))))
-        (t 
+        (t
          (excl:call-next-fwrapper))))
 
 (defimplementation profile (fname)
@@ -850,7 +850,7 @@ to do this, this factors in the length of the inserted header itself."
        (label-value-line name (inspect::component-ref-v object access type)))
       ((:lisp :value :func)
        (label-value-line name (inspect::component-ref object access)))
-      (:indirect 
+      (:indirect
        (destructuring-bind (prefix count ref set) access
          (declare (ignore set prefix))
          (loop for i below (funcall count object)
@@ -914,7 +914,7 @@ to do this, this factors in the length of the inserted header itself."
 (defimplementation kill-thread (thread)
   (mp:process-kill thread))
 
-(defstruct (mailbox (:conc-name mailbox.)) 
+(defstruct (mailbox (:conc-name mailbox.))
   (lock (mp:make-process-lock :name "process mailbox"))
   (queue '() :type list)
   (gate (mp:make-gate nil)))
@@ -934,7 +934,7 @@ to do this, this factors in the length of the inserted header itself."
 (defimplementation send (thread message)
   (let* ((mbox (mailbox thread)))
     (mp:with-process-lock ((mailbox.lock mbox))
-      (setf (mailbox.queue mbox) 
+      (setf (mailbox.queue mbox)
             (nconc (mailbox.queue mbox) (list message)))
       (mp:open-gate (mailbox.gate mbox)))))
 
@@ -977,7 +977,7 @@ to do this, this factors in the length of the inserted header itself."
     (declare (type symbol name))
     (mp:with-process-lock (lock)
       (etypecase thread
-        (null 
+        (null
          (setf alist (delete name alist :key #'car)))
         (mp:process
          (let ((probe (assoc name alist)))
@@ -1010,14 +1010,14 @@ to do this, this factors in the length of the inserted header itself."
 
 (defimplementation toggle-trace (spec)
   (ecase (car spec)
-    ((setf) 
+    ((setf)
      (toggle-trace-aux spec))
     (:defgeneric (toggle-trace-generic-function-methods (second spec)))
-    ((setf :defmethod :labels :flet) 
+    ((setf :defmethod :labels :flet)
      (toggle-trace-aux (process-fspec-for-allegro spec)))
     (:call
      (destructuring-bind (caller callee) (cdr spec)
-       (toggle-trace-aux callee 
+       (toggle-trace-aux callee
                          :inside (list (process-fspec-for-allegro caller)))))))
 
 (defun tracedp (fspec)
@@ -1050,7 +1050,7 @@ to do this, this factors in the length of the inserted header itself."
            ((:defmethod) `(method ,@(rest fspec)))
            ((:labels) `(labels ,(process-fspec-for-allegro (second fspec))
                          ,(third fspec)))
-           ((:flet) `(flet ,(process-fspec-for-allegro (second fspec)) 
+           ((:flet) `(flet ,(process-fspec-for-allegro (second fspec))
                        ,(third fspec)))))
         (t
          fspec)))

@@ -3023,7 +3023,7 @@ Lisp functions, @code{SLYNK-MREPL:SEND-PROMPT} and
                (fresh-line)
                (princ "doing high-priority 3D game loop stuff"))
              (sleep 0.1)
-             ;; When you're ready to serve a potential waiting 
+             ;; When you're ready to serve a potential waiting
              ;; REPL request, just do this non-blocking thing:
              (with-simple-restart (abort "Abort this game REPL evaluation")
                (slynk:process-requests t)))))

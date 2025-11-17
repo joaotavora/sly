@@ -3,7 +3,7 @@
 ;; Copyright (C) 2016  João Távora
 
 ;; Author: João Távora
-;; Keywords: 
+;; Keywords:
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 
 ;;; Commentary:
 
-;; 
+;;
 
 ;;; Code:
 ;;;
@@ -45,7 +45,7 @@
 
 (defun sly--external-allc (string table pred _point)
   "Like `completion-all-completions', ask table for all completions."
-  (funcall table string pred t)) 
+  (funcall table string pred t))
 
 (defun sly--external-tryc (pat table pred point)
   "Like `completion-try-completions', but knowing how SLY works."
@@ -178,7 +178,7 @@ COMMON a string, the common prefix."
            for completion in completions
            do (put-text-property first-difference-pos
                                  (min (1+ first-difference-pos)
-                                      (1- (length completion))) 
+                                      (1- (length completion)))
                                  'face
                                  'completions-first-difference
                                  completion)
@@ -374,13 +374,13 @@ Intended to go into `completion-at-point-functions'"
 
 ;;; TODO: Most of the stuff emulates `completion--in-region' and its
 ;;; callees in Emacs's minibuffer.el
-;;; 
+;;;
 (defvar sly--completion-transient-data nil)  ; similar to `completion-in-region--data'
 
 (defvar sly--completion-transient-completions nil) ; not used
 
 ;;; TODO: not tested with other functions in `completion-at-point-functions'
-;;; 
+;;;
 (defun sly--completion-in-region-function (orig-fun beg end collection pred
                                            &rest rest)
   (cond

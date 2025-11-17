@@ -132,7 +132,7 @@
   (format nil "~a is now untimed for timing dialog" spec))
 
 (defslyfun toggle-timing (spec)
-  
+
   (if (timed-spec-p spec)
       (untime-spec spec)
       (time-spec spec)))

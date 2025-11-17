@@ -253,7 +253,7 @@ contrib's) before the Swank server is created with
 
 In SLY, the elisp variable `sly-init-function` is set to
 `sly-init-using-asdf` by default, meaning that `M-x sly` will try to
-load Slynk (the SLY equivalent to Swank) via `ASDF:LOAD-SYSTEM`. But 
+load Slynk (the SLY equivalent to Swank) via `ASDF:LOAD-SYSTEM`. But
 this will load only Slynk and no contribs.
 
 Slynk contribs are also represented as ASDF systems. Internally the
@@ -296,7 +296,7 @@ channel-based communication and the second has the REPL-specific
 context.
 
 See the section on the "RPC protocl" and switch to the `*sly-events*`
-buffer to see what's going on. 
+buffer to see what's going on.
 
 ### Display-related code
 

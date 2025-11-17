@@ -1356,4 +1356,3 @@ Intented to be placed in `sly-compilation-finished-hook'"
 
 (provide 'sly-stickers)
 ;;; sly-stickers.el ends here
-

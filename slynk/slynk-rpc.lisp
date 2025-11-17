@@ -10,7 +10,7 @@
 
 (defpackage #:slynk-rpc
   (:use :cl)
-  (:export 
+  (:export
    #:read-message
    #:read-packet
    #:slynk-reader-error
@@ -25,30 +25,30 @@
 ;;;;; Input
 
 (define-condition slynk-reader-error (reader-error)
-  ((packet :type string :initarg :packet 
+  ((packet :type string :initarg :packet
            :reader slynk-reader-error.packet)
-   (cause :type reader-error :initarg :cause 
+   (cause :type reader-error :initarg :cause
           :reader slynk-reader-error.cause)))
 
 (defun read-message (stream package)
   (let ((packet (read-packet stream)))
     (handler-case (values (read-form packet package))
       (reader-error (c)
-        (error 'slynk-reader-error 
+        (error 'slynk-reader-error
                :packet packet :cause c)))))
 
 (defun read-packet (stream)
   (let* ((length (parse-header stream))
          (octets (read-chunk stream length)))
     (handler-case (slynk-backend:utf8-to-string octets)
-      (error (c) 
-        (error 'slynk-reader-error 
+      (error (c)
+        (error 'slynk-reader-error
                :packet (asciify octets)
                :cause c)))))
 
 (defun asciify (packet)
   (with-output-to-string (*standard-output*)
-    (loop for code across (etypecase packet 
+    (loop for code across (etypecase packet
                             (string (map 'vector #'char-code packet))
                             (vector packet))
           do (cond ((<= code #x7f) (write-char (code-char code)))
@@ -71,7 +71,7 @@
 (defparameter *translating-swank-to-slynk* t
   "Set to true to ensure SWANK*::SYMBOL is interned SLYNK*::SYMBOL.
 Set by default to T to ensure that bootstrapping can occur from
-clients sending strings like this on the wire. 
+clients sending strings like this on the wire.
 
    (:EMACS-REX (SWANK:CONNECTION-INFO) NIL T 1)
 
@@ -97,7 +97,7 @@ to NIL in her ~/.swankrc. Generally best left alone.")
     (if (and search colon-pos)
         (nstring-upcase (replace string "SLYNK"))
         string)))
- 
+
 (defun translating-read ()
   "Read a form that conforms to the protocol, otherwise signal an error."
   (flet ((chomp ()
@@ -106,7 +106,7 @@ to NIL in her ~/.swankrc. Generally best left alone.")
                  finally (unread-char ch))))
     (chomp)
     (let ((c (read-char)))
-      (case c 
+      (case c
         (#\" (with-output-to-string (*standard-output*)
                (loop for c = (read-char) do
                  (case c
@@ -122,7 +122,7 @@ to NIL in her ~/.swankrc. Generally best left alone.")
                        (#\) nil)
                        (#\. (setq dotread t) t)
                        (t (progn (unread-char read) t)))
-                              
+
                when (eq dotread 'should-error)
                  do (error 'reader-error :format-arguments "Too many things after dot")
                when dotread
@@ -204,7 +204,7 @@ to NIL in her ~/.swankrc. Generally best left alone.")
     (write-message '(:emacs-rex NIL) *package* out)))
 
 *transport*
-                 
+
 (with-input-from-string (in *transport*)
   (loop while (peek-char T in NIL)
         collect (read-message in *package*)))

@@ -108,7 +108,7 @@
                                                   ((nil) :none)
                                                   (:line :line))
                                      :element-type (if external-format
-                                                       'character 
+                                                       'character
                                                        '(unsigned-byte 8))
                                      :external-format external-format))
 
@@ -401,7 +401,7 @@
     (function (si:compiled-function-name f))))
 
 ;;; Default implementation is fine (CL).
-;;; 
+;;;
 ;;; valid-function-name-p (form)
 
 #+walker
@@ -731,7 +731,7 @@
     (error "ECL's source directory ~A does not exist. ~
             You can specify a different location via the environment ~
             variable `ECLSRCDIR'."
-           (namestring (translate-logical-pathname #P"SYS:"))))) 
+           (namestring (translate-logical-pathname #P"SYS:")))))
 
 (defun assert-TAGS-file ()
   (unless (probe-file +TAGS+)
@@ -842,7 +842,7 @@
 ;;;  (:defgeneric NAME)                     ; a generic function with all methods
 ;;;  (:call CALLER CALLEE)                  ; trace calls from CALLER to CALLEE.
 ;;;  (:labels TOPLEVEL LOCAL)
-;;;  (:flet TOPLEVEL LOCAL) 
+;;;  (:flet TOPLEVEL LOCAL)
 ;;;
 ;;;   toggle-trace (spec)
 

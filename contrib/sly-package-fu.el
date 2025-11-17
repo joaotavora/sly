@@ -7,14 +7,14 @@
   (:authors "Tobias C. Rittweiler <tcr@freebits.de>")
   (:license "GPL")
   (:slynk-dependencies slynk/package-fu)
-  (:on-load 
+  (:on-load
    (define-key sly-mode-map "\C-cx"  'sly-export-symbol-at-point)
    (define-key sly-mode-map "\C-ci"  'sly-import-symbol-at-point))
   (:on-unload
    ;; FIXME: To properly support unloading, this contrib should be
    ;; made a minor mode with it's own keymap. The minor mode
    ;; activation function should be added to the proper sly-* hooks.
-   ;; 
+   ;;
    ))
 
 (defvar sly-package-file-candidates
@@ -345,7 +345,7 @@ symbol in the Lisp image if possible."
 
 (defalias 'sly-export-structure 'sly-export-class)
 
-;; 
+;;
 ;; Dealing with import-from
 ;;
 

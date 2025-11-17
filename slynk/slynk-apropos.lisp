@@ -151,4 +151,3 @@ that symbols accessible in the current package go first."
         (lambda (symbol-name)
           (slynk-completion:flex-matches
            pattern symbol-name chr=)))))
-

@@ -90,7 +90,7 @@ contributors.texi: Makefile texinfo-tabulate.awk
 #.INTERMEDIATE: contributors.texi
 
 optimize-png:
-	optipng -clobber -o 7 images/*.png   
+	optipng -clobber -o 7 images/*.png
 
 # Debian's install-info wants a --section argument.
 install-info: section=$(shell grep INFO-DIR-SECTION $(infofiles) | sed 's/INFO-DIR-SECTION //')

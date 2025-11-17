@@ -7,12 +7,12 @@
   "Filename translations for tramp"
   (:authors "Marco Baringer <mb@bese.it>")
   (:license "GPL")
-  (:on-load 
+  (:on-load
    (setq sly-to-lisp-filename-function #'sly-tramp-to-lisp-filename)
    (setq sly-from-lisp-filename-function #'sly-tramp-from-lisp-filename)))
 
 (defcustom sly-filename-translations nil
-  "Assoc list of hostnames and filename translation functions.  
+  "Assoc list of hostnames and filename translation functions.
 Each element is of the form (HOSTNAME-REGEXP TO-LISP FROM-LISP).
 
 HOSTNAME-REGEXP is a regexp which is applied to the connection's

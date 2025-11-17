@@ -84,7 +84,7 @@
                                      :input t ;; bogus
                                      :buffering buffering ;; bogus
                                      :element-type (if external-format
-                                                       'character 
+                                                       'character
                                                      '(unsigned-byte 8))
                                      :external-format external-format
                                      ))
@@ -95,7 +95,7 @@
 
 (defvar *external-format-to-coding-system*
   '((:iso-8859-1
-     "latin-1" "latin-1-unix" "iso-latin-1-unix" 
+     "latin-1" "latin-1-unix" "iso-latin-1-unix"
      "iso-8859-1" "iso-8859-1-unix")
     (:utf-8 "utf-8" "utf-8-unix")))
 
@@ -156,7 +156,7 @@
 (defimplementation quit-lisp ()
   ;; restore original IO streams.
   (progf (ignore-errors (eval
-                         (slynk-backend:find-symbol2 "slynk::*saved-global-streams*"))) 
+                         (slynk-backend:find-symbol2 "slynk::*saved-global-streams*")))
          (when *inferior-lisp-sleeping-post* (mt:semaphore-signal *inferior-lisp-sleeping-post*))
          ;;(mk-ext:quit :verbose t)
          ))
@@ -185,7 +185,7 @@
        ;; ;; compiler::*current-form*
        ;; (if compiler::*current-function*
        ;;     (make-location (list :file *compile-filename*)
-       ;;                    (list :function-name   
+       ;;                    (list :function-name
        ;;                          (symbol-name
        ;;                           (slot-value compiler::*current-function*
        ;;                                       'compiler::name))))
@@ -635,7 +635,7 @@
    (typecase obj
      (function
       (multiple-value-bind (file pos) (ignore-errors (si::compiled-function-file obj))
-        (if (and file pos) 
+        (if (and file pos)
             (make-location
               `(:file ,(if (stringp file) file (namestring file)))
               `(:end-position ,pos) ;; `(:position ,pos)
@@ -728,7 +728,7 @@
     *read-eval*
     *read-suppress*
     ))
-  
+
 (defun thread-local-default-bindings ()
   (let (local)
     (dolist (var +default-thread-local-variables+ local)
@@ -738,10 +738,10 @@
 ;; mkcl doesn't have weak pointers
 (defimplementation spawn (fn &key name initial-bindings)
   (let* ((local-defaults (thread-local-default-bindings))
-         (thread 
+         (thread
           ;;(mt:make-thread :name name)
           (mt:make-thread :name name
-                          :initial-bindings (nconc initial-bindings 
+                          :initial-bindings (nconc initial-bindings
                                                    local-defaults))
            )
          (id (next-thread-id)))
@@ -897,7 +897,7 @@
          (setf (mailbox.locked-by mbox) mt:*thread*)
          (let* ((q (mailbox.queue mbox))
                 (tail (member-if test q)))
-           (when tail 
+           (when tail
              (setf (mailbox.queue mbox) (nconc (ldiff q tail) (cdr tail)))
              (setf (mailbox.locked-by mbox) nil)
              ;;(format t "~&thread ~S received: ~S~%" mt:*thread* (car tail))
@@ -932,4 +932,3 @@
   (mt:semaphore-wait *inferior-lisp-sleeping-post*)
   (mk-ext:quit :verbose t)
   )
-

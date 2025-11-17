@@ -21,7 +21,7 @@
 ;;; 2. Altered source versions must be plainly marked as such, and must
 ;;;    not be misrepresented as being the original software.
 ;;;
-;;; 3. This notice may not be removed or altered from any source 
+;;; 3. This notice may not be removed or altered from any source
 ;;;    distribution.
 ;;;
 ;;; Notes
@@ -53,7 +53,7 @@
 ;;; * apropos/describe
 ;;; * Debugger
 ;;; * Inspector
-;;; 
+;;;
 ;;; TODO
 ;;; ====
 ;;; * More debugger functionality (missing bits: restart-frame,
@@ -78,7 +78,7 @@
 
 (defclass slynk-mop:standard-slot-definition ()
   ()
-  (:documentation 
+  (:documentation
    "Dummy class created so that slynk.lisp will compile and load."))
 
 (defun named-by-gensym-p (c)
@@ -169,10 +169,10 @@
                           (make-frame :function nil)
                           (loop for i from db::*debug-min-level*
                              upto db::*debug-max-level*
-                             until (eq (db::get-frame-function i) 
+                             until (eq (db::get-frame-function i)
 				       cl::*top-level*)
                              collect
-                               (make-frame 
+                               (make-frame
 				:function (db::get-frame-function i)
 				:address (db::get-frame-address i))))
                          :key #'frame-function)))))
@@ -217,7 +217,7 @@
 (defun break (&optional (format-control "Break") &rest format-arguments)
   (with-simple-restart (continue "Return from BREAK.")
     (let ();(*debugger-hook* nil))
-      (let ((condition 
+      (let ((condition
 	     (make-condition 'simple-condition
 			     :format-control format-control
 			     :format-arguments format-arguments)))
@@ -259,7 +259,7 @@
 
 (defimplementation set-default-directory (directory)
   (setf (ccl:current-directory) directory)
-  (directory-namestring (setf *default-pathname-defaults* 
+  (directory-namestring (setf *default-pathname-defaults*
                               (truename (merge-pathnames directory)))))
 
 (defimplementation default-directory ()
@@ -282,9 +282,9 @@
                                               ccl:*cormanlisp-directory*))))
               (make-location (list :file (namestring truename))
                              (if (ccl::function-source-line fspec)
-                                 (list :line 
+                                 (list :line
 				       (1+ (ccl::function-source-line fspec)))
-                                 (list :function-name 
+                                 (list :function-name
 				       (princ-to-string
 					(function-name fspec))))))
           (error (c) (list :error (princ-to-string c))))
@@ -331,14 +331,14 @@
 
 (defimplementation describe-definition (symbol namespace)
   (ecase namespace
-    (:variable 
+    (:variable
      (describe symbol))
     ((:function :generic-function)
      (describe (symbol-function symbol)))
     (:class
      (describe (find-class symbol)))))
 
-;;; Compiler 
+;;; Compiler
 
 (defvar *buffer-name* nil)
 (defvar *buffer-position*)
@@ -365,7 +365,7 @@
                                          (list :error "No location")))))))
     (funcall fn)))
 
-(defimplementation slynk-compile-file (input-file output-file 
+(defimplementation slynk-compile-file (input-file output-file
 				       load-p external-format
                                        &key policy)
   (declare (ignore external-format policy))
@@ -400,7 +400,7 @@
               collect ", ")))
 
 (defmethod emacs-inspect ((class standard-class))
-  `("Name: " 
+  `("Name: "
     (:value ,(class-name class))
     (:newline)
     "Super classes: "
@@ -410,8 +410,8 @@
     ,@(comma-separated
        (slynk-mop:class-direct-slots class)
        (lambda (slot)
-	 `(:value ,slot 
-		  ,(princ-to-string 
+	 `(:value ,slot
+		  ,(princ-to-string
 		    (slynk-mop:slot-definition-name slot)))))
     (:newline)
     "Effective Slots: "
@@ -432,10 +432,10 @@
     (:newline)
     "Precedence List: "
     ,@(if (slynk-mop:class-finalized-p class)
-	  (comma-separated 
+	  (comma-separated
 	   (slynk-mop:class-precedence-list class)
 	   (lambda (class)
-	     `(:value ,class 
+	     `(:value ,class
 		      ,(princ-to-string (class-name class)))))
 	  '("#<N/A (class not finalized)>"))
     (:newline)))
@@ -446,23 +446,23 @@
       `("Name: " (:value ,(slynk-mop:slot-definition-name slot))
 		 (:newline)
 		 ,@(when (slynk-mop:slot-definition-documentation slot)
-			 `("Documentation:"  
+			 `("Documentation:"
 			   (:newline)
-			   (:value 
+			   (:value
 			    ,(slynk-mop:slot-definition-documentation slot))
 			   (:newline)))
-		 "Init args: " (:value 
+		 "Init args: " (:value
 				,(slynk-mop:slot-definition-initargs slot))
 		 (:newline)
 		 "Init form: "
 		 ,(if (slynk-mop:slot-definition-initfunction slot)
 		      `(:value ,(slynk-mop:slot-definition-initform slot))
 		      "#<unspecified>") (:newline)
-		      "Init function: " 
+		      "Init function: "
 		      (:value ,(slynk-mop:slot-definition-initfunction slot))
 		      (:newline))
       (call-next-method)))
-  
+
 (defmethod emacs-inspect ((pathname pathnames::pathname-internal))
   (list*  (if (wild-pathname-p pathname)
               "A wild pathname."
@@ -500,7 +500,7 @@
 
 (require 'threads)
 
-(defstruct (mailbox (:conc-name mailbox.)) 
+(defstruct (mailbox (:conc-name mailbox.))
   thread
   (lock (make-instance 'threads:critical-section))
   (queue '() :type list))
@@ -514,7 +514,7 @@
 
 (defimplementation spawn (fun &key name)
   (declare (ignore name))
-  (th:create-thread 
+  (th:create-thread
    (lambda ()
      (handler-bind ((serious-condition #'invoke-debugger))
        (unwind-protect (funcall fun)
@@ -558,7 +558,7 @@
 
 (defimplementation receive ()
   (let ((mbox (mailbox cormanlisp:*current-thread-id*)))
-    (loop 
+    (loop
      (with-lock (mailbox.lock mbox)
        (when (mailbox.queue mbox)
 	 (return (pop (mailbox.queue mbox)))))

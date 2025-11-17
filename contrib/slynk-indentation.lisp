@@ -1,9 +1,9 @@
 (in-package :slynk)
 
 (defvar *application-hints-tables* '()
-  "A list of hash tables mapping symbols to indentation hints (lists 
-of symbols and numbers as per cl-indent.el). Applications can add hash 
-tables to the list to change the auto indentation sly sends to 
+  "A list of hash tables mapping symbols to indentation hints (lists
+of symbols and numbers as per cl-indent.el). Applications can add hash
+tables to the list to change the auto indentation sly sends to
 emacs.")
 
 (defun has-application-indentation-hint-p (symbol)
@@ -28,7 +28,7 @@ emacs.")
 
 ;;; override slynk version of this function
 (defun symbol-indentation (symbol)
-  "Return a form describing the indentation of SYMBOL. 
+  "Return a form describing the indentation of SYMBOL.
 
 The form is to be used as the `sly-common-lisp-indent-function' property
 in Emacs."

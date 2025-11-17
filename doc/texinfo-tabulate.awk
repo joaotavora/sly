@@ -18,4 +18,3 @@ BEGIN {
   else                   printf(" @tab %s", $0); }
 
 END { printf("\n@end multitable\n"); }
-

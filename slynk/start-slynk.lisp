@@ -13,7 +13,7 @@
 (slynk-loader:init
  :delete nil         ; delete any existing SLYNK packages
  :reload nil)        ; reload SLYNK, even if the SLYNK package already exists
- 
+
 
 (slynk:create-server :port 4005
                      ;; if non-nil the connection won't be closed

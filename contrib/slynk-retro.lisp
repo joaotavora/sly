@@ -39,5 +39,3 @@
         (load-swankrcs-maybe)))
 
 (provide :slynk/retro)
-
-

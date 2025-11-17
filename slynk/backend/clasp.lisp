@@ -97,7 +97,7 @@
                                                   ((nil) :none)
                                                   (:line :line))
                                      :element-type (if external-format
-                                                       'character 
+                                                       'character
                                                        '(unsigned-byte 8))
                                      :external-format external-format))
 (defun accept (socket)
@@ -115,7 +115,7 @@
 
 (defvar *external-format-to-coding-system*
   '((:latin-1
-     "latin-1" "latin-1-unix" "iso-latin-1-unix" 
+     "latin-1" "latin-1-unix" "iso-latin-1-unix"
      "iso-8859-1" "iso-8859-1-unix")
     (:utf-8 "utf-8" "utf-8-unix")))
 
@@ -208,7 +208,7 @@
              (timeout (return (poll-streams streams 0)))
              (t
               (when-let (ready (poll-streams streams 0.2))
-                        (return ready))))))  
+                        (return ready))))))
 
 ) ; #+serve-event (progn ...
 
@@ -685,7 +685,7 @@
            (mutex (mailbox.mutex mbox)))
       (mp:with-lock (mutex)
         (mp:condition-variable-broadcast (mailbox.cvar mbox)))))
-  
+
   (defimplementation send (thread message)
     (let* ((mbox (mailbox thread))
            (mutex (mailbox.mutex mbox)))
@@ -694,7 +694,7 @@
               (nconc (mailbox.queue mbox) (list message)))
         (mp:condition-variable-broadcast (mailbox.cvar mbox)))))
 
-  
+
   (defimplementation receive-if (test &optional timeout)
     (let* ((mbox (mailbox (current-thread)))
            (mutex (mailbox.mutex mbox)))
@@ -707,7 +707,7 @@
              (when tail
                (setf (mailbox.queue mbox) (nconc (ldiff q tail) (cdr tail)))
                (return (car tail))))
-           (when (eq timeout t) (return (values nil t))) 
+           (when (eq timeout t) (return (values nil t)))
            (mp:condition-variable-wait (mailbox.cvar mbox) mutex) ; timedwait 0.2
            (sys:check-pending-interrupts)))))
 

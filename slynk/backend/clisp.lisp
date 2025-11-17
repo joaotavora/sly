@@ -122,35 +122,35 @@
           (cond ((and (not directoryp) (last path))
                  (let* ((file (car (last path)))
                         (pos (position #\. file :from-end t)))
-                   (cond ((and pos (> pos 0)) 
+                   (cond ((and pos (> pos 0))
                           (values (subseq file 0 pos)
                                   (subseq file (1+ pos))))
                          (t file)))))
         (make-pathname :host nil
                        :device nil
-                       :directory (cons 
+                       :directory (cons
                                    (if absolute :absolute :relative)
-                                   (let ((path (if directoryp 
-                                                   path 
+                                   (let ((path (if directoryp
+                                                   path
                                                    (butlast path))))
                                      (if drive
-                                         (cons 
+                                         (cons
                                           (regexp:match-string string drive)
                                           path)
                                          path)))
-                       :name file 
+                       :name file
                        :type type)))))
 
-;;;; UTF 
+;;;; UTF
 
 (defimplementation string-to-utf8 (string)
-  (let ((enc (load-time-value 
+  (let ((enc (load-time-value
               (ext:make-encoding :charset "utf-8" :line-terminator :unix)
               t)))
     (ext:convert-string-to-bytes string enc)))
 
 (defimplementation utf8-to-string (octets)
-  (let ((enc (load-time-value 
+  (let ((enc (load-time-value
               (ext:make-encoding :charset "utf-8" :line-terminator :unix)
               t)))
     (ext:convert-string-from-bytes octets enc)))
@@ -171,7 +171,7 @@
   (declare (ignore buffering timeout))
   (socket:socket-accept socket
                         :buffered buffering ;; XXX may not work if t
-                        :element-type (if external-format 
+                        :element-type (if external-format
                                           'character
                                           '(unsigned-byte 8))
                         :external-format (or external-format :default)))
@@ -342,10 +342,10 @@ Return NIL if the symbol is unbound."
       (fspec-pathname fspec)
     (list (if type (list name type) name)
 	  (cond (file
-		 (multiple-value-bind (truename c) 
+		 (multiple-value-bind (truename c)
                      (ignore-errors (truename file))
 		   (cond (truename
-			  (make-location 
+			  (make-location
                            (list :file (namestring truename))
                            (if (consp lines)
                                (list* :line lines)
@@ -353,12 +353,12 @@ Return NIL if the symbol is unbound."
                            (when (consp type)
                              (list :snippet (format nil "~A" type)))))
 			 (t (list :error (princ-to-string c))))))
-		(t (list :error 
+		(t (list :error
                          (format nil "No source information available for: ~S"
                                  fspec)))))))
 
 (defimplementation find-definitions (name)
-  (mapcar #'(lambda (e) (fspec-location name e)) 
+  (mapcar #'(lambda (e) (fspec-location name e))
           (documentation name 'sys::file)))
 
 (defun trim-whitespace (string)
@@ -682,12 +682,12 @@ Execute BODY with NAME's function slot set to FUNCTION."
   (with-compilation-hooks ()
     (with-compilation-unit ()
       (multiple-value-bind (fasl-file warningsp failurep)
-          (compile-file input-file 
+          (compile-file input-file
                         :output-file output-file
                         :external-format external-format)
         (values fasl-file warningsp
-                (or failurep 
-                    (and load-p 
+                (or failurep
+                    (and load-p
                          (not (load fasl-file)))))))))
 
 (defimplementation slynk-compile-string (string &key buffer position filename
@@ -793,7 +793,7 @@ Execute BODY with NAME's function slot set to FUNCTION."
 ;;;
 ;;; Clisp 2.48 added experimental support for threads. Basically, you
 ;;; can use :SPAWN now, BUT:
-;;; 
+;;;
 ;;;   - there are problems with GC, and threads stuffed into weak
 ;;;     hash-tables as is the case for *THREAD-PLIST-TABLE*.
 ;;;
@@ -810,7 +810,7 @@ Execute BODY with NAME's function slot set to FUNCTION."
 ;;;
 ;;; TCR (2009-07-30)
 
-#+#.(cl:if (cl:find-package "MP") '(:and) '(:or)) 
+#+#.(cl:if (cl:find-package "MP") '(:and) '(:or))
 (progn
   (defimplementation spawn (fn &key name)
     (mp:make-thread fn :name name))
@@ -899,12 +899,12 @@ Execute BODY with NAME's function slot set to FUNCTION."
        (mp:with-mutex-lock (lock)
          (let* ((q (mailbox.queue mbox))
                 (tail (member-if test q)))
-           (when tail 
+           (when tail
              (setf (mailbox.queue mbox) (nconc (ldiff q tail) (cdr tail)))
              (return (car tail))))
          (when (eq timeout t) (return (values nil t)))
          (mp:exemption-wait (mailbox.waitqueue mbox) lock :timeout 0.2))))))
- 
+
 
 ;;;; Weak hashtables
 
@@ -915,7 +915,7 @@ Execute BODY with NAME's function slot set to FUNCTION."
   (apply #'make-hash-table :weak :value args))
 
 (defimplementation save-image (filename &optional restart-function)
-  (let ((args `(,filename 
-                ,@(if restart-function 
+  (let ((args `(,filename
+                ,@(if restart-function
                       `((:init-function ,restart-function))))))
     (apply #'ext:saveinitmem args)))

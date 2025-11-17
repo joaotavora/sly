@@ -7,7 +7,7 @@
 
 (cl-defun sly-mrepl-tests--assert-prompt (&optional (prompt "CL-USER>"))
   (let ((proper-prompt-p nil))
-    (cl-loop 
+    (cl-loop
      repeat 5
      when (looking-back (format "%s $" prompt) (- (point) 100))
      do (setq proper-prompt-p t)
@@ -22,7 +22,7 @@
 
 (defun sly-mrepl-tests--assert-dedicated-stream ()
   (let ((dedicated-stream nil))
-    (cl-loop 
+    (cl-loop
      repeat 5
      when (and sly-mrepl--dedicated-stream
                (processp sly-mrepl--dedicated-stream)

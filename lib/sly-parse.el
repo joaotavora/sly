@@ -70,7 +70,7 @@ that the character is not escaped."
 (defconst sly-cursor-marker 'slynk::%cursor-marker%)
 
 ;; FIXME: stop this madness and just use `syntax-ppss'
-;; 
+;;
 (defun sly-parse-form-upto-point (&optional max-levels)
   (save-restriction
     (let ((ppss (syntax-ppss)))
@@ -345,7 +345,7 @@ form to the atom at point, or nil if we're in front of a tlf."
 
 
 ;;; Compile hotspots
-;;; 
+;;;
 (sly-byte-compile-hotspots
  '(sly-parse-form-upto-point
    sly-parse-form-until

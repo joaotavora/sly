@@ -1423,7 +1423,7 @@ A utility for debugging DEBUG-FUNCTION-ARGLIST."
 (defimplementation quit-lisp ()
   (ext::quit))
 
-;;; source-path-{stream,file,string,etc}-position moved into 
+;;; source-path-{stream,file,string,etc}-position moved into
 ;;; slynk-source-path-parser
 
 

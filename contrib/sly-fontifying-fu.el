@@ -195,7 +195,7 @@ position, or nil."
 
 
 ;;; Compile hotspots
-;;; 
+;;;
 (sly-byte-compile-hotspots
  '(sly-extend-region-for-font-lock
    sly-compute-region-for-font-lock

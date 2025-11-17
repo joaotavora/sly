@@ -559,7 +559,7 @@ Estimated total monitoring overhead: 0.88 seconds
   (multiple-value-bind (arglist foundp)
       (core:function-lambda-list name)
     (if foundp
-        (let ((position-and 
+        (let ((position-and
                (position-if #'(lambda (x)
                                 (and (symbolp x)
                                      (let ((name (symbol-name x)))
@@ -1231,5 +1231,3 @@ Time      Cons~
                                        :key #'m-info-cons-per-call)))))
 
 ;;; *END OF FILE*
-
-

@@ -134,7 +134,7 @@ Calling `sly-mrepl` interactively, either via `M-x` or
  window. Accessing the REPL indirectly (by returning objects into it
  form other modes) attempts to pop the buffer in another window.
 
-A problem encoutered by Zach Beane. 
+A problem encoutered by Zach Beane.
 
 ### Travis CI infrastructure has been revamped
 
@@ -194,7 +194,7 @@ SLY 1.0.0-beta-2 (March 2016)
 There is now updated documentation for this contrib. See
 https://joaotavora.github.io/sly/#SLY-Stickers
 
-Added a menu to help discover the functionality. 
+Added a menu to help discover the functionality.
 
 Use `M-x sly-stickers-toggle-break-on-stickers` to turn on stepping
 for forms. The debugger pops up with useful restarts and interactive
@@ -231,9 +231,9 @@ this. A suggestion of Javier Olaechea (github #53)
 SLYNK:TO-LINE
   Function: Print OBJECT to a single line. Return the string.
   Arglist: (OBJECT &OPTIONAL WIDTH)
-...  
+...
 ```
-  
+
 `M-- sly-apropos` prompts for just the package. A suggestion of Javier
 Olaechea (github #53).
 
@@ -449,7 +449,7 @@ For details on the architecture of these changes, see the "Swank is
 now called Slynk" in the CONTRIBUTING.md.
 
 Thanks to Zach Beane for the great name.
-    
+
 ### On par with SLIME 2.10.1
 
 Where applicable, SLY tracks bugfixes and improvements contributed to
@@ -571,7 +571,7 @@ streams are kept. An idea by Olof-Joachim Frahm
 ### Copy function call to REPL
 
 An experimental feature: from the Trace Dialog or SLY-DB buffers, a
-new button action called "Copy call to REPL" is offered and bound to 
+new button action called "Copy call to REPL" is offered and bound to
 
 If SLY can calculate the arguments and the function symbol of the
 function call represented in the backtrace of trace entry, it will

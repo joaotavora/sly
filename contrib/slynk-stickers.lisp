@@ -98,7 +98,7 @@ stickers in DEAD-STICKERS are killed. NEW-STICKERS are not necessarily
 \"new\" in the sense that the ids are not assigned by Slynk, but
 their ignore-spec is reset nonetheless."
   ;; Dead stickers are unconditionally removed from *stickers*
-  ;; 
+  ;;
   (kill-stickers dead-stickers)
   (let ((probe
           (handler-case
