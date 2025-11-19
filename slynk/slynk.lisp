@@ -462,11 +462,11 @@ The list of patterns is searched for a HEAD `eq' to the car of
 VALUE. If one is found, the BODY is executed with ARGS bound to the
 corresponding values in the CDR of VALUE."
   (let ((operator (gensym "op-"))
-	(operands (gensym "rand-"))
-	(tmp (gensym "tmp-")))
+        (operands (gensym "rand-"))
+        (tmp (gensym "tmp-")))
     `(let* ((,tmp ,value)
-	    (,operator (car ,tmp))
-	    (,operands (cdr ,tmp)))
+            (,operator (car ,tmp))
+            (,operands (cdr ,tmp)))
        (case ,operator
          ,@(loop for (pattern . body) in patterns collect
                  (if (eq pattern t)
@@ -703,7 +703,7 @@ corresponding values in the CDR of VALUE."
              (with-slynk-error-handler (connection)
                (with-default-listener (connection)
                  (call-with-debugger-hook #'slynk-debugger-hook
-                                          function))))))))
+                  function))))))))
 
 (defun call-with-retry-restart (msg thunk)
   (loop (with-simple-restart (retry "~a" msg)
@@ -1417,10 +1417,10 @@ event was found."
 ;;; FIXME: Make this use SLYNK-MATCH.
 (defun event-match-p (event pattern)
   (cond ((or (keywordp pattern) (numberp pattern) (stringp pattern)
-	     (member pattern '(nil t)))
-	 (equal event pattern))
-	((symbolp pattern) t)
-	((consp pattern)
+             (member pattern '(nil t)))
+         (equal event pattern))
+        ((symbolp pattern) t)
+        ((consp pattern)
          (case (car pattern)
            ((or) (some (lambda (p) (event-match-p event p)) (cdr pattern)))
            (t (and (consp event)
@@ -1640,13 +1640,13 @@ converted to lower case."
         (t
          (force-output)
          (let ((tag (make-tag)))
-	   (send-to-emacs `(:eval ,(current-thread-id) ,tag
-				  ,(process-form-for-emacs form)))
-	   (let ((value (caddr (wait-for-event `(:emacs-return ,tag result)))))
-	     (destructure-case value
-	       ((:ok value) value)
+           (send-to-emacs `(:eval ,(current-thread-id) ,tag
+                                  ,(process-form-for-emacs form)))
+           (let ((value (caddr (wait-for-event `(:emacs-return ,tag result)))))
+             (destructure-case value
+               ((:ok value) value)
                ((:error kind . data) (error "~a: ~{~a~}" kind data))
-	       ((:abort) (abort))))))))
+               ((:abort) (abort))))))))
 
 (defun sly-version-string ()
   "Return a string identifying the SLY version.
@@ -1852,9 +1852,9 @@ considered to represent a symbol internal to some current package.)"
   (untokenize-symbol \"quux\" t \"foo\")   ==> \"quux::foo\"
   (untokenize-symbol nil nil \"foo\")    ==> \"foo\"
 "
-  (cond ((not package-name) 	symbol-name)
-        (internal-p 		(cat package-name "::" symbol-name))
-        (t 			(cat package-name ":" symbol-name))))
+  (cond ((not package-name)     symbol-name)
+        (internal-p             (cat package-name "::" symbol-name))
+        (t                      (cat package-name ":" symbol-name))))
 
 (defun char-casifier (string)
   "Return a function which converts characters in STRING according to `readtable-case'."
@@ -1944,7 +1944,8 @@ Fall back to the current if no such package exists."
   (or (and string (guess-package string))
       *package*))
 
-(defvar *eval-for-emacs-wrappers* nil
+(defvar *eval-for-emacs-wrappers*
+  (list 'wrap-to-allow-user-debugger-hooks)
   "List of functions for fine-grained control over form evaluation.
 Each element must be a function taking an arbitrary number of
 arguments, the first of which is a function of no arguments, call it
@@ -2415,6 +2416,29 @@ at least SECONDS."
 
 
 ;;;; Debugger
+
+(defvar *debugger-hook-override* nil
+  "When non-nil, Slynk will make sure that this function is used as the
+`*debugger-hook*'. It should be automatically set by an
+`eval-for-emacs' wrapper function such as
+`wrap-to-allow-user-debugger-hooks'.")
+
+(defun wrap-to-allow-user-debugger-hooks (in-function &rest extra-rex-options)
+  "If evaluating `in-function' causes the `*debugger-hook*' to change,
+make certain that Slynk respects this change. This allows end-users to
+roll their own `*debugger-hook*' at the top-level."
+  (flet ((out-function ()
+           (let* ((*debugger-hook*
+                    (or *debugger-hook-override* *debugger-hook*))
+                  (*debugger-hook-before* *debugger-hook*))
+             (prog1
+                 (funcall in-function)
+               (let ((*debugger-hook-after* *debugger-hook*))
+                 (when (not (eq *debugger-hook-before*
+                                *debugger-hook-after*))
+                   (setf *debugger-hook-override*
+                         *debugger-hook-after*)))))))
+    #'out-function))
 
 (defun invoke-sly-debugger (condition)
   "Sends a message to Emacs declaring that the debugger has been entered,
