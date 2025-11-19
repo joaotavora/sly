@@ -122,7 +122,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 
 (define-minor-mode sly-trace-dialog-hide-details-mode
   "Hide details in `sly-trace-dialog-mode'"
-  nil " Brief"
+  :lighter " Brief"
   :group 'sly-trace-dialog
   (unless (derived-mode-p 'sly-trace-dialog-mode)
     (error "Not a SLY Trace Dialog buffer"))
@@ -130,7 +130,7 @@ inspecting details of traced functions. Invoke this dialog with C-c T."
 
 (define-minor-mode sly-trace-dialog-autofollow-mode
   "Automatically inspect trace entries from `sly-trace-dialog-mode'"
-  nil " Autofollow"
+  :lighter " Autofollow"
   :group 'sly-trace-dialog
   (unless (derived-mode-p 'sly-trace-dialog-mode)
     (error "Not a SLY Trace Dialog buffer")))
