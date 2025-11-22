@@ -1498,6 +1498,11 @@ Fall back to `sly-init-using-slynk-loader' if ASDF fails."
              (sly-user-first-name)))
   "Scientifically-proven optimal words of hackerish encouragement.")
 
+(defcustom sly-show-words-of-encouragement t
+  "If non-nil, show words of encouragement on connection."
+  :type 'boolean
+  :group 'sly-ui)
+
 (defun sly-random-words-of-encouragement ()
   "Return a string of hackerish encouragement."
   (eval (nth (random (length sly-words-of-encouragement))
@@ -2028,7 +2033,9 @@ This is automatically synchronized from Lisp.")
           (sly--trampling-rename-buffer (sly-buffer-name
                                          :inferior-lisp
                                          :connection connection)))))
-    (sly-message "Connected. %s" (sly-random-words-of-encouragement))))
+    (sly-message "Connected. %s" (if sly-show-words-of-encouragement
+                                     (sly-random-words-of-encouragement)
+                                   ""))))
 
 (defun sly-check-version (version conn)
   (or (equal version sly-protocol-version)
