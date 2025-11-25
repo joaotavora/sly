@@ -4213,7 +4213,7 @@ kill ring."
                   (if string-or-comment-p "" " => ")
                   value)
           (unless string-or-comment-p
-            (comment-region start (point))))))))
+            (comment-region start (point) 1)))))))
 
 (defun sly-eval-save (string)
   "Evaluate STRING in Lisp and save the result in the kill ring."
