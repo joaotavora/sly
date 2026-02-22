@@ -912,8 +912,14 @@ used to do this by default."
                   (setq calculated (list indent containing-form-start)))))
 
             (cond ((and (or (eq (char-after (1- sly--lisp-indent-containing-sexp)) ?\')
-                            (and (not sly-lisp-backquote-indentation)
-                                 (eq (char-after (1- sly--lisp-indent-containing-sexp)) ?\`)))
+                            (and (eq (char-after (1- sly--lisp-indent-containing-sexp)) ?\`)
+                                 (if sly-lisp-backquote-indentation
+                                     ;; `("foo" ...) is not valid Lisp,
+                                     ;; indent it as data.
+                                     (save-excursion
+                                       (goto-char sly--lisp-indent-containing-sexp)
+                                       (looking-at "\\s-*(\\s-*\""))
+                                   t)))
                         (not (eq (char-after (- sly--lisp-indent-containing-sexp 2)) ?\#)))
                    ;; No indentation for "'(...)" elements
                    (setq calculated (1+ sexp-column)))
