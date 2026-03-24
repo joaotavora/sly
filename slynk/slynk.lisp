@@ -2685,7 +2685,7 @@ Operation was KERNEL::DIVISION, operands (1 0).\"
                             :format-arguments args))
     (symbol (apply #'make-condition datum args))))
 
-(defslyfun simple-break (&optional (datum "Interrupt from Emacs") &rest args)
+(defslyfun simple-break (&optional (datum "Interrupt from client") &rest args)
   (with-simple-restart (continue "Continue from break.")
     (invoke-sly-debugger (coerce-to-condition datum args))))
 
