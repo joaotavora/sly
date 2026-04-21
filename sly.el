@@ -4796,7 +4796,7 @@ source-location."
                      "\n")
                     (add-text-properties start (point) (list 'sly-location location))))
   ;; Remove the final newline to prevent accidental window-scrolling
-  (backward-delete-char 1))
+  (delete-char -1))
 
 (defun sly-xref-next-line (arg)
   (interactive "p")
@@ -6688,7 +6688,7 @@ buffer should be switched to (defaults to t)"
                              `(sly-inspector-fontify ,face ,string)))
         (insert (sly-inspector-part-button title id 'skip t))
         (while (eq (char-before) ?\n)
-          (backward-delete-char 1))
+          (delete-char -1))
         (insert "\n" (fontify label "--------------------") "\n")
         (save-excursion
           (sly-inspector-insert-content content))
