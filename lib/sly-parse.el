@@ -201,6 +201,14 @@ For other contexts we return the symbol at point."
            `(:defstruct ,(if (consp name)
                              (car name)
                            name)))
+          ((save-excursion
+            (sly-beginning-of-list)
+            (let ((symbol (read (current-buffer))))
+              (when (and (symbolp symbol)
+                         (let ((case-fold-search t))
+                           (string-match-p "\\`\\(?:[^:[:space:]]+::?\\)?def"
+                                           (symbol-name symbol))))
+                `(:def ,name)))))
           (t
            name))))
 
@@ -294,9 +302,10 @@ Point is placed before the first expression in the list."
 
 (defun sly-definition-at-point (&optional only-functional)
   "Return object corresponding to the definition at point."
-  (let* ((functional '(:defun :defgeneric :defmethod :defmacro :define-compiler-macro))
+  (let* ((functional '(:defun :defgeneric :defmethod :defmacro :define-compiler-macro :def))
          (all '(:defun :defgeneric :defmacro :define-modify-macro :define-compiler-macro
-                :defmethod :defparameter :defvar :defconstant :defclass :defstruct :defpackage))
+                :defmethod :defparameter :defvar :defconstant :defclass :defstruct :defpackage
+                :def))
          (toplevel (sly-parse-toplevel-form (if only-functional
                                                 functional
                                                 all))))
@@ -305,7 +314,7 @@ Point is placed before the first expression in the list."
                  (not (member (car toplevel) functional))))
         (error "Not in a definition")
       (sly-dcase toplevel
-        (((:defun :defgeneric) symbol)
+        (((:defun :defgeneric :def) symbol)
          (format "#'%s" symbol))
         (((:defmacro :define-modify-macro) symbol)
          (format "(macro-function '%s)" symbol))
