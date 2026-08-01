@@ -1,4 +1,4 @@
-;;; sly-autoloads.el --- autoload definitions for SLY -*- no-byte-compile: t -*-
+;;; sly-autoloads.el --- autoload definitions for SLY -*- no-byte-compile: t; lexical-binding: t; -*-
 
 ;; Copyright (C) 2007  Helmut Eller
 ;; Copyright (C) 2014-2020  João Távora
