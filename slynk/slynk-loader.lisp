@@ -49,11 +49,12 @@
   #+ecl '(slynk-source-path-parser slynk-source-file-cache
           (backend ecl))
   #+clasp '(metering (backend clasp))
+  #+dotcl '((backend dotcl))
   #+mkcl '((backend mkcl)))
 
 (defparameter *implementation-features*
   '(:allegro :lispworks :sbcl :clozure :cmu :clisp :ccl :corman :cormanlisp
-    :armedbear :gcl :ecl :scl :mkcl :clasp))
+    :armedbear :gcl :ecl :scl :mkcl :clasp :dotcl))
 
 (defparameter *os-features*
   '(:macosx :linux :windows :mswindows :win32 :solaris :darwin :sunos :hpux
@@ -105,6 +106,7 @@
   #+armedbear (lisp-implementation-version)
   #+ecl (ecl-version-string)
   #+clasp (clasp-version-string)
+  #+dotcl (lisp-implementation-version)
   )
 
 (defun unique-dir-name ()
