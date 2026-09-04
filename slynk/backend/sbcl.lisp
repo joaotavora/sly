@@ -2152,3 +2152,9 @@ stack."
                                  (t (unread-char n s)))
                                (list 'comma (read s t nil t))))
                        t rt))
+
+#+#.(slynk-backend:with-symbol 'unencapsulated-function 'sb-ext)
+(defimplementation unencapsulated-function (function)
+  (if (functionp function)
+      (sb-ext:unencapsulated-function function)
+      function))

@@ -1707,3 +1707,7 @@ to be passed to the FIND-SOURCE-LOCATION interface."
 The source-path parser uses this where the implementation's own
 backquote objects don't map to source paths.  By default do nothing."
   (declare (ignore rt)))
+
+(definterface unencapsulated-function (function)
+  "Return FUNCTION without encapsulations like tracing."
+  function)

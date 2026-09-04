@@ -3137,7 +3137,7 @@ designator. Returns a list of all modules available."
                          (or #+#.(slynk-backend:with-symbol '%method-function-fast-function 'sb-pcl)
                              (sb-pcl::%method-function-fast-function (slynk-mop:method-function definition))
                              (slynk-mop:method-generic-function definition))
-                         definition))))))
+                         (unencapsulated-function definition)))))))
 
 
 ;;;; Simple arglist display
@@ -3574,7 +3574,7 @@ SPECIALIZERS), in which case return that method."
 (defslyfun init-inspector (string)
   (with-buffer-syntax ()
     (with-retry-restart (:msg "Retry SLY inspection request.")
-      (inspect-object (find-definition string)))))
+      (inspect-object (unencapsulated-function (find-definition string))))))
 
 (defun inspect-object (o)
   (let* ((inspector (target-inspector))
