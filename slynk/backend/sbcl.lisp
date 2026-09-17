@@ -126,12 +126,19 @@
                                       (t
                                        'sb-bsd-sockets:inet-socket))
                                 :type :stream
-                                :protocol :tcp)))
-    (setf (sb-bsd-sockets:sockopt-reuse-address socket) t)
-    (sb-bsd-sockets:socket-bind socket (sb-bsd-sockets:host-ent-address host-ent) port)
-
-    (sb-bsd-sockets:socket-listen socket (or backlog 5))
-    socket))
+                                :protocol :tcp))
+         (listening nil))
+    (unwind-protect
+         (progn
+           (setf (sb-bsd-sockets:sockopt-reuse-address socket) t)
+           (sb-bsd-sockets:socket-bind socket
+                                       (sb-bsd-sockets:host-ent-address host-ent)
+                                       port)
+           (sb-bsd-sockets:socket-listen socket (or backlog 5))
+           (setq listening t)
+           socket)
+      (unless listening
+        (ignore-errors (sb-bsd-sockets:socket-close socket))))))
 
 (defimplementation local-port (socket)
   (nth-value 1 (sb-bsd-sockets:socket-name socket)))
