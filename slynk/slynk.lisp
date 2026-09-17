@@ -767,7 +767,8 @@ recently established one."
      (sentinel-maybe-exit))))
 
 (defun sentinel-stop-server (key value)
-  (let ((probe (find value *servers* :key (ecase key
+  (let ((probe (find value *servers* :test #'equal
+                                     :key (ecase key
                                             (:socket #'car)
                                             (:port #'cadr)))))
     (cond (probe
@@ -936,15 +937,26 @@ This is the entry point for Emacs."
                         (style *communication-style*)
                         (dont-close *dont-close*)
                         interface
+                        (mode *unix-socket-mode*)
                         backlog)
   "Start a SLYNK server on PORT running in STYLE.
 If DONT-CLOSE is true then the listen socket will accept multiple
 connections, otherwise it will be closed after the first.
 
 Optionally, an INTERFACE could be specified and swank will bind
-the PORT on this interface. By default, interface is \"localhost\"."
+the PORT on this interface. By default, interface is \"localhost\".
+
+INTERFACE may also be a pathname, in which case PORT is ignored and
+the server listens on a unix domain socket at that path, reachable by
+whoever MODE lets connect.  MODE defaults to #o600; NIL leaves it to
+the process umask.  It is applied before the listen, so nothing can
+connect under a wider mode, but the path is visible with one for as
+long as the bind and the change take.
+
+Returns the port number, or the pathname, that STOP-SERVER expects."
   (let ((*loopback-interface* (or interface
-                                  *loopback-interface*)))
+                                  *loopback-interface*))
+        (*unix-socket-mode* mode))
     (setup-server port #'simple-announce-function
                   style dont-close backlog)))
 
@@ -976,7 +988,7 @@ taken."
 (defun setup-server (port announce-fn style dont-close backlog)
   (init-log-output)
   (let* ((socket (socket-quest port backlog))
-         (port (local-port socket)))
+         (port (or (local-port socket) *loopback-interface*)))
     (funcall announce-fn port)
     (labels ((serve () (accept-connections socket style dont-close))
              (note () (send-to-sentinel `(:add-server ,socket ,port
@@ -994,7 +1006,9 @@ taken."
     port))
 
 (defun stop-server (port)
-  "Stop server running on PORT."
+  "Stop server running on PORT.
+PORT is whatever CREATE-SERVER returned: a port number, or the
+pathname of a unix domain socket."
   (send-to-sentinel `(:stop-server :port ,port)))
 
 (defun restart-server (&key (port default-server-port)

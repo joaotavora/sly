@@ -118,7 +118,36 @@
     (first addresses)))
 
 
+#-win32
+(defun create-unix-socket (path backlog)
+  "Bind and listen on a unix domain socket at PATH.
+*UNIX-SOCKET-MODE*, unless it is NIL, is applied between the bind and
+the listen, so nothing can connect to the socket while its mode is
+still the one the process umask gave it.  The path itself is visible
+with that mode for as long as the two calls take."
+  (let ((socket (make-instance 'sb-bsd-sockets:local-socket :type :stream))
+        (bound nil)
+        (listening nil))
+    (unwind-protect
+         (progn
+           (sb-bsd-sockets:socket-bind socket (namestring path))
+           (setq bound t)
+           (when *unix-socket-mode*
+             (sb-posix:chmod (namestring path) *unix-socket-mode*))
+           (sb-bsd-sockets:socket-listen socket (or backlog 5))
+           (setq listening t)
+           socket)
+      (unless listening
+        (ignore-errors (sb-bsd-sockets:socket-close socket))
+        ;; The file at PATH is only ours to remove if the bind is what
+        ;; created it.  A bind that failed found somebody else's.
+        (when bound
+          (ignore-errors (delete-file path)))))))
+
 (defimplementation create-socket (host port &key backlog)
+  #-win32
+  (when (pathnamep host)
+    (return-from create-socket (create-unix-socket host backlog)))
   (let* ((host-ent (resolve-hostname host))
          (socket (make-instance (cond #+#.(slynk-backend:with-symbol 'inet6-socket 'sb-bsd-sockets)
                                       ((eql (sb-bsd-sockets:host-ent-address-type host-ent) 10)
@@ -144,8 +173,13 @@
   (nth-value 1 (sb-bsd-sockets:socket-name socket)))
 
 (defimplementation close-socket (socket)
-  (sb-sys:invalidate-descriptor (socket-fd socket))
-  (sb-bsd-sockets:socket-close socket))
+  (let ((path #-win32 (when (typep socket 'sb-bsd-sockets:local-socket)
+                        (sb-bsd-sockets:socket-name socket))))
+    (sb-sys:invalidate-descriptor (socket-fd socket))
+    (sb-bsd-sockets:socket-close socket)
+    ;; A unix domain socket outlives its listener as a file.
+    (when path
+      (ignore-errors (delete-file path)))))
 
 (defimplementation accept-connection (socket &key
                                       external-format
