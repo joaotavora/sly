@@ -349,11 +349,64 @@ symbol in the Lisp image if possible."
 ;; Dealing with import-from
 ;;
 
+(defun sly-package-fu--move-cursor-left-if-space-or-paren ()
+  (if (or (eq (char-before) ?\s)
+          (eq (char-before) ?\)))
+      (backward-char)))
+
 (defun sly-package-fu--search-import-from (package)
+  "
+Moves cursor from the beginning of the defpackage form to the end of the \":import-from #:foo-bar\"
+string. This function works for these cases:
+
+<cursor>(uiop:define-package #:test-package
+          (:use #:cl)
+          (:import-from #:one #:two)
+          (:import-from #:three-five
+                        #:six)
+          (:import-from #:seven))
+
+When called with package argument equal to \"one\", result would be:
+
+(uiop:define-package #:test-package
+  (:use #:cl)
+  (:import-from #:one<cursor> #:two)
+  (:import-from #:three-five
+                #:six)
+  (:import-from #:seven))
+
+When package is \"two\", then cursor will not move.
+
+When package is \"three\", then cursor will not move.
+
+When package is \"three-four\", then cursor will be moved like this:
+
+(uiop:define-package #:test-package
+  (:use #:cl)
+  (:import-from #:one #:two)
+  (:import-from #:three-four<cursor>
+                #:five)
+  (:import-from #:three))
+
+When package is \"five\", then cursor will not move.
+
+When package is \"three\", then cursor will be moved like this:
+
+(uiop:define-package #:test-package
+  (:use #:cl)
+  (:import-from #:one #:two)
+  (:import-from #:three-four
+                #:five)
+  (:import-from #:three<cursor>))
+
+"
   (let* ((normalized-package (sly-package-fu--normalize-name package))
-         (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s"
-                         (regexp-quote normalized-package))))
-    (re-search-forward regexp nil t)))
+         (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s\\( \\|\t\\|$\\|)\\)"
+                         (regexp-quote normalized-package)))
+         (move-result (re-search-forward regexp nil t)))
+    (when move-result
+      (sly-package-fu--move-cursor-left-if-space-or-paren)
+      (values move-result))))
 
 
 (defun sly-package-fu--create-new-import-from (package symbol)
