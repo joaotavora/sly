@@ -200,8 +200,8 @@
 (defimplementation compute-backtrace (start end)
   (let ((end (or end most-positive-fixnum)))
     (loop for f = (nth-frame start) then (next-frame f)
-	  for i from start below end
-	  while f collect f)))
+          for i from start below end
+          while f collect f)))
 
 (defimplementation print-frame (frame stream)
   (debugger:output-frame stream frame :moderate))
@@ -209,9 +209,9 @@
 (defimplementation frame-locals (index)
   (let ((frame (nth-frame index)))
     (loop for i from 0 below (debugger:frame-number-vars frame)
-	  collect (list :name (debugger:frame-var-name frame i)
-			:id 0
-			:value (debugger:frame-var-value frame i)))))
+          collect (list :name (debugger:frame-var-name frame i)
+                        :id 0
+                        :value (debugger:frame-var-value frame i)))))
 
 (defimplementation frame-arguments (index)
   (let ((frame (nth-frame index)))
