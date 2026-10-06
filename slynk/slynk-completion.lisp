@@ -38,11 +38,21 @@
                       (t (guess-package pname))))
 	   (test (lambda (sym) (prefix-match-p name (symbol-name sym))))
 	   (syms (and pkg (matching-symbols pkg extern test)))
+           ;; get the names of all matching packages
+           (package-strings
+             (unless pname
+               (sort (loop for p in (list-all-packages)
+                           ;; Append ":" to distinguish it as a package completion.
+                           for str = (concatenate 'string (unparse-symbol (make-symbol (package-name p))) ":")
+                           when (prefix-match-p name str)
+                           collect str)
+                     #'string>)))
            (strings (loop for sym in syms
                           for str = (unparse-symbol sym)
                           when (prefix-match-p name str) ; remove |Foo|
                           collect str)))
-      (format-completion-set strings intern pname))))
+      ;; Package completions should come first
+      (concatenate 'list package-strings (format-completion-set strings intern pname)))))
 
 (defun matching-symbols (package external test)
   (let ((test (if external
