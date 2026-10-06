@@ -350,10 +350,15 @@ symbol in the Lisp image if possible."
 ;;
 
 (defun sly-package-fu--search-import-from (package)
+  "Moves point to the end of the package name corresponding to
+the (:IMPORT-FROM) for package. If no such import-from exists,
+returns nil."
   (let* ((normalized-package (sly-package-fu--normalize-name package))
-         (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s"
+         (regexp (format "(:import-from[ \t']*\\(:\\|#:\\)?%s[)[:space:]]"
                          (regexp-quote normalized-package))))
-    (re-search-forward regexp nil t)))
+    (when (re-search-forward regexp nil t)
+      (goto-char (- (point) 1))
+      (point))))
 
 
 (defun sly-package-fu--create-new-import-from (package symbol)
