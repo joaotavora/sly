@@ -1045,7 +1045,7 @@ Here's an example:
 (defcustom sly-default-lisp nil
   "A symbol naming the preferred Lisp implementation.
 See `sly-lisp-implementations'"
-  :type 'function
+  :type 'symbol
   :group 'sly-mode)
 
 ;; dummy definitions for the compiler
