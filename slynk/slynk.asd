@@ -69,7 +69,9 @@
                  #+scl
                  (:file "scl")
                  #+mkcl
-                 (:file "mkcl")))
+                 (:file "mkcl")
+                 #+clamiga
+                 (:file "clamiga")))
    #-armedbear
    (:file "slynk-gray")
    (:file "slynk-rpc")
