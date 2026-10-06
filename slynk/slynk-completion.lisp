@@ -201,7 +201,12 @@ INDEXES as calculated by FLEX-MATCHES."
           (t
            ;; the default: score the whole pattern on the whole
            ;; string.
-           (flex-score-1 string-length indexes)))))
+           (let ((dashes (loop
+                           for i in indexes
+                           count (or (= i 0) (char= #\- (char string (1- i)))))))
+             (+ (flex-score-1 string-length indexes)
+                (* dashes 0.5)
+                (if (find #\: string) 0 1.0)))))))
 
 (defun flex-score-1 (string-length indexes)
   "Does the real work of FLEX-SCORE.
