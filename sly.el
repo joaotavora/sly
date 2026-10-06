@@ -587,7 +587,7 @@ interactive command.\".")
 ;;;###autoload
 (define-minor-mode sly-mode
   "Minor mode for horizontal SLY functionality."
-  nil nil nil
+  :global nil
   ;; Company-mode should have this by default
   ;; See gh#166
   (set (make-local-variable 'company-tooltip-align-annotations) t))
@@ -601,13 +601,13 @@ interactive command.\".")
 ;;;###autoload
 (define-minor-mode sly-editing-mode
   "Minor mode for editing `lisp-mode' buffers."
-  nil nil nil
+  :global nil
   (sly-mode 1)
   (setq-local lisp-indent-function #'sly--lisp-indent-function))
 
 (define-minor-mode sly-popup-buffer-mode
   "Minor mode for all read-only SLY buffers"
-  nil nil nil
+  :global nil
   (sly-mode 1)
   (sly-interactive-buttons-mode 1)
   (setq buffer-read-only t))
@@ -4327,9 +4327,8 @@ in Lisp when committed with \\[sly-edit-value-commit]."
 
 (define-minor-mode sly-edit-value-mode
   "Mode for editing a Lisp value."
-  nil
-  " Edit-Value"
-  '(("\C-c\C-c" . sly-edit-value-commit)))
+  :keymap '(("\C-c\C-c" . sly-edit-value-commit))
+  :lighter " Edit-Value")
 
 (defun sly-edit-value-callback (form-string current-value package)
   (let* ((name (generate-new-buffer-name (format "*Edit %s*" form-string)))
@@ -5042,9 +5041,7 @@ Uses prefix arguments like `sly-compile-defun'."
 
 (define-minor-mode sly-macroexpansion-minor-mode
   "SLY mode for macroexpansion"
-  nil
-  " Macroexpand"
-  nil
+  :lighter " Macroexpand"
   (read-only-mode 1))
 
 (defun sly-macroexpand-undo (&optional arg)

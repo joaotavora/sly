@@ -311,7 +311,7 @@ or leave at `identity' to visit every `sly-button' in the buffer.'")
 
 (define-minor-mode sly-interactive-buttons-mode
   "Minor mode where text property SLY buttons exist"
-  nil nil nil
+  :global nil
   ;; Prevent strings copied from SLY buffers and yanked to source
   ;; buffers to land with misleading `sly-' properties.
   (when (fboundp 'add-function)
