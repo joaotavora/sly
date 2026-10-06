@@ -1414,49 +1414,6 @@ environment\\|more\
           "\\_>")
   "Regexp matching loop macro keywords which introduce body forms.")
 
-;; Not currently used
-(defvar sly--common-lisp-accumulation-loop-macro-keyword
-  (concat "\\(?:\\_<\\|#?:\\)"
-          (regexp-opt '("collect" "collecting"
-                        "append" "appending"
-                        "nconc" "nconcing"
-                        "sum" "summing"
-                        "count" "counting"
-                        "maximize" "maximizing"
-                        "minimize" "minimizing"))
-          "\\_>")
-  "Regexp matching loop macro keywords which introduce accumulation clauses.")
-
-;; This is so "and when" and "else when" get handled right
-;; (not to mention "else do" !!!)
-(defvar sly--common-lisp-prefix-loop-macro-keyword
-  (concat "\\(?:\\_<\\|#?:\\)" (regexp-opt '("and" "else")) "\\_>")
-  "Regexp matching loop macro keywords which are prefixes.")
-
-(defvar sly--common-lisp-indent-clause-joining-loop-macro-keyword
-  "\\(?:\\_<\\|#?:\\)and\\_>"
-  "Regexp matching 'and', and anything else there ever comes to be like it.")
-
-(defvar sly--common-lisp-indent-indented-loop-macro-keyword
-  (concat "\\(?:\\_<\\|#?:\\)"
-          (regexp-opt '("upfrom" "downfrom" "upto" "downto" "below" "above"
-                        "into" "in" "on" "by" "from" "to" "by" "across" "being"
-                        "each" "the" "then" "hash-key" "hash-keys" "hash-value"
-                        "hash-values" "present-symbol" "present-symbols"
-                        "external-symbol" "external-symbols" "using" "symbol"
-                        "symbols" "float" "fixnum" "t" "nil" "of-type" "of" "="))
-          "\\_>")
-  "Regexp matching keywords introducing loop subclauses.
-Always indented two.")
-
-(defvar sly--common-lisp-indenting-loop-macro-keyword
-  (concat "\\(?:\\_<\\|#?:\\)" (regexp-opt '("when" "unless" "if")) "\\_>")
-  "Regexp matching keywords introducing conditional clauses.
-Cause subsequent clauses to be indented.")
-
-(defvar sly--lisp-indent-loop-macro-else-keyword
-  "\\(?:\\_<\\|#?:\\)else\\_>")
-
 ;;; Attempt to indent the loop macro ...
 (defun sly--lisp-indent-loop-part-indentation (indent-point state type)
   "Compute the indentation of loop form constituents."
@@ -1504,121 +1461,314 @@ Cause subsequent clauses to be indented.")
   (unless (eolp)
     (current-column)))
 
+(defun sly--lisp-indent-loop-macro-partial-parse (parse-state indent-point)
+  "Return an alist of the forms and their positions in the current loop.
+Only parse the loop until the line following INDENT-POINT."
+  (save-excursion
+    (goto-char (sly--lisp-indent-parse-state-start parse-state))
+    (forward-symbol 1)
+    (let ((compound-form-regexp
+           (rx (* (or "`" "'" "#'"
+                      ;; This technically fails with ,#() but I don't
+                      ;; care to fix it.  I don't want to limit it to
+                      ;; the default options of `@' and `.' because of
+                      ;; my cl-extended-comma library.
+                      (: "," (? (syntax symbol)))
+                      (: "#" (+ digit) "=")
+                      (: "#" (or "+" "-")) ; #. is in general not possible to evaluate
+                      )
+                  (* space))
+               (group "(")))
+          forms)
+      (catch 'loop-parse
+        (while (and (< (pos-bol) indent-point)
+                    (not (eobp)))
+          (let* ((form-beginning (progn (skip-syntax-forward "->") (point)))
+                 (form-type
+                  (cond
+                   ((looking-at-p (rx (syntax comment-start))) 'comment)
+                   ((looking-at (rx "#" (+ digit) "#"))
+                    (save-excursion
+                      (when (re-search-backward
+                             (rx "#" (literal (match-string 1)) "=")
+                             (nth 9 parse-state) t)
+                        (if (looking-at compound-form-regexp) 'compound 'atomic))))
+                   (t (if (looking-at compound-form-regexp) 'compound 'atomic))))
+                 (form-end
+                  (if (eq form-type 'comment)
+                      (progn (skip-syntax-forward "^>")
+                             (point))
+                    (condition-case e
+                        (scan-sexps (if (eq form-type 'compound) (match-beginning 1) (point)) 1)
+                      (scan-error
+                       (unless (> (point) indent-point)
+                         (apply 'signal e)))))))
+            ;; If form-end is null then we must have no more sexps remaining
+            (when (null form-end)
+              (throw 'loop-parse nil))
+            (push (cons form-beginning
+                        (when (eq form-type 'atomic)
+                          (buffer-substring-no-properties form-beginning form-end)))
+                  forms)
+            (goto-char form-end))))
+      (nreverse forms))))
+
+(defvar sly--lisp-indent-loop-macro-allowed-bodies-alist
+  (let* ((anything t)
+         (compound-form nil)
+         (type-spec '(| '(fixnum float t nil) of-type))
+         (selectable-clause
+          '(| do doing return if when unless
+              collect collecting append appending nconc nconcing
+              count counting sum summing maximize maximizing minimize minimizing)))
+    `((with #1=(: 4 ,anything [,type-spec] 2 [=]) 0 (* ('and &droppable #1#)))
+      ((initially finally do doing) 2 (&inline ,compound-form &droppable (* ,compound-form)))
+      (return 2 ,anything)
+      ((collect collecting append appending nconc nconcing) 2 ,anything [into])
+      ((count counting sum summing maximize maximizing minimize minimizing) 2 ,anything [into] [,type-spec])
+      ((if when unless) 4 ,anything 2 (,selectable-clause (* ('and &droppable 2 ,selectable-clause))) 0 [else] ['end])
+      (else 2 (&inline ,selectable-clause (* ('and &droppable 2 ,selectable-clause))))
+      ((while until repeat always never thereis) 2 ,anything)
+      ((for as) 4 ,anything [,type-spec] 2
+       (| (#2='(from upfrom downfrom to upto downto below above by) (* #2#))
+          (: (| in on) [by])
+          (: = [then])
+          across
+          (: ('being &droppable '(the each)
+                     '( hash-key  hash-value  symbol  present-symbol  external-symbol
+                        hash-keys hash-values symbols present-symbols external-symbols))
+             [(| in of)] [using])))
+      ;; Various one-object subclauses
+      ((= of-type
+          into                          ; Accumulation
+          from upfrom downfrom to upto downto below above ; Arithmetic for-as
+          in on by then across of using ; Miscellaneous for-as
+          )
+       2 ,anything)))
+  "Alist of specs controlling the indentation of LOOP.
+
+Each key is a symbol or a list of symbols, and the value is the contents
+of an implicit droppable body spec.  Each list is of the form (SYMBOLS
+BODY...) and is the equivalent of the spec ('SYMBOLS &droppable BODY...)
+
+A spec object describes how to move forward on an alist of position and
+objects, of the form ((POS . OBJ)...).  OBJ is either nil, corresponding
+to a compound form or comment, or a string containing the written
+representation of some atom.
+
+Some terminology:
+- Each cons cell (POS . OBJ) is referred to as a `form'.
+- The alist ((POS . OBJ)...) is referred to as the `list of forms'.
+- \"Moving forward [by N]\" a list of forms is the equivalent of taking
+  its `nthcdr' by N.
+- When SPEC \"matches [the first N elements]\" of a list of forms,
+  \"moving forward [by SPEC]\" is the equivalent of moving forward by N.
+
+The defined specs are:
+- Anything match: t, `anything' :: Match the first form, regardless of
+  what it is.
+
+- Compound form match: nil, `compound-form' :: Match the first form if
+  it is a compound form or a comment.
+
+- Symbol match: '{SYMBOL | (SYMBOL...)} :: Match the first form if it is
+  a symbol whose name, without the package name, is case-insensitively
+  contained in SYMBOLs.
+
+- Alternation: (| SPEC...) :: Match with the first SPEC which matches.
+
+- Optional match: [SPEC...] :: Move forward by SPECs in order, otherwise
+  match nothing and proceed.  This is equivalent to (: &droppable (:
+  SPEC...)).
+
+- Greedy match: (* SPEC...) :: Move forward by SPECs as though they were
+  in a sequence spec in order repeatedly until it fails.  Match whatever
+  was matched until the failed run of SPECs.
+
+- Sequence match: (: {SPEC | integer | &droppable}...)
+  Match all SPECs in order, each one matching the result of the previous
+  one.  If an integer is present, set the offset relative to the body of
+  all following SPECs to that.  If a SPEC fails to match before
+  &droppable, the sequence spec does not match, otherwise it goes
+  forward until a SPEC fails or all SPECs match.
+
+- Body match: ([&inline] SPEC MORE-SPECS...) :: Establish a body for
+  MORE-SPECS according to SPEC.  If the first item is &inline, then the
+  body starts at the beginning of the next form, otherwise it starts at
+  the beginning of the first symbol at the same line as the next form.
+  MORE-SPECS are interpreted as an implicit sequence match.
+
+- Spec match: SYMBOL :: Match the spec corresponding to SYMBOL.  If
+  SYMBOL is internal, establish a body at the same column as the
+  beginning of SYMBOL, otherwise establish a body at the same column as
+  the beginning of the first symbol in the line SYMBOL is at.")
+
 (defun sly--lisp-indent-loop-macro-1 (parse-state indent-point)
-  (catch 'return-indentation
-    (save-excursion
-      ;; Find first clause of loop macro, and use it to establish
-      ;; base column for indentation
-      (goto-char (sly--lisp-indent-parse-state-start parse-state))
-      (let ((loop-start-column (current-column)))
-        (sly--lisp-indent-loop-advance-past-keyword-on-line)
+  (let* ((forms (th/sly--lisp-indent-loop-macro-partial-parse parse-state indent-point))
+         (loop-start-column
+          (save-excursion
+            (goto-char (sly--lisp-indent-parse-state-start parse-state))
+            (current-column)))
+         (loop-body-start-column
+          (save-excursion
+            (goto-char (sly--lisp-indent-parse-state-start parse-state))
+            (forward-symbol 1)
+            (skip-syntax-forward "->")
+            (current-column)))
+         (real-indent-point
+          (save-excursion (goto-char indent-point)
+                          (back-to-indentation)
+                          (point))))
+    (catch 'return-indentation
+      (cl-macrolet
+          ((form-beg     (form) `(car ,form))
+           (form-content (form) `(cdr ,form)))
+        (cl-labels
+            ((settable-symbol-p (obj)
+               (and (symbolp obj)
+                    (not (keywordp obj))
+                    (not (eq obj t))
+                    (not (eq obj nil))))
+             (symbol-internedp (symbol)
+               (or (eq symbol nil)
+                   (intern-soft symbol)))
+             (ensure-string (string-designator &key trim-package)
+               (if trim-package
+                   (string-trim-left (ensure-string string-designator)
+                                     (rx (or "" "#" "cl" "common-lisp") ":"))
+                 (cl-typecase string-designator
+                   (string string-designator)
+                   (symbol
+                    (if (symbol-internedp string-designator)
+                        (symbol-name string-designator)
+                      (concat "#:" (symbol-name string-designator)))))))
+             (symbol-match-p (symbol form)
+               (string-equal-ignore-case (ensure-string (form-content form) :trim-package t)
+                                         (ensure-string symbol)))
+             (symbol-spec (symbol)
+               (cdr
+                (cl-assoc (ensure-string symbol)
+                          sly--lisp-indent-loop-macro-allowed-bodies-alist
+                          :key (lambda (matching-symbols)
+                                 (mapcar #'ensure-string (ensure-list matching-symbols)))
+                          :test 'member-ignore-case)))
 
-        (when (eolp)
-          (forward-line 1)
-          (end-of-line)
-          ;; If indenting first line after "(loop <newline>"
-          ;; cop out ...
-          (if (<= indent-point (point))
-              (throw 'return-indentation
-                     (+ loop-start-column
-                        sly-lisp-loop-clauses-indentation)))
-          (back-to-indentation))
-
-        (let* ((case-fold-search t)
-               (loop-macro-first-clause (point))
-               (previous-expression-start
-                (sly--lisp-indent-parse-state-prev parse-state))
-               (default-value (current-column))
-               (loop-body-p nil)
-               (loop-body-indentation nil)
-               (indented-clause-indentation (+ 2 default-value)))
-          ;; Determine context of this loop clause, starting with the
-          ;; expression immediately preceding the line we're trying to indent
-          (goto-char previous-expression-start)
-
-          ;; Handle a body-introducing-clause which ends a line specially.
-          (if (looking-at sly--common-lisp-body-introducing-loop-macro-keyword)
-              (let ((keyword-position (current-column)))
-                (setq loop-body-p t)
-                (setq loop-body-indentation
-                      (if (sly--lisp-indent-loop-advance-past-keyword-on-line)
-                          (current-column)
-                        (back-to-indentation)
-                        (if (/= (current-column) keyword-position)
-                            (+ 2 (current-column))
-                          (+ sly-lisp-loop-body-forms-indentation
-                             (if sly-lisp-loop-indent-body-forms-relative-to-loop-start
-                                 loop-start-column
-                               keyword-position))))))
-
-            (back-to-indentation)
-            (if (< (point) loop-macro-first-clause)
-                (goto-char loop-macro-first-clause))
-            ;; If there's an "and" or "else," advance over it.
-            ;; If it is alone on the line, the next "cond" will treat it
-            ;; as if there were a "when" and indent under it ...
-            (let ((exit nil))
-              (while (and (null exit)
-                          (looking-at sly--common-lisp-prefix-loop-macro-keyword))
-                (if (null (sly--lisp-indent-loop-advance-past-keyword-on-line))
-                    (progn (setq exit t)
-                           (back-to-indentation)))))
-
-            ;; Found start of loop clause preceding the one we're
-            ;; trying to indent. Glean context ...
-            (cond
-             ((looking-at "(")
-              ;; We're in the middle of a clause body ...
-              (setq loop-body-p t)
-              (setq loop-body-indentation (current-column)))
-             ((looking-at sly--common-lisp-body-introducing-loop-macro-keyword)
-              (setq loop-body-p t)
-              ;; Know there's something else on the line (or would
-              ;; have been caught above)
-              (sly--lisp-indent-loop-advance-past-keyword-on-line)
-              (setq loop-body-indentation (current-column)))
-             (t
-              (setq loop-body-p nil)
-              (if (or (looking-at sly--common-lisp-indenting-loop-macro-keyword)
-                      (looking-at sly--common-lisp-prefix-loop-macro-keyword))
-                  (setq default-value (+ 2 (current-column))))
-              (setq indented-clause-indentation (+ 2 (current-column)))
-              ;; We still need loop-body-indentation for "syntax errors" ...
-              (goto-char previous-expression-start)
-              (setq loop-body-indentation (current-column)))))
-
-          ;; Go to first non-blank character of the line we're trying
-          ;; to indent. (if none, wind up poised on the new-line ...)
-          (goto-char indent-point)
-          (back-to-indentation)
-          (cond
-           ((looking-at "(")
-            ;; Clause body ...
-            loop-body-indentation)
-           ((or (eolp) (looking-at ";"))
-            ;; Blank line.  If body-p, indent as body, else indent as
-            ;; vanilla clause.
-            (if loop-body-p
-                loop-body-indentation
-              (or (and (looking-at ";") (sly--lisp-indent-trailing-comment))
-                  default-value)))
-           ((looking-at sly--common-lisp-indent-indented-loop-macro-keyword)
-            indented-clause-indentation)
-           ((looking-at sly--common-lisp-indent-clause-joining-loop-macro-keyword)
-            (let ((stolen-indent-column nil))
-              (forward-line -1)
-              (while (and (null stolen-indent-column)
-                          (> (point) loop-macro-first-clause))
-                (back-to-indentation)
-                (if (and (< (current-column) loop-body-indentation)
-                         (looking-at "\\(#?:\\)?\\sw"))
-                    (progn
-                      (if (looking-at sly--lisp-indent-loop-macro-else-keyword)
-                          (sly--lisp-indent-loop-advance-past-keyword-on-line))
-                      (setq stolen-indent-column (current-column)))
-                  (forward-line -1)))
-              (or stolen-indent-column default-value)))
-           (t default-value)))))))
+             ;; `forms' is a list with a terminating t instead of nil
+             (consume-forms (forms spec body-beg &optional (offset 0))
+               ;; (message "consume-forms: %S %S %S %S" forms spec body-beg offset)
+               (if (eq forms t) t
+                 (setq forms
+                       (catch 'mismatch
+                         (pcase spec
+                           ;; Anything
+                           ('t (cdr forms))
+                           ;; Compound-only
+                           ('nil (when (null (form-content (car forms)))
+                                   (cdr forms)))
+                           ;; Symbol match
+                           (`',(or (and (pred ensure-string)
+                                        (app list symbols))
+                                   (and (pred listp)
+                                        (pred (lambda (symbols)
+                                                (cl-every #'ensure-string symbols)))
+                                        symbols))
+                            (when (cl-some (lambda (symbol)
+                                             (symbol-match-p symbol (car forms)))
+                                           symbols)
+                              (cdr forms)))
+                           ;; Alternation
+                           (`(| . ,specs)
+                            ;; Split the specs into those which need to
+                            ;; be checked by `consume-forms' directly
+                            ;; and those we can optimize (i.e. symbol
+                            ;; specs which we can look up directly)
+                            (let ((symbol-specs (cl-remove-if-not #'settable-symbol-p specs))
+                                  (complex-specs (cl-remove-if #'settable-symbol-p specs)))
+                              (or (and-let* ((symbol (ensure-string (form-content (car forms))
+                                                                    :trim-package t))
+                                             ((cl-member symbol symbol-specs
+                                                         :key #'ensure-string
+                                                         :test 'string-equal-ignore-case))
+                                             ((symbol-spec symbol)))
+                                    (consume-forms forms symbol body-beg offset))
+                                  (cl-some (lambda (body)
+                                             (consume-forms forms body body-beg offset))
+                                           complex-specs))))
+                           ;; Optional match
+                           ((and (pred vectorp)
+                                 (app (lambda (vector) (seq-into vector 'list))
+                                      specs))
+                            (or (consume-forms forms `(: ,@specs) body-beg offset)
+                                forms))
+                           ;; Greedy match
+                           (`(* . ,specs)
+                            (while-let (((not (eq forms t)))
+                                        (remaining-forms (consume-forms forms `(: ,@specs) body-beg offset)))
+                              (when (equal forms remaining-forms)
+                                (error "Encountered empty greedy match %S when parsing %S"
+                                       spec forms))
+                              (setq forms remaining-forms))
+                            forms)
+                           ;; Sequential match
+                           (`(: . ,specs)
+                            (let ((requiredp t))
+                              (cl-reduce
+                               (lambda (forms extended-spec)
+                                 (pcase extended-spec
+                                   ((guard (eq forms t))
+                                    ;; (message "throw (:) 'return-indentation: %S %S" body-beg offset)
+                                    (throw 'return-indentation (+ offset body-beg)))
+                                   ((and (pred integerp)
+                                         new-offset)
+                                    (setq offset new-offset)
+                                    forms)
+                                   ('&droppable
+                                    (setq requiredp nil)
+                                    forms)
+                                   (subspec
+                                    (or (consume-forms forms subspec body-beg offset)
+                                        (throw 'mismatch (unless requiredp forms))))))
+                               specs :initial-value forms)))
+                           ;; Body match
+                           ((and (pred proper-list-p)
+                                 (or (and `(&inline ,head-spec . ,specs)
+                                          (let inlinep t))
+                                     (and `(,head-spec . ,specs)
+                                          (let inlinep nil))))
+                            (consume-forms
+                             (or (consume-forms forms head-spec body-beg offset)
+                                 (throw 'mismatch nil))
+                             `(: ,@specs)
+                             (save-excursion
+                               (goto-char (form-beg (car forms)))
+                               (unless inlinep (back-to-indentation))
+                               (current-column))))
+                           ;; Spec match
+                           ((and (app ensure-string (and (pred identity) symbol))
+                                 (app symbol-spec (and (pred identity) spec)))
+                            (consume-forms forms `(',symbol ,@spec) body-beg offset))
+                           (_ (error "Bad spec %S" spec)))))
+                 (unless (null forms)
+                   (if (or (eq forms t)
+                           (< real-indent-point (form-beg (car forms))))
+                       (progn
+                         ;; (message "throw (endp) 'return-indentation: %S %S %S %S" forms spec body-beg offset)
+                         (throw 'return-indentation (+ offset body-beg)))
+                     ;; (message "=> %S" forms)
+                     forms)))))
+          ;; End `forms' with t instead of nil so that we can return nil
+          ;; for mismatches
+          (setcdr (last forms) t)
+          (or (consume-forms
+               forms
+               (let* ((anything t)
+                      (single-clause
+                       `(| ,@(mapcan (lambda (spec) (copy-sequence (ensure-list (car spec))))
+                                     sly--lisp-indent-loop-macro-allowed-bodies-alist)
+                           ,anything)))
+                 `(&inline ,single-clause (* ,single-clause)))
+               loop-start-column sly-lisp-loop-clauses-indentation)
+              loop-body-start-column))))))
 
 (defalias 'sly--lisp-indent-if*-advance-past-keyword-on-line
   #'sly--lisp-indent-loop-advance-past-keyword-on-line)
