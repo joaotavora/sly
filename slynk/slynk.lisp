@@ -2968,11 +2968,11 @@ soon once non-ASDF loading is removed. (see github#134)")
 Receives a module name as argument and should return non-nil if it
 managed to load it.")
   (:method ((method (eql :slynk-loader)) module)
-    (funcall (intern "REQUIRE-MODULE" :slynk-loader) module))
+    (funcall (intern (symbol-name '#:require-module) :slynk-loader) module))
   (:method ((method (eql :asdf)) module)
     (unless *asdf-load-in-progress*
       (let ((*asdf-load-in-progress* t))
-        (funcall (intern "LOAD-SYSTEM" :asdf) module)))))
+        (funcall (intern (symbol-name '#:load-system) :asdf) module)))))
 
 (defun add-to-load-path-1 (path load-path-var)
   (pushnew path (symbol-value load-path-var) :test #'equal))
@@ -2981,9 +2981,9 @@ managed to load it.")
   (:documentation
    "Using METHOD, consider PATH when searching for modules.")
   (:method ((method (eql :slynk-loader)) path)
-    (add-to-load-path-1 path (intern "*LOAD-PATH*" :slynk-loader)))
+    (add-to-load-path-1 path (intern (symbol-name '#:*load-path*) :slynk-loader)))
   (:method ((method (eql :asdf)) path)
-    (add-to-load-path-1 path (intern "*CENTRAL-REGISTRY*" :asdf))))
+    (add-to-load-path-1 path (intern (symbol-name '#:*central-registry*) :asdf))))
 
 (defvar *slynk-require-hook* '()
   "Functions run after SLYNK-REQUIRE. Called with new modules.")
