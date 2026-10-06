@@ -13,6 +13,7 @@
 (defpackage slynk-backend
   (:use cl)
   (:export *debug-slynk-backend*
+           network-error
            sly-db-condition
            compiler-condition
            original-condition
