@@ -8,6 +8,12 @@
   (:export
    #:flex-completions
    #:simple-completions
+   #:*get-completions*
+   #:sort-by-score
+   #:keywords-matching
+   #:accessible-matching
+   #:qualified-matching
+   #:get-completions
    #:flex-matches))
 
 ;; for testing package-local nicknames
@@ -395,6 +401,36 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
                                                                       (symbol-name s))
                                                          s))))))))))))))
 
+
+(defun get-completions (upcasepat package &key (limit 300))
+  "Compute \"flex\" completions for PATTERN given current PACKAGE.
+  Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
+  \(STRING SCORE CHUNKS CLASSIFICATION-STRING).
+
+  For example:
+
+  SLYNK-COMPLETION> (get-completions \"getcomplet\" *package*)
+  ((\"GET-COMPLETIONS\" GET-COMPLETIONS (0 1 2 4 5 6 7 8 9 10) 0.06666667)
+   (\"*GET-COMPLETIONS*\" *GET-COMPLETIONS* (1 2 3 5 6 7 8 9 10 11) 0.041482452))"
+
+  (loop with (external internal)
+        = (multiple-value-list (qualified-matching upcasepat package))
+        for e in (append (sort-by-score
+                          (keywords-matching upcasepat))
+                         (sort-by-score
+                          (append (accessible-matching upcasepat package)
+                                  external))
+                         (sort-by-score
+                          internal))
+        for i upto limit
+        collect e))
+
+
+(defvar *get-completions* 'get-completions
+  "This variable holds a function which returns matchings.
+   See slynk-completion:get-completions as an example of such function.")
+
+
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
 Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
@@ -404,18 +440,7 @@ Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
             with package = (guess-buffer-package package-name)
             with upcasepat = (string-upcase pattern)
             for (string symbol indexes score)
-              in
-              (loop with (external internal)
-                      = (multiple-value-list (qualified-matching upcasepat package))
-                    for e in (append (sort-by-score
-                                      (keywords-matching upcasepat))
-                                     (sort-by-score
-                                      (append (accessible-matching upcasepat package)
-                                              external))
-                                     (sort-by-score
-                                      internal))
-                    for i upto limit
-                    collect e)
+              in (funcall *get-completions* upcasepat package :limit limit)
             collect
             (list (if (every #'common-lisp:upper-case-p pattern)
                       (string-upcase string)
@@ -424,5 +449,6 @@ Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
                   (to-chunks string indexes)
                   (readably-classify symbol)))
           nil)))
+
 
 (provide :slynk/completion)
