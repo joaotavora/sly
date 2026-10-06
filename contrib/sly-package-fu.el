@@ -445,4 +445,68 @@ replaces with a symbol name without the package designator."
           (insert non-qualified-name))))))
 
 
+(defun sly-package-fu--create-new-empty-import-from (package)
+  "Add new :IMPORT-FROM subform for PACKAGE.  Add SYMBOL.
+Assumes point just before start of DEFPACKAGE form"
+  (forward-sexp)
+  ;; Now, search last :import-from or :use form
+  (cond
+    ((re-search-backward "(:\\(use\\|import-from\\)" nil t)
+     ;; Skip found expression:
+     (forward-sexp)
+     ;; and insert a new (:import-from <package> <symbol>) form.
+     (newline-and-indent)
+     (let ((package-name (sly-format-symbol-for-defpackage package)))
+       (insert "(:import-from )")
+       (backward-char)
+       (insert package-name)))
+    (t (error "Unable to find :use form in the defpackage form."))))
+
+
+(defun sly-package-fu--add-import-of-package (symbol)
+  "Do the heavy-lifting for `sly-import-package-at-point'.
+
+Accept a string or a symbol like \"alexandria:with-gensyms\",
+and add the package to the current defpackage."
+  (let* ((package (or (funcall sly-import-symbol-package-transform-function
+                               (sly-cl-symbol-package symbol))
+                      ;; We only process symbols in fully qualified form like
+                      ;; weblocks/request:get-parameter
+                      (user-error "`%s' is not a package-qualified symbol."
+                                  symbol))))
+    (save-excursion
+      ;; First go to just before relevant DEFPACKAGE form
+      ;;
+      (sly-goto-package-source-definition (sly-current-package))
+
+      ;; Ask CL to actually import the symbol (a synchronized eval
+      ;; makes sure an error aborts the rest of the command)
+      ;;
+      (sly-eval `(slynk:import-symbol-for-emacs ,symbol
+                                                ,(sly-current-package)
+                                                ,package))
+      (message "UNLESS %s"
+               (sly-package-fu--search-import-from package))
+      (unless (sly-package-fu--search-import-from package)
+        (sly-package-fu--create-new-empty-import-from package)
+        (when sly-package-fu-save-file (save-buffer)))
+      ;; There is nothing to return
+      nil)))
+
+
+(defun sly-import-package-at-point ()
+  "Add a qualified symbol's package to current package's :import-from subclause.
+
+Takes a package-qualified symbol at point, adds it's package part to the current
+package's defpackage form (under its :import-form subclause)."
+  (interactive)
+  (let* ((bounds (sly-bounds-of-symbol-at-point))
+         (beg (set-marker (make-marker) (car bounds)))
+         (end (set-marker (make-marker) (cdr bounds))))
+    (message "Bounds are: %s" bounds)
+    (when bounds
+      (sly-package-fu--add-import-of-package
+       (buffer-substring-no-properties beg end)))))
+
+
 (provide 'sly-package-fu)
