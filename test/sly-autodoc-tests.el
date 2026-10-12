@@ -197,4 +197,38 @@ area (after a short delay)."
       (sly-test-expect "Message after edloc delay"
 			 expected-message (current-message)))))
 
+(define-sly-ert-test sly-autodoc-eldoc-callback ()
+  "Check delivery of the async autodoc via its callback."
+  (let ((seen nil))
+    (unwind-protect
+        (progn
+          (sly-autodoc--async% (cons nil nil) t
+                               (lambda (doc) (push doc seen))
+                               '("(foo a b)" t))
+          (should (equal seen '("(foo a b)"))))
+      (setq sly-autodoc--cache-last-context nil
+            sly-autodoc--cache-last-autodoc nil))))
+
+(define-sly-ert-test sly-autodoc-eldoc-not-available ()
+  "Check callback is called with nil for :not-available."
+  (let ((seen 'nothing))
+    (sly-autodoc--async% (cons nil nil) t
+                         (lambda (doc) (setq seen doc))
+                         '(:not-available))
+    (should (eq seen nil))))
+
+(define-sly-ert-test sly-autodoc-eldoc-contract ()
+  "Check `sly-autodoc' arranges callback delivery when not cached."
+  (let (captured-cont)
+    (cl-letf (((symbol-function 'sly-current-connection) (lambda () 'conn))
+              ((symbol-function 'sly-autodoc--parse-context)
+               (lambda () '(foo)))
+              ((symbol-function 'sly-background-activities-enabled-p)
+               (lambda () t))
+              ((symbol-function 'sly-eval-async)
+               (lambda (_sexp cont &rest _)
+                 (setq captured-cont cont))))
+      (should (eq t (sly-autodoc nil #'ignore)))
+      (should (functionp captured-cont)))))
+
 (provide 'sly-autodoc-tests)

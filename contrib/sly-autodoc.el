@@ -118,9 +118,12 @@
 
 ;;;; Autodocs (automatic context-sensitive help)
 
-(defun sly-autodoc (&optional force-multiline)
+(defun sly-autodoc (&optional force-multiline callback)
   "Returns the cached arglist information as string, or nil.
-If it's not in the cache, the cache will be updated asynchronously."
+If it's not in the cache, the cache will be updated asynchronously.
+CALLBACK, when given, is suitable for `eldoc-documentation-functions'
+and is used to deliver the arglist when it arrives.  In that case,
+return a non-nil non-string value when the update is arranged."
   (interactive "P")
   (save-excursion
     (save-match-data
@@ -137,10 +140,12 @@ If it's not in the cache, the cache will be updated asynchronously."
                  (multilinep (or force-multiline
                                  eldoc-echo-area-use-multiline-p)))
             (cond (cached (sly-autodoc--format cached multilinep))
-                  (t
-                   (when (sly-background-activities-enabled-p)
-                     (sly-autodoc--async context multilinep))
-                   nil))))))))
+                  ((sly-background-activities-enabled-p)
+                   (sly-autodoc--async context multilinep callback)
+                   ;; Tell ElDoc that CALLBACK will deliver the
+                   ;; documentation when it arrives.
+                   (and callback t))
+                  (t nil))))))))
 
 ;; Return the context around point that can be passed to
 ;; slynk:autodoc.  nil is returned if nothing reasonable could be
@@ -149,22 +154,27 @@ If it's not in the cache, the cache will be updated asynchronously."
   (and (not (sly-inside-string-or-comment-p))
        (sly-parse-form-upto-point sly-autodoc-accuracy-depth)))
 
-(defun sly-autodoc--async (context multilinep)
+(defun sly-autodoc--async (context multilinep callback)
   (sly-eval-async
       `(slynk:autodoc ',(cdr context) ;; FIXME: misuse of quote
                       :print-right-margin ,(window-width (minibuffer-window)))
-    (sly-curry #'sly-autodoc--async% context multilinep)))
+    (sly-curry #'sly-autodoc--async% context multilinep callback)))
 
-(defun sly-autodoc--async% (context multilinep doc)
+(defun sly-autodoc--async% (context multilinep callback doc)
   (cl-destructuring-bind (doc &optional cache-p) doc
-    (unless (eq doc :not-available)
+    (if (eq doc :not-available)
+        (when callback
+          (funcall callback nil))
       (when cache-p
         (setq sly-autodoc--cache-last-context context)
         (setq sly-autodoc--cache-last-autodoc doc))
       ;; Now that we've got our information,
       ;; get it to the user ASAP.
-      (when (eldoc-display-message-p)
-        (eldoc-message (format "%s" (sly-autodoc--format doc multilinep)))))))
+      (let ((doc (sly-autodoc--format doc multilinep)))
+        (cond (callback (funcall callback doc))
+              ;; Fallback for Emacs < 28
+              ((eldoc-display-message-p)
+               (eldoc-message (format "%s" doc))))))))
 
 
 ;;; Minor mode definition
@@ -173,16 +183,33 @@ If it's not in the cache, the cache will be updated asynchronously."
     (define-key map (kbd "C-c C-d A") 'sly-autodoc)
     map))
 
+(defun sly-autodoc--eldoc-function (callback)
+  "Eldoc function for `eldoc-documentation-functions'.
+CALLBACK is used to deliver the arglist when it must be fetched
+from the Lisp.  Return the cached arglist as a string, a non-nil
+non-string value if the arglist is being fetched, or nil if
+there is no documentation to show."
+  (sly-autodoc t callback))
+
 (define-minor-mode sly-autodoc-mode
   "Toggle echo area display of Lisp objects at point."
   nil nil nil
   (cond (sly-autodoc-mode
-         (set (make-local-variable 'eldoc-documentation-function) 'sly-autodoc)
+         ;; Use the Emacs 28.1 `eldoc-documentation-functions' hook
+         ;; instead of the obsolete `eldoc-documentation-function'.
+         (if (boundp 'eldoc-documentation-functions)
+             (add-hook 'eldoc-documentation-functions
+                       #'sly-autodoc--eldoc-function nil t)
+           (set (make-local-variable 'eldoc-documentation-function)
+                #'sly-autodoc))
          (set (make-local-variable 'eldoc-minor-mode-string) "")
          (eldoc-mode sly-autodoc-mode))
         (t
          (eldoc-mode -1)
-         (set (make-local-variable 'eldoc-documentation-function) nil)
+         (if (boundp 'eldoc-documentation-functions)
+             (remove-hook 'eldoc-documentation-functions
+                          #'sly-autodoc--eldoc-function t)
+           (set (make-local-variable 'eldoc-documentation-function) nil))
          (set (make-local-variable 'eldoc-minor-mode-string) " ElDoc"))))
 
 (provide 'sly-autodoc)

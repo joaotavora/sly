@@ -1,6 +1,13 @@
 Upcoming version
 ----------------
 
+### ElDoc integration uses `eldoc-documentation-functions'
+
+`sly-autodoc-mode' now registers its documentation function in the
+`eldoc-documentation-functions' hook, introduced in Emacs 28.1,
+rather than setting the obsolete `eldoc-documentation-function'.
+Emacs 24.5-27 keep working via the old variable.
+
 ### New `M-x sly-remove-method`
 
 A very practical way to remove methods from generic functions.
