@@ -2421,9 +2421,11 @@ wants to input, and return CANCEL-ON-INPUT-RETVAL."
                        ;; `sit-for' exits immediately given input
                        ;; anyway.  This include the C-g input, and
                        ;; thus even with `inhibit-quit' set to t, quit
-                       ;; happens immediately.
+                       ;; happens immediately.  Like `jsonrpc-request',
+                       ;; also avoid redisplay while waiting.
                        (unwind-protect
-                           (let ((inhibit-quit t)) (while (sit-for 30)))
+                           (let ((inhibit-quit t) (inhibit-redisplay t))
+                             (while (sit-for 30 t)))
                          (setq cancelled t))
                        (funcall check-conn))
                       (t
