@@ -13,6 +13,7 @@
 (defpackage slynk-backend
   (:use cl)
   (:export *debug-slynk-backend*
+           *unix-socket-mode*
            sly-db-condition
            compiler-condition
            original-condition
@@ -462,12 +463,18 @@ protocol wants string lengths in terms of codepoints."
 
 ;;;; TCP server
 
+(defvar *unix-socket-mode* #o600
+  "Access mode for a unix domain socket made by CREATE-SOCKET.
+NIL leaves the mode to the process umask.")
+
 (definterface create-socket (host port &key backlog)
   "Create a listening TCP socket on interface HOST and port PORT.
+If HOST is a pathname, create a listening unix domain socket bound to
+that path instead, ignore PORT, and give the socket *UNIX-SOCKET-MODE*.
 BACKLOG queue length for incoming connections.")
 
 (definterface local-port (socket)
-  "Return the local port number of SOCKET.")
+  "Return the local port number of SOCKET, or NIL if it has none.")
 
 (definterface close-socket (socket)
   "Close the socket SOCKET.")
