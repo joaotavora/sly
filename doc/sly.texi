@@ -434,11 +434,11 @@ added to the user’s initialization file, usually @file{$HOME/.emacs} or
 ``hooks'' (@pxref{Emacs-side}). Still on the Emacs side, there is also a
 separate interface, appropriately called @code{customize} (or sometimes
 just @code{custom}), that uses a nicer UI with mouse-clickable buttons
-to set some special variables. See @xref{Defcustom variables}.
+to set some special variables. @xref{Defcustom variables}.
 
 Lisp-side customization is done exclusively via Common Lisp code
 snippets added to the user’s @file{$HOME/.slynkrc}
-file. See @xref{Lisp-side customization}.
+file. @xref{Lisp-side customization}.
 
 As a preview, take this simple example of a frequently customized part of
 @SLY{}: its keyboard shortcuts, known as ``keybindings''. In the
@@ -2844,7 +2844,7 @@ after the first one (default: @code{NIL}). For ``long-running'' Lisp processes
 to which you want to be able to connect from time to time,
 specify @code{:dont-close t}
 @item :STYLE
-See @xref{Communication style}.
+@xref{Communication style}.
 @item :INTERFACE
 Network interface to listen on (default: @code{"localhost"}).  If
 this is a pathname, the server listens on a socket file at that path
@@ -2931,7 +2931,7 @@ file system in such a fashion that a filename like
 machines. Unfortunately NFS is usually slow, often buggy, and not
 always feasible. Fortunately we have an ssh connection and Emacs'
 @code{tramp-mode} can do the rest.
-(See @inforef{Top, TRAMP User Manual,tramp}.)
+(@inforef{Top, TRAMP User Manual,tramp}.)
 
 What we do is teach Emacs how to take a filename on the remote machine
 and translate it into something that tramp can understand and access
