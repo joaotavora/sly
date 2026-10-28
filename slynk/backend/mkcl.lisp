@@ -883,7 +883,7 @@
          got-one)
     (assert (or (not timeout) (eq timeout t)))
     (loop
-       (check-slime-interrupts)
+       (check-sly-interrupts)
        ;;(format t "~&: ~S~%" mt:*thread*) (finish-output)
        (handler-case
         (setq got-one (mt:semaphore-wait (mailbox.semaphore mbox) 2))
