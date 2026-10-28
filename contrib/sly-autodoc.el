@@ -193,7 +193,9 @@ there is no documentation to show."
 
 (define-minor-mode sly-autodoc-mode
   "Toggle echo area display of Lisp objects at point."
-  nil nil nil
+  :init-value nil
+  :lighter nil
+  :keymap nil
   (cond (sly-autodoc-mode
          ;; Use the Emacs 28.1 `eldoc-documentation-functions' hook
          ;; instead of the obsolete `eldoc-documentation-function'.

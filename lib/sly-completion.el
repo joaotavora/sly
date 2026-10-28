@@ -366,7 +366,8 @@ Intended to go into `completion-at-point-functions'"
                 #'sly--completion-in-region-function
                 '((name . sly--setup-completion))))
 
-(define-minor-mode sly-symbol-completion-mode "Fancy SLY UI for Lisp symbols" t
+(define-minor-mode sly-symbol-completion-mode "Fancy SLY UI for Lisp symbols"
+  :init-value t
   :global t)
 
 (add-hook 'sly-mode-hook 'sly--setup-completion)
