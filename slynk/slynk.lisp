@@ -929,15 +929,16 @@ keywords: :BOUNDP, :FBOUNDP, :CONSTANT, :GENERIC-FUNCTION,
   "Start the server and write the listen port number to PORT-FILE.
 This is the entry point for Emacs."
   (setq *m-x-sly-from-emacs* t)
-  (setup-server 0
-                (lambda (port) (announce-server-port port-file port))
-                style dont-close nil))
+  (let ((socket (socket-quest 0 nil)))
+    (setup-server socket (local-port socket)
+                  (lambda (port) (announce-server-port port-file port))
+                  style dont-close)))
 
 (defun create-server (&key (port default-server-port)
                         (style *communication-style*)
                         (dont-close *dont-close*)
                         interface
-                        (mode *unix-socket-mode*)
+                        (mode #o600)
                         backlog)
   "Start a SLYNK server on PORT running in STYLE.
 If DONT-CLOSE is true then the listen socket will accept multiple
@@ -946,19 +947,21 @@ connections, otherwise it will be closed after the first.
 Optionally, an INTERFACE could be specified and swank will bind
 the PORT on this interface. By default, interface is \"localhost\".
 
-INTERFACE may also be a pathname, in which case PORT is ignored and
-the server listens on a unix domain socket at that path, reachable by
-whoever MODE lets connect.  MODE defaults to #o600; NIL leaves it to
-the process umask.  It is applied before the listen, so nothing can
-connect under a wider mode, but the path is visible with one for as
-long as the bind and the change take.
+If INTERFACE is a pathname, PORT is ignored and the server listens on
+a socket file at that path instead, if the backend supports it (see
+CREATE-PATHNAME-SOCKET).  MODE is that file's access mode, NIL leaves
+it to the umask.
 
-Returns the port number, or the pathname, that STOP-SERVER expects."
-  (let ((*loopback-interface* (or interface
-                                  *loopback-interface*))
-        (*unix-socket-mode* mode))
-    (setup-server port #'simple-announce-function
-                  style dont-close backlog)))
+Return the port number actually listened on, or the pathname if
+INTERFACE is one.  STOP-SERVER accepts this value."
+  (if (pathnamep interface)
+      (setup-server (create-pathname-socket interface :backlog backlog
+                                                      :mode mode)
+                    interface #'simple-announce-function style dont-close)
+      (let* ((*loopback-interface* (or interface *loopback-interface*))
+             (socket (socket-quest port backlog)))
+        (setup-server socket (local-port socket) #'simple-announce-function
+                      style dont-close))))
 
 (defun find-external-format-or-lose (coding-system)
   (or (find-external-format coding-system)
@@ -985,25 +988,25 @@ taken."
         (ignore-errors (list (parse-integer (read-line *query-io*)))))
       (setq port new-port))))
 
-(defun setup-server (port announce-fn style dont-close backlog)
+(defun setup-server (socket port announce-fn style dont-close)
+  "Serve SLYNK on listening SOCKET in STYLE.
+PORT, a port number or a pathname, is what STOP-SERVER knows it by."
   (init-log-output)
-  (let* ((socket (socket-quest port backlog))
-         (port (or (local-port socket) *loopback-interface*)))
-    (funcall announce-fn port)
-    (labels ((serve () (accept-connections socket style dont-close))
-             (note () (send-to-sentinel `(:add-server ,socket ,port
-                                                      ,(current-thread))))
-             (serve-loop () (note) (loop do (serve) while dont-close)))
-      (ecase style
-        (:spawn (initialize-multiprocessing
-                 (lambda ()
-                   (start-sentinel)
-                   (spawn #'serve-loop :name (format nil "Slynk ~s" port)))))
-        ((:fd-handler :sigio)
-         (note)
-         (add-fd-handler socket #'serve))
-        ((nil) (serve-loop))))
-    port))
+  (funcall announce-fn port)
+  (labels ((serve () (accept-connections socket style dont-close))
+           (note () (send-to-sentinel `(:add-server ,socket ,port
+                                                    ,(current-thread))))
+           (serve-loop () (note) (loop do (serve) while dont-close)))
+    (ecase style
+      (:spawn (initialize-multiprocessing
+               (lambda ()
+                 (start-sentinel)
+                 (spawn #'serve-loop :name (format nil "Slynk ~s" port)))))
+      ((:fd-handler :sigio)
+       (note)
+       (add-fd-handler socket #'serve))
+      ((nil) (serve-loop))))
+  port)
 
 (defun stop-server (port)
   "Stop server running on PORT.
