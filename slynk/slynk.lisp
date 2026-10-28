@@ -610,7 +610,12 @@ corresponding values in the CDR of VALUE."
     (clear-input in)))
 
 (defmethod close-listener (l)
-  (with-slots (in out) l (close in) (close out))
+  (with-slots (in out) l
+    (close in)
+    ;; Flushing OUT fails if it's a dedicated output stream whose
+    ;; Emacs end is gone, so discard its output then.
+    (handler-case (close out)
+      (stream-error () (close out :abort t))))
   (setf (listeners) (delete l (listeners))))
 
 

@@ -1322,27 +1322,16 @@ Reconnect afterwards."
     (with-current-buffer (process-buffer p)
       (cl-assert (< (buffer-size) 500) nil "Unusual output"))
     (sly-inferior-connect p (sly-inferior-lisp-args p))
-    (let ((hook nil) (p p) (tries 0))
+    (let ((hook nil) (p p))
       (setq hook (lambda ()
                    (sly-test-expect
                     "We are connected again" p (sly-inferior-process))
                    (remove-hook 'sly-connected-hook hook)))
       (add-hook 'sly-connected-hook hook)
-      ;; The reconnection is flaky on newer Emacs versions: sometimes
-      ;; the new connection's traffic is never serviced.  Just try
-      ;; reconnecting again in that case.
-      (while (and (member hook sly-connected-hook)
-                  (< (cl-incf tries) 3))
-        (condition-case nil
-            (sly-wait-condition "Lisp restarted"
-                                (lambda ()
-                                  (not (member hook sly-connected-hook)))
-                                5)
-          (error nil))
-        (when (member hook sly-connected-hook)
-          (sly-inferior-connect p (sly-inferior-lisp-args p))))
-      (cl-assert (not (member hook sly-connected-hook))
-                 nil "Couldn't reconnect to Lisp"))))
+      (sly-wait-condition "Lisp restarted"
+                            (lambda ()
+                              (not (member hook sly-connected-hook)))
+                            5))))
 
 
 ;;;; SLY-loading tests that launch separate Emacsen
