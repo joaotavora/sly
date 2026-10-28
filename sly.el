@@ -2450,7 +2450,8 @@ alist of bindings"
         (sexp (or package (sly-current-package)))
       ((:ok result)
        (when cont
-         (set-buffer buffer)
+         (when (buffer-live-p buffer)
+           (set-buffer buffer))
          (cl-progv (mapcar #'car env) (mapcar #'cdr env)
            (if debug-on-error
                (funcall cont result)
