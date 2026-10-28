@@ -1492,6 +1492,8 @@ Fall back to `sly-init-using-slynk-loader' if ASDF fails."
     "Take this REPL, brother, and may it serve you well."
     "Lemonodor-fame is but a hack away!"
     "Are we consing yet?"
+    "It's time to come out of the closure to hack!"
+    "We are &body, I got all my sisters with me!"
     ,(format "%s, this could be the start of a beautiful program."
              (sly-user-first-name)))
   "Scientifically-proven optimal words of hackerish encouragement.")
