@@ -118,36 +118,7 @@
     (first addresses)))
 
 
-#-win32
-(defun create-unix-socket (path backlog)
-  "Bind and listen on a unix domain socket at PATH.
-*UNIX-SOCKET-MODE*, unless it is NIL, is applied between the bind and
-the listen, so nothing can connect to the socket while its mode is
-still the one the process umask gave it.  The path itself is visible
-with that mode for as long as the two calls take."
-  (let ((socket (make-instance 'sb-bsd-sockets:local-socket :type :stream))
-        (bound nil)
-        (listening nil))
-    (unwind-protect
-         (progn
-           (sb-bsd-sockets:socket-bind socket (namestring path))
-           (setq bound t)
-           (when *unix-socket-mode*
-             (sb-posix:chmod (namestring path) *unix-socket-mode*))
-           (sb-bsd-sockets:socket-listen socket (or backlog 5))
-           (setq listening t)
-           socket)
-      (unless listening
-        (ignore-errors (sb-bsd-sockets:socket-close socket))
-        ;; The file at PATH is only ours to remove if the bind is what
-        ;; created it.  A bind that failed found somebody else's.
-        (when bound
-          (ignore-errors (delete-file path)))))))
-
 (defimplementation create-socket (host port &key backlog)
-  #-win32
-  (when (pathnamep host)
-    (return-from create-socket (create-unix-socket host backlog)))
   (let* ((host-ent (resolve-hostname host))
          (socket (make-instance (cond #+#.(slynk-backend:with-symbol 'inet6-socket 'sb-bsd-sockets)
                                       ((eql (sb-bsd-sockets:host-ent-address-type host-ent) 10)
@@ -169,17 +140,42 @@ with that mode for as long as the two calls take."
       (unless listening
         (ignore-errors (sb-bsd-sockets:socket-close socket))))))
 
+#-win32
+(defimplementation create-pathname-socket (path &key backlog mode)
+  ;; Merge here, as the kernel would resolve a relative PATH against
+  ;; the process's cwd, not *DEFAULT-PATHNAME-DEFAULTS*.
+  (let ((file (sb-ext:native-namestring (merge-pathnames path)))
+        (socket (make-instance 'sb-bsd-sockets:local-socket :type :stream))
+        (bound nil)
+        (listening nil))
+    (unwind-protect
+         (progn
+           (sb-bsd-sockets:socket-bind socket file)
+           (setq bound t)
+           ;; Connecting needs write access to FILE, and is refused
+           ;; until we listen, so set MODE in between.
+           (when mode
+             (sb-posix:chmod file mode))
+           (sb-bsd-sockets:socket-listen socket (or backlog 5))
+           (setq listening t)
+           socket)
+      (unless listening
+        (ignore-errors (sb-bsd-sockets:socket-close socket))
+        ;; If the bind failed, FILE is somebody else's.
+        (when bound
+          (ignore-errors (sb-posix:unlink file)))))))
+
 (defimplementation local-port (socket)
   (nth-value 1 (sb-bsd-sockets:socket-name socket)))
 
 (defimplementation close-socket (socket)
-  (let ((path #-win32 (when (typep socket 'sb-bsd-sockets:local-socket)
+  (let ((file #-win32 (when (typep socket 'sb-bsd-sockets:local-socket)
                         (sb-bsd-sockets:socket-name socket))))
     (sb-sys:invalidate-descriptor (socket-fd socket))
     (sb-bsd-sockets:socket-close socket)
-    ;; A unix domain socket outlives its listener as a file.
-    (when path
-      (ignore-errors (delete-file path)))))
+    ;; A unix domain socket's file outlives it.
+    (when file
+      (ignore-errors (sb-posix:unlink file)))))
 
 (defimplementation accept-connection (socket &key
                                       external-format

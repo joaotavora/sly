@@ -2845,6 +2845,15 @@ to which you want to be able to connect from time to time,
 specify @code{:dont-close t}
 @item :STYLE
 See @xref{Communication style}.
+@item :INTERFACE
+Network interface to listen on (default: @code{"localhost"}).  If
+this is a pathname, the server listens on a socket file at that path
+instead of a TCP port, and @code{:PORT} is ignored.  Who can connect
+is then decided by the file's permissions.  Only some Lisps support
+this (currently SBCL, not on Windows).
+@item :MODE
+Access mode of that socket file (default: @code{#o600}, meaning only
+the Lisp's own user can connect).  @code{NIL} leaves it to the umask.
 @end table
 
 So a more complete example will be
@@ -2880,10 +2889,19 @@ ssh -L4005:localhost:4005 youruser@@remote.example.com
 
 This incantation creates a SSH tunnel between the port 4005 on our
 local machine and the port 4005 on the remote machine,
-where @code{youruser} is expected to have an account.  @footnote{By
-default Slynk listens for incoming connections on port 4005, had we
-passed a @code{:port} parameter to @code{slynk:create-server} we'd be
-using that port number instead}.
+where @code{youruser} is expected to have an account.  Why 4005?
+Well, by default Slynk listens for incoming connections on that port.
+Had we passed a @code{:port} parameter to @code{slynk:create-server}
+we'd be using that port number instead.
+
+Don't like ports?  You can make some servers on some Lisp
+implementations listen on a socket file, as in
+@code{(slynk:create-server :interface #p"/path/to/slynk.sock")}.  In
+that case forward the local port to that file instead:
+
+@example
+ssh -L4005:/path/to/slynk.sock youruser@@remote.example.com
+@end example
 
 Finally we start @SLY{} with @code{sly-connect} instead of the usual
 @code{sly}:
