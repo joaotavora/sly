@@ -38,7 +38,7 @@ sly.info: $(TEXI)
 	makeinfo $<
 
 sly.html: $(TEXI)
-	texi2html --css-include=sly.css $<
+	makeinfo --html --no-split --css-include=sly.css -o $@ $<
 
 html/index.html: $(TEXI)
 	makeinfo -o html --css-include=sly.css --html $<

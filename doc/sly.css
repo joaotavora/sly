@@ -12,7 +12,8 @@ td  { padding-right: 1em; padding-left: 1em }
 sub { font-size: smaller }
 .node { padding: 0; margin: 0 }
 dd { padding-top: 1em; padding-bottom: 2em }
-pre.example {
+kbd.kbd { font-style: normal }
+pre.example, pre.example-preformatted {
   font-family: monospace;
   background-color: #E9FFE9; border: 1px solid #9D9;
   padding-top: 0.5em; padding-bottom: 0.5em; }
