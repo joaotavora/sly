@@ -550,15 +550,24 @@ Return NIL if the symbol is unbound."
            (signal-undefined-functions compiler::*unknown-functions*
                                        ,location))))))
 
+(defun safe-compile-file-and-load (input-file &key output-file external-format load)
+  (multiple-value-bind (output-truename warnings-p failure-p)
+      (compile-file input-file
+                    :output-file output-file
+                    :external-format external-format)
+    (when (and output-truename load)
+      (load output-truename))
+    (values output-truename warnings-p failure-p)))
+
 (defimplementation slynk-compile-file (input-file output-file
                                        load-p external-format
                                        &key policy)
   (declare (ignore policy))
   (with-slynk-compilation-unit (input-file)
-    (compile-file input-file
-                  :output-file output-file
-                  :load load-p
-                  :external-format external-format)))
+    (safe-compile-file-and-load input-file
+                                :output-file output-file
+                                :load load-p
+                                :external-format external-format)))
 
 (defvar *within-call-with-compilation-hooks* nil
   "Whether COMPILE-FILE was called from within CALL-WITH-COMPILATION-HOOKS.")
@@ -624,8 +633,10 @@ Return NIL if the symbol is unbound."
 	   (write-string string s)
 	   (finish-output s))
          (multiple-value-bind (binary-filename warnings? failure?)
-             (compile-file filename :load t
-                           :external-format *temp-file-format*)
+             (safe-compile-file-and-load
+              filename
+              :load t
+              :external-format *temp-file-format*)
            (declare (ignore warnings?))
            (when binary-filename
              (delete-file binary-filename))
