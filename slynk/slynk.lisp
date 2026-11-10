@@ -1454,6 +1454,11 @@ event was found."
    (spawn
     (lambda ()
       "Spawns a reader and indentation threads, then calls DISPATCH-LOOP."
+      ;; The reader thread sends every message to the control thread it
+      ;; finds in CONNECTION.  The SETF around this SPAWN only runs once
+      ;; SPAWN has returned, which can be after the reader has looked, so
+      ;; record the control thread here first, as SWANK does.
+      (setf (mconn.control-thread connection) (current-thread))
       (setf (mconn.reader-thread connection) (spawn (lambda () (read-loop connection))
                                                     :name "reader-thread"))
       (setf (mconn.indentation-cache-thread connection)
