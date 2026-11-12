@@ -49,11 +49,12 @@
   #+ecl '(slynk-source-path-parser slynk-source-file-cache
           (backend ecl))
   #+clasp '(metering (backend clasp))
+  #+clamiga '((backend clamiga))
   #+mkcl '((backend mkcl)))
 
 (defparameter *implementation-features*
   '(:allegro :lispworks :sbcl :clozure :cmu :clisp :ccl :corman :cormanlisp
-    :armedbear :gcl :ecl :scl :mkcl :clasp))
+    :armedbear :gcl :ecl :scl :mkcl :clasp :clamiga))
 
 (defparameter *os-features*
   '(:macosx :linux :windows :mswindows :win32 :solaris :darwin :sunos :hpux
@@ -105,6 +106,7 @@
   #+armedbear (lisp-implementation-version)
   #+ecl (ecl-version-string)
   #+clasp (clasp-version-string)
+  #+clamiga (lisp-implementation-version)
   )
 
 (defun unique-dir-name ()
@@ -217,8 +219,8 @@ If LOAD is true, load the fasl file."
   (declare (ignore fasl-dir))
   (when load
     (dolist (file files)
-      (load file :verbose (not quiet)
-      (force-output)))))
+      (load file :verbose (not quiet))
+      (force-output))))
 
 (defun ensure-list (o)
   (if (listp o) o (list o)))
