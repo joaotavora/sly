@@ -195,6 +195,25 @@ conditions (assertions)."
                   (string `(concat "Check failed: " ,check))
                   (symbol `(concat "Check failed: " ,(symbol-name check)))))))
 
+(defmacro sly-refactor-test (name description before after &rest body)
+  "Return a ert-x test with NAME
+
+Insert BEFORE into a buffer, evaluate BODY and compare the resulting buffer to
+AFTER.
+
+BODY should contain the refactoring that transforms BEFORE into AFTER.
+
+DESCRIPTION is the description of the spec."
+  (declare (indent 1))
+  `(ert-deftest ,name ()
+     ,description
+     (with-temp-buffer
+       (lisp-mode)
+       (insert ,before)
+       (beginning-of-buffer)
+       ,@body
+       (should (equal (buffer-string) ,after)))))
+
 
 ;;;;; Test case definitions
 (defun sly-check-top-level () ;(&optional _test-name)
