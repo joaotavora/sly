@@ -56,11 +56,19 @@
 	(push s result)))
     (remove-duplicates result)))
 
-(defun unparse-symbol (symbol)
+(defun present-name (name)
+  "Case- and escape NAME (a symbol- or package-name string) so it reads
+back verbatim under the current *READTABLE*.  All-one-case names are
+printed unescaped in the readtable's natural case (e.g. \"MAPCAR\" ->
+\"mapcar\"); mixed-case names are pipe-escaped (e.g. \"ParametricPlot3D\"
+-> \"|ParametricPlot3D|\")."
   (let ((*print-case* (case (readtable-case *readtable*)
                         (:downcase :upcase)
                         (t :downcase))))
-    (unparse-name (symbol-name symbol))))
+    (unparse-name name)))
+
+(defun unparse-symbol (symbol)
+  (present-name (symbol-name symbol)))
 
 (defun prefix-match-p (prefix string)
   "Return true if PREFIX is a prefix of STRING."
@@ -250,12 +258,26 @@ A floating-point score. Higher scores for better matches."
             (and indexes
                  (flex-score string indexes pattern)))))
 
+(defvar *flex-case-sensitive* nil
+  "When true, COLLECT-IF-MATCHES matches case-sensitively (CHAR=) against
+the pattern exactly as typed.  FLEX-COMPLETIONS binds this when the
+incoming pattern contains a pipe, signalling intent to complete an
+escape-requiring (e.g. mixed-case) symbol like |ParametricPlot3D|.")
+
 (defun collect-if-matches (collector pattern string symbol)
   "Make and collect a match with COLLECTOR if PATTERN matches STRING.
 A match is a list (STRING SYMBOL INDEXES SCORE).
 Return non-nil if match was collected, nil otherwise."
   (multiple-value-bind (indexes score)
-      (flex-matches pattern string #'char=)
+      ;; Case-insensitive CHAR-EQUAL matches mixed-case names like
+      ;; |ParametricPlot3D| against the upcased PATTERN; ordinary all-upper
+      ;; names keep the faster CHAR=.  When *FLEX-CASE-SENSITIVE* the user
+      ;; typed pipes and PATTERN keeps its literal case, so match strictly
+      ;; with CHAR= (this also filters out the all-upper symbols).
+      (flex-matches pattern string
+                    (cond (*flex-case-sensitive* #'char=)
+                          ((some #'lower-case-p string) #'char-equal)
+                          (t #'char=)))
     (when indexes
       (funcall collector
                (list string
@@ -395,34 +417,84 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
                                                                       (symbol-name s))
                                                          s))))))))))))))
 
+(defun escape-requiring-p (symbol)
+  "True if SYMBOL prints with |...| escaping under the current readtable
+\(e.g. a mixed-case name).  Used to float such symbols to the top when the
+user signalled intent with pipes."
+  (let ((p (present-name (symbol-name symbol))))
+    (and (plusp (length p)) (char= #\| (char p 0)))))
+
+(defun present-flex-completion (candidate symbol)
+  "Return CANDIDATE cased/escaped so it reads back to SYMBOL.
+CANDIDATE is a flex-match string of the form <prefix><raw-symbol-name>,
+where <prefix> is \"\", \":\", \"nick:\" or \"nick::\".  The package
+nickname and the symbol-name are escaped via PRESENT-NAME; the colon
+separators are preserved literally."
+  (let* ((name (symbol-name symbol))
+         (prefix (subseq candidate 0 (- (length candidate) (length name))))
+         (colon (position #\: prefix))
+         (pkg (if colon (subseq prefix 0 colon) ""))
+         (seps (if colon (subseq prefix colon) "")))
+    (concatenate 'simple-string
+                 (if (plusp (length pkg)) (present-name pkg) "")
+                 seps
+                 (present-name name))))
+
 (defslyfun flex-completions (pattern package-name &key (limit 300))
   "Compute \"flex\" completions for PATTERN given current PACKAGE-NAME.
 Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
-\(STRING SCORE CHUNKS CLASSIFICATION-STRING)."
-  (when (plusp (length pattern))
-    (list (loop
-            with package = (guess-buffer-package package-name)
-            with upcasepat = (string-upcase pattern)
-            for (string symbol indexes score)
-              in
-              (loop with (external internal)
-                      = (multiple-value-list (qualified-matching upcasepat package))
-                    for e in (append (sort-by-score
-                                      (keywords-matching upcasepat))
-                                     (sort-by-score
-                                      (append (accessible-matching upcasepat package)
-                                              external))
-                                     (sort-by-score
-                                      internal))
+\(STRING SCORE CHUNKS CLASSIFICATION-STRING).
+
+If PATTERN contains a pipe (e.g. the user typed |Par|) it is taken as a
+request for an escape-requiring symbol: the pipes are stripped, matching
+becomes case-sensitive (see *FLEX-CASE-SENSITIVE*), and escape-requiring
+matches are floated ahead of the rest BEFORE LIMIT is applied, so a
+long mixed-case symbol stays visible under a short query."
+  (let* ((piped (and (find #\| pattern) t))
+         (pattern (coerce (remove #\| pattern) 'simple-string)))
+    (when (plusp (length pattern))
+      (let* ((*flex-case-sensitive* piped)
+             (matchpat (if piped pattern (string-upcase pattern)))
+             (package (guess-buffer-package package-name))
+             (matches
+               (multiple-value-bind (external internal)
+                   (qualified-matching matchpat package)
+                 (append (sort-by-score (keywords-matching matchpat))
+                         (sort-by-score (append (accessible-matching matchpat package)
+                                                external))
+                         (sort-by-score internal))))
+             ;; Boost: with pipes typed, float escape-requiring (mixed-case)
+             ;; symbols ahead of the rest, preserving score order within each
+             ;; group, BEFORE the LIMIT cut so they don't fall off the end.
+             (matches (if piped
+                          (loop for m in matches
+                                if (escape-requiring-p (second m)) collect m into escaped
+                                  else collect m into plain
+                                finally (return (append escaped plain)))
+                          matches)))
+        (list (loop with caps = (and (not piped)
+                                     (eq (readtable-case *readtable*) :upcase)
+                                     (every #'upper-case-p pattern))
+                    for (string symbol nil score) in matches
                     for i upto limit
-                    collect e)
-            collect
-            (list (if (every #'common-lisp:upper-case-p pattern)
-                      (string-upcase string)
-                      (string-downcase string))
-                  score
-                  (to-chunks string indexes)
-                  (readably-classify symbol)))
-          nil)))
+                    ;; As before, a pattern typed in capitals gets ordinary names
+                    ;; in capitals; never an escaped one, whose case is its name.
+                    for presented = (let ((p (present-flex-completion string symbol)))
+                                      (if (and caps (not (find #\| p)))
+                                          (string-upcase p)
+                                          p))
+                    collect (list presented
+                                  score
+                                  ;; Highlight chunks must index the PRESENTED
+                                  ;; string (which adds |escaping| / re-casing),
+                                  ;; not the raw candidate -- otherwise the
+                                  ;; client's put-text-property lands on the
+                                  ;; wrong glyphs.  Re-derive the match positions
+                                  ;; against PRESENTED, case-insensitively for
+                                  ;; display alignment.
+                                  (to-chunks presented
+                                             (flex-matches matchpat presented #'char-equal))
+                                  (readably-classify symbol)))
+              nil)))))
 
 (provide :slynk/completion)

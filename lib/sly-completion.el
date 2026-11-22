@@ -352,7 +352,11 @@ Intended to go into `completion-at-point-functions'"
   (sly--completions-complete-symbol-1 sly-complete-symbol-function))
 
 (defun sly-complete-filename-maybe ()
-  (when (nth 3 (syntax-ppss)) (comint-filename-completion)))
+  ;; `|' has string-quote syntax in Lisp buffers, so point inside an
+  ;; escaped symbol like |ParametricPlot3D| looks like point in a string.
+  (let ((string-char (nth 3 (syntax-ppss))))
+    (when (and string-char (not (eql string-char ?|)))
+      (comint-filename-completion))))
 
 
 ;;; Set `completion-at-point-functions' and a few other tricks
