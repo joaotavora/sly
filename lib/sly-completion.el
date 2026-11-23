@@ -172,18 +172,20 @@ SLYFUN takes two arguments, a pattern and a package."
   "Return (COMPLETIONS COMMON) where COMPLETIONS complete the PREFIX.
 COMPLETIONS is a list of propertized strings.
 COMMON a string, the common prefix."
-  (cl-loop with first-difference-pos = (length prefix)
-           with (completions common) =
-           (sly--completion-request-completions prefix 'slynk-completion:simple-completions)
-           for completion in completions
-           do (put-text-property first-difference-pos
-                                 (min (1+ first-difference-pos)
-                                      (1- (length completion)))
-                                 'face
-                                 'completions-first-difference
-                                 completion)
-           collect completion into formatted
-           finally return (list formatted common)))
+  (if (equal prefix "")
+	  (list nil "")
+      (cl-loop with first-difference-pos = (length prefix)
+               with (completions common) =
+               (sly--completion-request-completions prefix 'slynk-completion:simple-completions)
+               for completion in completions
+               do (put-text-property first-difference-pos
+                                     (min (1+ first-difference-pos)
+                                          (1- (length completion)))
+                                     'face
+                                     'completions-first-difference
+                                     completion)
+               collect completion into formatted
+               finally return (list formatted common)))
 
 (defun sly-flex-completions (pattern)
   "Return (COMPLETIONS NIL) where COMPLETIONS flex-complete PATTERN.
