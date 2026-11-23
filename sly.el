@@ -719,7 +719,7 @@ that returns one such construct.")
          (match-string 1 name))
         ((string-match "^\"\\(.*\\)\"$" name)
          (match-string 1 name))
-        (t name)))
+        (t (downcase name))))
 
 (add-to-list 'mode-line-misc-info
              `(sly-mode (" [" sly--mode-line-format "] ")))

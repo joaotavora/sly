@@ -56,11 +56,14 @@
 	(push s result)))
     (remove-duplicates result)))
 
-(defun unparse-symbol (symbol)
+(defun unparse-string (string)
   (let ((*print-case* (case (readtable-case *readtable*)
                         (:downcase :upcase)
                         (t :downcase))))
-    (unparse-name (symbol-name symbol))))
+    (unparse-name string)))
+
+(defun unparse-symbol (symbol)
+  (unparse-string (symbol-name symbol)))
 
 (defun prefix-match-p (prefix string)
   "Return true if PREFIX is a prefix of STRING."
@@ -255,7 +258,7 @@ A floating-point score. Higher scores for better matches."
 A match is a list (STRING SYMBOL INDEXES SCORE).
 Return non-nil if match was collected, nil otherwise."
   (multiple-value-bind (indexes score)
-      (flex-matches pattern string #'char=)
+      (flex-matches pattern (string-upcase string) #'char=)
     (when indexes
       (funcall collector
                (list string
@@ -277,8 +280,9 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
   (collecting (collect)
     (and (char= (aref pattern 0) #\:)
          (do-symbols (s +keyword-package+)
-           (collect-if-matches #'collect pattern (concatenate 'simple-string ":"
-                                                              (symbol-name s))
+           (collect-if-matches #'collect pattern
+                               (let ((*print-case* :downcase))
+                                 (prin1-to-string s))
                                s)))))
 
 (defun accessible-matching (pattern package)
@@ -298,7 +302,7 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
                 (unless (gethash s collected)
                   (setf (gethash s collected) t)
                   (funcall #'collect thing)))
-              pattern (symbol-name s) s))))))
+              pattern (unparse-symbol s) s))))))
 
 (defun qualified-matching (pattern home-package)
   "Find package-qualified symbols flex-matching PATTERN.
@@ -364,10 +368,8 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
                                (setf (gethash s collected) t)
                                (funcall #'collect-internal thing)))
                            pattern
-                           (concatenate 'simple-string
-                                        nickname
-                                        "::"
-                                        (symbol-name s))
+                           (untokenize-symbol
+                            (unparse-string nickname) t (unparse-symbol s))
                            s)))))
                 (t
                  (loop
@@ -389,10 +391,10 @@ Matches are produced by COLLECT-IF-MATCHES (which see)."
                             (loop for nickname in sorted-nicknames
                                   do (collect-if-matches #'collect-external
                                                          pattern
-                                                         (concatenate 'simple-string
-                                                                      nickname
-                                                                      ":"
-                                                                      (symbol-name s))
+                                                         (untokenize-symbol
+                                                          (unparse-string nickname)
+                                                          nil
+                                                          (unparse-symbol s))
                                                          s))))))))))))))
 
 (defslyfun flex-completions (pattern package-name &key (limit 300))
@@ -417,9 +419,7 @@ Returns a list of (COMPLETIONS NIL). COMPLETIONS is a list of
                     for i upto limit
                     collect e)
             collect
-            (list (if (every #'common-lisp:upper-case-p pattern)
-                      (string-upcase string)
-                      (string-downcase string))
+            (list string
                   score
                   (to-chunks string indexes)
                   (readably-classify symbol)))
